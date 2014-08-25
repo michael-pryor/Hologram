@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		51DB961819A8E3D0001A63F8 /* ConnectionManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 51DB961719A8E3D0001A63F8 /* ConnectionManager.m */; };
+		51DB961B19A8EE05001A63F8 /* ConnectionViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 51DB961A19A8EE05001A63F8 /* ConnectionViewController.m */; };
+		51E219DC193B2D190066D915 /* Storyboard.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 51E219DB193B2D190066D915 /* Storyboard.storyboard */; };
 		51E5BE221936A982003E45C3 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 51E5BE211936A982003E45C3 /* Foundation.framework */; };
 		51E5BE241936A982003E45C3 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 51E5BE231936A982003E45C3 /* CoreGraphics.framework */; };
 		51E5BE261936A982003E45C3 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 51E5BE251936A982003E45C3 /* UIKit.framework */; };
@@ -32,6 +35,11 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		51DB961619A8E3D0001A63F8 /* ConnectionManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConnectionManager.h; sourceTree = "<group>"; };
+		51DB961719A8E3D0001A63F8 /* ConnectionManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ConnectionManager.m; sourceTree = "<group>"; };
+		51DB961919A8EE05001A63F8 /* ConnectionViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConnectionViewController.h; sourceTree = "<group>"; };
+		51DB961A19A8EE05001A63F8 /* ConnectionViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ConnectionViewController.m; sourceTree = "<group>"; };
+		51E219DB193B2D190066D915 /* Storyboard.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = Storyboard.storyboard; sourceTree = "<group>"; };
 		51E5BE1E1936A982003E45C3 /* MyFirstApplication.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MyFirstApplication.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		51E5BE211936A982003E45C3 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		51E5BE231936A982003E45C3 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -118,9 +126,14 @@
 		51E5BE281936A982003E45C3 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				51DB961719A8E3D0001A63F8 /* ConnectionManager.m */,
+				51DB961619A8E3D0001A63F8 /* ConnectionManager.h */,
+				51DB961919A8EE05001A63F8 /* ConnectionViewController.h */,
+				51DB961A19A8EE05001A63F8 /* ConnectionViewController.m */,
 				51E5BE291936A982003E45C3 /* MyFirstApplication-Info.plist */,
 				51E5BE2A1936A982003E45C3 /* InfoPlist.strings */,
 				51E5BE2D1936A982003E45C3 /* main.m */,
+				51E219DB193B2D190066D915 /* Storyboard.storyboard */,
 				51E5BE2F1936A982003E45C3 /* MyFirstApplication-Prefix.pch */,
 			);
 			name = "Supporting Files";
@@ -191,6 +204,9 @@
 				CLASSPREFIX = MJP;
 				LastUpgradeCheck = 0510;
 				TargetAttributes = {
+					51E5BE1D1936A982003E45C3 = {
+						DevelopmentTeam = Q6XP93Q965;
+					};
 					51E5BE381936A982003E45C3 = {
 						TestTargetID = 51E5BE1D1936A982003E45C3;
 					};
@@ -221,6 +237,7 @@
 			files = (
 				51E5BE2C1936A982003E45C3 /* InfoPlist.strings in Resources */,
 				51E5BE341936A982003E45C3 /* Images.xcassets in Resources */,
+				51E219DC193B2D190066D915 /* Storyboard.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -239,6 +256,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				51DB961B19A8EE05001A63F8 /* ConnectionViewController.m in Sources */,
+				51DB961819A8E3D0001A63F8 /* ConnectionManager.m in Sources */,
 				51E5BE321936A982003E45C3 /* MJPAppDelegate.m in Sources */,
 				51E5BE2E1936A982003E45C3 /* main.m in Sources */,
 			);
@@ -357,10 +376,13 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "MyFirstApplication/MyFirstApplication-Prefix.pch";
 				INFOPLIST_FILE = "MyFirstApplication/MyFirstApplication-Info.plist";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -370,10 +392,13 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "MyFirstApplication/MyFirstApplication-Prefix.pch";
 				INFOPLIST_FILE = "MyFirstApplication/MyFirstApplication-Info.plist";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;
@@ -437,6 +462,7 @@
 				51E5BE4C1936A982003E45C3 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		51E5BE4D1936A982003E45C3 /* Build configuration list for PBXNativeTarget "MyFirstApplicationTests" */ = {
 			isa = XCConfigurationList;
@@ -445,6 +471,7 @@
 				51E5BE4F1936A982003E45C3 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
