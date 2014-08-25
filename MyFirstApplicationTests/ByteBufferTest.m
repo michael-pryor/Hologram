@@ -46,6 +46,19 @@
     
     result = [buffer getUnsignedInteger];
     assert(result == 123456);
+    
+    [buffer setCursorPosition:0];
+    [buffer addString: @"hello world"];
+    [buffer addString: @"hello universe!"];
+    [buffer setCursorPosition:0];
+    
+    NSString * strResult;
+    strResult = [buffer getString];
+    assert([strResult isEqualToString:@"hello world"]);
+    
+    strResult = [buffer getString];
+    assert([strResult isEqualToString:@"hello universe!"]);
+    
 }
 
 @end

@@ -62,6 +62,12 @@
     }
 }
 
+- (void) increaseBufferSizeIfRequired: (uint) size {
+    if(size > bufferUsedSize) {
+        [self setBufferSize: size retaining:true];
+    }
+}
+
 - (void) eraseFromPosition: (uint) position length: (uint) length {
     if(position > bufferUsedSize || length == 0) {
         return;
@@ -114,7 +120,7 @@
     uint endPosition = position + typeSize;
         
     // Increase size as necessary
-    [self setBufferSize: endPosition retaining: true];
+    [self increaseBufferSizeIfRequired: endPosition];
 
     // Copy data into buffer.
     memcpy(buffer + position, source, typeSize);
@@ -160,5 +166,42 @@
     }
 }
 
+- (void) addData: (uint8_t*) data WithLength: (uint) length {
+    uint dataSize = sizeof(uint8_t) * length;
+    uint newSize = cursorPosition + dataSize + sizeof(uint);
+    if(newSize > bufferUsedSize) {
+        [self setBufferSize: newSize retaining:true];
+    }
+    [self addUnsignedInteger:length];
+    memcpy(buffer + cursorPosition, data, dataSize);
+    cursorPosition += dataSize;
+}
+
+- (void) addString: (NSString*) string {
+    NSData *data = [string dataUsingEncoding:NSUTF8StringEncoding];
+    const void *bytes = [data bytes];
+    uint length = (uint)[data length];
+    uint8_t * rawData = (uint8_t*)bytes;
+    [self addData:rawData WithLength:length];
+}
+
+- (NSString*) getString {
+    if(cursorPosition + sizeof(uint) > bufferUsedSize) {
+        return nil;
+    }
+    uint stringLength = [self getUnsignedInteger];
+    
+    if(cursorPosition + stringLength > bufferUsedSize) {
+        cursorPosition -= sizeof(uint);
+        return nil;
+    }
+    
+    NSString *s = [[NSString alloc] initWithBytes:buffer + cursorPosition
+                                    length:stringLength
+                                    encoding:NSUTF8StringEncoding];
+    
+    cursorPosition += stringLength;
+    return s;
+}
 
 @end

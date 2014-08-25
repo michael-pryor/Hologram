@@ -22,5 +22,8 @@
 - (void) addUnsignedInteger: (uint) integer AtPosition: (uint) position;
 - (void) addUnsignedInteger: (uint) integer;
 
+- (void) addString: (NSString*) string;
+- (NSString*) getString;
+
 - (id) init: (uint) p_bufferSize;
 @end
