@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		51D584BB19AB648000BB6CE6 /* InputSession.m in Sources */ = {isa = PBXBuildFile; fileRef = 51D584BA19AB648000BB6CE6 /* InputSession.m */; };
+		51D584BE19AB649500BB6CE6 /* OutputSession.m in Sources */ = {isa = PBXBuildFile; fileRef = 51D584BD19AB649500BB6CE6 /* OutputSession.m */; };
+		51D584C119AB7A9400BB6CE6 /* ByteBuffer.m in Sources */ = {isa = PBXBuildFile; fileRef = 51D584C019AB7A9400BB6CE6 /* ByteBuffer.m */; };
+		51D584C319AB8B1D00BB6CE6 /* ByteBufferTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 51D584C219AB8B1D00BB6CE6 /* ByteBufferTest.m */; };
 		51DB961819A8E3D0001A63F8 /* ConnectionManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 51DB961719A8E3D0001A63F8 /* ConnectionManager.m */; };
 		51DB961B19A8EE05001A63F8 /* ConnectionViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 51DB961A19A8EE05001A63F8 /* ConnectionViewController.m */; };
 		51E219DC193B2D190066D915 /* Storyboard.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 51E219DB193B2D190066D915 /* Storyboard.storyboard */; };
@@ -35,6 +39,13 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		51D584B919AB648000BB6CE6 /* InputSession.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InputSession.h; sourceTree = "<group>"; };
+		51D584BA19AB648000BB6CE6 /* InputSession.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = InputSession.m; sourceTree = "<group>"; };
+		51D584BC19AB649500BB6CE6 /* OutputSession.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OutputSession.h; sourceTree = "<group>"; };
+		51D584BD19AB649500BB6CE6 /* OutputSession.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OutputSession.m; sourceTree = "<group>"; };
+		51D584BF19AB7A9400BB6CE6 /* ByteBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ByteBuffer.h; sourceTree = "<group>"; };
+		51D584C019AB7A9400BB6CE6 /* ByteBuffer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ByteBuffer.m; sourceTree = "<group>"; };
+		51D584C219AB8B1D00BB6CE6 /* ByteBufferTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ByteBufferTest.m; sourceTree = "<group>"; };
 		51DB961619A8E3D0001A63F8 /* ConnectionManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConnectionManager.h; sourceTree = "<group>"; };
 		51DB961719A8E3D0001A63F8 /* ConnectionManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ConnectionManager.m; sourceTree = "<group>"; };
 		51DB961919A8EE05001A63F8 /* ConnectionViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConnectionViewController.h; sourceTree = "<group>"; };
@@ -82,6 +93,21 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		51D584B819AB63FB00BB6CE6 /* Networking */ = {
+			isa = PBXGroup;
+			children = (
+				51DB961719A8E3D0001A63F8 /* ConnectionManager.m */,
+				51DB961619A8E3D0001A63F8 /* ConnectionManager.h */,
+				51D584B919AB648000BB6CE6 /* InputSession.h */,
+				51D584BA19AB648000BB6CE6 /* InputSession.m */,
+				51D584BC19AB649500BB6CE6 /* OutputSession.h */,
+				51D584BD19AB649500BB6CE6 /* OutputSession.m */,
+				51D584BF19AB7A9400BB6CE6 /* ByteBuffer.h */,
+				51D584C019AB7A9400BB6CE6 /* ByteBuffer.m */,
+			);
+			name = Networking;
+			sourceTree = "<group>";
+		};
 		51E5BE151936A982003E45C3 = {
 			isa = PBXGroup;
 			children = (
@@ -126,8 +152,7 @@
 		51E5BE281936A982003E45C3 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
-				51DB961719A8E3D0001A63F8 /* ConnectionManager.m */,
-				51DB961619A8E3D0001A63F8 /* ConnectionManager.h */,
+				51D584B819AB63FB00BB6CE6 /* Networking */,
 				51DB961919A8EE05001A63F8 /* ConnectionViewController.h */,
 				51DB961A19A8EE05001A63F8 /* ConnectionViewController.m */,
 				51E5BE291936A982003E45C3 /* MyFirstApplication-Info.plist */,
@@ -153,6 +178,7 @@
 			children = (
 				51E5BE421936A982003E45C3 /* MyFirstApplicationTests-Info.plist */,
 				51E5BE431936A982003E45C3 /* InfoPlist.strings */,
+				51D584C219AB8B1D00BB6CE6 /* ByteBufferTest.m */,
 			);
 			name = "Supporting Files";
 			sourceTree = "<group>";
@@ -257,8 +283,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				51DB961B19A8EE05001A63F8 /* ConnectionViewController.m in Sources */,
+				51D584C119AB7A9400BB6CE6 /* ByteBuffer.m in Sources */,
+				51D584BE19AB649500BB6CE6 /* OutputSession.m in Sources */,
 				51DB961819A8E3D0001A63F8 /* ConnectionManager.m in Sources */,
 				51E5BE321936A982003E45C3 /* MJPAppDelegate.m in Sources */,
+				51D584BB19AB648000BB6CE6 /* InputSession.m in Sources */,
 				51E5BE2E1936A982003E45C3 /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -268,6 +297,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				51E5BE471936A982003E45C3 /* MyFirstApplicationTests.m in Sources */,
+				51D584C319AB8B1D00BB6CE6 /* ByteBufferTest.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
