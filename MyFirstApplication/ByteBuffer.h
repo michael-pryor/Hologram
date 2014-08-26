@@ -16,6 +16,7 @@
 
 - (void) setUsedSize: (uint)size;
 - (void) setMemorySize: (uint)size retaining: (Boolean)isRetaining;
+- (void) increaseMemorySize: (uint)size;
 - (void) eraseFromPosition: (uint)position length: (uint)length;
 - (void) eraseFromCursor: (uint)length;
 - (uint) getUnsignedIntegerAtPosition: (uint)position;
@@ -23,8 +24,18 @@
 - (void) addUnsignedInteger: (uint)integer atPosition: (uint)position;
 - (void) addUnsignedInteger: (uint)integer;
 
-- (void) addString: (NSString*)string;
-- (NSString*) getString;
+- (uint) getUnreadDataFromCursor;
+- (void) moveCursorForwards:(uint)amount;
+- (void) setCursorPosition:(uint)newCursorPosition;
 
-- (id) init: (uint) p_bufferSize;
+- (void) addString: (NSString*)string;
+- (void) addData: (uint8_t*)data withLength: (uint)length includingPrefix: (Boolean)includePrefix;
+- (void) addData: (uint8_t*)data withLength: (uint)length;
+- (void) addByteBuffer: (ByteBuffer*)p_buffer includingPrefix: (Boolean)includePrefix;
+- (void) addByteBuffer: (ByteBuffer*)p_buffer;
+- (NSString*) getString;
+- (ByteBuffer*) getByteBuffer;
+
+- (id) initWithSize: (uint) p_bufferSize;
+- (id) initFromBuffer: (uint8_t*)p_buffer withSize: (uint)p_bufferSize;
 @end

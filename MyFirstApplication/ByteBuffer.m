@@ -16,7 +16,7 @@
 @synthesize cursorPosition;
 
 
-- (id) init: (uint) p_bufferSize {
+- (id) initWithSize: (uint)p_bufferSize {
     self = [super init];
     if(self) {
         buffer = nil;
@@ -24,6 +24,18 @@
         bufferUsedSize = 0;
         cursorPosition = 0;
         [self setMemorySize: p_bufferSize retaining: false];
+    }
+    return self;
+}
+
+- (id) initFromBuffer: (uint8_t*)p_buffer withSize: (uint)p_bufferSize {
+    self = [super init];
+    if(self) {
+        buffer = nil;
+        bufferMemorySize = 0;
+        bufferUsedSize = 0;
+        cursorPosition = 0;
+        [self addData:p_buffer withLength:p_bufferSize includingPrefix:false];
     }
     return self;
 }
@@ -40,7 +52,7 @@
     }
 }
 
-- (void) setMemorySize: (uint) size retaining: (Boolean) isRetaining {
+- (void) setMemorySize: (uint)size retaining: (Boolean)isRetaining {
     if(size == bufferMemorySize) {
         return;
     }
@@ -66,7 +78,12 @@
     [self enforceBounds];
 }
 
-- (void) increaseMemorySize: (uint) size {
+- (void) setUsedSize: (uint)size {
+    bufferUsedSize = size;
+    [self enforceBounds];
+}
+
+- (void) increaseMemorySize: (uint)size {
     if(size > bufferUsedSize) {
         [self setMemorySize: size retaining:true];
     }
@@ -178,13 +195,31 @@
     return bufferUsedSize - cursorPosition;
 }
 
-- (void) addData: (uint8_t*) data withLength: (uint) length {
+- (void) addData: (uint8_t*)data withLength: (uint)length includingPrefix: (Boolean)includePrefix {
     uint dataSize = sizeof(uint8_t) * length;
-    uint newSize = cursorPosition + dataSize + sizeof(uint);
+    uint newSize = cursorPosition + dataSize;
+    if(includePrefix) {
+        newSize += sizeof(uint);
+    }
     [self increaseMemorySize:newSize];
-    [self addUnsignedInteger:length];
+    if(includePrefix) {
+        [self addUnsignedInteger:length];
+    }
     memcpy(buffer + cursorPosition, data, dataSize);
     [self moveCursorForwards:dataSize];
+}
+
+- (void) addData: (uint8_t*)data withLength: (uint)length {
+    [self addData:data withLength:length includingPrefix:true];
+}
+
+- (void) addByteBuffer: (ByteBuffer*)p_buffer includingPrefix: (Boolean)includePrefix {
+    [self addData:p_buffer.buffer withLength:p_buffer.bufferUsedSize includingPrefix:includePrefix];
+}
+
+- (void) addByteBuffer: (ByteBuffer*)p_buffer {
+    // note default of false is different to strings, we normally use this internally for buffering data.
+    [self addByteBuffer:p_buffer includingPrefix:false];
 }
 
 - (void) addString: (NSString*) string {
@@ -195,7 +230,8 @@
     [self addData:rawData withLength:length];
 }
 
-- (NSString*) getString {
+
+- (id) getVariableLengthData:(id(^)(uint8_t* data, uint length))dataHandler {
     if([self getUnreadDataFromCursor] < sizeof(uint)) {
         return nil;
     }
@@ -206,12 +242,24 @@
     }
     cursorPosition += sizeof(uint);
     
-    NSString *s = [[NSString alloc] initWithBytes:buffer + cursorPosition
-                                    length:stringLength
-                                    encoding:NSUTF8StringEncoding];
+    id result = dataHandler(buffer + cursorPosition, stringLength);
     
     cursorPosition += stringLength;
-    return s;
+    return result;
+}
+
+- (NSString*)getString {
+    return [self getVariableLengthData:^id(uint8_t* data, uint length) {
+        return [[NSString alloc] initWithBytes:data
+                                 length:length
+                                 encoding:NSUTF8StringEncoding];
+     }];
+}
+
+- (ByteBuffer*)getByteBuffer {
+    return [self getVariableLengthData:^id(uint8_t* data, uint length) {
+        return [[ByteBuffer alloc] initFromBuffer:data withSize:length];
+    }];
 }
 
 @end

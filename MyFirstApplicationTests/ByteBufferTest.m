@@ -29,7 +29,7 @@
 
 - (void)testBuffer
 {
-    ByteBuffer * buffer = [[ByteBuffer alloc] init: 1];
+    ByteBuffer * buffer = [[ByteBuffer alloc] initWithSize: 1];
     assert(buffer.cursorPosition == 0);
     assert(buffer.bufferUsedSize == 0);
     assert(buffer.bufferMemorySize == 1);
