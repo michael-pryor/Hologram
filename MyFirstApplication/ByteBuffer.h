@@ -14,15 +14,16 @@
 @property (readonly) uint bufferUsedSize;
 @property (nonatomic) uint cursorPosition;
 
-- (void) setBufferSize: (uint) size retaining: (Boolean) isRetaining;
-- (void) eraseFromPosition: (uint) position length: (uint) length;
-- (void) eraseFromCursor: (uint) length;
-- (uint) getUnsignedIntegerFromPosition: (uint) position;
+- (void) setUsedSize: (uint)size;
+- (void) setMemorySize: (uint)size retaining: (Boolean)isRetaining;
+- (void) eraseFromPosition: (uint)position length: (uint)length;
+- (void) eraseFromCursor: (uint)length;
+- (uint) getUnsignedIntegerAtPosition: (uint)position;
 - (uint) getUnsignedInteger;
-- (void) addUnsignedInteger: (uint) integer AtPosition: (uint) position;
-- (void) addUnsignedInteger: (uint) integer;
+- (void) addUnsignedInteger: (uint)integer atPosition: (uint)position;
+- (void) addUnsignedInteger: (uint)integer;
 
-- (void) addString: (NSString*) string;
+- (void) addString: (NSString*)string;
 - (NSString*) getString;
 
 - (id) init: (uint) p_bufferSize;

@@ -23,13 +23,25 @@
         bufferMemorySize = 0;
         bufferUsedSize = 0;
         cursorPosition = 0;
-        [self setBufferSize: p_bufferSize retaining: false];
+        [self setMemorySize: p_bufferSize retaining: false];
     }
     return self;
 }
 
-- (void) setBufferSize: (uint) size retaining: (Boolean) isRetaining {
-    if(size == bufferUsedSize) {
+- (void) enforceBounds {
+    // Ensure used size is within memory bounds.
+    if(bufferUsedSize > bufferMemorySize) {
+        bufferUsedSize = bufferMemorySize;
+    }
+
+    // Ensure cursor is within bounds.
+    if(cursorPosition > bufferUsedSize) {
+        cursorPosition = bufferUsedSize;
+    }
+}
+
+- (void) setMemorySize: (uint) size retaining: (Boolean) isRetaining {
+    if(size == bufferMemorySize) {
         return;
     }
     
@@ -43,8 +55,6 @@
         // Copy old data in.
         if(isRetaining && oldBuffer != nil && oldBufferSize > 0) {
             memcpy(buffer, oldBuffer, oldBufferSize);
-        } else {
-            cursorPosition = 0;
         }
         
         // Deallocate old buffer.
@@ -53,18 +63,12 @@
         bufferMemorySize = size;
     }
     
-    // We can freely expand (or reduce), we have enough memory.
-    bufferUsedSize = size;
-    
-    // Ensure cursor is within bounds.
-    if(cursorPosition > bufferUsedSize) {
-        cursorPosition = bufferUsedSize - 1;
-    }
+    [self enforceBounds];
 }
 
-- (void) increaseBufferSizeIfRequired: (uint) size {
+- (void) increaseMemorySize: (uint) size {
     if(size > bufferUsedSize) {
-        [self setBufferSize: size retaining:true];
+        [self setMemorySize: size retaining:true];
     }
 }
 
@@ -79,10 +83,16 @@
         // Source begins at position + length, straight after data to erase
         // Source ends at the end of all data currently in use, so that no useful data is lost in the shift
         memcpy(buffer + position,(buffer + position) + length, (bufferUsedSize - position) - length);
+        bufferUsedSize -= length;
+    } else {
+        bufferUsedSize = 0;
     }
     
-    // Change used size
-    bufferUsedSize -= length;
+    [self enforceBounds];
+}
+
+- (void) eraseFromCursor: (uint) length {
+    [self eraseFromPosition: cursorPosition length: length];
     
     // Change cursor
     if(length >= cursorPosition) {
@@ -91,10 +101,6 @@
     else {
         cursorPosition -= length;
     }
-}
-
-- (void) eraseFromCursor: (uint) length {
-    [self eraseFromPosition: cursorPosition length: length];
 }
 
 - (uint) getValue: (void*) dest fromPosition: (uint) position typeSize: (uint) typeSize {
@@ -115,12 +121,12 @@
     return position;
 }
 
-- (uint) addValue: (void*) source toPosition: (uint) position typeSize: (uint) typeSize {
+- (uint) addValue: (void*) source atPosition: (uint) position typeSize: (uint) typeSize {
     // Get the new end position after adding
     uint endPosition = position + typeSize;
         
     // Increase size as necessary
-    [self increaseBufferSizeIfRequired: endPosition];
+    [self increaseMemorySize: endPosition];
 
     // Copy data into buffer.
     memcpy(buffer + position, source, typeSize);
@@ -128,17 +134,15 @@
     return endPosition;
 }
 
-- (uint) addValue: (void*) source typeSize: (uint) typeSize {
-    cursorPosition = [self addValue:source toPosition:cursorPosition typeSize:typeSize];
-    return cursorPosition;
+- (void) addValue: (void*) source typeSize: (uint) typeSize {
+    [self setCursorPosition: [self addValue:source atPosition:cursorPosition typeSize:typeSize]];
 }
 
-- (uint) getValue: (void*) dest typeSize: (uint) typeSize {
-    cursorPosition = [self getValue:dest fromPosition:cursorPosition typeSize:typeSize];
-    return cursorPosition;
+- (void) getValue: (void*) dest typeSize: (uint) typeSize {
+    [self setCursorPosition: [self getValue:dest fromPosition:cursorPosition typeSize:typeSize]];
 }
 
-- (uint) getUnsignedIntegerFromPosition: (uint) position {
+- (uint) getUnsignedIntegerAtPosition: (uint) position {
     uint integer;
     [self getValue:&integer fromPosition:position typeSize:sizeof(uint)];
     return integer;
@@ -150,8 +154,8 @@
     return integer;
 }
 
-- (void) addUnsignedInteger: (uint) integer AtPosition: (uint) position {
-    [self addValue:&integer toPosition:position typeSize:sizeof(uint)];
+- (void) addUnsignedInteger: (uint) integer atPosition: (uint) position {
+    [self addValue:&integer atPosition:position typeSize:sizeof(uint)];
 }
 
 - (void) addUnsignedInteger: (uint) integer {
@@ -159,22 +163,28 @@
 }
 
 - (void) setCursorPosition:(uint)newCursorPosition {
+    [self increaseMemorySize:newCursorPosition];
     if(newCursorPosition > bufferUsedSize) {
-        cursorPosition = bufferUsedSize;
-    } else {
-        cursorPosition = newCursorPosition;
+        bufferUsedSize = newCursorPosition;
     }
+    cursorPosition = newCursorPosition;
 }
 
-- (void) addData: (uint8_t*) data WithLength: (uint) length {
+- (void) moveCursorForwards:(uint)amount {
+    [self setCursorPosition:cursorPosition + amount];
+}
+
+- (uint) getUnreadDataFromCursor {
+    return bufferUsedSize - cursorPosition;
+}
+
+- (void) addData: (uint8_t*) data withLength: (uint) length {
     uint dataSize = sizeof(uint8_t) * length;
     uint newSize = cursorPosition + dataSize + sizeof(uint);
-    if(newSize > bufferUsedSize) {
-        [self setBufferSize: newSize retaining:true];
-    }
+    [self increaseMemorySize:newSize];
     [self addUnsignedInteger:length];
     memcpy(buffer + cursorPosition, data, dataSize);
-    cursorPosition += dataSize;
+    [self moveCursorForwards:dataSize];
 }
 
 - (void) addString: (NSString*) string {
@@ -182,19 +192,19 @@
     const void *bytes = [data bytes];
     uint length = (uint)[data length];
     uint8_t * rawData = (uint8_t*)bytes;
-    [self addData:rawData WithLength:length];
+    [self addData:rawData withLength:length];
 }
 
 - (NSString*) getString {
-    if(cursorPosition + sizeof(uint) > bufferUsedSize) {
+    if([self getUnreadDataFromCursor] < sizeof(uint)) {
         return nil;
     }
-    uint stringLength = [self getUnsignedInteger];
+    uint stringLength = [self getUnsignedIntegerAtPosition:cursorPosition];
     
-    if(cursorPosition + stringLength > bufferUsedSize) {
-        cursorPosition -= sizeof(uint);
+    if([self getUnreadDataFromCursor] < sizeof(uint) + stringLength) {
         return nil;
     }
+    cursorPosition += sizeof(uint);
     
     NSString *s = [[NSString alloc] initWithBytes:buffer + cursorPosition
                                     length:stringLength
