@@ -8,20 +8,12 @@
 
 #import "InputSession.h"
 
-@implementation BufferedPrefixInputSession
-@synthesize buffer;
-@synthesize bufferSize;
-
-- (id) init: (int) p_bufferSize {
-    self = [super init];
-    if(self) {
-        bufferSize = p_bufferSize;
-    }
-    return self;
+@implementation InputSessionTCP
+@synthesize recvBuffer;
+- (void)onNewData: (uint)length {
+    [recvBuffer moveCursorForwards:length];
 }
-
-- (void) onRecvData: (NSInteger)bytesReadIntoBuffer {
-    
+- (ByteBuffer*)getDestinationBuffer {
+    return recvBuffer;
 }
-
 @end

@@ -9,6 +9,8 @@
 #import "ConnectionManager.h"
 #import <AudioToolbox/AudioToolbox.h>
 #import <CoreFoundation/CoreFoundation.h>
+#import "InputSession.h"
+#import "OutputSession.h"
 
 static NSString *const CONNECT_IP = @"192.168.1.92";
 static const int CONNECT_PORT = 12340;
@@ -17,12 +19,14 @@ static const int CONNECT_PORT = 12340;
 @synthesize connectionStatusDelegate;
 NSInputStream * inputStream;
 NSOutputStream * outputStream;
+id<NewDataDelegate> inputSession;
+OutputSession * outputSession;
 
 
-- (id) init: (id<ConnectionStatusDelegate>) connectionStatusDelegate {
+- (id) initWithDelegate: (id<ConnectionStatusDelegate>)p_connectionStatusDelegate inputSession: (id<NewDataDelegate>)inputSession outputSession: (OutputSession*)outputSession {
     self = [super init];
     if(self) {
-        self.connectionStatusDelegate = connectionStatusDelegate;
+        self.connectionStatusDelegate = p_connectionStatusDelegate;
     }
     return self;
 }
@@ -79,8 +83,15 @@ NSOutputStream * outputStream;
             
         case NSStreamEventHasBytesAvailable:
             if(isInputStream) {
-                // Here we read bytes up to a specified amount. We need to buffer this and implement some sort of protocol
-                // abstract this out to a different set of classes.
+                ByteBuffer* dataStream = [inputSession getDestinationBuffer];
+                
+                // should we be using cursor or used size! ?? im too tired.
+                
+                // Double memory size if we run out.
+                [dataStream increaseMemoryIfUnusedAt:0 to:dataStream.bufferMemorySize*2];
+                
+                // Read in data.
+                [inputStream read:[dataStream buffer] maxLength:[dataStream getUnusedMemory]];
             }
             break;
             

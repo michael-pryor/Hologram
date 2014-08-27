@@ -24,6 +24,8 @@
 - (void) addUnsignedInteger: (uint)integer atPosition: (uint)position;
 - (void) addUnsignedInteger: (uint)integer;
 
+- (uint) increaseMemoryIfUnusedAt: (uint)threshold to: (uint)newSize;
+- (uint) getUnusedMemory;
 - (uint) getUnreadDataFromCursor;
 - (void) moveCursorForwards:(uint)amount;
 - (void) setCursorPosition:(uint)newCursorPosition;

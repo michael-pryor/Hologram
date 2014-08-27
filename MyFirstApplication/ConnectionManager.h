@@ -7,6 +7,8 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "InputSession.h"
+#import "OutputSession.h"
 
 typedef enum {
     ERROR,
@@ -20,7 +22,7 @@ typedef enum {
 
 @interface ConnectionManager : NSObject<NSStreamDelegate>
 @property (nonatomic, assign) id  connectionStatusDelegate;
-- (id) init: (id<ConnectionStatusDelegate>) connectionStatusDelegate;
+- (id) initWithDelegate: (id<ConnectionStatusDelegate>)p_connectionStatusDelegate inputSession: (id<NewDataDelegate>)inputSession outputSession: (OutputSession*)outputSession;
 - (void) myMethod;
 - (void) connect;
 @end

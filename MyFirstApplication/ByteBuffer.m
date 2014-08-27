@@ -195,6 +195,15 @@
     return bufferUsedSize - cursorPosition;
 }
 
+- (uint) increaseMemoryIfUnusedAt: (uint)threshold to: (uint)newSize{
+    if([self getUnusedMemory] <= threshold) {
+        [self setMemorySize:newSize retaining:true];
+    }
+}
+- (uint) getUnusedMemory {
+    return bufferMemorySize - bufferUsedSize;
+}
+
 - (void) addData: (uint8_t*)data withLength: (uint)length includingPrefix: (Boolean)includePrefix {
     uint dataSize = sizeof(uint8_t) * length;
     uint newSize = cursorPosition + dataSize;
