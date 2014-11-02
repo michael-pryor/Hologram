@@ -94,7 +94,7 @@ OutputSession * outputSession;
                 [inputStream read:[dataStream buffer] maxLength:[dataStream getUnusedMemory]];
             }
             break;
-            
+            // hello
         case NSStreamEventHasSpaceAvailable:
             if(isOutputStream) {
                 // Here we need to know what data to send. Need some sort of queue. Abstract this out to another class.
