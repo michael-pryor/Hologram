@@ -11,8 +11,8 @@
 #import "OutputSession.h"
 
 typedef enum {
-    ERROR,
-    OK,
+    ERROR_CON,
+    OK_CON,
     CONNECTING
 } ConnectionStatus;
 
@@ -21,7 +21,8 @@ typedef enum {
 @end
 
 @interface ConnectionManager : NSObject<NSStreamDelegate>
-@property (nonatomic, assign) id  connectionStatusDelegate;
+@property (nonatomic, readonly) id  connectionStatusDelegate;
+@property (nonatomic, readonly) id  inputSession;
 - (id) initWithDelegate: (id<ConnectionStatusDelegate>)p_connectionStatusDelegate inputSession: (id<NewDataDelegate>)inputSession outputSession: (OutputSession*)outputSession;
 - (void) myMethod;
 - (void) connect;

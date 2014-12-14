@@ -8,38 +8,37 @@ logger = logging.getLogger(__name__)
 
 from twisted.internet.protocol import Protocol, ClientFactory
 import twisted
+from twisted.internet.endpoints import TCP4ServerEndpoint
+from twisted.internet import reactor, task, protocol
 
-def clientSendingThread(transport):
-    assert isinstance(transport, twisted.internet.tcp.Client)
+from twisted.protocols.basic import IntNStringReceiver
 
-    iteration = 1
-    while True:
-        time.sleep(0)
-        logger.info("sending message")
-        transport.write("Hello universe, this is iteration: %d" % iteration)
-        transport
-        iteration += 1
+import struct
 
+class Echo(IntNStringReceiver):
+    structFormat = "<L"
+    prefixLength = struct.calcsize(structFormat)
 
-class Echo(Protocol):
     def connectionMade(self):
-        logger.info("Starting client sending thread")
-        print type(self.transport)
-        t = threading.Thread(target=clientSendingThread, args = (self.transport,))
-        t.daemon = True
-        t.start()
-
+        logger.info("Connection made to client")
 
     def dataReceived(self, data):
         logger.info("Client received data: [%s]" % data)
 
 class EchoClientFactory(ClientFactory):
+    def __init__(self):
+        self.clients = []
+        self.lc = task.LoopingCall(self.announce)
+        self.lc.start(1)
+
     def startedConnecting(self, connector):
         logger.info('Started to connect.')
 
     def buildProtocol(self, addr):
         logger.info('Connected.')
-        return Echo()
+        client = Echo()
+        self.clients.append(client)
+        return client
 
     def clientConnectionLost(self, connector, reason):
         logger.info('Lost connection.  Reason:')
@@ -47,12 +46,18 @@ class EchoClientFactory(ClientFactory):
     def clientConnectionFailed(self, connector, reason):
         logger.info('Connection failed. Reason:')
 
+    def announce(self):
+        logger.info("sending messages..")
+        for client in self.clients:
+            logger.info("sent message")
+            client.sendString("hello world")
+
 if __name__ == "__main__":
     logging.basicConfig(level = logging.DEBUG)
 
     host = ""
     port = 12340
 
-    from twisted.internet import reactor
-    reactor.connectTCP(host, port, EchoClientFactory())
+    endpoint = TCP4ServerEndpoint(reactor, 12340)
+    endpoint.listen(EchoClientFactory())
     reactor.run()

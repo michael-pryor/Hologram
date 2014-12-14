@@ -28,6 +28,8 @@
 
 @interface InputSessionTCP : NSObject<NewDataDelegate>
 @property (readonly) ByteBuffer* recvBuffer;
+@property (readonly) id<NewPacketDelegate> packetDelegate;
+- (id) initWithDelegate: (id<NewPacketDelegate>)packetDelegate;
 @end
 
 

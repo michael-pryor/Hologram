@@ -23,10 +23,11 @@ id<NewDataDelegate> inputSession;
 OutputSession * outputSession;
 
 
-- (id) initWithDelegate: (id<ConnectionStatusDelegate>)p_connectionStatusDelegate inputSession: (id<NewDataDelegate>)inputSession outputSession: (OutputSession*)outputSession {
+- (id) initWithDelegate: (id<ConnectionStatusDelegate>)p_connectionStatusDelegate inputSession: (id<NewDataDelegate>)p_inputSession outputSession: (OutputSession*)outputSession {
     self = [super init];
     if(self) {
-        self.connectionStatusDelegate = p_connectionStatusDelegate;
+        connectionStatusDelegate = p_connectionStatusDelegate;
+        inputSession = p_inputSession;
     }
     return self;
 }
@@ -59,6 +60,29 @@ OutputSession * outputSession;
 	[outputStream open];
 }
 
+- (void) closeWithStatus: (ConnectionStatus)status andReason: (NSString*)reason {
+    if(inputStream != nil) {
+        NSLog(@"Closing input stream");
+        [inputStream close];
+    }
+    if(outputStream != nil) {
+        NSLog(@"Closing output stream");
+        [outputStream close];
+    }
+    NSString * description = [NSString localizedStringWithFormat:@"Connection closed, with reason: %@", reason];
+    [connectionStatusDelegate connectionStatusChange:status withDescription:description];
+}
+
+- (void)onStreamError: (NSStream*)theStream withStreamName: (NSString*) streamName {
+    NSString * streamError = [NSString localizedStringWithFormat:@"Stream error detected in %@, details: [%@]", streamName, [[theStream streamError] localizedDescription]];
+    [self closeWithStatus:ERROR_CON andReason:streamError];
+}
+
+- (void)onNormalError: (NSString*)errorText withStreamName: (NSString*) streamName {
+    NSString * streamError = [NSString localizedStringWithFormat:@"Error detected in %@, details: [%@]", streamName, errorText];
+    [self closeWithStatus:ERROR_CON andReason:streamError];
+}
+
 - (void)stream:(NSStream *)theStream handleEvent:(NSStreamEvent)streamEvent {
     Boolean isInputStream = (theStream == inputStream);
     Boolean isOutputStream = !isInputStream;
@@ -78,23 +102,33 @@ OutputSession * outputSession;
             break;
             
         case NSStreamEventOpenCompleted:
-            [connectionStatusDelegate connectionStatusChange:OK withDescription:@"Connection open"];
+            [connectionStatusDelegate connectionStatusChange:OK_CON withDescription:@"Connection open"];
             break;
             
         case NSStreamEventHasBytesAvailable:
             if(isInputStream) {
                 ByteBuffer* dataStream = [inputSession getDestinationBuffer];
                 
-                // should we be using cursor or used size! ?? im too tired.
-                
                 // Double memory size if we run out.
+                // TODO: Consider perhaps a smarter solution to this.
                 [dataStream increaseMemoryIfUnusedAt:0 to:dataStream.bufferMemorySize*2];
                 
-                // Read in data.
-                [inputStream read:[dataStream buffer] maxLength:[dataStream getUnusedMemory]];
-            }
+                // Read in data at the end of currently stored data (just past used size).
+                NSInteger bytesRead = [inputStream read:[dataStream buffer] + [dataStream bufferUsedSize] maxLength:[dataStream getUnusedMemory]];
+                if(bytesRead < 0) {
+                    [self onStreamError:theStream withStreamName:streamName];
+                    return;
+                }
+                
+                Boolean successfulIncreaseInUsedSize = [dataStream increaseUsedSizePassively:(uint)bytesRead];
+                if(!successfulIncreaseInUsedSize) {
+                    [self onNormalError:@"Failed to increase used size, bad value" withStreamName:streamName];
+                    return;
+                }
+            	
+                [inputSession onNewData: (uint)bytesRead];
+        	}
             break;
-            // hello
         case NSStreamEventHasSpaceAvailable:
             if(isOutputStream) {
                 // Here we need to know what data to send. Need some sort of queue. Abstract this out to another class.
@@ -104,7 +138,7 @@ OutputSession * outputSession;
             
         case NSStreamEventErrorOccurred:
             description = [NSString localizedStringWithFormat:@"Stream error detected in %@, details: [%@]", streamName, [[theStream streamError] localizedDescription]];
-            [connectionStatusDelegate connectionStatusChange:ERROR withDescription:description];
+            [connectionStatusDelegate connectionStatusChange:ERROR_CON withDescription:description];
             break;
             
         case NSStreamEventEndEncountered:

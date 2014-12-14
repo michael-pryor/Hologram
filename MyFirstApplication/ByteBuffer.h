@@ -28,6 +28,7 @@
 - (uint) getUnusedMemory;
 - (uint) getUnreadDataFromCursor;
 - (void) moveCursorForwards:(uint)amount;
+- (Boolean) moveCursorForwardsPassively:(uint)amount;
 - (void) setCursorPosition:(uint)newCursorPosition;
 
 - (void) addString: (NSString*)string;
@@ -37,7 +38,14 @@
 - (void) addByteBuffer: (ByteBuffer*)p_buffer;
 - (NSString*) getString;
 - (ByteBuffer*) getByteBuffer;
+- (NSString*)getStringWithLength: (uint) length;
+- (ByteBuffer*)getByteBufferWithLength: (uint) length;
+
+- (NSString*)convertToString;
 
 - (id) initWithSize: (uint) p_bufferSize;
 - (id) initFromBuffer: (uint8_t*)p_buffer withSize: (uint)p_bufferSize;
+
+- (void) increaseUsedSize: (uint)amount;
+- (Boolean) increaseUsedSizePassively: (uint)amount;
 @end

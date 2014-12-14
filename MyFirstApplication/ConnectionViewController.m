@@ -7,6 +7,7 @@
 //
 
 #import "ConnectionViewController.h"
+#import "InputSession.h"
 
 
 @implementation ConnectionViewController
@@ -21,7 +22,8 @@ ConnectionManager * con;
 }
 
 - (IBAction)onConnectButtonClick:(id)sender {
-    con = [[ConnectionManager alloc] init: self];
+    InputSessionTCP * sessionTcp = [[InputSessionTCP alloc] initWithDelegate: self];
+    con = [[ConnectionManager alloc] initWithDelegate: self inputSession: sessionTcp outputSession: nil ];
     [con connect];
 }
 
@@ -36,20 +38,21 @@ ConnectionManager * con;
             [[self connectionProgress] startAnimating];
             break;
             
-        case OK:
+        case OK_CON:
             [[self connectionStatus] setTextColor: [UIColor greenColor]];
             [[self connectionProgress] stopAnimating];
             [[self connectionStatus] setHidden:false];
             break;
         
-        case ERROR:
+        case ERROR_CON:
             [[self connectionStatus] setTextColor: [UIColor redColor]];
             [[self connectionProgress] stopAnimating];
             [[self connectionStatus] setHidden:false];            
             break;
-        
-            
-            
     }
+}
+
+- (void)onNewPacket:(ByteBuffer *)packet {
+    NSLog(@"New packet received: %@", [packet convertToString]);
 }
 @end

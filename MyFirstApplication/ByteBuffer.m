@@ -57,23 +57,33 @@
         return;
     }
     
-    if(size > bufferMemorySize) {
-        uint8_t * oldBuffer = buffer;
-        uint oldBufferSize = bufferUsedSize;
-        
-        // Allocate new larger buffer.
-        buffer = malloc(sizeof(uint8_t) * size);
-        
-        // Copy old data in.
-        if(isRetaining && oldBuffer != nil && oldBufferSize > 0) {
-            memcpy(buffer, oldBuffer, oldBufferSize);
+    uint8_t * oldBuffer = buffer;
+    uint amountToCopyFromOldBuffer;
+    if(isRetaining) {
+        if(bufferUsedSize < size) {
+            amountToCopyFromOldBuffer = bufferUsedSize;
+        } else {
+            amountToCopyFromOldBuffer = size;
         }
-        
-        // Deallocate old buffer.
-        free(oldBuffer);
-        
-        bufferMemorySize = size;
+    } else {
+        amountToCopyFromOldBuffer = 0;
     }
+    
+    // Allocate new larger buffer.
+    buffer = malloc(sizeof(uint8_t) * size);
+    
+    // Copy old data in.
+    if(oldBuffer != nil && amountToCopyFromOldBuffer > 0) {
+        memcpy(buffer, oldBuffer, amountToCopyFromOldBuffer);
+        bufferUsedSize = amountToCopyFromOldBuffer;
+    } else {
+        bufferUsedSize = 0;
+    }
+    
+    // Deallocate old buffer.
+    free(oldBuffer);
+    
+    bufferMemorySize = size;
     
     [self enforceBounds];
 }
@@ -84,7 +94,7 @@
 }
 
 - (void) increaseMemorySize: (uint)size {
-    if(size > bufferUsedSize) {
+    if(size > bufferMemorySize) {
         [self setMemorySize: size retaining:true];
     }
 }
@@ -160,7 +170,7 @@
 }
 
 - (uint) getUnsignedIntegerAtPosition: (uint) position {
-    uint integer;
+    uint integer = 0;
     [self getValue:&integer fromPosition:position typeSize:sizeof(uint)];
     return integer;
 }
@@ -191,6 +201,32 @@
     [self setCursorPosition:cursorPosition + amount];
 }
 
+// Unlike moveCursorForwards, will not resize buffer, instead
+// will return false if it needed to (without moving cursor).
+// Returns true if cursor moved successfully.
+- (Boolean) moveCursorForwardsPassively:(uint)amount {
+    uint newPosition = cursorPosition + amount;
+    if(newPosition > bufferUsedSize) {
+        return false;
+    }
+    cursorPosition = newPosition;
+    return true;
+}
+
+- (void) increaseUsedSize: (uint)amount {
+ 	[self setUsedSize:amount + bufferUsedSize];
+}
+
+- (Boolean) increaseUsedSizePassively: (uint)amount {
+	uint newSize = amount + bufferUsedSize;
+    
+    if(newSize > bufferMemorySize) {
+        return false;
+    }
+    bufferUsedSize = newSize;
+    
+    return true;
+}
 - (uint) getUnreadDataFromCursor {
     return bufferUsedSize - cursorPosition;
 }
@@ -199,6 +235,7 @@
     if([self getUnusedMemory] <= threshold) {
         [self setMemorySize:newSize retaining:true];
     }
+    return 0;
 }
 - (uint) getUnusedMemory {
     return bufferMemorySize - bufferUsedSize;
@@ -240,35 +277,56 @@
 }
 
 
-- (id) getVariableLengthData:(id(^)(uint8_t* data, uint length))dataHandler {
+- (id) getVariableLengthData:(id(^)(uint8_t* data, uint length))dataHandler withLength: (uint)length{
     if([self getUnreadDataFromCursor] < sizeof(uint)) {
         return nil;
     }
-    uint stringLength = [self getUnsignedIntegerAtPosition:cursorPosition];
     
-    if([self getUnreadDataFromCursor] < sizeof(uint) + stringLength) {
+    uint prefixLength;
+    if(length == 0) {
+    	length = [self getUnsignedIntegerAtPosition:cursorPosition];
+        prefixLength = sizeof(uint);
+    } else {
+        prefixLength = 0;
+    }
+    
+    if([self getUnreadDataFromCursor] < prefixLength + length) {
         return nil;
     }
-    cursorPosition += sizeof(uint);
+    cursorPosition += prefixLength;
     
-    id result = dataHandler(buffer + cursorPosition, stringLength);
+    id result = dataHandler(buffer + cursorPosition, length);
     
-    cursorPosition += stringLength;
+    cursorPosition += length;
     return result;
 }
 
-- (NSString*)getString {
+- (NSString*)getStringWithLength: (uint) length {
     return [self getVariableLengthData:^id(uint8_t* data, uint length) {
         return [[NSString alloc] initWithBytes:data
                                  length:length
                                  encoding:NSUTF8StringEncoding];
-     }];
+    } withLength: length];
+}
+
+- (NSString*)convertToString {
+    return [[NSString alloc] initWithBytes:buffer
+                             length:bufferUsedSize
+                             encoding:NSUTF8StringEncoding];
+}
+
+- (NSString*)getString {
+    return [self getStringWithLength:0];
+}
+
+- (ByteBuffer*)getByteBufferWithLength: (uint) length {
+    return [self getVariableLengthData:^id(uint8_t* data, uint length) {
+        return [[ByteBuffer alloc] initFromBuffer:data withSize:length];
+    } withLength: length];
 }
 
 - (ByteBuffer*)getByteBuffer {
-    return [self getVariableLengthData:^id(uint8_t* data, uint length) {
-        return [[ByteBuffer alloc] initFromBuffer:data withSize:length];
-    }];
+    return [self getByteBufferWithLength:0];
 }
 
 @end
