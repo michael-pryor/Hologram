@@ -21,7 +21,7 @@ NSInputStream * inputStream;
 NSOutputStream * outputStream;
 id<NewDataDelegate> inputSession;
 OutputSession * outputSession;
-
+dispatch_queue_t queue;
 
 - (id) initWithDelegate: (id<ConnectionStatusDelegate>)p_connectionStatusDelegate inputSession: (id<NewDataDelegate>)p_inputSession outputSession: (OutputSession*)outputSession {
     self = [super init];
@@ -39,25 +39,28 @@ OutputSession * outputSession;
 
 - (void) connect {
     [connectionStatusDelegate connectionStatusChange:CONNECTING withDescription:@"Connecting"];
-    
+        
+    queue = dispatch_queue_create("my queue", NULL);
+
+    NSLog(@"helloooooo why are you not running");
     CFReadStreamRef readStream;
     CFWriteStreamRef writeStream;
     CFStringRef remoteHost = (__bridge CFStringRef)(CONNECT_IP);
     CFStreamCreatePairWithSocketToHost(NULL, remoteHost, CONNECT_PORT, &readStream, &writeStream);
     CFReadStreamSetProperty(readStream, kCFStreamPropertyShouldCloseNativeSocket, kCFBooleanTrue);
     CFWriteStreamSetProperty(writeStream, kCFStreamPropertyShouldCloseNativeSocket, kCFBooleanTrue);
-    
+
     inputStream = objc_unretainedObject(readStream);
     outputStream = objc_unretainedObject(writeStream);
-   
+
     [outputStream setDelegate: self];
     [inputStream setDelegate: self];
-    
+
     [outputStream scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
     [inputStream scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
-    
+
     [inputStream open];
-	[outputStream open];
+    [outputStream open];
 }
 
 - (void) closeWithStatus: (ConnectionStatus)status andReason: (NSString*)reason {
@@ -131,8 +134,17 @@ OutputSession * outputSession;
             break;
         case NSStreamEventHasSpaceAvailable:
             if(isOutputStream) {
-                // Here we need to know what data to send. Need some sort of queue. Abstract this out to another class.
-                // should be an interface (a.k.a protocol?).
+                ByteBuffer * packetToSend = [outputSession processPacket];
+                NSLog(@"Packet prepared for sending on output stream, length: %u", [packetToSend bufferUsedSize]);
+                
+                NSUInteger remaining = [packetToSend bufferUsedSize];
+                uint8_t* buffer = [packetToSend buffer];
+                while(remaining > 0) {
+                    NSUInteger bytesSent = [outputStream write:buffer maxLength:remaining];
+                    buffer += bytesSent;
+                    remaining -= bytesSent;
+                    NSLog(@"%lu bytes sent, %lu remaining", (unsigned long)bytesSent, (unsigned long)remaining);
+                }
             }
             break;
             

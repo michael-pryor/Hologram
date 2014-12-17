@@ -7,7 +7,16 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "ByteBuffer.h"
 
 @interface OutputSession : NSObject
+{
+    @private
+    NSMutableArray *queue;
+}
+@property (nonatomic, strong) NSCondition * _lock;
 
+- (id) init;
+- (void) sendPacket: (ByteBuffer*) packet;
+- (ByteBuffer*) processPacket;
 @end

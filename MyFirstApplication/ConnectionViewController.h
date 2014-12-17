@@ -15,5 +15,6 @@
 @property (weak, nonatomic) IBOutlet UILabel *theLabel;
 @property (nonatomic, retain) IBOutlet UIButton * theButton;
 @property (weak, nonatomic) IBOutlet UILabel *connectionStatus;
-
+@property (weak, nonatomic) IBOutlet UITextView * textToSend;
+@property OutputSession * outputSession;
 @end

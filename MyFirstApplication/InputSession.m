@@ -26,8 +26,6 @@ id<NewPacketDelegate> packetDelegate;
     
     // Extract out read packets.
     while(true) {
-        NSString * strVersion = [dataStream convertToString];
-        
         uint packetSize = [dataStream getUnsignedIntegerAtPosition: 0];
         if(packetSize > 0 && [dataStream bufferUsedSize] >= packetSize) {
             // cursor will always be 0 at this point if everything is working.

@@ -8,10 +8,12 @@
 
 #import "ConnectionViewController.h"
 #import "InputSession.h"
-
+#import "OutputSession.h"
 
 @implementation ConnectionViewController
 ConnectionManager * con;
+OutputSession * outputSession;
+
 -(void)viewDidLoad {
     [super viewDidLoad];
 }
@@ -21,10 +23,24 @@ ConnectionManager * con;
     self.theLabel.text = @"Wow we have changed the colours!";
 }
 
+- (void) doTheConnect {
+    [con connect];
+}
+
 - (IBAction)onConnectButtonClick:(id)sender {
     InputSessionTCP * sessionTcp = [[InputSessionTCP alloc] initWithDelegate: self];
-    con = [[ConnectionManager alloc] initWithDelegate: self inputSession: sessionTcp outputSession: nil ];
-    [con connect];
+    outputSession = [[OutputSession alloc] init];
+    con = [[ConnectionManager alloc] initWithDelegate: self inputSession: sessionTcp outputSession: outputSession ];
+    [self performSelectorInBackground:@selector(doTheConnect) withObject:nil];
+}
+
+- (IBAction)onSendButtonClick:(id)sender {
+    NSString * text = [_textToSend text];
+    NSLog(@"Text %@", text);
+    
+    ByteBuffer * buffer = [[ByteBuffer alloc] init];
+    [buffer addString:text];
+    [outputSession sendPacket:buffer];
 }
 
 - (void)connectionStatusChange:(ConnectionStatus)status withDescription:(NSString *)description {
@@ -55,4 +71,5 @@ ConnectionManager * con;
 - (void)onNewPacket:(ByteBuffer *)packet {
     NSLog(@"New packet received: %@", [packet convertToString]);
 }
+
 @end
