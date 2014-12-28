@@ -37,6 +37,18 @@ dispatch_queue_t queue;
     AudioServicesPlaySystemSound(0x450);
 }
 
+
+- (void) outputThreadEntryPoint: var {
+    [outputStream scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
+    [outputStream open];
+    
+    while(true) {
+        [NSThread sleepForTimeInterval:1];
+    }
+    NSLog(@"Thread exiting... LOL");
+    
+}
+
 - (void) connect {
     [connectionStatusDelegate connectionStatusChange:CONNECTING withDescription:@"Connecting"];
         
@@ -56,12 +68,16 @@ dispatch_queue_t queue;
     [outputStream setDelegate: self];
     [inputStream setDelegate: self];
 
-    [outputStream scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
+    NSThread* myThread = [[NSThread alloc] initWithTarget:self
+                                                     selector:@selector(outputThreadEntryPoint:)
+                                                     object:nil];
+    [myThread start];
+    
     [inputStream scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
 
     [inputStream open];
-    [outputStream open];
 }
+
 
 - (void) closeWithStatus: (ConnectionStatus)status andReason: (NSString*)reason {
     if(inputStream != nil) {

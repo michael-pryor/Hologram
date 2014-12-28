@@ -23,15 +23,11 @@ OutputSession * outputSession;
     self.theLabel.text = @"Wow we have changed the colours!";
 }
 
-- (void) doTheConnect {
-    [con connect];
-}
-
 - (IBAction)onConnectButtonClick:(id)sender {
     InputSessionTCP * sessionTcp = [[InputSessionTCP alloc] initWithDelegate: self];
     outputSession = [[OutputSession alloc] init];
     con = [[ConnectionManager alloc] initWithDelegate: self inputSession: sessionTcp outputSession: outputSession ];
-    [self performSelectorInBackground:@selector(doTheConnect) withObject:nil];
+    [con connect];
 }
 
 - (IBAction)onSendButtonClick:(id)sender {
