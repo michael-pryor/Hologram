@@ -13,6 +13,15 @@
 @implementation ConnectionViewController
 ConnectionManager * con;
 OutputSession * outputSession = nil;
+NSObject * _object;
+
+- (id) init {
+    self = [super init];
+    if(self) {
+        _object = [[NSObject alloc] init];
+    }
+    return self;
+}
 
 -(void)viewDidLoad {
     [super viewDidLoad];
@@ -29,6 +38,7 @@ OutputSession * outputSession = nil;
 }
 
 - (IBAction)onConnectButtonClick:(id)sender {
+    @synchronized(_object) {
     if(outputSession != nil) {
         NSLog(@"Closing existing connection..");
         [outputSession closeConnection];
@@ -38,6 +48,7 @@ OutputSession * outputSession = nil;
     outputSession = [[OutputSession alloc] init];
     con = [[ConnectionManager alloc] initWithDelegate: self inputSession: sessionTcp outputSession: outputSession ];
     [con connect];
+    }
 }
 
 - (IBAction)onSendButtonClick:(id)sender {

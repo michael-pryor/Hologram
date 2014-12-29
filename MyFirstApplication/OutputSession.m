@@ -11,6 +11,7 @@
 @implementation OutputSession
 NSCondition * _lock;
 NSCondition * _closeConfirmed;
+bool _isCloseConfirmed = false;
 NSMutableArray * _queue;
 - (id) init {
     self = [super init];
@@ -33,14 +34,18 @@ NSMutableArray * _queue;
     [self sendPacket: (ByteBuffer*)[NSNull null]];
     NSLog(@"Waiting for close confirmation..");
     [_closeConfirmed lock];
-    [_closeConfirmed wait];
+    while (!_isCloseConfirmed) {
+        [_closeConfirmed wait];
+    }
     [_closeConfirmed unlock];
+
 }
 
 - (void) confirmClosure {
     NSLog(@"Confirmation of closure sent");
     [_closeConfirmed lock];
-    [_closeConfirmed signal];
+    _isCloseConfirmed = true;
+    [_closeConfirmed broadcast];
     [_closeConfirmed unlock];
 }
 

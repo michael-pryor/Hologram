@@ -23,11 +23,15 @@ id<NewDataDelegate> inputSession;
 OutputSession * outputSession;
 dispatch_queue_t queue;
 
+bool _isConnected = false;
+NSCondition * isConnectedCondition;
+
 - (id) initWithDelegate: (id<ConnectionStatusDelegate>)p_connectionStatusDelegate inputSession: (id<NewDataDelegate>)p_inputSession outputSession: (OutputSession*)outputSession {
     self = [super init];
     if(self) {
         connectionStatusDelegate = p_connectionStatusDelegate;
         inputSession = p_inputSession;
+        isConnectedCondition = [[NSCondition alloc] init];
     }
     return self;
 }
@@ -41,6 +45,11 @@ dispatch_queue_t queue;
 - (void) outputThreadEntryPoint: var {
     [outputStream scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
     [outputStream open];
+    
+    [isConnectedCondition lock];
+    _isConnected = true;
+    [isConnectedCondition broadcast];
+    [isConnectedCondition unlock];
     
     CFRunLoopRun();
     
@@ -73,6 +82,14 @@ dispatch_queue_t queue;
                                                selector:@selector(outputThreadEntryPoint:)
                                                object:nil];
     [outputThread start];
+    
+    NSLog(@"Waiting for connection to complete");
+    [isConnectedCondition lock];
+    while(!_isConnected) {
+        [isConnectedCondition wait];
+    }
+    [isConnectedCondition unlock];
+    NSLog(@"Connection completed");
 }
 
 
@@ -93,6 +110,7 @@ dispatch_queue_t queue;
     [stream close];
     if (stream == outputStream) {
         // Stop the worker thread.
+        NSLog(@"Closing output stream thread!! OH MY!!");
         CFRunLoopStop(CFRunLoopGetCurrent());
     }
 }
@@ -119,6 +137,7 @@ dispatch_queue_t queue;
     
     switch(streamEvent) {
         case NSStreamEventNone:
+            [self onNormalError: @"Streams terminating with event none"];
             break;
             
         case NSStreamEventOpenCompleted:
@@ -176,6 +195,10 @@ dispatch_queue_t queue;
             
         case NSStreamEventEndEncountered:
             [self onNormalError: @"Streams terminating gracefully"];
+            break;
+            
+        default:
+            [self onNormalError: @"Streams terminating with UNKNOWN EVENT!"];
             break;
     }
 }
