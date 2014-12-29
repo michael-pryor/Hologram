@@ -22,8 +22,6 @@ NSOutputStream * outputStream;
 id<NewDataDelegate> inputSession;
 OutputSession * outputSession;
 dispatch_queue_t queue;
-NSThread* outputThread;
-NSRunLoop* runLoop = nil;
 
 - (id) initWithDelegate: (id<ConnectionStatusDelegate>)p_connectionStatusDelegate inputSession: (id<NewDataDelegate>)p_inputSession outputSession: (OutputSession*)outputSession {
     self = [super init];
@@ -44,11 +42,9 @@ NSRunLoop* runLoop = nil;
     [outputStream scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
     [outputStream open];
     
-    runLoop = [NSRunLoop currentRunLoop];
-    
-    // Start the run loop but return after each source is handled.
     CFRunLoopRun();
     
+    [outputSession confirmClosure];
     NSLog(@"Thread exiting... LOL");
 }
 
@@ -57,7 +53,6 @@ NSRunLoop* runLoop = nil;
         
     queue = dispatch_queue_create("my queue", NULL);
 
-    NSLog(@"helloooooo why are you not running");
     CFReadStreamRef readStream;
     CFWriteStreamRef writeStream;
     CFStringRef remoteHost = (__bridge CFStringRef)(CONNECT_IP);
@@ -71,42 +66,44 @@ NSRunLoop* runLoop = nil;
     [outputStream setDelegate: self];
     [inputStream setDelegate: self];
 
-    outputThread = [[NSThread alloc] initWithTarget:self
-                                     selector:@selector(outputThreadEntryPoint:)
-                                     object:nil];
-    [outputThread start];
-    
     [inputStream scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
-
     [inputStream open];
+    
+    NSThread* outputThread = [[NSThread alloc] initWithTarget:self
+                                               selector:@selector(outputThreadEntryPoint:)
+                                               object:nil];
+    [outputThread start];
 }
 
 
 - (void) closeWithStatus: (ConnectionStatus)status andReason: (NSString*)reason {
     if(inputStream != nil) {
         NSLog(@"Closing input stream");
-        [inputStream close];
+        [self closeStream: inputStream];
     }
     if(outputStream != nil) {
         NSLog(@"Closing output stream");
-        [outputStream close];
-        
-        if(runLoop != nil) {
-            //CFRunLoopStop((__bridge CFRunLoopRef)(runLoop));
-            runLoop = nil;
-        }
+        [self closeStream: outputStream];
     }
     NSString * description = [NSString localizedStringWithFormat:@"Connection closed, with reason: %@", reason];
     [connectionStatusDelegate connectionStatusChange:status withDescription:description];
 }
 
-- (void)onStreamError: (NSStream*)theStream withStreamName: (NSString*) streamName {
-    NSString * streamError = [NSString localizedStringWithFormat:@"Stream error detected in %@, details: [%@]", streamName, [[theStream streamError] localizedDescription]];
+- (void) closeStream: (NSStream*) stream {
+    [stream close];
+    if (stream == outputStream) {
+        // Stop the worker thread.
+        CFRunLoopStop(CFRunLoopGetCurrent());
+    }
+}
+
+- (void)onStreamError: (NSStream*)theStream {
+    NSString * streamError = [NSString localizedStringWithFormat:@"Stream error detected, details: [%@]", [[theStream streamError] localizedDescription]];
     [self closeWithStatus:ERROR_CON andReason:streamError];
 }
 
-- (void)onNormalError: (NSString*)errorText withStreamName: (NSString*) streamName {
-    NSString * streamError = [NSString localizedStringWithFormat:@"Error detected in %@, details: [%@]", streamName, errorText];
+- (void)onNormalError: (NSString*)errorText {
+    NSString * streamError = [NSString localizedStringWithFormat:@"Error detected, details: [%@]", errorText];
     [self closeWithStatus:ERROR_CON andReason:streamError];
 }
 
@@ -114,13 +111,10 @@ NSRunLoop* runLoop = nil;
     Boolean isInputStream = (theStream == inputStream);
     Boolean isOutputStream = !isInputStream;
     
-    NSString * streamName;
     if(isInputStream) {
         NSLog(@"Received input stream result: %lu",streamEvent);
-        streamName = @"input stream";
     } else {
         NSLog(@"Received output stream result: %lu",streamEvent);
-        streamName = @"output stream";
     }
     
     switch(streamEvent) {
@@ -142,13 +136,13 @@ NSRunLoop* runLoop = nil;
                 // Read in data at the end of currently stored data (just past used size).
                 NSInteger bytesRead = [inputStream read:[dataStream buffer] + [dataStream bufferUsedSize] maxLength:[dataStream getUnusedMemory]];
                 if(bytesRead < 0) {
-                    [self onStreamError:theStream withStreamName:streamName];
+                    [self onStreamError:theStream];
                     return;
                 }
                 
                 Boolean successfulIncreaseInUsedSize = [dataStream increaseUsedSizePassively:(uint)bytesRead];
                 if(!successfulIncreaseInUsedSize) {
-                    [self onNormalError:@"Failed to increase used size, bad value" withStreamName:streamName];
+                    [self onNormalError:@"Failed to increase used size, bad value"];
                     return;
                 }
             	
@@ -158,6 +152,11 @@ NSRunLoop* runLoop = nil;
         case NSStreamEventHasSpaceAvailable:
             if(isOutputStream) {
                 ByteBuffer * packetToSend = [outputSession processPacket];
+                if(packetToSend == nil) {
+                    [self onNormalError:@"Termination of stream"];
+                    return;
+                }
+                
                 NSLog(@"Packet prepared for sending on output stream, length: %u", [packetToSend bufferUsedSize]);
                 
                 NSUInteger remaining = [packetToSend bufferUsedSize];
@@ -172,11 +171,11 @@ NSRunLoop* runLoop = nil;
             break;
             
         case NSStreamEventErrorOccurred:
-            [self onStreamError: theStream withStreamName:streamName];
+            [self onStreamError: theStream];
             break;
             
         case NSStreamEventEndEncountered:
-            [self onStreamError: theStream withStreamName:streamName];
+            [self onNormalError: @"Streams terminating gracefully"];
             break;
     }
 }

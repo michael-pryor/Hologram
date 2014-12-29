@@ -12,7 +12,7 @@
 
 @implementation ConnectionViewController
 ConnectionManager * con;
-OutputSession * outputSession;
+OutputSession * outputSession = nil;
 
 -(void)viewDidLoad {
     [super viewDidLoad];
@@ -29,6 +29,11 @@ OutputSession * outputSession;
 }
 
 - (IBAction)onConnectButtonClick:(id)sender {
+    if(outputSession != nil) {
+        NSLog(@"Closing existing connection..");
+        [outputSession closeConnection];
+    }
+    
     InputSessionTCP * sessionTcp = [[InputSessionTCP alloc] initWithDelegate: self];
     outputSession = [[OutputSession alloc] init];
     con = [[ConnectionManager alloc] initWithDelegate: self inputSession: sessionTcp outputSession: outputSession ];
