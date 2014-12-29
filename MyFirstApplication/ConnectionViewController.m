@@ -23,6 +23,11 @@ OutputSession * outputSession;
     self.theLabel.text = @"Wow we have changed the colours!";
 }
 
+- (BOOL) textFieldShouldReturn:(UITextField *)textField {
+    [textField resignFirstResponder];
+    return YES;
+}
+
 - (IBAction)onConnectButtonClick:(id)sender {
     InputSessionTCP * sessionTcp = [[InputSessionTCP alloc] initWithDelegate: self];
     outputSession = [[OutputSession alloc] init];

@@ -19,26 +19,22 @@
 }
 
 - (void) sendPacket: (ByteBuffer*) packet {
-    @synchronized(queue) {
-        [_lock lock];
-        [queue addObject:packet];
-        [_lock signal];
-        [_lock unlock];
-    }
+    [_lock lock];
+    [queue addObject:packet];
+    [_lock signal];
+    [_lock unlock];
 }
 
 - (ByteBuffer*) processPacket {
-    @synchronized(queue) {
-        [_lock lock];
-        while (queue.count == 0)
-        {
-            [_lock wait];
-        }
-        ByteBuffer* retVal = (ByteBuffer*)queue[0];
-        [queue removeObjectAtIndex:0];
-        [_lock unlock];
-        return retVal;
+    [_lock lock];
+    while (queue.count == 0)
+    {
+        [_lock wait];
     }
+    ByteBuffer* retVal = (ByteBuffer*)queue[0];
+    [queue removeObjectAtIndex:0];
+    [_lock unlock];
+    return retVal;
 }
 
 

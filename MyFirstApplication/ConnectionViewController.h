@@ -10,7 +10,7 @@
 #import <UIKit/UIViewController.h>
 #import "ConnectionManager.h"
 
-@interface ConnectionViewController : UIViewController<ConnectionStatusDelegate, NewPacketDelegate>
+@interface ConnectionViewController : UIViewController<ConnectionStatusDelegate, NewPacketDelegate, UITextFieldDelegate>
 @property (weak, nonatomic) IBOutlet UIActivityIndicatorView *connectionProgress;
 @property (weak, nonatomic) IBOutlet UILabel *theLabel;
 @property (nonatomic, retain) IBOutlet UIButton * theButton;

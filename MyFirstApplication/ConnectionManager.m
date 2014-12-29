@@ -22,6 +22,8 @@ NSOutputStream * outputStream;
 id<NewDataDelegate> inputSession;
 OutputSession * outputSession;
 dispatch_queue_t queue;
+NSThread* outputThread;
+NSRunLoop* runLoop = nil;
 
 - (id) initWithDelegate: (id<ConnectionStatusDelegate>)p_connectionStatusDelegate inputSession: (id<NewDataDelegate>)p_inputSession outputSession: (OutputSession*)outputSession {
     self = [super init];
@@ -42,11 +44,12 @@ dispatch_queue_t queue;
     [outputStream scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
     [outputStream open];
     
-    while(true) {
-        [NSThread sleepForTimeInterval:1];
-    }
-    NSLog(@"Thread exiting... LOL");
+    runLoop = [NSRunLoop currentRunLoop];
     
+    // Start the run loop but return after each source is handled.
+    CFRunLoopRun();
+    
+    NSLog(@"Thread exiting... LOL");
 }
 
 - (void) connect {
@@ -68,10 +71,10 @@ dispatch_queue_t queue;
     [outputStream setDelegate: self];
     [inputStream setDelegate: self];
 
-    NSThread* myThread = [[NSThread alloc] initWithTarget:self
-                                                     selector:@selector(outputThreadEntryPoint:)
-                                                     object:nil];
-    [myThread start];
+    outputThread = [[NSThread alloc] initWithTarget:self
+                                     selector:@selector(outputThreadEntryPoint:)
+                                     object:nil];
+    [outputThread start];
     
     [inputStream scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
 
@@ -87,6 +90,11 @@ dispatch_queue_t queue;
     if(outputStream != nil) {
         NSLog(@"Closing output stream");
         [outputStream close];
+        
+        if(runLoop != nil) {
+            //CFRunLoopStop((__bridge CFRunLoopRef)(runLoop));
+            runLoop = nil;
+        }
     }
     NSString * description = [NSString localizedStringWithFormat:@"Connection closed, with reason: %@", reason];
     [connectionStatusDelegate connectionStatusChange:status withDescription:description];
@@ -115,7 +123,6 @@ dispatch_queue_t queue;
         streamName = @"output stream";
     }
     
-    NSString * description;
     switch(streamEvent) {
         case NSStreamEventNone:
             break;
@@ -165,11 +172,11 @@ dispatch_queue_t queue;
             break;
             
         case NSStreamEventErrorOccurred:
-            description = [NSString localizedStringWithFormat:@"Stream error detected in %@, details: [%@]", streamName, [[theStream streamError] localizedDescription]];
-            [connectionStatusDelegate connectionStatusChange:ERROR_CON withDescription:description];
+            [self onStreamError: theStream withStreamName:streamName];
             break;
             
         case NSStreamEventEndEncountered:
+            [self onStreamError: theStream withStreamName:streamName];
             break;
     }
 }

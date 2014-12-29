@@ -22,8 +22,8 @@ class Echo(IntNStringReceiver):
     def connectionMade(self):
         logger.info("Connection made to client")
 
-    def dataReceived(self, data):
-        logger.info("Client received data: [%s]" % data)
+    def stringReceived(self, data):
+        logger.info("Client received data: [%s], length: %d" % (data, len(data)))
 
 class EchoClientFactory(ClientFactory):
     def __init__(self):
