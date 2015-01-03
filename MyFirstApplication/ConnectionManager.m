@@ -15,23 +15,26 @@
 static NSString *const CONNECT_IP = @"192.168.1.92";
 static const int CONNECT_PORT = 12340;
 
-@implementation ConnectionManager
-@synthesize connectionStatusDelegate;
-NSInputStream * inputStream;
-NSOutputStream * outputStream;
-id<NewDataDelegate> inputSession;
-OutputSession * outputSession;
-dispatch_queue_t queue;
+@implementation ConnectionManager {
+    NSInputStream * inputStream;
+    NSOutputStream * outputStream;
+    id<NewDataDelegate> inputSession;
+    OutputSession * _outputSession;
+    dispatch_queue_t queue;
+    bool _isConnected;
+    NSCondition * isConnectedCondition;
+}
 
-bool _isConnected = false;
-NSCondition * isConnectedCondition;
+@synthesize connectionStatusDelegate;
 
 - (id) initWithDelegate: (id<ConnectionStatusDelegate>)p_connectionStatusDelegate inputSession: (id<NewDataDelegate>)p_inputSession outputSession: (OutputSession*)outputSession {
     self = [super init];
     if(self) {
+        _isConnected = false;
         connectionStatusDelegate = p_connectionStatusDelegate;
         inputSession = p_inputSession;
         isConnectedCondition = [[NSCondition alloc] init];
+        _outputSession = outputSession;
     }
     return self;
 }
@@ -53,7 +56,7 @@ NSCondition * isConnectedCondition;
     
     CFRunLoopRun();
     
-    [outputSession confirmClosure];
+    [_outputSession confirmClosure];
     NSLog(@"Thread exiting... LOL");
 }
 
@@ -170,7 +173,7 @@ NSCondition * isConnectedCondition;
             break;
         case NSStreamEventHasSpaceAvailable:
             if(isOutputStream) {
-                ByteBuffer * packetToSend = [outputSession processPacket];
+                ByteBuffer * packetToSend = [_outputSession processPacket];
                 if(packetToSend == nil) {
                     [self onNormalError:@"Termination of stream"];
                     return;

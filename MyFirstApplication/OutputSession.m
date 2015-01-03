@@ -8,17 +8,19 @@
 
 #import "OutputSession.h"
 
-@implementation OutputSession
-NSCondition * _lock;
-NSCondition * _closeConfirmed;
-bool _isCloseConfirmed = false;
-NSMutableArray * _queue;
+@implementation OutputSession {
+    NSCondition * _lock;
+    NSCondition * _closeConfirmed;
+    bool _isCloseConfirmed;
+    NSMutableArray * _queue;
+}
 - (id) init {
     self = [super init];
     if(self) {
 	    _queue = [[NSMutableArray alloc] init];
         _lock =  [[NSCondition alloc] init];
         _closeConfirmed = [[NSCondition alloc] init];
+        _isCloseConfirmed = false;
     }
     return self;
 }

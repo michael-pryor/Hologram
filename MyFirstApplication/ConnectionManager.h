@@ -22,7 +22,6 @@ typedef enum {
 
 @interface ConnectionManager : NSObject<NSStreamDelegate>
 @property (nonatomic, readonly) id  connectionStatusDelegate;
-@property (nonatomic, readonly) id  inputSession;
 - (id) initWithDelegate: (id<ConnectionStatusDelegate>)p_connectionStatusDelegate inputSession: (id<NewDataDelegate>)inputSession outputSession: (OutputSession*)outputSession;
 - (void) myMethod;
 - (void) connect;

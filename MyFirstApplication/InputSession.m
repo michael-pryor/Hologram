@@ -9,13 +9,12 @@
 #import "InputSession.h"
 
 @implementation InputSessionTCP
-id<NewPacketDelegate> packetDelegate;
 @synthesize recvBuffer;
 
 - (id)initWithDelegate:(id<NewPacketDelegate>)p_packetDelegate {
     self = [super init];
     if(self) {
-	    packetDelegate = p_packetDelegate;
+	    _packetDelegate = p_packetDelegate;
         recvBuffer = [[ByteBuffer alloc] initWithSize:1024];
     }
     return self;
@@ -44,7 +43,7 @@ id<NewPacketDelegate> packetDelegate;
             }
             
             // Now do something with packet.
-            [packetDelegate onNewPacket:packet];
+            [_packetDelegate onNewPacket:packet];
         } else {
             break;
         }

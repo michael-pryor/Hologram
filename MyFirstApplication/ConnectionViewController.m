@@ -10,14 +10,15 @@
 #import "InputSession.h"
 #import "OutputSession.h"
 
-@implementation ConnectionViewController
-ConnectionManager * con;
-OutputSession * outputSession = nil;
-NSObject * _object;
+@implementation ConnectionViewController {
+    ConnectionManager * con;
+    NSObject * _object;
+}
 
 - (id) init {
     self = [super init];
     if(self) {
+        _outputSession = nil;
         _object = [[NSObject alloc] init];
     }
     return self;
@@ -39,14 +40,14 @@ NSObject * _object;
 
 - (IBAction)onConnectButtonClick:(id)sender {
     @synchronized(_object) {
-    if(outputSession != nil) {
+    if(_outputSession != nil) {
         NSLog(@"Closing existing connection..");
-        [outputSession closeConnection];
+        [_outputSession closeConnection];
     }
     
     InputSessionTCP * sessionTcp = [[InputSessionTCP alloc] initWithDelegate: self];
-    outputSession = [[OutputSession alloc] init];
-    con = [[ConnectionManager alloc] initWithDelegate: self inputSession: sessionTcp outputSession: outputSession ];
+    _outputSession = [[OutputSession alloc] init];
+    con = [[ConnectionManager alloc] initWithDelegate: self inputSession: sessionTcp outputSession: _outputSession ];
     [con connect];
     }
 }
@@ -57,7 +58,7 @@ NSObject * _object;
     
     ByteBuffer * buffer = [[ByteBuffer alloc] init];
     [buffer addString:text];
-    [outputSession sendPacket:buffer];
+    [_outputSession sendPacket:buffer];
 }
 
 - (void)connectionStatusChange:(ConnectionStatus)status withDescription:(NSString *)description {
