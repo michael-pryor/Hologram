@@ -26,6 +26,7 @@
 		51E5BE3D1936A982003E45C3 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 51E5BE251936A982003E45C3 /* UIKit.framework */; };
 		51E5BE451936A982003E45C3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 51E5BE431936A982003E45C3 /* InfoPlist.strings */; };
 		51E5BE471936A982003E45C3 /* MyFirstApplicationTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 51E5BE461936A982003E45C3 /* MyFirstApplicationTests.m */; };
+		51E888A11A597585005F8825 /* Signal.m in Sources */ = {isa = PBXBuildFile; fileRef = 51E888A01A597585005F8825 /* Signal.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -67,6 +68,8 @@
 		51E5BE421936A982003E45C3 /* MyFirstApplicationTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "MyFirstApplicationTests-Info.plist"; sourceTree = "<group>"; };
 		51E5BE441936A982003E45C3 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		51E5BE461936A982003E45C3 /* MyFirstApplicationTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MyFirstApplicationTests.m; sourceTree = "<group>"; };
+		51E8889F1A597585005F8825 /* Signal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Signal.h; sourceTree = "<group>"; };
+		51E888A01A597585005F8825 /* Signal.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Signal.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -152,6 +155,7 @@
 		51E5BE281936A982003E45C3 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				51E8889E1A59755D005F8825 /* Util */,
 				51D584B819AB63FB00BB6CE6 /* Networking */,
 				51DB961919A8EE05001A63F8 /* ConnectionViewController.h */,
 				51DB961A19A8EE05001A63F8 /* ConnectionViewController.m */,
@@ -181,6 +185,15 @@
 				51D584C219AB8B1D00BB6CE6 /* ByteBufferTest.m */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		51E8889E1A59755D005F8825 /* Util */ = {
+			isa = PBXGroup;
+			children = (
+				51E8889F1A597585005F8825 /* Signal.h */,
+				51E888A01A597585005F8825 /* Signal.m */,
+			);
+			name = Util;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -283,6 +296,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				51DB961B19A8EE05001A63F8 /* ConnectionViewController.m in Sources */,
+				51E888A11A597585005F8825 /* Signal.m in Sources */,
 				51D584C119AB7A9400BB6CE6 /* ByteBuffer.m in Sources */,
 				51D584BE19AB649500BB6CE6 /* OutputSession.m in Sources */,
 				51DB961819A8E3D0001A63F8 /* ConnectionManager.m in Sources */,

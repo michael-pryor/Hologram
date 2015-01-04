@@ -7,11 +7,12 @@
 //
 
 #import "OutputSession.h"
+#import "Signal.h"
+#import <Foundation/Foundation.h>
 
 @implementation OutputSession {
     NSCondition * _lock;
-    NSCondition * _closeConfirmed;
-    bool _isCloseConfirmed;
+    Signal * _signal;
     NSMutableArray * _queue;
 }
 - (id) init {
@@ -19,8 +20,7 @@
     if(self) {
 	    _queue = [[NSMutableArray alloc] init];
         _lock =  [[NSCondition alloc] init];
-        _closeConfirmed = [[NSCondition alloc] init];
-        _isCloseConfirmed = false;
+        _signal = [[Signal alloc] init];
     }
     return self;
 }
@@ -35,20 +35,13 @@
 - (void) closeConnection {
     [self sendPacket: (ByteBuffer*)[NSNull null]];
     NSLog(@"Waiting for close confirmation..");
-    [_closeConfirmed lock];
-    while (!_isCloseConfirmed) {
-        [_closeConfirmed wait];
-    }
-    [_closeConfirmed unlock];
+    [_signal wait];
 
 }
 
 - (void) confirmClosure {
     NSLog(@"Confirmation of closure sent");
-    [_closeConfirmed lock];
-    _isCloseConfirmed = true;
-    [_closeConfirmed broadcast];
-    [_closeConfirmed unlock];
+    [_signal signalAll];
 }
 
 
