@@ -11,15 +11,13 @@
 #import "OutputSession.h"
 
 @implementation ConnectionViewController {
-    ConnectionManager * con;
-    NSObject * _object;
+    ConnectionManager * _connection;
 }
 
 - (id) init {
     self = [super init];
     if(self) {
         _outputSession = nil;
-        _object = [[NSObject alloc] init];
     }
     return self;
 }
@@ -39,7 +37,6 @@
 }
 
 - (IBAction)onConnectButtonClick:(id)sender {
-    @synchronized(_object) {
     if(_outputSession != nil) {
         NSLog(@"Closing existing connection..");
         [_outputSession closeConnection];
@@ -47,14 +44,13 @@
     
     InputSessionTCP * sessionTcp = [[InputSessionTCP alloc] initWithDelegate: self];
     _outputSession = [[OutputSession alloc] init];
-    con = [[ConnectionManager alloc] initWithDelegate: self inputSession: sessionTcp outputSession: _outputSession ];
-    [con connect];
-    }
+    _connection = [[ConnectionManager alloc] initWithDelegate: self inputSession: sessionTcp outputSession: _outputSession ];
+    [_connection connect];
 }
 
 - (IBAction)onSendButtonClick:(id)sender {
     NSString * text = [_textToSend text];
-    NSLog(@"Text %@", text);
+    NSLog(@"Sending packet: %@", text);
     
     ByteBuffer * buffer = [[ByteBuffer alloc] init];
     [buffer addString:text];

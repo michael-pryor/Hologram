@@ -9,7 +9,7 @@
 #import "InputSession.h"
 
 @implementation InputSessionTCP
-@synthesize recvBuffer;
+@synthesize getDestinationBuffer = recvBuffer;
 
 - (id)initWithDelegate:(id<NewPacketDelegate>)p_packetDelegate {
     self = [super init];
@@ -48,9 +48,5 @@
             break;
         }
     }
-}
-
-- (ByteBuffer*)getDestinationBuffer {
-    return recvBuffer;
 }
 @end

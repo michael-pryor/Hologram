@@ -34,17 +34,17 @@
 - (void) addString: (NSString*)string;
 - (void) addData: (uint8_t*)data withLength: (uint)length includingPrefix: (Boolean)includePrefix;
 - (void) addData: (uint8_t*)data withLength: (uint)length;
-- (void) addByteBuffer: (ByteBuffer*)p_buffer includingPrefix: (Boolean)includePrefix;
-- (void) addByteBuffer: (ByteBuffer*)p_buffer;
+- (void) addByteBuffer: (ByteBuffer*)sourceBuffer includingPrefix: (Boolean)includePrefix;
+- (void) addByteBuffer: (ByteBuffer*)sourceBuffer;
 - (NSString*) getString;
 - (ByteBuffer*) getByteBuffer;
-- (NSString*)getStringWithLength: (uint) length;
-- (ByteBuffer*)getByteBufferWithLength: (uint) length;
+- (NSString*) getStringWithLength: (uint)length;
+- (ByteBuffer*) getByteBufferWithLength: (uint)length;
 
 - (NSString*)convertToString;
 
-- (id) initWithSize: (uint) p_bufferSize;
-- (id) initFromBuffer: (uint8_t*)p_buffer withSize: (uint)p_bufferSize;
+- (id) initWithSize: (uint)size;
+- (id) initFromBuffer: (uint8_t*)sourceBuffer withSize: (uint)size;
 
 - (void) increaseUsedSize: (uint)amount;
 - (Boolean) increaseUsedSizePassively: (uint)amount;
