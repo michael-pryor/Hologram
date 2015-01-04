@@ -27,6 +27,8 @@
 		51E5BE451936A982003E45C3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 51E5BE431936A982003E45C3 /* InfoPlist.strings */; };
 		51E5BE471936A982003E45C3 /* MyFirstApplicationTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 51E5BE461936A982003E45C3 /* MyFirstApplicationTests.m */; };
 		51E888A11A597585005F8825 /* Signal.m in Sources */ = {isa = PBXBuildFile; fileRef = 51E888A01A597585005F8825 /* Signal.m */; };
+		51E888A51A59DFB8005F8825 /* Encoding.m in Sources */ = {isa = PBXBuildFile; fileRef = 51E888A41A59DFB8005F8825 /* Encoding.m */; };
+		51E888A81A59E218005F8825 /* MediaByteBuffer.m in Sources */ = {isa = PBXBuildFile; fileRef = 51E888A71A59E218005F8825 /* MediaByteBuffer.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -70,6 +72,10 @@
 		51E5BE461936A982003E45C3 /* MyFirstApplicationTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MyFirstApplicationTests.m; sourceTree = "<group>"; };
 		51E8889F1A597585005F8825 /* Signal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Signal.h; sourceTree = "<group>"; };
 		51E888A01A597585005F8825 /* Signal.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Signal.m; sourceTree = "<group>"; };
+		51E888A31A59DFB8005F8825 /* Encoding.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Encoding.h; sourceTree = "<group>"; };
+		51E888A41A59DFB8005F8825 /* Encoding.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Encoding.m; sourceTree = "<group>"; };
+		51E888A61A59E218005F8825 /* MediaByteBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MediaByteBuffer.h; sourceTree = "<group>"; };
+		51E888A71A59E218005F8825 /* MediaByteBuffer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MediaByteBuffer.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -155,6 +161,7 @@
 		51E5BE281936A982003E45C3 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				51E888A21A59DF8F005F8825 /* Media */,
 				51E8889E1A59755D005F8825 /* Util */,
 				51D584B819AB63FB00BB6CE6 /* Networking */,
 				51DB961919A8EE05001A63F8 /* ConnectionViewController.h */,
@@ -194,6 +201,17 @@
 				51E888A01A597585005F8825 /* Signal.m */,
 			);
 			name = Util;
+			sourceTree = "<group>";
+		};
+		51E888A21A59DF8F005F8825 /* Media */ = {
+			isa = PBXGroup;
+			children = (
+				51E888A31A59DFB8005F8825 /* Encoding.h */,
+				51E888A41A59DFB8005F8825 /* Encoding.m */,
+				51E888A61A59E218005F8825 /* MediaByteBuffer.h */,
+				51E888A71A59E218005F8825 /* MediaByteBuffer.m */,
+			);
+			name = Media;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -297,7 +315,9 @@
 			files = (
 				51DB961B19A8EE05001A63F8 /* ConnectionViewController.m in Sources */,
 				51E888A11A597585005F8825 /* Signal.m in Sources */,
+				51E888A51A59DFB8005F8825 /* Encoding.m in Sources */,
 				51D584C119AB7A9400BB6CE6 /* ByteBuffer.m in Sources */,
+				51E888A81A59E218005F8825 /* MediaByteBuffer.m in Sources */,
 				51D584BE19AB649500BB6CE6 /* OutputSession.m in Sources */,
 				51DB961819A8E3D0001A63F8 /* ConnectionManager.m in Sources */,
 				51E5BE321936A982003E45C3 /* MJPAppDelegate.m in Sources */,
