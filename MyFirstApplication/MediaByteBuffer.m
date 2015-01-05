@@ -8,7 +8,17 @@
 
 #import "MediaByteBuffer.h"
 
-@implementation MediaByteBuffer
+@implementation MediaByteBuffer {
+    ByteBuffer * _buffer;
+}
+- (id) initFromBuffer: (ByteBuffer*)byteBuffer {
+    self = [super init];
+    if(self) {
+        _buffer = byteBuffer;
+    }
+    return self;
+}
+
 - (void) addImage: (CMSampleBufferRef) image {
     CVImageBufferRef imageBuffer = CMSampleBufferGetImageBuffer(image);
 
@@ -21,10 +31,10 @@
     uint height = (uint)CVPixelBufferGetHeight(imageBuffer);
     uint bytesPerRow = (uint)CVPixelBufferGetBytesPerRow(imageBuffer);
 
-    [self addUnsignedInteger:bytesPerRow];
-    [self addUnsignedInteger:width];
-    [self addUnsignedInteger:height];
-    [self addData: baseAddress withLength: bytes includingPrefix:false];
+    [_buffer addUnsignedInteger:bytesPerRow];
+    [_buffer addUnsignedInteger:width];
+    [_buffer addUnsignedInteger:height];
+    [_buffer addData: baseAddress withLength: bytes includingPrefix:false];
     
     CVPixelBufferUnlockBaseAddress(imageBuffer,0);
 }
@@ -32,10 +42,10 @@
     // Create a device-dependent RGB color space
     CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
 
-    uint bytesPerRow = [self getUnsignedInteger];
-    uint width = [self getUnsignedInteger];
-    uint height = [self getUnsignedInteger];
-    uint8_t * buffer = [self buffer];
+    uint bytesPerRow = [_buffer getUnsignedInteger];
+    uint width = [_buffer getUnsignedInteger];
+    uint height = [_buffer getUnsignedInteger];
+    uint8_t * buffer = [_buffer buffer] + [_buffer cursorPosition];
     
     // Create a bitmap graphics context with the sample buffer data
     CGContextRef context = CGBitmapContextCreate(buffer, width, height, 8,

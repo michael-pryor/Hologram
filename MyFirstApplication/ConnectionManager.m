@@ -105,9 +105,9 @@ static const int CONNECT_PORT = 12340;
     Boolean isOutputStream = !isInputStream;
     
     if(isInputStream) {
-        NSLog(@"Received input stream result: %lu",streamEvent);
+  //      NSLog(@"Received input stream result: %lu",streamEvent);
     } else {
-        NSLog(@"Received output stream result: %lu",streamEvent);
+   //     NSLog(@"Received output stream result: %lu",streamEvent);
     }
     
     switch(streamEvent) {
@@ -145,32 +145,29 @@ static const int CONNECT_PORT = 12340;
             break;
         case NSStreamEventHasSpaceAvailable:
             if(isOutputStream) {
-                ByteBuffer * packetToSend;
-                if(_currentSendBuffer != nil && [_currentSendBuffer getUnreadDataFromCursor] > 0) {
-                    packetToSend = _currentSendBuffer;
-                } else {
-                    packetToSend = [_outputSession processPacket];
-                    if(packetToSend == nil) {
+                if(_currentSendBuffer == nil || [_currentSendBuffer getUnreadDataFromCursor] == 0) {
+                    _currentSendBuffer = [_outputSession processPacket];
+                    if(_currentSendBuffer == nil) {
                         [self onNormalError: theStream withError:@"Termination of stream"];
                         return;
                     }
-                    [packetToSend setCursorPosition:0];
-                }
+                    [_currentSendBuffer setCursorPosition:0];
+                }                
                 
-                NSLog(@"Packet prepared for sending on output stream, length: %u", [packetToSend bufferUsedSize]);
+               // NSLog(@"Packet prepared for sending on output stream, length: %u", [_currentSendBuffer bufferUsedSize]);
                 
-                NSUInteger remaining = [packetToSend getUnreadDataFromCursor];
-                uint8_t* buffer = [packetToSend buffer] + [packetToSend cursorPosition];
+                NSUInteger remaining = [_currentSendBuffer getUnreadDataFromCursor];
+                uint8_t* buffer = [_currentSendBuffer buffer] + [_currentSendBuffer cursorPosition];
            
                 if(remaining > 0) {
-                    NSLog(@"Sending..");
+                    //NSLog(@"Sending..");
                     NSUInteger bytesSent = [_outputStream write:buffer maxLength:remaining];
                     if(bytesSent == -1) {
                         [self onStreamError:theStream];
                         return;
                     }
-                    [packetToSend moveCursorForwardsPassively:(uint)bytesSent];
-                    NSLog(@"%lu bytes sent, %lu remaining", (unsigned long)bytesSent, (unsigned long)[packetToSend getUnreadDataFromCursor]);
+                    [_currentSendBuffer moveCursorForwardsPassively:(uint)bytesSent];
+                   // NSLog(@"%lu bytes sent, %lu remaining", (unsigned long)bytesSent, (unsigned long)[_currentSendBuffer getUnreadDataFromCursor]);
                 }                
             }
             break;

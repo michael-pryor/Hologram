@@ -27,6 +27,7 @@ typedef enum  {
     AVCaptureDevice *device;
     Encoding* _encoder;
     bool _isConnected;
+    bool _stopProc;
 }
 
 
@@ -65,6 +66,7 @@ typedef enum  {
     
     AVCaptureConnection *conn = [output connectionWithMediaType:AVMediaTypeVideo];
     [conn setVideoOrientation:AVCaptureVideoOrientationPortrait];
+    conn.videoMinFrameDuration = CMTimeMake(1, 2);
     
     output.videoSettings = @{ (NSString *)kCVPixelBufferPixelFormatTypeKey : @(kCVPixelFormatType_32BGRA) };
     
@@ -80,10 +82,11 @@ typedef enum  {
         UIImage *image = [_encoder imageFromSampleBuffer: sampleBuffer];
         [_cameraView performSelectorOnMainThread:@selector(setImage:) withObject: image waitUntilDone:YES];
     } else {
-        MediaByteBuffer* buffer = [[MediaByteBuffer alloc] init];
-        [buffer addUnsignedInteger:VISUAL];
-        [buffer addString:@"HI"];
-        [_outputSession sendPacket: buffer];
+        ByteBuffer * rawBuffer = [[ByteBuffer alloc] init];
+        MediaByteBuffer* buffer = [[MediaByteBuffer alloc] initFromBuffer: rawBuffer];
+        [rawBuffer addUnsignedInteger:1];
+        [buffer addImage: sampleBuffer];
+        [_outputSession sendPacket: rawBuffer];
     }
 }
 
@@ -151,21 +154,15 @@ typedef enum  {
 
 
 - (void)onNewPacket:(ByteBuffer *)packet {
-    OperationType op = [packet getUnsignedInteger];
-    switch(op) {
-        case TEXT:
-            NSLog(@"New packet received: %@", [packet convertToString]);
-            break;
-        
-        case VISUAL:
-            NSLog(@"New visual packet received");
+    uint op = [packet getUnsignedInteger];
+    {
+            NSLog(@"New visual packet received %ul",op);
             // update display
-            
-            MediaByteBuffer * buff = (MediaByteBuffer*)packet;
-            
-            UIImage *image = [buff getImage];
+            MediaByteBuffer* buffer = [[MediaByteBuffer alloc] initFromBuffer: packet];
+        
+            UIImage *image = [buffer getImage];
             [_cameraView performSelectorOnMainThread:@selector(setImage:) withObject: image waitUntilDone:YES];
-            break;
+    
             
         //default:
         // //   NSLog(@"Bad operation received");

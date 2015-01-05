@@ -9,7 +9,8 @@
 #import "ByteBuffer.h"
 @import AVFoundation;
 
-@interface MediaByteBuffer : ByteBuffer
+@interface MediaByteBuffer : NSObject
+- (id) initFromBuffer: (ByteBuffer*)byteBuffer;
 - (void) addImage: (CMSampleBufferRef) image;
 - (UIImage*) getImage;
 @end

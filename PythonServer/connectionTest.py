@@ -17,6 +17,7 @@ import struct
 
 class Echo(IntNStringReceiver):
     structFormat = "<L"
+    MAX_LENGTH = 100000000
     prefixLength = struct.calcsize(structFormat)
 
     def connectionMade(self):

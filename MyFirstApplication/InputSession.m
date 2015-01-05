@@ -26,6 +26,7 @@
     // Extract out read packets.
     while(true) {
         uint packetSize = [dataStream getUnsignedIntegerAtPosition: 0];
+      //  NSLog(@"Waiting for packet of size: %ul, so far: %ul", packetSize, [dataStream bufferUsedSize]);
         if(packetSize > 0 && [dataStream bufferUsedSize] >= packetSize) {
             // cursor will always be 0 at this point if everything is working.
             if([dataStream cursorPosition] != 0) {
@@ -36,6 +37,7 @@
             ByteBuffer* packet = [dataStream getByteBuffer];
             
             // Erase packet from buffer.
+            [dataStream setCursorPosition:0];
             [dataStream eraseFromCursor:packet.bufferUsedSize + sizeof(uint)];
             
             if([dataStream cursorPosition] != 0) {
@@ -43,6 +45,7 @@
             }
             
             // Now do something with packet.
+            [packet setCursorPosition:0];
             [_packetDelegate onNewPacket:packet];
         } else {
             break;
