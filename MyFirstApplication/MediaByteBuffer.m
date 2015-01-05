@@ -10,22 +10,50 @@
 
 @implementation MediaByteBuffer
 - (void) addImage: (CMSampleBufferRef) image {
-    // Get a CMSampleBuffer's Core Video image buffer for the media data
     CVImageBufferRef imageBuffer = CMSampleBufferGetImageBuffer(image);
-    // Lock the base address of the pixel buffer
+
     CVPixelBufferLockBaseAddress(imageBuffer, 0);
     
-    // Get the number of bytes per row for the pixel buffer
     void *baseAddress = CVPixelBufferGetBaseAddress(imageBuffer);
-    size_t bytes = CVPixelBufferGetDataSize(imageBuffer);
+    uint bytes = (uint)CVPixelBufferGetDataSize(imageBuffer);
     
-    // Get the number of bytes per row for the pixel buffer
-    size_t bytesPerRow = CVPixelBufferGetBytesPerRow(imageBuffer);
-    // Get the pixel buffer width and height
-    size_t width = CVPixelBufferGetWidth(imageBuffer);
-    size_t height = CVPixelBufferGetHeight(imageBuffer);
+    uint width = (uint)CVPixelBufferGetWidth(imageBuffer);
+    uint height = (uint)CVPixelBufferGetHeight(imageBuffer);
+    uint bytesPerRow = (uint)CVPixelBufferGetBytesPerRow(imageBuffer);
+
+    [self addUnsignedInteger:bytesPerRow];
+    [self addUnsignedInteger:width];
+    [self addUnsignedInteger:height];
+    [self addData: baseAddress withLength: bytes includingPrefix:false];
     
-    NSLog(@"Bytes: %zu, per row: %zu, width: %zu height: %zu", bytes,bytesPerRow, width, height);
+    CVPixelBufferUnlockBaseAddress(imageBuffer,0);
 }
-          
+- (UIImage*) getImage {
+    // Create a device-dependent RGB color space
+    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+
+    uint bytesPerRow = [self getUnsignedInteger];
+    uint width = [self getUnsignedInteger];
+    uint height = [self getUnsignedInteger];
+    uint8_t * buffer = [self buffer];
+    
+    // Create a bitmap graphics context with the sample buffer data
+    CGContextRef context = CGBitmapContextCreate(buffer, width, height, 8,
+                                                 bytesPerRow, colorSpace, kCGBitmapByteOrder32Little | kCGImageAlphaPremultipliedFirst);
+    // Create a Quartz image from the pixel data in the bitmap graphics context
+    CGImageRef quartzImage = CGBitmapContextCreateImage(context);
+    
+    // Free up the context and color space
+    CGContextRelease(context);
+    CGColorSpaceRelease(colorSpace);
+    
+    // Create an image object from the Quartz image
+    UIImage *image = [UIImage imageWithCGImage:quartzImage];
+    
+    // Release the Quartz image
+    CGImageRelease(quartzImage);
+    
+    return image;
+}
+
 @end

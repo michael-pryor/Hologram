@@ -27,7 +27,16 @@
 
 - (void) sendPacket: (ByteBuffer*) packet {
     [_lock lock];
-    [_queue addObject:packet];
+    
+    ByteBuffer* prefixed;
+    if(packet != (ByteBuffer*)[NSNull null]) {
+        prefixed = [[ByteBuffer alloc] initWithSize:[packet bufferUsedSize] + sizeof(uint)];
+        [prefixed addByteBuffer:packet includingPrefix:true];
+    } else {
+        prefixed = packet;
+    }
+    
+    [_queue addObject:prefixed];
     [_lock signal];
     [_lock unlock];
 }
@@ -36,7 +45,6 @@
     [self sendPacket: (ByteBuffer*)[NSNull null]];
     NSLog(@"Waiting for close confirmation..");
     [_signal wait];
-
 }
 
 - (void) confirmClosure {

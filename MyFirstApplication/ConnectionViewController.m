@@ -13,6 +13,11 @@
 #import "MediaByteBuffer.h"
 @import AVFoundation;
 
+typedef enum  {
+    TEXT = 1,
+    VISUAL = 2
+} OperationType;
+
 @implementation ConnectionViewController {
     ConnectionManager * _connection;
     IBOutlet UIImageView *_cameraView;
@@ -21,18 +26,16 @@
     AVCaptureVideoDataOutput *output;
     AVCaptureDevice *device;
     Encoding* _encoder;
+    bool _isConnected;
 }
 
-- (id) init {
-    self = [super init];
-    if(self) {
-        _outputSession = nil;
-    }
-    return self;
-}
+
 
 -(void)viewDidLoad {
     [super viewDidLoad];
+    _outputSession = nil;
+    _isConnected = false;
+    _encoder = [[Encoding alloc] init];
 }
 
 
@@ -72,13 +75,16 @@
 }
 
 - (void)captureOutput:(AVCaptureOutput *)captureOutput didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection {
-    // update display.
-    UIImage *image = [_encoder imageFromSampleBuffer: sampleBuffer];
-    
-    MediaByteBuffer* buffer = [[MediaByteBuffer alloc] init];
-    [buffer addImage: sampleBuffer];
-    
-    [_cameraView performSelectorOnMainThread:@selector(setImage:) withObject: image waitUntilDone:YES];
+    if(!_isConnected) {
+        // update display with no networking.
+        UIImage *image = [_encoder imageFromSampleBuffer: sampleBuffer];
+        [_cameraView performSelectorOnMainThread:@selector(setImage:) withObject: image waitUntilDone:YES];
+    } else {
+        MediaByteBuffer* buffer = [[MediaByteBuffer alloc] init];
+        [buffer addUnsignedInteger:VISUAL];
+        [buffer addString:@"HI"];
+        [_outputSession sendPacket: buffer];
+    }
 }
 
 - (IBAction)onSpecialButtonClick:(id)sender {
@@ -109,7 +115,8 @@
     NSLog(@"Sending packet: %@", text);
     
     ByteBuffer * buffer = [[ByteBuffer alloc] init];
-    [buffer addString:text];
+    [buffer addUnsignedInteger: TEXT];
+    [buffer addString: text];
     [_outputSession sendPacket:buffer];
 }
 
@@ -122,24 +129,49 @@
             [[self connectionStatus] setTextColor: [UIColor yellowColor]];
             [[self connectionStatus] setHidden:true];
             [[self connectionProgress] startAnimating];
+            _isConnected = false;
             break;
             
         case OK_CON:
             [[self connectionStatus] setTextColor: [UIColor greenColor]];
             [[self connectionProgress] stopAnimating];
             [[self connectionStatus] setHidden:false];
+            _isConnected = true;
             break;
         
         case ERROR_CON:
             [[self connectionStatus] setTextColor: [UIColor redColor]];
             [[self connectionProgress] stopAnimating];
-            [[self connectionStatus] setHidden:false];            
+            [[self connectionStatus] setHidden:false];
+             _isConnected = false;
             break;
     }
 }
 
+
+
 - (void)onNewPacket:(ByteBuffer *)packet {
-    NSLog(@"New packet received: %@", [packet convertToString]);
+    OperationType op = [packet getUnsignedInteger];
+    switch(op) {
+        case TEXT:
+            NSLog(@"New packet received: %@", [packet convertToString]);
+            break;
+        
+        case VISUAL:
+            NSLog(@"New visual packet received");
+            // update display
+            
+            MediaByteBuffer * buff = (MediaByteBuffer*)packet;
+            
+            UIImage *image = [buff getImage];
+            [_cameraView performSelectorOnMainThread:@selector(setImage:) withObject: image waitUntilDone:YES];
+            break;
+            
+        //default:
+        // //   NSLog(@"Bad operation received");
+         //   break;
+    }
+    
 }
 
 @end

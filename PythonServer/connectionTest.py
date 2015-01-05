@@ -23,7 +23,8 @@ class Echo(IntNStringReceiver):
         logger.info("Connection made to client")
 
     def stringReceived(self, data):
-        logger.info("Client received data: [%s], length: %d" % (data, len(data)))
+        logger.info("Client received data, length: %d" % (len(data)))
+        self.sendString(data);
 
 class EchoClientFactory(ClientFactory):
     def __init__(self):
@@ -47,10 +48,11 @@ class EchoClientFactory(ClientFactory):
         logger.info('Connection failed. Reason:')
 
     def announce(self):
-        logger.info("sending messages..")
-        for client in self.clients:
-            logger.info("sent message")
-            client.sendString("hello world")
+        pass
+        #logger.info("sending messages..")
+        #for client in self.clients:
+            #logger.info("sent message")
+            #client.sendString("hello world")
 
 if __name__ == "__main__":
     logging.basicConfig(level = logging.DEBUG)

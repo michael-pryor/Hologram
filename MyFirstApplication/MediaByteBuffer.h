@@ -11,4 +11,5 @@
 
 @interface MediaByteBuffer : ByteBuffer
 - (void) addImage: (CMSampleBufferRef) image;
+- (UIImage*) getImage;
 @end

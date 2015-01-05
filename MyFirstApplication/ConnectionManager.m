@@ -21,6 +21,7 @@ static const int CONNECT_PORT = 12340;
     id<NewDataDelegate> _inputSession;
     OutputSession * _outputSession;
     dispatch_queue_t _queue;
+    ByteBuffer * _currentSendBuffer;
 }
 
 - (id) initWithDelegate: (id<ConnectionStatusDelegate>)connectionStatusDelegate inputSession: (id<NewDataDelegate>)inputSession outputSession: (OutputSession*)outputSession {
@@ -71,36 +72,32 @@ static const int CONNECT_PORT = 12340;
 }
 
 
-- (void) closeWithStatus: (ConnectionStatus)status andReason: (NSString*)reason {
-    if(_inputStream != nil) {
-        NSLog(@"Closing input stream");
-        [self closeStream: _inputStream];
-    }
-    if(_outputStream != nil) {
-        NSLog(@"Closing output stream");
-        [self closeStream: _outputStream];
-    }
+- (void) closeStream: (NSStream*)stream withStatus: (ConnectionStatus)status andReason: (NSString*)reason {
+    [self closeStream: stream];
     NSString * description = [NSString localizedStringWithFormat:@"Connection closed, with reason: %@", reason];
     [_connectionStatusDelegate connectionStatusChange:status withDescription:description];
 }
 
 - (void) closeStream: (NSStream*) stream {
-    [stream close];
     if (stream == _outputStream) {
         // Stop the worker thread.
         NSLog(@"Closing output stream thread!! OH MY!!");
         CFRunLoopStop(CFRunLoopGetCurrent());
     }
+
+    [_inputStream close];
+        [_outputStream close];
+    [_outputSession sendPacket: (ByteBuffer*)[NSNull null]];
 }
 
 - (void)onStreamError: (NSStream*)theStream {
     NSString * streamError = [NSString localizedStringWithFormat:@"Stream error detected, details: [%@]", [[theStream streamError] localizedDescription]];
-    [self closeWithStatus:ERROR_CON andReason:streamError];
+    [self closeStream:theStream withStatus:ERROR_CON andReason:streamError];
 }
 
-- (void)onNormalError: (NSString*)errorText {
+- (void)onNormalError: (NSStream*)theStream withError: (NSString*)errorText {
     NSString * streamError = [NSString localizedStringWithFormat:@"Error detected, details: [%@]", errorText];
-    [self closeWithStatus:ERROR_CON andReason:streamError];
+    [self closeStream:theStream withStatus:ERROR_CON andReason:streamError];
 }
 
 - (void)stream:(NSStream *)theStream handleEvent:(NSStreamEvent)streamEvent {
@@ -115,7 +112,7 @@ static const int CONNECT_PORT = 12340;
     
     switch(streamEvent) {
         case NSStreamEventNone:
-            [self onNormalError: @"Streams terminating with event none"];
+            [self onNormalError: theStream withError: @"Streams terminating with event none"];
             break;
             
         case NSStreamEventOpenCompleted:
@@ -139,7 +136,7 @@ static const int CONNECT_PORT = 12340;
                 
                 Boolean successfulIncreaseInUsedSize = [dataStream increaseUsedSizePassively:(uint)bytesRead];
                 if(!successfulIncreaseInUsedSize) {
-                    [self onNormalError:@"Failed to increase used size, bad value"];
+                    [self onNormalError: theStream withError:@"Failed to increase used size, bad value"];
                     return;
                 }
             	
@@ -148,22 +145,33 @@ static const int CONNECT_PORT = 12340;
             break;
         case NSStreamEventHasSpaceAvailable:
             if(isOutputStream) {
-                ByteBuffer * packetToSend = [_outputSession processPacket];
-                if(packetToSend == nil) {
-                    [self onNormalError:@"Termination of stream"];
-                    return;
+                ByteBuffer * packetToSend;
+                if(_currentSendBuffer != nil && [_currentSendBuffer getUnreadDataFromCursor] > 0) {
+                    packetToSend = _currentSendBuffer;
+                } else {
+                    packetToSend = [_outputSession processPacket];
+                    if(packetToSend == nil) {
+                        [self onNormalError: theStream withError:@"Termination of stream"];
+                        return;
+                    }
+                    [packetToSend setCursorPosition:0];
                 }
                 
                 NSLog(@"Packet prepared for sending on output stream, length: %u", [packetToSend bufferUsedSize]);
                 
-                NSUInteger remaining = [packetToSend bufferUsedSize];
-                uint8_t* buffer = [packetToSend buffer];
-                while(remaining > 0) {
+                NSUInteger remaining = [packetToSend getUnreadDataFromCursor];
+                uint8_t* buffer = [packetToSend buffer] + [packetToSend cursorPosition];
+           
+                if(remaining > 0) {
+                    NSLog(@"Sending..");
                     NSUInteger bytesSent = [_outputStream write:buffer maxLength:remaining];
-                    buffer += bytesSent;
-                    remaining -= bytesSent;
-                    NSLog(@"%lu bytes sent, %lu remaining", (unsigned long)bytesSent, (unsigned long)remaining);
-                }
+                    if(bytesSent == -1) {
+                        [self onStreamError:theStream];
+                        return;
+                    }
+                    [packetToSend moveCursorForwardsPassively:(uint)bytesSent];
+                    NSLog(@"%lu bytes sent, %lu remaining", (unsigned long)bytesSent, (unsigned long)[packetToSend getUnreadDataFromCursor]);
+                }                
             }
             break;
             
@@ -172,11 +180,11 @@ static const int CONNECT_PORT = 12340;
             break;
             
         case NSStreamEventEndEncountered:
-            [self onNormalError: @"Streams terminating gracefully"];
+            [self onNormalError: theStream withError: @"Streams terminating gracefully"];
             break;
             
         default:
-            [self onNormalError: @"Streams terminating with UNKNOWN EVENT!"];
+            [self onNormalError: theStream withError: @"Streams terminating with UNKNOWN EVENT!"];
             break;
     }
 }
