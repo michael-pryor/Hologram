@@ -9,9 +9,10 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIViewController.h>
 #import "ConnectionManager.h"
+#import "MediaController.h"
 @import AVFoundation;
 
-@interface ConnectionViewController : UIViewController<ConnectionStatusDelegate, NewPacketDelegate, UITextFieldDelegate, UIImagePickerControllerDelegate,AVCaptureVideoDataOutputSampleBufferDelegate>
+@interface ConnectionViewController : UIViewController<ConnectionStatusDelegate, NewPacketDelegate, UITextFieldDelegate, UIImagePickerControllerDelegate, NewImageDelegate>
 @property (weak, nonatomic) IBOutlet UIActivityIndicatorView *connectionProgress;
 @property (weak, nonatomic) IBOutlet UILabel *theLabel;
 @property (nonatomic, retain) IBOutlet UIButton * theButton;

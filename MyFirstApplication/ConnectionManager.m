@@ -38,6 +38,7 @@ static const int CONNECT_PORT = 12340;
     [_outputStream scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
     [_outputStream open];
     
+    [_outputSession confirmOpen];
     CFRunLoopRun();
     
     [_outputSession confirmClosure];

@@ -49,4 +49,38 @@
     
     return (image);
 }
+
+- (AVCaptureSession *) setupCaptureSessionWithDelegate: (id<AVCaptureVideoDataOutputSampleBufferDelegate>) delegate {
+    AVCaptureSession* session = [[AVCaptureSession alloc] init];
+    session.sessionPreset = AVCaptureSessionPresetLow;
+    
+    // access input device.
+    AVCaptureDevice *device = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
+    
+    NSError *error = nil;
+    AVCaptureDeviceInput *input = [AVCaptureDeviceInput deviceInputWithDevice:device error:&error];
+    if (!input) {
+        NSLog(@"Could not access input device: %@", error);
+    }
+    
+    // add input device to session.
+    [session addInput:input];
+    
+    // setup output session.
+    AVCaptureVideoDataOutput *output = [[AVCaptureVideoDataOutput alloc] init];
+    [session addOutput:output];
+    
+    AVCaptureConnection *conn = [output connectionWithMediaType:AVMediaTypeVideo];
+    [conn setVideoOrientation:AVCaptureVideoOrientationPortrait];
+    conn.videoMinFrameDuration = CMTimeMake(1, 20);
+    
+    output.videoSettings = @{ (NSString *)kCVPixelBufferPixelFormatTypeKey : @(kCVPixelFormatType_32BGRA) };
+    
+    dispatch_queue_t queue = dispatch_queue_create("CameraOutputQueue", NULL);
+    
+    // tell output session to use newly created queue, and push to captureOutput function.
+    [output setSampleBufferDelegate:delegate queue:queue];
+    
+    return session;
+}
 @end

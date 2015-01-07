@@ -13,6 +13,7 @@
 		51D584C319AB8B1D00BB6CE6 /* ByteBufferTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 51D584C219AB8B1D00BB6CE6 /* ByteBufferTest.m */; };
 		51DB961819A8E3D0001A63F8 /* ConnectionManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 51DB961719A8E3D0001A63F8 /* ConnectionManager.m */; };
 		51DB961B19A8EE05001A63F8 /* ConnectionViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 51DB961A19A8EE05001A63F8 /* ConnectionViewController.m */; };
+		51E1BF2B1A5DD7A4007D8A56 /* MediaController.m in Sources */ = {isa = PBXBuildFile; fileRef = 51E1BF2A1A5DD7A4007D8A56 /* MediaController.m */; };
 		51E219DC193B2D190066D915 /* Storyboard.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 51E219DB193B2D190066D915 /* Storyboard.storyboard */; };
 		51E5BE221936A982003E45C3 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 51E5BE211936A982003E45C3 /* Foundation.framework */; };
 		51E5BE241936A982003E45C3 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 51E5BE231936A982003E45C3 /* CoreGraphics.framework */; };
@@ -53,6 +54,8 @@
 		51DB961719A8E3D0001A63F8 /* ConnectionManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ConnectionManager.m; sourceTree = "<group>"; };
 		51DB961919A8EE05001A63F8 /* ConnectionViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConnectionViewController.h; sourceTree = "<group>"; };
 		51DB961A19A8EE05001A63F8 /* ConnectionViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ConnectionViewController.m; sourceTree = "<group>"; };
+		51E1BF291A5DD7A4007D8A56 /* MediaController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MediaController.h; sourceTree = "<group>"; };
+		51E1BF2A1A5DD7A4007D8A56 /* MediaController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MediaController.m; sourceTree = "<group>"; };
 		51E219DB193B2D190066D915 /* Storyboard.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = Storyboard.storyboard; sourceTree = "<group>"; };
 		51E5BE1E1936A982003E45C3 /* MyFirstApplication.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MyFirstApplication.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		51E5BE211936A982003E45C3 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -105,6 +108,15 @@
 		51D584B819AB63FB00BB6CE6 /* Networking */ = {
 			isa = PBXGroup;
 			children = (
+				51E1BF281A5DD5C0007D8A56 /* Protocol */,
+				51E1BF271A5DD5A6007D8A56 /* Generic */,
+			);
+			name = Networking;
+			sourceTree = "<group>";
+		};
+		51E1BF271A5DD5A6007D8A56 /* Generic */ = {
+			isa = PBXGroup;
+			children = (
 				51DB961719A8E3D0001A63F8 /* ConnectionManager.m */,
 				51DB961619A8E3D0001A63F8 /* ConnectionManager.h */,
 				51D584B919AB648000BB6CE6 /* InputSession.h */,
@@ -114,7 +126,16 @@
 				51D584BF19AB7A9400BB6CE6 /* ByteBuffer.h */,
 				51D584C019AB7A9400BB6CE6 /* ByteBuffer.m */,
 			);
-			name = Networking;
+			name = Generic;
+			sourceTree = "<group>";
+		};
+		51E1BF281A5DD5C0007D8A56 /* Protocol */ = {
+			isa = PBXGroup;
+			children = (
+				51E1BF291A5DD7A4007D8A56 /* MediaController.h */,
+				51E1BF2A1A5DD7A4007D8A56 /* MediaController.m */,
+			);
+			name = Protocol;
 			sourceTree = "<group>";
 		};
 		51E5BE151936A982003E45C3 = {
@@ -316,6 +337,7 @@
 				51DB961B19A8EE05001A63F8 /* ConnectionViewController.m in Sources */,
 				51E888A11A597585005F8825 /* Signal.m in Sources */,
 				51E888A51A59DFB8005F8825 /* Encoding.m in Sources */,
+				51E1BF2B1A5DD7A4007D8A56 /* MediaController.m in Sources */,
 				51D584C119AB7A9400BB6CE6 /* ByteBuffer.m in Sources */,
 				51E888A81A59E218005F8825 /* MediaByteBuffer.m in Sources */,
 				51D584BE19AB649500BB6CE6 /* OutputSession.m in Sources */,

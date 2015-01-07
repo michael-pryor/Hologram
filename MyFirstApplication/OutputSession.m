@@ -20,7 +20,9 @@
     if(self) {
 	    _queue = [[NSMutableArray alloc] init];
         _lock =  [[NSCondition alloc] init];
-        _signal = [[Signal alloc] init];
+        
+        // Starts off unconnected (closed).
+        _signal = [[Signal alloc] initWithFlag:true];
     }
     return self;
 }
@@ -41,6 +43,11 @@
     [_lock unlock];
 }
 
+- (void) confirmOpen {
+    NSLog(@"Confirmation of open sent");
+    [_signal clear];
+}
+
 - (void) closeConnection {
     [self sendPacket: (ByteBuffer*)[NSNull null]];
     NSLog(@"Waiting for close confirmation..");
@@ -50,6 +57,10 @@
 - (void) confirmClosure {
     NSLog(@"Confirmation of closure sent");
     [_signal signalAll];
+}
+
+- (bool) isClosed {
+    return [_signal isSignaled];
 }
 
 

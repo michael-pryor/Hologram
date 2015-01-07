@@ -10,4 +10,5 @@
 
 @interface Encoding : NSObject
 - (UIImage *) imageFromSampleBuffer:(CMSampleBufferRef) sampleBuffer;
+- (AVCaptureSession *) setupCaptureSessionWithDelegate: (id<AVCaptureVideoDataOutputSampleBufferDelegate>) delegate;
 @end
