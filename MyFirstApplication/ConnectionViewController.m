@@ -10,6 +10,7 @@
 #import "InputSession.h"
 #import "OutputSession.h"
 #import "MediaController.h"
+
 @import AVFoundation;
 
 typedef enum  {
@@ -19,10 +20,12 @@ typedef enum  {
 
 @implementation ConnectionViewController {
     ConnectionManager * _connection;
+    ConnectionManagerUdp * _udpConnection;
     IBOutlet UIImageView *_cameraView;
     AVCaptureSession *session;
     MediaController *_mediaController;
     bool _stopProc;
+    bool _connected;
 }
 
 -(void)viewDidLoad {
@@ -52,15 +55,47 @@ typedef enum  {
 }
 
 - (IBAction)onConnectButtonClick:(id)sender {
-    if(_outputSession != nil && ![_outputSession isClosed]) {
+    // TCP SIDE
+    /*if(_outputSession != nil && ![_outputSession isClosed]) {
         NSLog(@"Closing existing connection..");
         [_outputSession closeConnection];
-    }
+    }*/
+    
+    NSString * theMagicalHash = @"MY HASH IS COOLER THAN YOURS";
+    if([_outputSession isClosed]) {
     
     InputSessionTCP * sessionTcp = [[InputSessionTCP alloc] initWithDelegate: self];
 
     _connection = [[ConnectionManager alloc] initWithDelegate: self inputSession: sessionTcp outputSession: _outputSession ];
     [_connection connect];
+    
+    // UDP SIDE
+    static NSString *const CONNECT_IP = @"192.168.1.92";
+    static const int CONNECT_PORT = 12341;
+    
+    if(_udpConnection == nil) {
+        _udpConnection = [[ConnectionManagerUdp alloc] init];
+        [_udpConnection connectToHost:CONNECT_IP andPort:CONNECT_PORT];
+    }
+    
+    ByteBuffer* theLogonBuffer = [[ByteBuffer alloc] init];
+    [theLogonBuffer addUnsignedInteger:100];
+    [theLogonBuffer addString:@"My name is Michael"];
+    [theLogonBuffer addString:theMagicalHash];
+    [_outputSession sendPacket:theLogonBuffer];
+
+        ByteBuffer* theUdpLogonBuffer = [[ByteBuffer alloc] init];
+        [theUdpLogonBuffer addString:theMagicalHash];
+        [_udpConnection sendBuffer: theUdpLogonBuffer];
+    }
+    
+    ByteBuffer* theUdpLogonBuffer = [[ByteBuffer alloc] init];
+    [theUdpLogonBuffer addString:theMagicalHash];
+    [_udpConnection sendBuffer: theUdpLogonBuffer];
+    
+    ByteBuffer* bbuffer = [[ByteBuffer alloc] init];
+    [bbuffer addString:@"HELLO UNIVERSE!!!!"];
+    [_udpConnection sendBuffer:bbuffer];
 }
 
 - (IBAction)onSendButtonClick:(id)sender {
@@ -82,18 +117,21 @@ typedef enum  {
             [[self connectionStatus] setTextColor: [UIColor yellowColor]];
             [[self connectionStatus] setHidden:true];
             [[self connectionProgress] startAnimating];
+            _connected = false;
             break;
             
         case OK_CON:
             [[self connectionStatus] setTextColor: [UIColor greenColor]];
             [[self connectionProgress] stopAnimating];
             [[self connectionStatus] setHidden:false];
+            _connected = true;
             break;
         
         case ERROR_CON:
             [[self connectionStatus] setTextColor: [UIColor redColor]];
             [[self connectionProgress] stopAnimating];
             [[self connectionStatus] setHidden:false];
+            _connected = false;
             break;
     }
 }

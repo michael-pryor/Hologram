@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		51C3F13F1A6C4388004040BB /* ConnectionManagerUdp.m in Sources */ = {isa = PBXBuildFile; fileRef = 51C3F13E1A6C4388004040BB /* ConnectionManagerUdp.m */; };
 		51D584BB19AB648000BB6CE6 /* InputSession.m in Sources */ = {isa = PBXBuildFile; fileRef = 51D584BA19AB648000BB6CE6 /* InputSession.m */; };
 		51D584BE19AB649500BB6CE6 /* OutputSession.m in Sources */ = {isa = PBXBuildFile; fileRef = 51D584BD19AB649500BB6CE6 /* OutputSession.m */; };
 		51D584C119AB7A9400BB6CE6 /* ByteBuffer.m in Sources */ = {isa = PBXBuildFile; fileRef = 51D584C019AB7A9400BB6CE6 /* ByteBuffer.m */; };
@@ -43,6 +44,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		51C3F13D1A6C4388004040BB /* ConnectionManagerUdp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConnectionManagerUdp.h; sourceTree = "<group>"; };
+		51C3F13E1A6C4388004040BB /* ConnectionManagerUdp.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ConnectionManagerUdp.m; sourceTree = "<group>"; };
 		51D584B919AB648000BB6CE6 /* InputSession.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InputSession.h; sourceTree = "<group>"; };
 		51D584BA19AB648000BB6CE6 /* InputSession.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = InputSession.m; sourceTree = "<group>"; };
 		51D584BC19AB649500BB6CE6 /* OutputSession.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OutputSession.h; sourceTree = "<group>"; };
@@ -125,6 +128,8 @@
 				51D584BD19AB649500BB6CE6 /* OutputSession.m */,
 				51D584BF19AB7A9400BB6CE6 /* ByteBuffer.h */,
 				51D584C019AB7A9400BB6CE6 /* ByteBuffer.m */,
+				51C3F13D1A6C4388004040BB /* ConnectionManagerUdp.h */,
+				51C3F13E1A6C4388004040BB /* ConnectionManagerUdp.m */,
 			);
 			name = Generic;
 			sourceTree = "<group>";
@@ -343,6 +348,7 @@
 				51D584BE19AB649500BB6CE6 /* OutputSession.m in Sources */,
 				51DB961819A8E3D0001A63F8 /* ConnectionManager.m in Sources */,
 				51E5BE321936A982003E45C3 /* MJPAppDelegate.m in Sources */,
+				51C3F13F1A6C4388004040BB /* ConnectionManagerUdp.m in Sources */,
 				51D584BB19AB648000BB6CE6 /* InputSession.m in Sources */,
 				51E5BE2E1936A982003E45C3 /* main.m in Sources */,
 			);

@@ -50,7 +50,7 @@
         MediaByteBuffer* buffer = [[MediaByteBuffer alloc] initFromBuffer: rawBuffer];
         [rawBuffer addUnsignedInteger:1];
         [buffer addImage: sampleBuffer];
-        [_networkOutputSession sendPacket: rawBuffer];
+        //[_networkOutputSession sendPacket: rawBuffer]; <- temporarily disabled.
     }
 }
 

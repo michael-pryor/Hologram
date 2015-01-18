@@ -21,7 +21,8 @@ from byte_buffer import ByteBuffer
 class UdpConnectionLink(object):
     def __init__(self, udpHash, waitingClient):
         super(UdpConnectionLink, self).__init__()
-        assert isinstance(waitingClient, Client)
+        if waitingClient is not None:
+            assert isinstance(waitingClient, Client)
         self.udp_hash = udpHash
         self.waiting_client = waitingClient
 
@@ -38,7 +39,7 @@ class UdpConnectionLink(object):
 class UdpConnectionLinker(object):
     def __init__(self):
         super(UdpConnectionLinker, self).__init__()
-        self.waiting_hashes = set()
+        self.waiting_hashes = dict()
 
     def registerInterest(self, udpHash, waitingClient):
         obj = UdpConnectionLink(udpHash, waitingClient)
@@ -46,7 +47,7 @@ class UdpConnectionLinker(object):
             logger.warn("Duplicate UDP hash detected [%s], not registering interest" % udpHash)
             return False
 
-        self.waiting_hashes.add(obj)
+        self.waiting_hashes[obj] = obj
         logger.info("Interest registered in UDP hash [%s]" % udpHash)
         return True
 
@@ -55,14 +56,16 @@ class UdpConnectionLinker(object):
         self.waiting_hashes.remove(UdpConnectionLink(udpHash, waitingClient))
 
     def registerCompletion(self, udpHash, udpConnectionDetails):
-        hashObj = self.waiting_hashes.remove(UdpConnectionLink(udpHash, None))
-        if hashObj is not None:
+        try:
+            hashObj = self.waiting_hashes[UdpConnectionLink(udpHash, None)];
+            del self.waiting_hashes[hashObj];
             assert isinstance(hashObj, UdpConnectionLink)
             hashObj.waiting_client.setUdpRemoteAddress(udpConnectionDetails)
-            logger.info("UDP connection with hash [%s] and connection details [%s] has been established" % (udpHash, udpConnectionDetails))
+            logger.info("UDP connection with hash [%s] and connection details [%s] has been established" % (udpHash, unicode(udpConnectionDetails)))
             return hashObj.waiting_client
-        else:
-            logger.warn("An invalid UDP hash was received from [%s], rejecting" % udpConnectionDetails)
+        except KeyError:
+            logger.warn("An invalid UDP hash was received from [%s], discarding" % unicode(udpConnectionDetails))
+
 
 # Representation of client from server's perspective.
 class Client(object):
@@ -86,7 +89,6 @@ class Client(object):
         logger.info("New client connected, awaiting logon message")
 
     def setUdpRemoteAddress(self, udpRemoteAddress):
-        assert isinstance(udpRemoteAddress, ClientUdp)
         self.udp_remote_address = udpRemoteAddress
         self.connection_status = Client.ConnectionStatus.CONNECTED
 
@@ -129,7 +131,7 @@ class Client(object):
             logger.warn("TCP packet received while waiting for UDP connection to be established, dropping packet")
             pass
         elif self.connection_status == Client.ConnectionStatus.CONNECTED:
-            self.sendString(data);
+            self.tcp.sendString(data);
         else:
             logger.error("Client in unsupported connection state: %d" % self.parent.connection_status)
             self.closeConnection()
@@ -140,7 +142,7 @@ class Client(object):
             logger.warn("Client is not connected, discarding UDP packet")
             return
 
-        self.sendString(data)
+        logger.info("Received a friendly UDP packet with length: %d" % packet.used_size)
 
 # TCP connection of client.
 # Expects incoming packets to be prefixed with size of subsequent data.
@@ -206,7 +208,7 @@ class Server(ClientFactory, protocol.DatagramProtocol):
         logger.info('Connection failed. Reason:')
 
     def datagramReceived(self, data, remoteAddress):
-        logger.info('UDP packet received with size %d from host [%s], port [%s]' % len(data), remoteAddress[0], remoteAddress[1])
+        logger.info('UDP packet received with size %d from host [%s], port [%s]' % (len(data), remoteAddress[0], remoteAddress[1]))
         knownClient = self.clientsByUdpAddress.get(remoteAddress)
 
         theBuffer = ByteBuffer.buildFromIterable(data)

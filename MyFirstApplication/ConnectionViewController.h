@@ -10,6 +10,7 @@
 #import <UIKit/UIViewController.h>
 #import "ConnectionManager.h"
 #import "MediaController.h"
+#import "ConnectionManagerUdp.h"
 @import AVFoundation;
 
 @interface ConnectionViewController : UIViewController<ConnectionStatusDelegate, NewPacketDelegate, UITextFieldDelegate, UIImagePickerControllerDelegate, NewImageDelegate>
