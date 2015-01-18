@@ -30,7 +30,7 @@
         _bufferMemorySize = 0;
         _bufferUsedSize = 0;
         _cursorPosition = 0;
-        [self addData:sourceBuffer withLength:size includingPrefix:false];
+        [self addVariableLengthData:sourceBuffer withLength:size includingPrefix:false];
     }
     return self;
 }
@@ -157,11 +157,11 @@
 }
 
 - (void) addValue: (void*) source typeSize: (uint) typeSize {
-    [self set_cursorPosition: [self addValue:source atPosition:_cursorPosition typeSize:typeSize]];
+    [self setCursorPosition: [self addValue:source atPosition:_cursorPosition typeSize:typeSize]];
 }
 
 - (void) getValue: (void*) dest typeSize: (uint) typeSize {
-    [self set_cursorPosition: [self getValue:dest fromPosition:_cursorPosition typeSize:typeSize]];
+    [self setCursorPosition: [self getValue:dest fromPosition:_cursorPosition typeSize:typeSize]];
 }
 
 - (uint) getUnsignedIntegerAtPosition: (uint) position {
@@ -184,7 +184,7 @@
     [self addValue:&integer typeSize:sizeof(uint)];
 }
 
-- (void) set_cursorPosition:(uint)newCursorPosition {
+- (void) setCursorPosition:(uint)newCursorPosition {
     [self increaseMemorySize:newCursorPosition];
     if(newCursorPosition > _bufferUsedSize) {
         _bufferUsedSize = newCursorPosition;
@@ -193,7 +193,7 @@
 }
 
 - (void) moveCursorForwards:(uint)amount {
-    [self set_cursorPosition:_cursorPosition + amount];
+    [self setCursorPosition:_cursorPosition + amount];
 }
 
 // Unlike moveCursorForwards, will not resize buffer, instead
@@ -236,7 +236,7 @@
     return _bufferMemorySize - _bufferUsedSize;
 }
 
-- (void) addData: (uint8_t*)data withLength: (uint)length includingPrefix: (Boolean)includePrefix {
+- (void) addVariableLengthData: (uint8_t*)data withLength: (uint)length includingPrefix: (Boolean)includePrefix {
     uint dataSize = sizeof(uint8_t) * length;
     uint newSize = _cursorPosition + dataSize;
     if(includePrefix) {
@@ -250,12 +250,12 @@
     [self moveCursorForwards:dataSize];
 }
 
-- (void) addData: (uint8_t*)data withLength: (uint)length {
-    [self addData:data withLength:length includingPrefix:true];
+- (void) addVariableLengthData: (uint8_t*)data withLength: (uint)length {
+    [self addVariableLengthData:data withLength:length includingPrefix:true];
 }
 
 - (void) addByteBuffer: (ByteBuffer*)sourceBuffer includingPrefix: (Boolean)includePrefix {
-    [self addData:sourceBuffer.buffer withLength:sourceBuffer.bufferUsedSize includingPrefix:includePrefix];
+    [self addVariableLengthData:sourceBuffer.buffer withLength:sourceBuffer.bufferUsedSize includingPrefix:includePrefix];
 }
 
 - (void) addByteBuffer: (ByteBuffer*)sourceBuffer {
@@ -268,19 +268,19 @@
     const void *bytes = [data bytes];
     uint length = (uint)[data length];
     uint8_t * rawData = (uint8_t*)bytes;
-    [self addData:rawData withLength:length];
+    [self addVariableLengthData:rawData withLength:length];
 }
 
 
 - (id) getVariableLengthData:(id(^)(uint8_t* data, uint length))dataHandler withLength: (uint)length{
-    if([self getUnreadDataFromCursor] < sizeof(uint)) {
-        return nil;
-    }
-    
     uint prefixLength;
     if(length == 0) {
-    	length = [self getUnsignedIntegerAtPosition:_cursorPosition];
         prefixLength = sizeof(uint);
+        if([self getUnreadDataFromCursor] < prefixLength) {
+            return nil;
+        }
+    	
+        length = [self getUnsignedIntegerAtPosition:_cursorPosition];
     } else {
         prefixLength = 0;
     }

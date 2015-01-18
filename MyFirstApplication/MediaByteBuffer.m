@@ -34,7 +34,7 @@
     [_buffer addUnsignedInteger:bytesPerRow];
     [_buffer addUnsignedInteger:width];
     [_buffer addUnsignedInteger:height];
-    [_buffer addData: baseAddress withLength: bytes includingPrefix:false];
+    [_buffer addVariableLengthData: baseAddress withLength: bytes includingPrefix:false];
     
     CVPixelBufferUnlockBaseAddress(imageBuffer,0);
 }

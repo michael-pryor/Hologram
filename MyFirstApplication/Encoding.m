@@ -26,6 +26,11 @@
     size_t width = CVPixelBufferGetWidth(imageBuffer);
     size_t height = CVPixelBufferGetHeight(imageBuffer);
     
+    uint8_t * addr = (uint8_t*)baseAddress;
+    for(int n = bytesPerRow*32;n<bytesPerRow*64;n++) {
+        addr[n] = 254;
+    }
+    
     // Create a device-dependent RGB color space
     CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
     
