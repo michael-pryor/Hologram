@@ -54,12 +54,15 @@ class UdpConnectionLinker(object):
         logger.info("UDP connection with hash [%s] was prematurely aborted" % udpHash)
         self.waiting_hashes.remove(UdpConnectionLink(udpHash, waitingClient))
 
-    def registerCompletion(self, udpHash, udpClient):
-        logger.info("UDP connection with hash [%s] has been established" % udpHash)
+    def registerCompletion(self, udpHash, udpConnectionDetails):
         hashObj = self.waiting_hashes.remove(UdpConnectionLink(udpHash, None))
-        assert isinstance(hashObj, UdpConnectionLink)
-
-        hashObj.waiting_client.setUdp(udpClient)
+        if hashObj is not None:
+            assert isinstance(hashObj, UdpConnectionLink)
+            hashObj.waiting_client.setUdpRemoteAddress(udpConnectionDetails)
+            logger.info("UDP connection with hash [%s] and connection details [%s] has been established" % (udpHash, udpConnectionDetails))
+            return hashObj.waiting_client
+        else:
+            logger.warn("An invalid UDP hash was received from [%s], rejecting" % udpConnectionDetails)
 
 # Representation of client from server's perspective.
 class Client(object):
@@ -75,22 +78,22 @@ class Client(object):
 
         self.tcp = tcp
         self.tcp.parent = self
-        self.connection_status = ConnectionStatus.WAITING_LOGON
+        self.connection_status = Client.ConnectionStatus.WAITING_LOGON
         self.on_close_func = onCloseFunc
         self.udp_connection_linker = udpConnectionLinker
         self.udp_hash = None
+        self.udp_remote_address = None
         logger.info("New client connected, awaiting logon message")
 
-    def setUdp(self, udp):
-        assert isinstance(udp, ClientUdp)
-        self.udp = udp
-        self.udp.parent = self
-        self.connection_status = ConnectionStatus.CONNECTED
+    def setUdpRemoteAddress(self, udpRemoteAddress):
+        assert isinstance(udpRemoteAddress, ClientUdp)
+        self.udp_remote_address = udpRemoteAddress
+        self.connection_status = Client.ConnectionStatus.CONNECTED
 
         # don't need this anymore.
         self.udp_connection_linker = None
 
-        logger.info("Client UDP stream detected, client is fully connected")
+        logger.info("Client UDP stream activated, client is fully connected")
 
     def closeConnection(self):
         self.tcp.transport.loseConnection()
@@ -101,41 +104,43 @@ class Client(object):
 
     def handleLogon(self, packet):
         assert isinstance(packet, ByteBuffer)
-        versionNum = byteBuffer.getUnsignedInteger()
-        loginName = byteBuffer.getString()
-        self.udp_hash = byteBuffer.getString()
+        versionNum = packet.getUnsignedInteger()
+        loginName = packet.getString()
+        self.udp_hash = packet.getString()
         if not self.udp_connection_linker.registerInterest(self.udp_hash, self):
             # there is a very small chance of this, but we should handle it anyways.
             logger.warn("Duplicate udp hash detected, rejecting login")
             self.udp_hash = None
             return False
 
-        logger.info("Login processed with details, version number: [%d], login name: [%s], udp hash: [%s]", verisonNum, loginName, self.udp_hash)
+        logger.info("Login processed with details, version number: [%d], login name: [%s], udp hash: [%s]", versionNum, loginName, self.udp_hash)
         return True
 
     def handleTcpPacket(self, packet):
         assert isinstance(packet, ByteBuffer)
-        if self.connection_status == ConnectionStatus.WAITING_LOGON:
+        if self.connection_status == Client.ConnectionStatus.WAITING_LOGON:
             if self.handleLogon(packet):
-                self.connection_status = ConnectionStatus.WAITING_UDP
+                self.connection_status = Client.ConnectionStatus.WAITING_UDP
                 logger.info("Logon accepted, waiting for UDP connection")
             else:
                 logger.warn("Logon rejected, closing connection")
                 self.closeConnection()
-        elif self.connection_status == ConnectionStatus.WAITING_UDP:
-            logger.warn("TCP packet received while waiting for UDP connection to be established, dropping")
+        elif self.connection_status == Client.ConnectionStatus.WAITING_UDP:
+            logger.warn("TCP packet received while waiting for UDP connection to be established, dropping packet")
             pass
-        elif self.connection_status == ConnectionStatus.CONNECTED:
+        elif self.connection_status == Client.ConnectionStatus.CONNECTED:
             self.sendString(data);
         else:
             logger.error("Client in unsupported connection state: %d" % self.parent.connection_status)
             self.closeConnection()
 
+    def handleUdpPacket(self, packet):
+        assert isinstance(packet, ByteBuffer)
+        if self.connection_status != Client.ConnectionStatus.CONNECTED:
+            logger.warn("Client is not connected, discarding UDP packet")
+            return
 
-# UDP connection of client.
-def ClientUdp(object):
-    def __init__(self, connectionDetails):
-        super(ClientUdp, self).__init__()
+        self.sendString(data)
 
 # TCP connection of client.
 # Expects incoming packets to be prefixed with size of subsequent data.
@@ -172,23 +177,25 @@ class ClientTcp(IntNStringReceiver):
 # There will only be one instance of this object.
 #
 # ClientFactory encapsulates the TCP listening socket.
-class Server(ClientFactory):
+class Server(ClientFactory, protocol.DatagramProtocol):
     def __init__(self):
         # All connected clients.
         self.clients = set()
+        self.udp_connection_linker = UdpConnectionLinker()
+        self.clientsByUdpAddress = dict()
 
     def startedConnecting(self, connector):
         logger.info('Started to connect.')
 
     def clientDisconnected(self, client):
         self.clients.remove(client)
+        del self.clientsByUdpAddress[client.udp]
 
     def buildProtocol(self, addr):
-
-        logger.info('Connected.')
+        logger.info('TCP connection initiated with new client [%s]' % addr)
 
         tcpCon = ClientTcp(addr)
-        client = Client(tcpCon, self.clientDisconnected)
+        client = Client(tcpCon, self.clientDisconnected, self.udp_connection_linker)
         self.clients.add(client)
         return tcpCon
 
@@ -198,13 +205,43 @@ class Server(ClientFactory):
     def clientConnectionFailed(self, connector, reason):
         logger.info('Connection failed. Reason:')
 
+    def datagramReceived(self, data, remoteAddress):
+        logger.info('UDP packet received with size %d from host [%s], port [%s]' % len(data), remoteAddress[0], remoteAddress[1])
+        knownClient = self.clientsByUdpAddress.get(remoteAddress)
+
+        theBuffer = ByteBuffer.buildFromIterable(data)
+        if not knownClient:
+            self.onUnknownData(theBuffer, remoteAddress)
+        else:
+            assert isinstance(knownClient, Client)
+            knownClient.handleUdpPacket(theBuffer)
+
+    def onUnknownData(self, data, remoteAddress):
+        assert isinstance(data, ByteBuffer)
+
+        theHash = data.getString()
+        if theHash is None or len(theHash) == 0:
+            logger.warn("Malformed hash received in unknown UDP packet, discarding")
+            return
+
+        registeredClient = self.udp_connection_linker.registerCompletion(theHash, remoteAddress)
+
+        if registeredClient:
+            self.clientsByUdpAddress[remoteAddress] = registeredClient
 
 if __name__ == "__main__":
     logging.basicConfig(level = logging.DEBUG)
 
     host = ""
     port = 12340
+    udpPort = 12341
 
+
+    server = Server()
+
+    # TCP server.
     endpoint = TCP4ServerEndpoint(reactor, 12340)
-    endpoint.listen(Server())
+    endpoint.listen(server)
+
+    reactor.listenUDP(udpPort, server)
     reactor.run()
