@@ -55,16 +55,16 @@ class UdpConnectionLinker(object):
         logger.info("UDP connection with hash [%s] was prematurely aborted" % udpHash)
         self.waiting_hashes.remove(UdpConnectionLink(udpHash, waitingClient))
 
-    def registerCompletion(self, udpHash, udpConnectionDetails):
+    def registerCompletion(self, udpHash, clientUdp):
         try:
             hashObj = self.waiting_hashes[UdpConnectionLink(udpHash, None)];
             del self.waiting_hashes[hashObj];
             assert isinstance(hashObj, UdpConnectionLink)
-            hashObj.waiting_client.setUdpRemoteAddress(udpConnectionDetails)
-            logger.info("UDP connection with hash [%s] and connection details [%s] has been established" % (udpHash, unicode(udpConnectionDetails)))
+            hashObj.waiting_client.setUdp(clientUdp)
+            logger.info("UDP connection with hash [%s] and connection details [%s] has been established" % (udpHash, unicode(clientUdp.remote_address)))
             return hashObj.waiting_client
         except KeyError:
-            logger.warn("An invalid UDP hash was received from [%s], discarding" % unicode(udpConnectionDetails))
+            logger.warn("An invalid UDP hash was received from [%s], discarding" % unicode(clientUdp.remote_address))
 
 
 # Representation of client from server's perspective.
@@ -88,8 +88,10 @@ class Client(object):
         self.udp_remote_address = None
         logger.info("New client connected, awaiting logon message")
 
-    def setUdpRemoteAddress(self, udpRemoteAddress):
-        self.udp_remote_address = udpRemoteAddress
+    def setUdp(self, clientUdp):
+        assert isinstance(clientUdp, ClientUdp)
+        self.udp = clientUdp;
+
         self.connection_status = Client.ConnectionStatus.CONNECTED
 
         # don't need this anymore.
@@ -143,6 +145,8 @@ class Client(object):
             return
 
         logger.info("Received a friendly UDP packet with length: %d" % packet.used_size)
+        logger.info("Echoing back")
+        self.udp.sendByteBuffer(packet)
 
 # TCP connection of client.
 # Expects incoming packets to be prefixed with size of subsequent data.
@@ -168,12 +172,28 @@ class ClientTcp(IntNStringReceiver):
         byteBuffer = ByteBuffer.buildFromIterable(data)
         self.parent.handleTcpPacket(byteBuffer)
 
+    def sendByteBuffer(self, byteBuffer):
+        assert isinstance(byteBuffer, ByteBuffer)
+        self.sendString(byteBuffer.convertToString())
+
     def __hash__(self):
         return hash(self.remote_address)
 
     def __eq__(self, other):
         assert isinstance(other, ClientTcp)
         return other.remote_address == self.remote_address
+
+class ClientUdp(object):
+    def __init__(self, remoteAddress, datagramSenderFunc):
+        super(ClientUdp, self).__init__()
+        self.remote_address = remoteAddress
+        self.datagram_sender_func = datagramSenderFunc
+
+    def sendByteBuffer(self, byteBuffer):
+        assert isinstance(byteBuffer, ByteBuffer)
+        strRepresentation = byteBuffer.convertToString()
+        self.datagram_sender_func(strRepresentation, self.remote_address)
+
 
 # Represents server in memory state.
 # There will only be one instance of this object.
@@ -226,7 +246,7 @@ class Server(ClientFactory, protocol.DatagramProtocol):
             logger.warn("Malformed hash received in unknown UDP packet, discarding")
             return
 
-        registeredClient = self.udp_connection_linker.registerCompletion(theHash, remoteAddress)
+        registeredClient = self.udp_connection_linker.registerCompletion(theHash, ClientUdp(remoteAddress, self.transport.write))
 
         if registeredClient:
             self.clientsByUdpAddress[remoteAddress] = registeredClient

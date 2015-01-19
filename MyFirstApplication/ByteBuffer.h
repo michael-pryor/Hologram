@@ -48,4 +48,6 @@
 
 - (void) increaseUsedSize: (uint)amount;
 - (Boolean) increaseUsedSizePassively: (uint)amount;
+
+- (uint8_t*) getRawDataPtr;
 @end

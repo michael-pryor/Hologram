@@ -324,4 +324,8 @@
     return [self getByteBufferWithLength:0];
 }
 
+- (uint8_t*) getRawDataPtr {
+    return _buffer;
+}
+
 @end

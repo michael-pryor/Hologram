@@ -175,6 +175,9 @@ class ByteBuffer(object):
 
         return self.getVariableLengthData(handlerFunc, length)
 
+    def convertToString(self):
+        return self.getStringWithLength(self.used_size)
+
     def getString(self):
         return self.getStringWithLength(0)
 
