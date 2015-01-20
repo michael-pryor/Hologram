@@ -12,8 +12,4 @@
 - (id) init;
 - (void) sendPacket: (ByteBuffer*) packet;
 - (ByteBuffer*) processPacket;
-- (void) closeConnection;
-- (void) confirmClosure;
-- (void) confirmOpen;
-- (bool) isClosed;
 @end

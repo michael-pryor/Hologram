@@ -24,6 +24,8 @@ typedef enum {
 @property (nonatomic, readonly) id  connectionStatusDelegate;
 - (id) initWithDelegate: (id<ConnectionStatusDelegate>)p_connectionStatusDelegate inputSession: (id<NewDataDelegate>)inputSession outputSession: (OutputSession*)outputSession;
 - (void) connect;
+- (void) shutdown;
+- (Boolean) isConnected;
 @end
 
 

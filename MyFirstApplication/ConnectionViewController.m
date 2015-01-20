@@ -56,13 +56,13 @@ typedef enum  {
 
 - (IBAction)onConnectButtonClick:(id)sender {
     // TCP SIDE
-    /*if(_outputSession != nil && ![_outputSession isClosed]) {
+    if(_outputSession != nil) {
         NSLog(@"Closing existing connection..");
-        [_outputSession closeConnection];
-    }*/
+        [_connection shutdown];
+    }
     
     NSString * theMagicalHash = @"MY HASH IS COOLER THAN YOURS";
-    if([_outputSession isClosed]) {
+    if(![_connection isConnected]) {
     
     InputSessionTCP * sessionTcp = [[InputSessionTCP alloc] initWithDelegate: self];
 

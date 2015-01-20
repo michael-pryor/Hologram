@@ -7,67 +7,54 @@
 //
 
 #import "OutputSession.h"
-#import "Signal.h"
 #import <Foundation/Foundation.h>
 
 @implementation OutputSession {
     NSCondition * _lock;
-    Signal * _signal;
     NSMutableArray * _queue;
+    Boolean _queueShutdown;
 }
 - (id) init {
     self = [super init];
     if(self) {
 	    _queue = [[NSMutableArray alloc] init];
         _lock =  [[NSCondition alloc] init];
-        
-        // Starts off unconnected (closed).
-        _signal = [[Signal alloc] initWithFlag:true];
+        _queueShutdown = false;
     }
     return self;
 }
 
 - (void) sendPacket: (ByteBuffer*) packet {
+    if(_queueShutdown) {
+        NSLog(@"TCP send queue is shutdown, discarding send attempt");
+        return;
+    }
+    
     [_lock lock];
     
     ByteBuffer* prefixed;
-    if(packet != (ByteBuffer*)[NSNull null]) {
+    if(packet != nil) {
         prefixed = [[ByteBuffer alloc] initWithSize:[packet bufferUsedSize] + sizeof(uint)];
         [prefixed addByteBuffer:packet includingPrefix:true];
     } else {
-        prefixed = packet;
+        prefixed = (ByteBuffer*)[NSNull null];
+        [_queue removeAllObjects];
+        _queueShutdown = true;
     }
-    
+
     [_queue addObject:prefixed];
     [_lock signal];
     [_lock unlock];
 }
 
-- (void) confirmOpen {
-    NSLog(@"Confirmation of open sent");
-    [_signal clear];
-}
-
-- (void) closeConnection {
-    [self sendPacket: (ByteBuffer*)[NSNull null]];
-    NSLog(@"Waiting for close confirmation..");
-    [_signal wait];
-}
-
-- (void) confirmClosure {
-    NSLog(@"Confirmation of closure sent");
-    [_signal signalAll];
-}
-
-- (bool) isClosed {
-    return [_signal isSignaled];
-}
-
-
 - (ByteBuffer*) processPacket {
+    if(_queueShutdown) {
+        NSLog(@"TCP send queue is shutdown, rejecting receive attempt");
+        return nil;
+    }
+    
     [_lock lock];
-    while (_queue.count == 0)
-    {
+    while (_queue.count == 0) {
         [_lock wait];
     }
 

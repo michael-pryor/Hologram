@@ -39,7 +39,7 @@
 }
 
 - (void)captureOutput:(AVCaptureOutput *)captureOutput didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection {
-    bool connected = ![_networkOutputSession isClosed];
+    bool connected = false;
     if(!connected) {
         // update display with no networking.
         UIImage *image = [_mediaEncoder imageFromSampleBuffer: sampleBuffer];
