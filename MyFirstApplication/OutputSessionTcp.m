@@ -6,10 +6,10 @@
 //
 //
 
-#import "OutputSession.h"
+#import "OutputSessionTcp.h"
 #import <Foundation/Foundation.h>
 
-@implementation OutputSession {
+@implementation OutputSessionTcp {
     NSCondition * _lock;
     NSMutableArray * _queue;
     Boolean _queueShutdown;

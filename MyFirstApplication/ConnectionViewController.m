@@ -7,8 +7,8 @@
 //
 
 #import "ConnectionViewController.h"
-#import "InputSession.h"
-#import "OutputSession.h"
+#import "InputSessionTcp.h"
+#import "OutputSessionTcp.h"
 #import "MediaController.h"
 
 @import AVFoundation;
@@ -19,7 +19,7 @@ typedef enum  {
 } OperationType;
 
 @implementation ConnectionViewController {
-    ConnectionManager * _connection;
+    ConnectionManagerTcp * _connection;
     ConnectionManagerUdp * _udpConnection;
     IBOutlet UIImageView *_cameraView;
     AVCaptureSession *session;
@@ -30,7 +30,7 @@ typedef enum  {
 
 -(void)viewDidLoad {
     [super viewDidLoad];
-    _outputSession = [[OutputSession alloc] init];
+    _outputSession = [[OutputSessionTcp alloc] init];
 }
 
 -(void)viewDidAppear:(BOOL)animated {
@@ -56,26 +56,27 @@ typedef enum  {
 
 - (IBAction)onConnectButtonClick:(id)sender {
     // TCP SIDE
+    static NSString *const CONNECT_IP = @"192.168.1.92";
+    static const int CONNECT_PORT_TCP = 12340;
+    
     if(_outputSession != nil) {
         NSLog(@"Closing existing connection..");
         [_connection shutdown];
     }
     
     NSString * theMagicalHash = @"MY HASH IS COOLER THAN YOURS";
-    if(![_connection isConnected]) {
     
     InputSessionTCP * sessionTcp = [[InputSessionTCP alloc] initWithDelegate: self];
 
-    _connection = [[ConnectionManager alloc] initWithDelegate: self inputSession: sessionTcp outputSession: _outputSession ];
-    [_connection connect];
+    _connection = [[ConnectionManagerTcp alloc] initWithDelegate: self inputSession: sessionTcp outputSession: _outputSession ];
+    [_connection connectToHost:CONNECT_IP andPort:CONNECT_PORT_TCP];
     
     // UDP SIDE
-    static NSString *const CONNECT_IP = @"192.168.1.92";
-    static const int CONNECT_PORT = 12341;
+    static const int CONNECT_PORT_UDP = 12341;
     
     if(_udpConnection == nil) {
         _udpConnection = [[ConnectionManagerUdp alloc] init];
-        [_udpConnection connectToHost:CONNECT_IP andPort:CONNECT_PORT];
+        [_udpConnection connectToHost:CONNECT_IP andPort:CONNECT_PORT_UDP];
     }
     
     ByteBuffer* theLogonBuffer = [[ByteBuffer alloc] init];
@@ -84,18 +85,13 @@ typedef enum  {
     [theLogonBuffer addString:theMagicalHash];
     [_outputSession sendPacket:theLogonBuffer];
 
-        ByteBuffer* theUdpLogonBuffer = [[ByteBuffer alloc] init];
-        [theUdpLogonBuffer addString:theMagicalHash];
-        [_udpConnection sendBuffer: theUdpLogonBuffer];
-    }
-    
     ByteBuffer* theUdpLogonBuffer = [[ByteBuffer alloc] init];
     [theUdpLogonBuffer addString:theMagicalHash];
-    [_udpConnection sendBuffer: theUdpLogonBuffer];
+    [_udpConnection sendPacket: theUdpLogonBuffer];
     
     ByteBuffer* bbuffer = [[ByteBuffer alloc] init];
     [bbuffer addString:@"HELLO UNIVERSE!!!!"];
-    [_udpConnection sendBuffer:bbuffer];
+    [_udpConnection sendPacket:bbuffer];
 }
 
 - (IBAction)onSendButtonClick:(id)sender {
@@ -108,7 +104,7 @@ typedef enum  {
     [_outputSession sendPacket:buffer];
 }
 
-- (void)connectionStatusChange:(ConnectionStatus)status withDescription:(NSString *)description {
+- (void)connectionStatusChange:(ConnectionStatusTcp)status withDescription:(NSString *)description {
     NSLog(@"Received status change: %u and description: %@", status, description);
     [[self connectionStatus] setText: description];
     

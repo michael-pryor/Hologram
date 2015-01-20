@@ -8,17 +8,17 @@
 
 #import "MediaByteBuffer.h"
 #import "Encoding.h"
-#import "OutputSession.h"
+#import "OutputSessionTcp.h"
 #import "MediaController.h"
 
 @implementation MediaController {
     AVCaptureSession* _session;
     id<NewImageDelegate> _newImageDelegate;
-    OutputSession* _networkOutputSession;
+    OutputSessionTcp* _networkOutputSession;
     Encoding* _mediaEncoder;
 }
 
-- (id)initWithImageDelegate: (id<NewImageDelegate>)newImageDelegate andwithNetworkOutputSession: (OutputSession*)networkOutputSession {
+- (id)initWithImageDelegate: (id<NewImageDelegate>)newImageDelegate andwithNetworkOutputSession: (OutputSessionTcp*)networkOutputSession {
     self = [super init];
     if(self) {
         _networkOutputSession = networkOutputSession;

@@ -8,11 +8,11 @@
 
 /* Begin PBXBuildFile section */
 		51C3F13F1A6C4388004040BB /* ConnectionManagerUdp.m in Sources */ = {isa = PBXBuildFile; fileRef = 51C3F13E1A6C4388004040BB /* ConnectionManagerUdp.m */; };
-		51D584BB19AB648000BB6CE6 /* InputSession.m in Sources */ = {isa = PBXBuildFile; fileRef = 51D584BA19AB648000BB6CE6 /* InputSession.m */; };
-		51D584BE19AB649500BB6CE6 /* OutputSession.m in Sources */ = {isa = PBXBuildFile; fileRef = 51D584BD19AB649500BB6CE6 /* OutputSession.m */; };
+		51D584BB19AB648000BB6CE6 /* InputSessionTcp.m in Sources */ = {isa = PBXBuildFile; fileRef = 51D584BA19AB648000BB6CE6 /* InputSessionTcp.m */; };
+		51D584BE19AB649500BB6CE6 /* OutputSessionTcp.m in Sources */ = {isa = PBXBuildFile; fileRef = 51D584BD19AB649500BB6CE6 /* OutputSessionTcp.m */; };
 		51D584C119AB7A9400BB6CE6 /* ByteBuffer.m in Sources */ = {isa = PBXBuildFile; fileRef = 51D584C019AB7A9400BB6CE6 /* ByteBuffer.m */; };
 		51D584C319AB8B1D00BB6CE6 /* ByteBufferTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 51D584C219AB8B1D00BB6CE6 /* ByteBufferTest.m */; };
-		51DB961819A8E3D0001A63F8 /* ConnectionManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 51DB961719A8E3D0001A63F8 /* ConnectionManager.m */; };
+		51DB961819A8E3D0001A63F8 /* ConnectionManagerTcp.m in Sources */ = {isa = PBXBuildFile; fileRef = 51DB961719A8E3D0001A63F8 /* ConnectionManagerTcp.m */; };
 		51DB961B19A8EE05001A63F8 /* ConnectionViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 51DB961A19A8EE05001A63F8 /* ConnectionViewController.m */; };
 		51E1BF2B1A5DD7A4007D8A56 /* MediaController.m in Sources */ = {isa = PBXBuildFile; fileRef = 51E1BF2A1A5DD7A4007D8A56 /* MediaController.m */; };
 		51E219DC193B2D190066D915 /* Storyboard.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 51E219DB193B2D190066D915 /* Storyboard.storyboard */; };
@@ -44,17 +44,20 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		51BDB1491A6F0E7E00E0DA49 /* InputSessionBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InputSessionBase.h; sourceTree = "<group>"; };
+		51BDB14D1A6F121400E0DA49 /* ConnectionManagerBase.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ConnectionManagerBase.h; sourceTree = "<group>"; };
+		51BDB14E1A6F136B00E0DA49 /* OutputSessionBase.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = OutputSessionBase.h; sourceTree = "<group>"; };
 		51C3F13D1A6C4388004040BB /* ConnectionManagerUdp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConnectionManagerUdp.h; sourceTree = "<group>"; };
 		51C3F13E1A6C4388004040BB /* ConnectionManagerUdp.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ConnectionManagerUdp.m; sourceTree = "<group>"; };
-		51D584B919AB648000BB6CE6 /* InputSession.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InputSession.h; sourceTree = "<group>"; };
-		51D584BA19AB648000BB6CE6 /* InputSession.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = InputSession.m; sourceTree = "<group>"; };
-		51D584BC19AB649500BB6CE6 /* OutputSession.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OutputSession.h; sourceTree = "<group>"; };
-		51D584BD19AB649500BB6CE6 /* OutputSession.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OutputSession.m; sourceTree = "<group>"; };
+		51D584B919AB648000BB6CE6 /* InputSessionTcp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InputSessionTcp.h; sourceTree = "<group>"; };
+		51D584BA19AB648000BB6CE6 /* InputSessionTcp.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = InputSessionTcp.m; sourceTree = "<group>"; };
+		51D584BC19AB649500BB6CE6 /* OutputSessionTcp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OutputSessionTcp.h; sourceTree = "<group>"; };
+		51D584BD19AB649500BB6CE6 /* OutputSessionTcp.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OutputSessionTcp.m; sourceTree = "<group>"; };
 		51D584BF19AB7A9400BB6CE6 /* ByteBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ByteBuffer.h; sourceTree = "<group>"; };
 		51D584C019AB7A9400BB6CE6 /* ByteBuffer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ByteBuffer.m; sourceTree = "<group>"; };
 		51D584C219AB8B1D00BB6CE6 /* ByteBufferTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ByteBufferTest.m; sourceTree = "<group>"; };
-		51DB961619A8E3D0001A63F8 /* ConnectionManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConnectionManager.h; sourceTree = "<group>"; };
-		51DB961719A8E3D0001A63F8 /* ConnectionManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ConnectionManager.m; sourceTree = "<group>"; };
+		51DB961619A8E3D0001A63F8 /* ConnectionManagerTcp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConnectionManagerTcp.h; sourceTree = "<group>"; };
+		51DB961719A8E3D0001A63F8 /* ConnectionManagerTcp.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ConnectionManagerTcp.m; sourceTree = "<group>"; };
 		51DB961919A8EE05001A63F8 /* ConnectionViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConnectionViewController.h; sourceTree = "<group>"; };
 		51DB961A19A8EE05001A63F8 /* ConnectionViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ConnectionViewController.m; sourceTree = "<group>"; };
 		51E1BF291A5DD7A4007D8A56 /* MediaController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MediaController.h; sourceTree = "<group>"; };
@@ -108,6 +111,40 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		51BDB1471A6F0E2A00E0DA49 /* TCP */ = {
+			isa = PBXGroup;
+			children = (
+				51DB961719A8E3D0001A63F8 /* ConnectionManagerTcp.m */,
+				51DB961619A8E3D0001A63F8 /* ConnectionManagerTcp.h */,
+				51D584B919AB648000BB6CE6 /* InputSessionTcp.h */,
+				51D584BA19AB648000BB6CE6 /* InputSessionTcp.m */,
+				51D584BC19AB649500BB6CE6 /* OutputSessionTcp.h */,
+				51D584BD19AB649500BB6CE6 /* OutputSessionTcp.m */,
+			);
+			name = TCP;
+			sourceTree = "<group>";
+		};
+		51BDB1481A6F0E3A00E0DA49 /* UDP */ = {
+			isa = PBXGroup;
+			children = (
+				51C3F13D1A6C4388004040BB /* ConnectionManagerUdp.h */,
+				51C3F13E1A6C4388004040BB /* ConnectionManagerUdp.m */,
+			);
+			name = UDP;
+			sourceTree = "<group>";
+		};
+		51BDB14C1A6F0E8E00E0DA49 /* Base */ = {
+			isa = PBXGroup;
+			children = (
+				51D584BF19AB7A9400BB6CE6 /* ByteBuffer.h */,
+				51D584C019AB7A9400BB6CE6 /* ByteBuffer.m */,
+				51BDB1491A6F0E7E00E0DA49 /* InputSessionBase.h */,
+				51BDB14D1A6F121400E0DA49 /* ConnectionManagerBase.h */,
+				51BDB14E1A6F136B00E0DA49 /* OutputSessionBase.h */,
+			);
+			name = Base;
+			sourceTree = "<group>";
+		};
 		51D584B819AB63FB00BB6CE6 /* Networking */ = {
 			isa = PBXGroup;
 			children = (
@@ -120,16 +157,9 @@
 		51E1BF271A5DD5A6007D8A56 /* Generic */ = {
 			isa = PBXGroup;
 			children = (
-				51DB961719A8E3D0001A63F8 /* ConnectionManager.m */,
-				51DB961619A8E3D0001A63F8 /* ConnectionManager.h */,
-				51D584B919AB648000BB6CE6 /* InputSession.h */,
-				51D584BA19AB648000BB6CE6 /* InputSession.m */,
-				51D584BC19AB649500BB6CE6 /* OutputSession.h */,
-				51D584BD19AB649500BB6CE6 /* OutputSession.m */,
-				51D584BF19AB7A9400BB6CE6 /* ByteBuffer.h */,
-				51D584C019AB7A9400BB6CE6 /* ByteBuffer.m */,
-				51C3F13D1A6C4388004040BB /* ConnectionManagerUdp.h */,
-				51C3F13E1A6C4388004040BB /* ConnectionManagerUdp.m */,
+				51BDB14C1A6F0E8E00E0DA49 /* Base */,
+				51BDB1481A6F0E3A00E0DA49 /* UDP */,
+				51BDB1471A6F0E2A00E0DA49 /* TCP */,
 			);
 			name = Generic;
 			sourceTree = "<group>";
@@ -345,11 +375,11 @@
 				51E1BF2B1A5DD7A4007D8A56 /* MediaController.m in Sources */,
 				51D584C119AB7A9400BB6CE6 /* ByteBuffer.m in Sources */,
 				51E888A81A59E218005F8825 /* MediaByteBuffer.m in Sources */,
-				51D584BE19AB649500BB6CE6 /* OutputSession.m in Sources */,
-				51DB961819A8E3D0001A63F8 /* ConnectionManager.m in Sources */,
+				51D584BE19AB649500BB6CE6 /* OutputSessionTcp.m in Sources */,
+				51DB961819A8E3D0001A63F8 /* ConnectionManagerTcp.m in Sources */,
 				51E5BE321936A982003E45C3 /* MJPAppDelegate.m in Sources */,
 				51C3F13F1A6C4388004040BB /* ConnectionManagerUdp.m in Sources */,
-				51D584BB19AB648000BB6CE6 /* InputSession.m in Sources */,
+				51D584BB19AB648000BB6CE6 /* InputSessionTcp.m in Sources */,
 				51E5BE2E1936A982003E45C3 /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

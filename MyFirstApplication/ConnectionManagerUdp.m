@@ -36,12 +36,19 @@
 }
 
 - (void) close {
-    if(_socObject != 0) {
+    if([self isConnected]) {
         NSLog(@"Closing existing UDP socket");
         close(_socObject);
+        _socObject = 0;
     }
 }
 
+- (void) shutdown {
+    [self close];
+}
+- (Boolean) isConnected {
+    return _socObject != 0;
+}
 
 - (void) onRecv {
     long maximumAmountReceivable = dispatch_source_get_data(_dispatch_source);
@@ -87,8 +94,7 @@
     NSLog(@"Connected UDP socket to host %@ and port %u", host, port);
 }
 
-
-- (void) sendBuffer: (ByteBuffer*)buffer {
+- (void) sendPacket: (ByteBuffer*)buffer {
     long result = send(_socObject, [buffer buffer], [buffer bufferUsedSize], 0);
     if(result >= 0) {
         NSLog(@"Sent UDP packet with size: %ldl", result);

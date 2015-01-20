@@ -7,9 +7,14 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "ConnectionManagerBase.h"
+#import "OutputSessionBase.h"
 #import "ByteBuffer.h"
 
-@interface ConnectionManagerUdp : NSObject
+@interface ConnectionManagerUdp : NSObject<ConnectionManagerBase, OutputSessionBase>
 - (void) connectToHost: (NSString*) host andPort: (ushort) port;
-- (void) sendBuffer: (ByteBuffer*)buffer;
+- (void) shutdown;
+- (Boolean) isConnected;
+
+- (void) sendPacket: (ByteBuffer*)buffer;
 @end

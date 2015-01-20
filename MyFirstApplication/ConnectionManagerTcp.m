@@ -6,28 +6,24 @@
 //
 //
 
-#import "ConnectionManager.h"
+#import "ConnectionManagerTcp.h"
 #import <AudioToolbox/AudioToolbox.h>
 #import <CoreFoundation/CoreFoundation.h>
-#import "InputSession.h"
-#import "OutputSession.h"
+#import "OutputSessionTcp.h"
 #import "Signal.h"
 
-static NSString *const CONNECT_IP = @"192.168.1.92";
-static const int CONNECT_PORT = 12340;
-
-@implementation ConnectionManager {
+@implementation ConnectionManagerTcp {
     NSInputStream * _inputStream;
     NSOutputStream * _outputStream;
     id<NewDataDelegate> _inputSession;
-    OutputSession * _outputSession;
+    OutputSessionTcp * _outputSession;
     ByteBuffer * _currentSendBuffer;
     Signal* _initializedSignal;
     Signal* _shutdownSignal;
     NSThread* _outputThread;
 }
 
-- (id) initWithDelegate: (id<ConnectionStatusDelegate>)connectionStatusDelegate inputSession: (id<NewDataDelegate>)inputSession outputSession: (OutputSession*)outputSession {
+- (id) initWithDelegate: (id<ConnectionStatusDelegateTcp>)connectionStatusDelegate inputSession: (id<NewDataDelegate>)inputSession outputSession: (OutputSessionTcp*)outputSession {
     self = [super init];
     if(self) {
         _connectionStatusDelegate = connectionStatusDelegate;
@@ -54,13 +50,13 @@ static const int CONNECT_PORT = 12340;
     NSLog(@"Output thread exiting");
 }
 
-- (void) connect {
+- (void) connectToHost: (NSString*)host andPort: (ushort)port; {
     [_connectionStatusDelegate connectionStatusChange:CONNECTING withDescription:@"Connecting"];
 
     CFReadStreamRef readStream;
     CFWriteStreamRef writeStream;
-    CFStringRef remoteHost = (__bridge CFStringRef)(CONNECT_IP);
-    CFStreamCreatePairWithSocketToHost(NULL, remoteHost, CONNECT_PORT, &readStream, &writeStream);
+    CFStringRef remoteHost = (__bridge CFStringRef)(host);
+    CFStreamCreatePairWithSocketToHost(NULL, remoteHost, port, &readStream, &writeStream);
     CFReadStreamSetProperty(readStream, kCFStreamPropertyShouldCloseNativeSocket, kCFBooleanTrue);
     CFWriteStreamSetProperty(writeStream, kCFStreamPropertyShouldCloseNativeSocket, kCFBooleanTrue);
 
@@ -113,7 +109,7 @@ static const int CONNECT_PORT = 12340;
     return ![_shutdownSignal isSignaled];
 }
 
-- (void) closeStream: (NSStream*)stream withStatus: (ConnectionStatus)status andReason: (NSString*)reason {
+- (void) closeStream: (NSStream*)stream withStatus: (ConnectionStatusTcp)status andReason: (NSString*)reason {
     [self closeStream: stream];
     NSString * description = [NSString localizedStringWithFormat:@"Connection closed, with reason: %@", reason];
     [_connectionStatusDelegate connectionStatusChange:status withDescription:description];

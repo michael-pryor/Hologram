@@ -6,7 +6,7 @@
 //
 //
 
-#import "InputSession.h"
+#import "InputSessionTcp.h"
 
 @implementation InputSessionTCP
 @synthesize getDestinationBuffer = recvBuffer;
