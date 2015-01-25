@@ -11,10 +11,10 @@
 @implementation InputSessionTCP
 @synthesize getDestinationBuffer = recvBuffer;
 
-- (id)initWithDelegate:(id<NewPacketDelegate>)p_packetDelegate {
+- (id)initWithDelegate:(id<NewPacketDelegate>)packetDelegate {
     self = [super init];
     if(self) {
-	    _packetDelegate = p_packetDelegate;
+	    _packetDelegate = packetDelegate;
         recvBuffer = [[ByteBuffer alloc] initWithSize:1024];
     }
     return self;
@@ -46,7 +46,7 @@
             
             // Now do something with packet.
             [packet setCursorPosition:0];
-            [_packetDelegate onNewPacket:packet];
+            [_packetDelegate onNewPacket:packet fromProtocol:TCP];
         } else {
             break;
         }

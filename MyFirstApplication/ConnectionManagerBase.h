@@ -9,7 +9,6 @@
 #import <Foundation/Foundation.h>
 
 @protocol ConnectionManagerBase
-- (void) connectToHost: (NSString*) host andPort: (ushort) port;
 - (void) shutdown;
 - (Boolean) isConnected;
 @end

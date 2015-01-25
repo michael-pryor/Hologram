@@ -171,12 +171,17 @@ class ByteBuffer(object):
 
     def getStringWithLength(self, length):
         def handlerFunc(theBuffer, dataSize):
-            return theBuffer[:dataSize].decode("utf-8")
+            return str(theBuffer[:dataSize].decode("utf-8"))
 
         return self.getVariableLengthData(handlerFunc, length)
 
     def convertToString(self):
-        return self.getStringWithLength(self.used_size)
+        old_cursor = self.cursor_position
+        self.cursor_position = 0
+        a = self.getStringWithLength(self.used_size)
+        self.cursor_position = old_cursor
+        return a
+
 
     def getString(self):
         return self.getStringWithLength(0)

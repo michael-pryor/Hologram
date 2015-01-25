@@ -12,9 +12,9 @@
 #import "ConnectionManagerBase.h"
 
 typedef enum {
-    ERROR_CON,
-    OK_CON,
-    CONNECTING
+    T_ERROR,
+    T_CONNECTED,
+    T_CONNECTING
 } ConnectionStatusTcp;
 
 @protocol ConnectionStatusDelegateTcp

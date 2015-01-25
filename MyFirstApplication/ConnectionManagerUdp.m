@@ -18,13 +18,15 @@
     int _socObject;
     dispatch_queue_t _gcd_queue;
     dispatch_source_t _dispatch_source;
+    id<NewPacketDelegate> _newPacketDelegate;
 }
 
-- (id) init {
+- (id) initWithNewPacketDelegate:(id<NewPacketDelegate>)newPacketDelegate {
     self = [super init];
     if(self) {
         _gcd_queue = dispatch_queue_create("ConnectionManagerUdp", NULL);
         _socObject = 0;
+        _newPacketDelegate = newPacketDelegate;
     }
     return self;
 }
@@ -67,6 +69,7 @@
         [buffer setUsedSize: realAmountReceived];
     
         NSLog(@"Received UDP packet of size: %ul", [buffer bufferUsedSize]);
+        [_newPacketDelegate onNewPacket:buffer fromProtocol:UDP];
         
         maximumAmountReceivable -= realAmountReceived;
     } while(maximumAmountReceivable > 0);

@@ -17,6 +17,7 @@ import struct
 from utility import DataConstants
 
 from byte_buffer import ByteBuffer
+import uuid
 
 class UdpConnectionLink(object):
     def __init__(self, udpHash, waitingClient):
@@ -30,10 +31,12 @@ class UdpConnectionLink(object):
         return hash(self.udp_hash)
 
     def __eq__(self, other):
-        if not isinstance(other, UdpConnectionLink):
+        if isinstance(other, UdpConnectionLink):
+            return self.udp_hash == other.udp_hash
+        elif isinstance(other, basestring):
+            return self.udp_hash == other
+        else:
             return False
-
-        return self.udp_hash == other.udp_hash
 
 
 class UdpConnectionLinker(object):
@@ -50,6 +53,23 @@ class UdpConnectionLinker(object):
         self.waiting_hashes[obj] = obj
         logger.info("Interest registered in UDP hash [%s]" % udpHash)
         return True
+
+    def generateHash(self):
+        # Generate a truly unique hash.
+        while True:
+            newHash = str(uuid.uuid4())
+            if newHash not in self.waiting_hashes:
+                return newHash
+
+
+    def registerInterestGenerated(self, waitingClient):
+        while True:
+            # it is possible for a race condition to occur where same hash generated at
+            # similar time and attempted to be added. Allowing for failure here solves that problem.
+            newHash = self.generateHash()
+            success = self.registerInterest(newHash, waitingClient)
+            if success:
+                return newHash
 
     def registerPrematureCompletion(self, udpHash, waitingClient):
         logger.info("UDP connection with hash [%s] was prematurely aborted" % udpHash)
@@ -73,6 +93,11 @@ class Client(object):
         WAITING_LOGON = 1
         WAITING_UDP = 2
         CONNECTED = 3
+
+    class UdpOperationCodes:
+        OP_REJECT_LOGON = 1
+        OP_ACCEPT_LOGON = 2
+        OP_ACCEPT_UDP = 3
 
     def __init__(self, tcp, onCloseFunc, udpConnectionLinker):
         super(Client, self).__init__()
@@ -110,25 +135,30 @@ class Client(object):
         assert isinstance(packet, ByteBuffer)
         versionNum = packet.getUnsignedInteger()
         loginName = packet.getString()
-        self.udp_hash = packet.getString()
-        if not self.udp_connection_linker.registerInterest(self.udp_hash, self):
-            # there is a very small chance of this, but we should handle it anyways.
-            logger.warn("Duplicate udp hash detected, rejecting login")
-            self.udp_hash = None
-            return False
+        hashUdp = self.udp_connection_linker.registerInterestGenerated(self)
 
-        logger.info("Login processed with details, version number: [%d], login name: [%s], udp hash: [%s]", versionNum, loginName, self.udp_hash)
-        return True
+        logger.info("Login processed with details, version number: [%d], login name: [%s], udp hash: [%s]", versionNum, loginName, hashUdp)
+        return True, hashUdp
 
     def handleTcpPacket(self, packet):
         assert isinstance(packet, ByteBuffer)
         if self.connection_status == Client.ConnectionStatus.WAITING_LOGON:
-            if self.handleLogon(packet):
+            response = ByteBuffer()
+            success, dataString = self.handleLogon(packet)
+            if success:
                 self.connection_status = Client.ConnectionStatus.WAITING_UDP
                 logger.info("Logon accepted, waiting for UDP connection")
+
+                response.addUnsignedInteger(Client.UdpOperationCodes.OP_ACCEPT_LOGON)
+                response.addString(dataString) # the UDP hash code.
             else:
                 logger.warn("Logon rejected, closing connection")
+                response.addUnsignedInteger(Client.UdpOperationCodes.OP_REJECT_LOGON)
+                response.addString("Reject reason: %s" % dataString)
                 self.closeConnection()
+
+            self.tcp.sendByteBuffer(response)
+
         elif self.connection_status == Client.ConnectionStatus.WAITING_UDP:
             logger.warn("TCP packet received while waiting for UDP connection to be established, dropping packet")
             pass
@@ -249,7 +279,17 @@ class Server(ClientFactory, protocol.DatagramProtocol):
         registeredClient = self.udp_connection_linker.registerCompletion(theHash, ClientUdp(remoteAddress, self.transport.write))
 
         if registeredClient:
-            self.clientsByUdpAddress[remoteAddress] = registeredClient
+            import time
+            time.sleep(5)
+            if remoteAddress not in self.clientsByUdpAddress:
+                successPing = ByteBuffer()
+                successPing.addUnsignedInteger(Client.UdpOperationCodes.OP_ACCEPT_UDP)
+
+                logger.info("Sending fully connected ACK")
+                registeredClient.tcp.sendByteBuffer(successPing)
+
+                self.clientsByUdpAddress[remoteAddress] = registeredClient
+                logger.info("Client successfully connected, sent success ack")
 
 if __name__ == "__main__":
     logging.basicConfig(level = logging.DEBUG)

@@ -10,8 +10,10 @@
 #import "ConnectionManagerBase.h"
 #import "OutputSessionBase.h"
 #import "ByteBuffer.h"
+#import "InputSessionBase.h"
 
 @interface ConnectionManagerUdp : NSObject<ConnectionManagerBase, OutputSessionBase>
+- (id) initWithNewPacketDelegate:(id<NewPacketDelegate>)newPacketDelegate;
 - (void) connectToHost: (NSString*) host andPort: (ushort) port;
 - (void) shutdown;
 - (Boolean) isConnected;

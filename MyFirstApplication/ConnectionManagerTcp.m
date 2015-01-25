@@ -51,7 +51,7 @@
 }
 
 - (void) connectToHost: (NSString*)host andPort: (ushort)port; {
-    [_connectionStatusDelegate connectionStatusChange:CONNECTING withDescription:@"Connecting"];
+    [_connectionStatusDelegate connectionStatusChange:T_CONNECTING withDescription:@"Connecting"];
 
     CFReadStreamRef readStream;
     CFWriteStreamRef writeStream;
@@ -98,8 +98,11 @@
     [_outputSession sendPacket: nil];
     
     NSLog(@"Terminating run loop and closing streams");
-    [self performSelector: @selector(performShutdownInRunLoop) onThread: _outputThread withObject: nil waitUntilDone: true];
-        
+    @try {
+        [self performSelector: @selector(performShutdownInRunLoop) onThread: _outputThread withObject: nil waitUntilDone: true];
+    } @catch(NSException* ex) {
+        NSLog(@"NSException, oh dear: %@", ex);
+    }
     NSLog(@"Waiting for confirmation of closure");
     [_shutdownSignal wait];
     NSLog(@"Confirmation of closure received");
@@ -127,12 +130,12 @@
 
 - (void)onStreamError: (NSStream*)theStream {
     NSString * streamError = [NSString localizedStringWithFormat:@"Stream error detected, details: [%@]", [[theStream streamError] localizedDescription]];
-    [self closeStream:theStream withStatus:ERROR_CON andReason:streamError];
+    [self closeStream:theStream withStatus:T_ERROR andReason:streamError];
 }
 
 - (void)onNormalError: (NSStream*)theStream withError: (NSString*)errorText {
     NSString * streamError = [NSString localizedStringWithFormat:@"Error detected, details: [%@]", errorText];
-    [self closeStream:theStream withStatus:ERROR_CON andReason:streamError];
+    [self closeStream:theStream withStatus:T_ERROR andReason:streamError];
 }
 
 - (void)stream:(NSStream *)theStream handleEvent:(NSStreamEvent)streamEvent {
@@ -145,7 +148,10 @@
             break;
             
         case NSStreamEventOpenCompleted:
-            [_connectionStatusDelegate connectionStatusChange:OK_CON withDescription:@"Connection open"];
+            // Send for only one stream, don't want to duplicate the message.
+            if(isOutputStream) {
+                [_connectionStatusDelegate connectionStatusChange:T_CONNECTED withDescription:@"Connection open"];
+            }
             break;
             
         case NSStreamEventHasBytesAvailable:

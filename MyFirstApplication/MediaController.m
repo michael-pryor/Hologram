@@ -14,11 +14,11 @@
 @implementation MediaController {
     AVCaptureSession* _session;
     id<NewImageDelegate> _newImageDelegate;
-    OutputSessionTcp* _networkOutputSession;
+    id<OutputSessionBase> _networkOutputSession;
     Encoding* _mediaEncoder;
 }
 
-- (id)initWithImageDelegate: (id<NewImageDelegate>)newImageDelegate andwithNetworkOutputSession: (OutputSessionTcp*)networkOutputSession {
+- (id)initWithImageDelegate: (id<NewImageDelegate>)newImageDelegate andwithNetworkOutputSession: (id<OutputSessionBase>)networkOutputSession {
     self = [super init];
     if(self) {
         _networkOutputSession = networkOutputSession;
@@ -54,7 +54,7 @@
     }
 }
 
-- (void)onNewPacket:(ByteBuffer *)packet {
+- (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
     // Update display with image retrieved from packet.
     MediaByteBuffer* buffer = [[MediaByteBuffer alloc] initFromBuffer: packet];
     UIImage *image = [buffer getImage];
