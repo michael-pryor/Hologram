@@ -26,7 +26,7 @@
 
 -(void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear: animated];
-    _mediaController = [[MediaController alloc] initWithImageDelegate:self andwithNetworkOutputSession:[_connection getTcpOutputSession]];
+    _mediaController = [[MediaController alloc] initWithImageDelegate:self andwithNetworkOutputSession:[_connection getUdpOutputSession]];
     [_mediaController startCapturing];
 }
 
@@ -40,14 +40,11 @@
 }
 
 - (IBAction)onConnectButtonClick:(id)sender {
-    // TCP SIDE
     static NSString *const CONNECT_IP = @"192.168.1.92";
     static const int CONNECT_PORT_TCP = 12340;
     static const int CONNECT_PORT_UDP = 12341;
-    if(_connection != nil) {
-        [_connection shutdown];
-        [_connection connectToTcpHost:CONNECT_IP tcpPort:CONNECT_PORT_TCP udpHost:CONNECT_IP udpPort:CONNECT_PORT_UDP];
-    }
+    [_connection shutdown];
+    [_connection connectToTcpHost:CONNECT_IP tcpPort:CONNECT_PORT_TCP udpHost:CONNECT_IP udpPort:CONNECT_PORT_UDP];
 }
 
 - (IBAction)onSendButtonClick:(id)sender {
@@ -63,6 +60,8 @@
 - (void)connectionStatusChange:(ConnectionStatusProtocol)status withDescription:(NSString *)description {
     NSLog(@"Received status change: %u and description: %@", status, description);
     [[self connectionStatus] setText: description];
+    
+    [_mediaController connectionStatusChange:status withDescription:description];
     
     switch(status) {
         case P_CONNECTING:
@@ -85,13 +84,23 @@
             [[self connectionStatus] setHidden:false];
             _connected = false;
             break;
+            
+        default:
+            NSLog(@"Bad connection state");
+            [_connection shutdown];
+            _connected = false;
+            break;
     }
 }
 
 
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
     uint op = [packet getUnsignedInteger];
-    [_mediaController onNewPacket:packet fromProtocol:protocol];
+    if(op == 1) {
+        [_mediaController onNewPacket:packet fromProtocol:protocol];
+    } else {
+        NSLog(@"Dropping unusual packet: %ul", op);
+    }
 }
 
 @end

@@ -34,6 +34,7 @@
 - (void) validateResult: (int)result {
     if(result < 0) {
         NSLog(@"UDP networking failure, reason %ul", errno);
+        [self close];
     }
 }
 
@@ -62,6 +63,10 @@
         realAmountReceived = recv(_socObject, [buffer getRawDataPtr], maximumAmountReceivable, 0);
     
         // This would cause buffer overrun and indicates a serious bug somewhere (probably not in our code though *puts on sunglasses slowly*).
+        if(realAmountReceived == -1) {
+            NSLog(@"Serious receive error detected");
+            [self validateResult:-1];
+        }
         if(realAmountReceived != maximumAmountReceivable) {
             NSLog(@"Receive error detected: %zu (real) vs %ld (maximum)", realAmountReceived, maximumAmountReceivable);
         }
@@ -102,6 +107,7 @@
     if(result >= 0) {
         NSLog(@"Sent UDP packet with size: %ldl", result);
     } else {
+        NSLog(@"Failed to send message with size: %ul", [buffer bufferUsedSize]);
         [self validateResult: -1];
     }
 }

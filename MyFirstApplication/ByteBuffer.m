@@ -84,6 +84,9 @@
 }
 
 - (void) setUsedSize: (uint)size {
+    if(size > _bufferMemorySize) {
+        [self setMemorySize:size retaining:true];
+    }
     _bufferUsedSize = size;
     [self enforceBounds];
 }

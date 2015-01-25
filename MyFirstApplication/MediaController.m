@@ -16,9 +16,10 @@
     id<NewImageDelegate> _newImageDelegate;
     id<OutputSessionBase> _networkOutputSession;
     Encoding* _mediaEncoder;
+    bool _connected;
 }
 
-- (id)initWithImageDelegate: (id<NewImageDelegate>)newImageDelegate andwithNetworkOutputSession: (id<OutputSessionBase>)networkOutputSession {
+- (id)initWithImageDelegate:(id<NewImageDelegate>)newImageDelegate andwithNetworkOutputSession:(id<OutputSessionBase>)networkOutputSession {
     self = [super init];
     if(self) {
         _networkOutputSession = networkOutputSession;
@@ -26,6 +27,7 @@
 
         _mediaEncoder = [[Encoding alloc] init];
         _session = [_mediaEncoder setupCaptureSessionWithDelegate: self];
+        _connected = false;
     }
     return self;
 }
@@ -39,8 +41,7 @@
 }
 
 - (void)captureOutput:(AVCaptureOutput *)captureOutput didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection {
-    bool connected = false;
-    if(!connected) {
+    if(!_connected) {
         // update display with no networking.
         UIImage *image = [_mediaEncoder imageFromSampleBuffer: sampleBuffer];
         [_newImageDelegate onNewImage: image];
@@ -50,7 +51,7 @@
         MediaByteBuffer* buffer = [[MediaByteBuffer alloc] initFromBuffer: rawBuffer];
         [rawBuffer addUnsignedInteger:1];
         [buffer addImage: sampleBuffer];
-        //[_networkOutputSession sendPacket: rawBuffer]; <- temporarily disabled.
+        [_networkOutputSession sendPacket: rawBuffer];
     }
 }
 
@@ -59,6 +60,10 @@
     MediaByteBuffer* buffer = [[MediaByteBuffer alloc] initFromBuffer: packet];
     UIImage *image = [buffer getImage];
     [_newImageDelegate onNewImage: image];
+}
+
+- (void)connectionStatusChange:(ConnectionStatusProtocol)status withDescription:(NSString *)description {
+    _connected = status == P_CONNECTED;
 }
 
 @end

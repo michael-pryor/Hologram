@@ -34,7 +34,9 @@
     [_buffer addUnsignedInteger:bytesPerRow];
     [_buffer addUnsignedInteger:width];
     [_buffer addUnsignedInteger:height];
-    [_buffer addVariableLengthData: baseAddress withLength: bytes includingPrefix:false];
+    
+    // HACK HERE: because UDP can't send such big data lengths.
+    [_buffer addVariableLengthData: baseAddress withLength: 1024 includingPrefix:false];
     
     CVPixelBufferUnlockBaseAddress(imageBuffer,0);
 }
@@ -45,6 +47,12 @@
     uint bytesPerRow = [_buffer getUnsignedInteger];
     uint width = [_buffer getUnsignedInteger];
     uint height = [_buffer getUnsignedInteger];
+    
+    // AGAIN ANOTHER HACK FOR SAME REASON.
+    [_buffer setUsedSize:110600];
+    memset([_buffer buffer] + [_buffer cursorPosition] + 1024 + 8, 0, [_buffer bufferUsedSize] - [_buffer cursorPosition] - 1024 - 8);
+    // END OF HACK.
+    
     uint8_t * buffer = [_buffer buffer] + [_buffer cursorPosition];
     
     // Create a bitmap graphics context with the sample buffer data

@@ -163,7 +163,7 @@ class Client(object):
             logger.warn("TCP packet received while waiting for UDP connection to be established, dropping packet")
             pass
         elif self.connection_status == Client.ConnectionStatus.CONNECTED:
-            self.tcp.sendString(data);
+            self.onFriendlyPacketTcp(packet)
         else:
             logger.error("Client in unsupported connection state: %d" % self.parent.connection_status)
             self.closeConnection()
@@ -174,6 +174,16 @@ class Client(object):
             logger.warn("Client is not connected, discarding UDP packet")
             return
 
+        self.onFriendlyPacketUdp(packet)
+
+    def onFriendlyPacketTcp(self, packet):
+        assert isinstance(packet, ByteBuffer)
+        logger.info("Received a friendly TCP packet with length: %d" % packet.used_size)
+        logger.info("Echoing back")
+        self.tcp.sendByteBuffer(packet)
+
+    def onFriendlyPacketUdp(self, packet):
+        assert isinstance(packet, ByteBuffer)
         logger.info("Received a friendly UDP packet with length: %d" % packet.used_size)
         logger.info("Echoing back")
         self.udp.sendByteBuffer(packet)
@@ -279,8 +289,6 @@ class Server(ClientFactory, protocol.DatagramProtocol):
         registeredClient = self.udp_connection_linker.registerCompletion(theHash, ClientUdp(remoteAddress, self.transport.write))
 
         if registeredClient:
-            import time
-            time.sleep(5)
             if remoteAddress not in self.clientsByUdpAddress:
                 successPing = ByteBuffer()
                 successPing.addUnsignedInteger(Client.UdpOperationCodes.OP_ACCEPT_UDP)
