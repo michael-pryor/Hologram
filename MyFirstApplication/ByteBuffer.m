@@ -239,9 +239,9 @@
     return _bufferMemorySize - _bufferUsedSize;
 }
 
-- (void) addVariableLengthData: (uint8_t*)data withLength: (uint)length includingPrefix: (Boolean)includePrefix {
+- (uint) addVariableLengthData: (uint8_t*)data withLength: (uint)length includingPrefix: (Boolean)includePrefix atPosition: (uint)position {
     uint dataSize = sizeof(uint8_t) * length;
-    uint newSize = _cursorPosition + dataSize;
+    uint newSize = position + dataSize;
     if(includePrefix) {
         newSize += sizeof(uint);
     }
@@ -249,12 +249,26 @@
     if(includePrefix) {
         [self addUnsignedInteger:length];
     }
-    memcpy(_buffer + _cursorPosition, data, dataSize);
-    [self moveCursorForwards:dataSize];
+    memcpy(_buffer + position, data, dataSize);
+    return dataSize;
 }
 
-- (void) addVariableLengthData: (uint8_t*)data withLength: (uint)length {
-    [self addVariableLengthData:data withLength:length includingPrefix:true];
+- (uint) addVariableLengthData: (uint8_t*)data withLength: (uint)length includingPrefix: (Boolean)includePrefix {
+    uint dataSize = [self addVariableLengthData:data withLength:length includingPrefix:includePrefix atPosition:(_cursorPosition)];
+    [self moveCursorForwards:dataSize];
+    return dataSize;
+}
+
+- (uint) addVariableLengthData: (uint8_t*)data withLength: (uint)length {
+    return [self addVariableLengthData:data withLength:length includingPrefix:true];
+}
+
+- (void) addByteBuffer: (ByteBuffer*)sourceBuffer includingPrefix:(Boolean)includePrefix atPosition:(uint)position startingFrom:(uint)startFrom {
+    [self addVariableLengthData:sourceBuffer.buffer+startFrom withLength:sourceBuffer.bufferUsedSize-startFrom includingPrefix:includePrefix atPosition:position];
+}
+
+- (void) addByteBuffer: (ByteBuffer*)sourceBuffer includingPrefix:(Boolean)includePrefix atPosition:(uint)position {
+    [self addByteBuffer: sourceBuffer includingPrefix:includePrefix atPosition:position startingFrom:0];
 }
 
 - (void) addByteBuffer: (ByteBuffer*)sourceBuffer includingPrefix: (Boolean)includePrefix {

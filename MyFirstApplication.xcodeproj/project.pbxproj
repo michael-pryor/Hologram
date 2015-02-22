@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		51BF42541A750CDB00C16F9A /* ConnectionManagerProtocol.m in Sources */ = {isa = PBXBuildFile; fileRef = 51BF42531A750CDB00C16F9A /* ConnectionManagerProtocol.m */; };
+		51C18D2B1A9A3882000C42A8 /* Batch.m in Sources */ = {isa = PBXBuildFile; fileRef = 51C18D2A1A9A3882000C42A8 /* Batch.m */; };
 		51C3F13F1A6C4388004040BB /* ConnectionManagerUdp.m in Sources */ = {isa = PBXBuildFile; fileRef = 51C3F13E1A6C4388004040BB /* ConnectionManagerUdp.m */; };
 		51CE2B941A8ECD9100B8E5B7 /* PipelineProcessor.m in Sources */ = {isa = PBXBuildFile; fileRef = 51CE2B931A8ECD9000B8E5B7 /* PipelineProcessor.m */; };
 		51D584BB19AB648000BB6CE6 /* InputSessionTcp.m in Sources */ = {isa = PBXBuildFile; fileRef = 51D584BA19AB648000BB6CE6 /* InputSessionTcp.m */; };
@@ -53,6 +54,8 @@
 		51BDB14E1A6F136B00E0DA49 /* OutputSessionBase.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = OutputSessionBase.h; sourceTree = "<group>"; };
 		51BF42521A750CDB00C16F9A /* ConnectionManagerProtocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConnectionManagerProtocol.h; sourceTree = "<group>"; };
 		51BF42531A750CDB00C16F9A /* ConnectionManagerProtocol.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ConnectionManagerProtocol.m; sourceTree = "<group>"; };
+		51C18D291A9A3882000C42A8 /* Batch.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Batch.h; sourceTree = "<group>"; };
+		51C18D2A1A9A3882000C42A8 /* Batch.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Batch.m; sourceTree = "<group>"; };
 		51C3F13D1A6C4388004040BB /* ConnectionManagerUdp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConnectionManagerUdp.h; sourceTree = "<group>"; };
 		51C3F13E1A6C4388004040BB /* ConnectionManagerUdp.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ConnectionManagerUdp.m; sourceTree = "<group>"; };
 		51CE2B921A8ECD9000B8E5B7 /* PipelineProcessor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PipelineProcessor.h; sourceTree = "<group>"; };
@@ -166,6 +169,8 @@
 				51D87CB11A8F7C1B00CE919E /* BatcherInput.m */,
 				51D87CB31A8F7C3000CE919E /* BatcherOutput.h */,
 				51D87CB41A8F7C3000CE919E /* BatcherOutput.m */,
+				51C18D291A9A3882000C42A8 /* Batch.h */,
+				51C18D2A1A9A3882000C42A8 /* Batch.m */,
 			);
 			name = Batching;
 			sourceTree = "<group>";
@@ -397,6 +402,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				51C18D2B1A9A3882000C42A8 /* Batch.m in Sources */,
 				51DB961B19A8EE05001A63F8 /* ConnectionViewController.m in Sources */,
 				51E888A11A597585005F8825 /* Signal.m in Sources */,
 				51E888A51A59DFB8005F8825 /* Encoding.m in Sources */,

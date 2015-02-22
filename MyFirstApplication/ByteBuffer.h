@@ -32,9 +32,12 @@
 - (void) setCursorPosition:(uint)newCursorPosition;
 
 - (void) addString: (NSString*)string;
-- (void) addVariableLengthData: (uint8_t*)data withLength: (uint)length includingPrefix: (Boolean)includePrefix;
-- (void) addVariableLengthData: (uint8_t*)data withLength: (uint)length;
-- (void) addByteBuffer: (ByteBuffer*)sourceBuffer includingPrefix: (Boolean)includePrefix;
+- (uint) addVariableLengthData: (uint8_t*)data withLength: (uint)length includingPrefix: (Boolean)includePrefix atPosition: (uint)position;
+- (uint) addVariableLengthData: (uint8_t*)data withLength: (uint)length includingPrefix: (Boolean)includePrefix;
+- (uint) addVariableLengthData: (uint8_t*)data withLength: (uint)length;
+- (void) addByteBuffer: (ByteBuffer*)sourceBuffer includingPrefix:(Boolean)includePrefix atPosition:(uint)position startingFrom:(uint)startFrom;
+- (void) addByteBuffer: (ByteBuffer*)sourceBuffer includingPrefix:(Boolean)includePrefix atPosition:(uint)position;
+- (void) addByteBuffer: (ByteBuffer*)sourceBuffer includingPrefix:(Boolean)includePrefix;
 - (void) addByteBuffer: (ByteBuffer*)sourceBuffer;
 - (NSString*) getString;
 - (ByteBuffer*) getByteBuffer;
