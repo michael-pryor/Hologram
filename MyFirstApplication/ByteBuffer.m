@@ -247,9 +247,14 @@
     }
     [self increaseMemorySize:newSize];
     if(includePrefix) {
-        [self addUnsignedInteger:length];
+        [self addUnsignedInteger:length atPosition:position];
+        position += sizeof(uint);
     }
     memcpy(_buffer + position, data, dataSize);
+    
+    if(includePrefix) {
+        dataSize += sizeof(uint);
+    }
     return dataSize;
 }
 
