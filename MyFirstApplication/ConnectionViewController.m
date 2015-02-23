@@ -8,6 +8,8 @@
 
 #import "ConnectionViewController.h"
 #import "MediaController.h"
+#import "BatcherInput.h"
+#import "BatcherOutput.h"
 
 @import AVFoundation;
 
@@ -16,17 +18,21 @@
     IBOutlet UIImageView *_cameraView;
     AVCaptureSession *session;
     MediaController *_mediaController;
+    BatcherOutput *_batcherOutput;
+    BatcherInput *_batcherInput;
     bool _connected;
 }
 
 -(void)viewDidLoad {
     [super viewDidLoad];
-    _connection = [[ConnectionManagerProtocol alloc] initWithRecvDelegate:self andConnectionStatusDelegate:self];
+    _batcherInput = [[BatcherInput alloc] initWithOutputSession:self chunkSize:1024 numChunks:80 andNumChunksThreshold:70 andTimeoutMs:1000];
+    _connection = [[ConnectionManagerProtocol alloc] initWithRecvDelegate:_batcherInput andConnectionStatusDelegate:self];
 }
 
 -(void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear: animated];
-    _mediaController = [[MediaController alloc] initWithImageDelegate:self andwithNetworkOutputSession:[_connection getUdpOutputSession]];
+    _batcherOutput = [[BatcherOutput alloc] initWithOutputSession:[_connection getUdpOutputSession] andChunkSize:1024];
+    _mediaController = [[MediaController alloc] initWithImageDelegate:self andwithNetworkOutputSession:_batcherOutput];
     [_mediaController startCapturing];
 }
 
@@ -94,10 +100,11 @@
 }
 
 
-- (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
+//- (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
+- (void)sendPacket: (ByteBuffer*)packet {
     uint op = [packet getUnsignedInteger];
     if(op == 1) {
-        [_mediaController onNewPacket:packet fromProtocol:protocol];
+        [_mediaController onNewPacket:packet fromProtocol:UDP];
     } else {
         NSLog(@"Dropping unusual packet: %ul", op);
     }

@@ -20,4 +20,7 @@
     }
     return self;
 }
+- (void) sendPacket: (ByteBuffer*)buffer {
+    [self onNewPacket: buffer fromProtocol: TCP];
+}
 @end

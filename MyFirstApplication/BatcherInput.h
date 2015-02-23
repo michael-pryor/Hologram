@@ -10,6 +10,6 @@
 #import "PipelineProcessor.h"
 
 @interface BatcherInput : PipelineProcessor
-- (id)initWithOutputSession:(id<OutputSessionBase>)outputSession andChunkSize:(uint)chunkSize;
+- (id)initWithOutputSession:(id<OutputSessionBase>)outputSession chunkSize:(uint)chunkSize numChunks:(uint)numChunks andNumChunksThreshold:(uint)numChunksThreshold andTimeoutMs:(uint)timeoutMs;
 - (void)onNewPacket:(ByteBuffer*)packet fromProtocol:(ProtocolType)protocol;
 @end
