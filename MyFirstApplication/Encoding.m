@@ -8,7 +8,28 @@
 
 #import "Encoding.h"
 
-@implementation Encoding
+@implementation Encoding {
+    NSString * _sessionPreset;
+}
+- (id) init {
+    self = [super init];
+    if(self) {
+        _sessionPreset = AVCaptureSessionPresetLow;
+        
+        if(_sessionPreset == AVCaptureSessionPresetLow) {
+            _bytesPerRow = 576;
+            _height = 192;
+            _totalSize = _bytesPerRow * _height;
+            
+            _suggestedBatchSize = _bytesPerRow;
+            _suggestedBatches = _height;
+        } else {
+            [NSException raise:@"Invalid session preset" format:@"Session preset must be preconfigured in code"];
+        }
+    }
+    return self;
+}
+
 // Create a UIImage from sample buffer data
 - (UIImage *) imageFromSampleBuffer:(CMSampleBufferRef) sampleBuffer
 {
@@ -57,7 +78,8 @@
 
 - (AVCaptureSession *) setupCaptureSessionWithDelegate: (id<AVCaptureVideoDataOutputSampleBufferDelegate>) delegate {
     AVCaptureSession* session = [[AVCaptureSession alloc] init];
-    session.sessionPreset = AVCaptureSessionPresetLow;
+    
+    session.sessionPreset = _sessionPreset;
     
     // access input device.
     AVCaptureDevice *device = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];

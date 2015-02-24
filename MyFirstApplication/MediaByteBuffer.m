@@ -36,7 +36,7 @@
     [_buffer addUnsignedInteger:height];
     
     // HACK HERE: because UDP can't send such big data lengths.
-    [_buffer addVariableLengthData: baseAddress withLength: 1024 includingPrefix:false];
+    //[_buffer addVariableLengthData: baseAddress withLength: 1024 includingPrefix:false];
     
     CVPixelBufferUnlockBaseAddress(imageBuffer,0);
 }

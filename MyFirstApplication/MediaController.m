@@ -10,12 +10,17 @@
 #import "Encoding.h"
 #import "OutputSessionTcp.h"
 #import "MediaController.h"
+#import "BatcherInput.h"
+#import "BatcherOutput.h"
 
 @implementation MediaController {
     AVCaptureSession* _session;
     id<NewImageDelegate> _newImageDelegate;
     id<OutputSessionBase> _networkOutputSession;
     Encoding* _mediaEncoder;
+    BatcherInput* _batcherInput;
+    BatcherOutput* _batcherOutput;
+    
     bool _connected;
 }
 
@@ -27,6 +32,10 @@
 
         _mediaEncoder = [[Encoding alloc] init];
         _session = [_mediaEncoder setupCaptureSessionWithDelegate: self];
+
+        _batcherOutput = [[BatcherOutput alloc] initWithOutputSession:self andChunkSize:1024];
+        _batcherInput = [[BatcherInput alloc] initWithOutputSession:self chunkSize:1024 numChunks:80 andNumChunksThreshold:70 andTimeoutMs:1000];
+        
         _connected = false;
     }
     return self;
