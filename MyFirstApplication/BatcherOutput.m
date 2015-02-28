@@ -25,6 +25,7 @@
     while([packet getUnreadDataFromCursor] > 0) {
         ByteBuffer* chunk = [self getChunkToSendFromBatch:packet withBatchId:_batchId withChunkId:chunkId];
         chunkId++;
+        [NSThread sleepForTimeInterval:0.01]; // <------ we are sending too quickly, OS is dropping UDP packets without even trying to send them :(
         [_outputSession onNewPacket:chunk fromProtocol:protocol];
     }
     _batchId++;

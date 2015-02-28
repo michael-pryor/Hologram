@@ -53,7 +53,7 @@
         PacketToImageProcessor * p = [[PacketToImageProcessor alloc] initWithImageDelegate:newImageDelegate];
         
         _batcherOutput = [[BatcherOutput alloc] initWithOutputSession:networkOutputSession andChunkSize:[_mediaEncoder suggestedBatchSize]];
-        _batcherInput = [[BatcherInput alloc] initWithOutputSession:p chunkSize:[_mediaEncoder suggestedBatchSize] numChunks:[_mediaEncoder suggestedBatches] andNumChunksThreshold:0 andTimeoutMs:1000];
+        _batcherInput = [[BatcherInput alloc] initWithOutputSession:p chunkSize:[_mediaEncoder suggestedBatchSize] numChunks:[_mediaEncoder suggestedBatches] andNumChunksThreshold:0 andTimeoutMs:10000];
         
         _connected = false;
     }
@@ -84,6 +84,7 @@
 }
 
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
+    packet.cursorPosition = 0;
     [_batcherInput onNewPacket:packet fromProtocol:protocol];
 }
 

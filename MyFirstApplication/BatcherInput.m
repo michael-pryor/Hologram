@@ -32,7 +32,8 @@
     return self;
 }
 
-- (void)onTimeout:(NSNumber*)batchId {
+- (void)onTimeout:(NSTimer*)timer  {
+    NSNumber* batchId = [timer userInfo];
     NSLog(@"Removing old batch, with ID: %@l", batchId);
     @synchronized(_batches) {
         [_batches removeObjectForKey:batchId];
@@ -48,7 +49,10 @@
         if(batch == nil) {
             batch = [[Batch alloc] initWithOutputSession:_outputSession chunkSize:_chunkSize numChunks:_numChunks andNumChunksThreshold:_numChunksThreshold andTimeoutSeconds:_timeoutMs];
             [_batches setObject:batch forKey: [NSNumber numberWithInt:batchId]];
-            [NSTimer scheduledTimerWithTimeInterval:_batchRemovalTimeout target:self selector:@selector(onTimeout:) userInfo:[NSNumber numberWithInt: batchId]    repeats:NO];
+            
+            dispatch_async(dispatch_get_main_queue(), ^(void){
+                [NSTimer scheduledTimerWithTimeInterval:_batchRemovalTimeout target:self selector:@selector(onTimeout:) userInfo:[NSNumber numberWithInt: batchId]    repeats:NO];
+            });
         }
     }
     [batch onNewPacket:packet fromProtocol:protocol];
