@@ -16,7 +16,7 @@
 @implementation MediaController {
     AVCaptureSession* _session;
     id<NewImageDelegate> _newImageDelegate;
-    id<OutputSessionBase> _networkOutputSession;
+    id<NewPacketDelegate> _networkOutputSession;
     Encoding* _mediaEncoder;
     BatcherInput* _batcherInput;
     BatcherOutput* _batcherOutput;
@@ -24,7 +24,7 @@
     bool _connected;
 }
 
-- (id)initWithImageDelegate:(id<NewImageDelegate>)newImageDelegate andwithNetworkOutputSession:(id<OutputSessionBase>)networkOutputSession {
+- (id)initWithImageDelegate:(id<NewImageDelegate>)newImageDelegate andwithNetworkOutputSession:(id<NewPacketDelegate>)networkOutputSession {
     self = [super init];
     if(self) {
         _networkOutputSession = networkOutputSession;
@@ -60,7 +60,7 @@
         MediaByteBuffer* buffer = [[MediaByteBuffer alloc] initFromBuffer: rawBuffer];
         [rawBuffer addUnsignedInteger:1];
         [buffer addImage: sampleBuffer];
-        [_networkOutputSession sendPacket: rawBuffer];
+        [_networkOutputSession onNewPacket:rawBuffer fromProtocol:UDP];
     }
 }
 

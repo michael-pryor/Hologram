@@ -29,14 +29,14 @@ typedef enum {
 - (void) shutdownWithDescription:(NSString*)description;
 - (void) sendTcpPacket:(ByteBuffer*)packet;
 - (void) sendUdpPacket:(ByteBuffer*)packet;
-- (id<OutputSessionBase>) getTcpOutputSession;
-- (id<OutputSessionBase>) getUdpOutputSession;
+- (id<NewPacketDelegate>) getTcpOutputSession;
+- (id<NewPacketDelegate>) getUdpOutputSession;
 @end
 
-@interface ConnectionManagerProtocolTcpSession : NSObject<OutputSessionBase>
+@interface ConnectionManagerProtocolTcpSession : NSObject<NewPacketDelegate>
 - (id)initWithConnectionManager: (ConnectionManagerProtocol*)connectionManager;
 @end
 
-@interface ConnectionManagerProtocolUdpSession : NSObject<OutputSessionBase>
+@interface ConnectionManagerProtocolUdpSession : NSObject<NewPacketDelegate>
 - (id)initWithConnectionManager: (ConnectionManagerProtocol*)connectionManager;
 @end

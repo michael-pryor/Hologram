@@ -12,7 +12,7 @@
     uint _chunkSize;
     uint _batchId;
 }
-- (id)initWithOutputSession:(id<OutputSessionBase>)outputSession andChunkSize:(uint)chunkSize {
+- (id)initWithOutputSession:(id<NewPacketDelegate>)outputSession andChunkSize:(uint)chunkSize {
     self = [super initWithOutputSession:outputSession];
     if(self) {
         _chunkSize = chunkSize;
@@ -25,7 +25,7 @@
     while([packet getUnreadDataFromCursor] > 0) {
         ByteBuffer* chunk = [self getChunkToSendFromBatch:packet withBatchId:_batchId withChunkId:chunkId];
         chunkId++;
-        [_outputSession sendPacket:chunk];
+        [_outputSession onNewPacket:chunk fromProtocol:protocol];
     }
     _batchId++;
 }

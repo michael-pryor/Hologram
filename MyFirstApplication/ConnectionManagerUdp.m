@@ -102,7 +102,7 @@
     NSLog(@"Connected UDP socket to host %@ and port %u", host, port);
 }
 
-- (void) sendPacket: (ByteBuffer*)buffer {
+- (void)onNewPacket:(ByteBuffer *)buffer fromProtocol:(ProtocolType)protocol {
     long result = send(_socObject, [buffer buffer], [buffer bufferUsedSize], 0);
     if(result >= 0) {
         NSLog(@"Sent UDP packet with size: %ldl", result);

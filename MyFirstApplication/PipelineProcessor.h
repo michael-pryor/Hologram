@@ -7,14 +7,13 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "OutputSessionBase.h"
+#import "InputSessionBase.h"
 #import "InputSessionBase.h"
 
-@interface PipelineProcessor : NSObject<NewPacketDelegate, OutputSessionBase> {
+@interface PipelineProcessor : NSObject<NewPacketDelegate, NewPacketDelegate> {
     @protected
-    id<OutputSessionBase> _outputSession;
+    id<NewPacketDelegate> _outputSession;
 }
 
-- (void)sendPacket:(ByteBuffer*)buffer;
-- (id)initWithOutputSession:(id<OutputSessionBase>)outputSession;
+- (id) initWithOutputSession:(id<NewPacketDelegate>)outputSession;
 @end

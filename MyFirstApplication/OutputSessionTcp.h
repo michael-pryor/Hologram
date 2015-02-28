@@ -7,10 +7,10 @@
 //
 
 #import "ByteBuffer.h"
-#import "OutputSessionBase.h"
+#import "InputSessionBase.h"
 
-@interface OutputSessionTcp : NSObject<OutputSessionBase>
+@interface OutputSessionTcp : NSObject<NewPacketDelegate>
 - (id) init;
-- (void) sendPacket: (ByteBuffer*) packet;
+- (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol;
 - (ByteBuffer*) processPacket;
 @end

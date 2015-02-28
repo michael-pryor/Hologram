@@ -51,31 +51,30 @@
 /* Begin PBXFileReference section */
 		51BDB1491A6F0E7E00E0DA49 /* InputSessionBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InputSessionBase.h; sourceTree = "<group>"; };
 		51BDB14D1A6F121400E0DA49 /* ConnectionManagerBase.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ConnectionManagerBase.h; sourceTree = "<group>"; };
-		51BDB14E1A6F136B00E0DA49 /* OutputSessionBase.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = OutputSessionBase.h; sourceTree = "<group>"; };
-		51BF42521A750CDB00C16F9A /* ConnectionManagerProtocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConnectionManagerProtocol.h; sourceTree = "<group>"; };
-		51BF42531A750CDB00C16F9A /* ConnectionManagerProtocol.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ConnectionManagerProtocol.m; sourceTree = "<group>"; };
-		51C18D291A9A3882000C42A8 /* Batch.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Batch.h; sourceTree = "<group>"; };
-		51C18D2A1A9A3882000C42A8 /* Batch.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Batch.m; sourceTree = "<group>"; };
-		51C3F13D1A6C4388004040BB /* ConnectionManagerUdp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConnectionManagerUdp.h; sourceTree = "<group>"; };
+		51BF42521A750CDB00C16F9A /* ConnectionManagerProtocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = ConnectionManagerProtocol.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
+		51BF42531A750CDB00C16F9A /* ConnectionManagerProtocol.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = ConnectionManagerProtocol.m; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objc; };
+		51C18D291A9A3882000C42A8 /* Batch.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = Batch.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
+		51C18D2A1A9A3882000C42A8 /* Batch.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = Batch.m; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objc; };
+		51C3F13D1A6C4388004040BB /* ConnectionManagerUdp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = ConnectionManagerUdp.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		51C3F13E1A6C4388004040BB /* ConnectionManagerUdp.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ConnectionManagerUdp.m; sourceTree = "<group>"; };
-		51CE2B921A8ECD9000B8E5B7 /* PipelineProcessor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PipelineProcessor.h; sourceTree = "<group>"; };
-		51CE2B931A8ECD9000B8E5B7 /* PipelineProcessor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PipelineProcessor.m; sourceTree = "<group>"; };
+		51CE2B921A8ECD9000B8E5B7 /* PipelineProcessor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = PipelineProcessor.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
+		51CE2B931A8ECD9000B8E5B7 /* PipelineProcessor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = PipelineProcessor.m; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objc; };
 		51D584B919AB648000BB6CE6 /* InputSessionTcp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InputSessionTcp.h; sourceTree = "<group>"; };
 		51D584BA19AB648000BB6CE6 /* InputSessionTcp.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = InputSessionTcp.m; sourceTree = "<group>"; };
-		51D584BC19AB649500BB6CE6 /* OutputSessionTcp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OutputSessionTcp.h; sourceTree = "<group>"; };
+		51D584BC19AB649500BB6CE6 /* OutputSessionTcp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = OutputSessionTcp.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		51D584BD19AB649500BB6CE6 /* OutputSessionTcp.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OutputSessionTcp.m; sourceTree = "<group>"; };
 		51D584BF19AB7A9400BB6CE6 /* ByteBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ByteBuffer.h; sourceTree = "<group>"; };
 		51D584C019AB7A9400BB6CE6 /* ByteBuffer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ByteBuffer.m; sourceTree = "<group>"; };
 		51D584C219AB8B1D00BB6CE6 /* ByteBufferTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ByteBufferTest.m; sourceTree = "<group>"; };
-		51D87CB01A8F7C1A00CE919E /* BatcherInput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BatcherInput.h; sourceTree = "<group>"; };
-		51D87CB11A8F7C1B00CE919E /* BatcherInput.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BatcherInput.m; sourceTree = "<group>"; };
-		51D87CB31A8F7C3000CE919E /* BatcherOutput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BatcherOutput.h; sourceTree = "<group>"; };
-		51D87CB41A8F7C3000CE919E /* BatcherOutput.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BatcherOutput.m; sourceTree = "<group>"; };
+		51D87CB01A8F7C1A00CE919E /* BatcherInput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = BatcherInput.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
+		51D87CB11A8F7C1B00CE919E /* BatcherInput.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = BatcherInput.m; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objc; };
+		51D87CB31A8F7C3000CE919E /* BatcherOutput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = BatcherOutput.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
+		51D87CB41A8F7C3000CE919E /* BatcherOutput.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = BatcherOutput.m; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objc; };
 		51DB961619A8E3D0001A63F8 /* ConnectionManagerTcp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConnectionManagerTcp.h; sourceTree = "<group>"; };
 		51DB961719A8E3D0001A63F8 /* ConnectionManagerTcp.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ConnectionManagerTcp.m; sourceTree = "<group>"; };
-		51DB961919A8EE05001A63F8 /* ConnectionViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConnectionViewController.h; sourceTree = "<group>"; };
+		51DB961919A8EE05001A63F8 /* ConnectionViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = ConnectionViewController.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		51DB961A19A8EE05001A63F8 /* ConnectionViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ConnectionViewController.m; sourceTree = "<group>"; };
-		51E1BF291A5DD7A4007D8A56 /* MediaController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MediaController.h; sourceTree = "<group>"; };
+		51E1BF291A5DD7A4007D8A56 /* MediaController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = MediaController.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		51E1BF2A1A5DD7A4007D8A56 /* MediaController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MediaController.m; sourceTree = "<group>"; };
 		51E219DB193B2D190066D915 /* Storyboard.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = Storyboard.storyboard; sourceTree = "<group>"; };
 		51E5BE1E1936A982003E45C3 /* MyFirstApplication.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MyFirstApplication.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -155,7 +154,6 @@
 				51D584C019AB7A9400BB6CE6 /* ByteBuffer.m */,
 				51BDB1491A6F0E7E00E0DA49 /* InputSessionBase.h */,
 				51BDB14D1A6F121400E0DA49 /* ConnectionManagerBase.h */,
-				51BDB14E1A6F136B00E0DA49 /* OutputSessionBase.h */,
 			);
 			name = Base;
 			sourceTree = "<group>";

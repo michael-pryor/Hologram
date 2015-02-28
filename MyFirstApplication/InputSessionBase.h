@@ -30,5 +30,5 @@ typedef enum {
 // A packet is a complete item in the same form as when it
 // it was originally sent (no bytes missing or out of order).
 @protocol NewPacketDelegate
-- (void)onNewPacket: (ByteBuffer*)packet fromProtocol: (ProtocolType)protocol;
+- (void)onNewPacket:(ByteBuffer*)packet fromProtocol:(ProtocolType)protocol;
 @end

@@ -8,15 +8,15 @@
 
 #import <Foundation/Foundation.h>
 #import "ConnectionManagerBase.h"
-#import "OutputSessionBase.h"
+#import "InputSessionBase.h"
 #import "ByteBuffer.h"
 #import "InputSessionBase.h"
 
-@interface ConnectionManagerUdp : NSObject<ConnectionManagerBase, OutputSessionBase>
+@interface ConnectionManagerUdp : NSObject<ConnectionManagerBase, NewPacketDelegate>
 - (id) initWithNewPacketDelegate:(id<NewPacketDelegate>)newPacketDelegate;
 - (void) connectToHost: (NSString*) host andPort: (ushort) port;
 - (void) shutdown;
 - (Boolean) isConnected;
 
-- (void) sendPacket: (ByteBuffer*)buffer;
+- (void) onNewPacket:(ByteBuffer*)packet fromProtocol:(ProtocolType)protocol;
 @end

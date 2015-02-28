@@ -22,8 +22,8 @@
     }
     return self;
 }
-- (void)sendPacket:(ByteBuffer *)buffer {
-    [_connectionManager sendTcpPacket:buffer];
+- (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
+    [_connectionManager sendTcpPacket:packet];
 }
 @end
 
@@ -37,8 +37,8 @@
     }
     return self;
 }
-- (void)sendPacket:(ByteBuffer *)buffer {
-    [_connectionManager sendUdpPacket:buffer];
+- (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
+    [_connectionManager sendUdpPacket:packet];
 }
 @end
 
@@ -122,11 +122,11 @@
 }
 
 - (void) sendTcpPacket:(ByteBuffer*)packet {
-    [_tcpOutputSession sendPacket:packet];
+    [_tcpOutputSession onNewPacket:packet fromProtocol:TCP];
 }
 
 - (void) sendUdpPacket:(ByteBuffer*)packet {
-    [_udpConnection sendPacket:packet];
+    [_udpConnection onNewPacket:packet fromProtocol:UDP];
 }
 
 - (void) sendUdpLogonHash: (ByteBuffer*)bufferToSend {
@@ -210,10 +210,10 @@
 }
 
 
-- (id<OutputSessionBase>) getTcpOutputSession {
+- (id<NewPacketDelegate>) getTcpOutputSession {
     return [[ConnectionManagerProtocolTcpSession alloc] initWithConnectionManager:self];
 }
-- (id<OutputSessionBase>) getUdpOutputSession {
+- (id<NewPacketDelegate>) getUdpOutputSession {
     return [[ConnectionManagerProtocolUdpSession alloc] initWithConnectionManager:self];
 }
 @end

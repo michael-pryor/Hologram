@@ -22,12 +22,12 @@
     NSLog(@"Timed out with chunks received: %ul and threshold: %ul", _chunksReceived, _numChunksThreshold);
     if(_chunksReceived >= _numChunksThreshold) {
         @synchronized(_partialPacket) {
-            [_outputSession sendPacket: _partialPacket];
+            [_outputSession onNewPacket:_partialPacket fromProtocol:UDP];
         }
     }
 }
 
-- (id)initWithOutputSession:(id<OutputSessionBase>)outputSession chunkSize:(uint)chunkSize numChunks:(uint)numChunks andNumChunksThreshold:(uint)numChunksThreshold andTimeoutMs:(uint)timeoutMs {
+- (id)initWithOutputSession:(id<NewPacketDelegate>)outputSession chunkSize:(uint)chunkSize numChunks:(uint)numChunks andNumChunksThreshold:(uint)numChunksThreshold andTimeoutMs:(uint)timeoutMs {
     self = [super initWithOutputSession:outputSession];
     if(self) {
         _chunksReceived = 0;

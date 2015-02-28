@@ -95,7 +95,7 @@
     }
     
     NSLog(@"Waking up output thread");
-    [_outputSession sendPacket: nil];
+    [_outputSession onNewPacket:nil fromProtocol:UDP];
     
     NSLog(@"Terminating run loop and closing streams");
     @try {

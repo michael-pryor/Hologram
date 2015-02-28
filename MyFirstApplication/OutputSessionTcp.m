@@ -24,7 +24,7 @@
     return self;
 }
 
-- (void) sendPacket: (ByteBuffer*) packet {
+- (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
     if(_queueShutdown) {
         NSLog(@"TCP send queue is shutdown, discarding send attempt");
         return;

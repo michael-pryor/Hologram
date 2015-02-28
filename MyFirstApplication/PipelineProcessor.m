@@ -7,20 +7,17 @@
 //
 
 #import "PipelineProcessor.h"
-#import "OutputSessionBase.h"
+#import "InputSessionBase.h"
 
 /**
  * Takes a packet as input, augments it in some way and pushes it to the output session.
  */
 @implementation PipelineProcessor
-- (id)initWithOutputSession:(id<OutputSessionBase>)outputSession {
+- (id)initWithOutputSession:(id<NewPacketDelegate>)outputSession {
     self = [super init];
     if(self) {
         _outputSession = outputSession;
     }
     return self;
-}
-- (void) sendPacket: (ByteBuffer*)buffer {
-    [self onNewPacket: buffer fromProtocol: TCP];
 }
 @end
