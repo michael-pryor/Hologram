@@ -21,8 +21,8 @@
             _height = 192;
             _totalSize = _bytesPerRow * _height;
             
-            _suggestedBatchSize = _bytesPerRow;
-            _suggestedBatches = _height;
+            _suggestedBatchSize = _bytesPerRow * 2;
+            _suggestedBatches = _height / 2;
         } else {
             [NSException raise:@"Invalid session preset" format:@"Session preset must be preconfigured in code"];
         }
@@ -46,11 +46,6 @@
     // Get the pixel buffer width and height
     size_t width = CVPixelBufferGetWidth(imageBuffer);
     size_t height = CVPixelBufferGetHeight(imageBuffer);
-    
-    uint8_t * addr = (uint8_t*)baseAddress;
-    for(int n = bytesPerRow*32;n<bytesPerRow*64;n++) {
-        addr[n] = 254;
-    }
     
     // Create a device-dependent RGB color space
     CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();

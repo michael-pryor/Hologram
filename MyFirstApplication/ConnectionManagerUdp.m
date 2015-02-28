@@ -68,7 +68,7 @@
             [self validateResult:-1];
             return;
         }
-        if(realAmountReceived != maximumAmountReceivable) {
+        if(realAmountReceived > maximumAmountReceivable) {
             NSLog(@"Receive error detected: %zu (real) vs %ld (maximum)", realAmountReceived, maximumAmountReceivable);
         }
         

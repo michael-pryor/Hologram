@@ -83,6 +83,10 @@
     [self enforceBounds];
 }
 
+- (void) dealloc {
+    free(_buffer);
+}
+
 - (void) setUsedSize: (uint)size {
     if(size > _bufferMemorySize) {
         [self setMemorySize:size retaining:true];
