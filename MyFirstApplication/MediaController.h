@@ -13,6 +13,9 @@
 - (void)onNewImage: (UIImage*) image;
 @end
 
+@interface PacketToImageProcessor : NSObject<NewPacketDelegate>
+@end
+
 @interface MediaController : NSObject<AVCaptureVideoDataOutputSampleBufferDelegate, NewPacketDelegate, ConnectionStatusDelegateProtocol>
 - (id)initWithImageDelegate:(id<NewImageDelegate>)newImageDelegate andwithNetworkOutputSession:(id<NewPacketDelegate>)networkOutputSession;
 - (void) startCapturing;

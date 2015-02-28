@@ -25,8 +25,8 @@
 
 -(void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear: animated];
-    _mediaController = [[MediaController alloc] initWithImageDelegate:self andwithNetworkOutputSession:[_connection getUdpOutputSession] ];
     _connection = [[ConnectionManagerProtocol alloc] initWithRecvDelegate:self andConnectionStatusDelegate:self];
+    _mediaController = [[MediaController alloc] initWithImageDelegate:self andwithNetworkOutputSession:[_connection getUdpOutputSession] ];
     [_mediaController startCapturing];
 }
 
@@ -95,7 +95,7 @@
 
 
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
-    uint op = [packet getUnsignedInteger];
+    uint op = 1;//[packet getUnsignedInteger];
     if(op == 1) {
         [_mediaController onNewPacket:packet fromProtocol:UDP];
     } else {

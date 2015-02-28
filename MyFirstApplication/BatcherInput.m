@@ -16,8 +16,8 @@
     uint _chunkSize;
     uint _numChunks;
     uint _numChunksThreshold;
-    uint _timeoutMs;
-    uint _batchRemovalTimeout;
+    double _timeoutMs;
+    double _batchRemovalTimeout;
 }
 - (id)initWithOutputSession:(id<NewPacketDelegate>)outputSession chunkSize:(uint)chunkSize numChunks:(uint)numChunks andNumChunksThreshold:(uint)numChunksThreshold andTimeoutMs:(uint)timeoutMs {
     self = [super initWithOutputSession:outputSession];
@@ -26,8 +26,8 @@
         _chunkSize = chunkSize;
         _numChunks = numChunks;
         _numChunksThreshold = numChunksThreshold;
-        _timeoutMs = timeoutMs;
-        _batchRemovalTimeout = timeoutMs * 3;
+        _timeoutMs = ((double)timeoutMs) / 1000;
+        _batchRemovalTimeout = _timeoutMs * 3;
     }
     return self;
 }
@@ -46,7 +46,7 @@
     @synchronized(_batches) {
         batch = [_batches objectForKey: [NSNumber numberWithInt:batchId]];
         if(batch == nil) {
-            batch = [[Batch alloc] initWithOutputSession:_outputSession chunkSize:_chunkSize numChunks:_numChunks andNumChunksThreshold:_numChunksThreshold andTimeoutMs:_timeoutMs];
+            batch = [[Batch alloc] initWithOutputSession:_outputSession chunkSize:_chunkSize numChunks:_numChunks andNumChunksThreshold:_numChunksThreshold andTimeoutSeconds:_timeoutMs];
             [_batches setObject:batch forKey: [NSNumber numberWithInt:batchId]];
             [NSTimer scheduledTimerWithTimeInterval:_batchRemovalTimeout target:self selector:@selector(onTimeout:) userInfo:[NSNumber numberWithInt: batchId]    repeats:NO];
         }

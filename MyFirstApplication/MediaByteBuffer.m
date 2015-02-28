@@ -30,13 +30,8 @@
     uint width = (uint)CVPixelBufferGetWidth(imageBuffer);
     uint height = (uint)CVPixelBufferGetHeight(imageBuffer);
     uint bytesPerRow = (uint)CVPixelBufferGetBytesPerRow(imageBuffer);
-
-    [_buffer addUnsignedInteger:bytesPerRow];
-    [_buffer addUnsignedInteger:width];
-    [_buffer addUnsignedInteger:height];
     
-    // HACK HERE: because UDP can't send such big data lengths.
-    //[_buffer addVariableLengthData: baseAddress withLength: 1024 includingPrefix:false];
+    [_buffer addVariableLengthData: baseAddress withLength: bytesPerRow * height includingPrefix:false];
     
     CVPixelBufferUnlockBaseAddress(imageBuffer,0);
 }
@@ -44,15 +39,11 @@
     // Create a device-dependent RGB color space
     CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
 
-    uint bytesPerRow = [_buffer getUnsignedInteger];
-    uint width = [_buffer getUnsignedInteger];
-    uint height = [_buffer getUnsignedInteger];
+    uint bytesPerRow = 576;//[_buffer getUnsignedInteger];
+    uint width = 144;//[_buffer getUnsignedInteger];
+    uint height = 192;//[_buffer getUnsignedInteger];
     
-    // AGAIN ANOTHER HACK FOR SAME REASON.
-    [_buffer setUsedSize:110600];
-    memset([_buffer buffer] + [_buffer cursorPosition] + 1024 + 8, 0, [_buffer bufferUsedSize] - [_buffer cursorPosition] - 1024 - 8);
-    // END OF HACK.
-    
+   
     uint8_t * buffer = [_buffer buffer] + [_buffer cursorPosition];
     
     // Create a bitmap graphics context with the sample buffer data
