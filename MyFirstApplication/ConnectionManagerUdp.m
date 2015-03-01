@@ -97,6 +97,21 @@
     
     _socObject = socket(AF_INET, SOCK_DGRAM, 0);
     [self validateResult: connect(_socObject, (const struct sockaddr *)&addr, sizeof(addr))];
+    /*
+    int newSendBuffSize = 11600;
+    socklen_t intSize = sizeof(newSendBuffSize);
+    long result2 = setsockopt(_socObject, SOL_SOCKET, SO_SNDBUF, &newSendBuffSize, intSize);
+    if(result2 == -1) {
+        NSLog(@"Failed to set send buff size");
+    }
+    
+    int sendBuffSize;
+    result2 = getsockopt(_socObject, SOL_SOCKET, SO_SNDBUF, &sendBuffSize, &intSize);
+    if(result2 == -1) {
+        NSLog(@"Failed to get value");
+    } else {
+        NSLog(@"Send buff size is: %ul", intSize);
+    }*/
     
     _dispatch_source = dispatch_source_create(DISPATCH_SOURCE_TYPE_READ, _socObject, 0, _gcd_queue);
     dispatch_source_set_event_handler(_dispatch_source, ^{
@@ -115,12 +130,11 @@
         ready = select(FD_SETSIZE, nil, &write, nil, nil);
         if(ready == -1) {
             NSLog(@"Select error!!!");
-        } else if(ready < 1) {
+        } else if(ready < 1 || !FD_ISSET(_socObject, &write)) {
             NSLog(@"Not ready yet!");
             [NSThread sleepForTimeInterval:0.01];
         }
-    } while(ready < 1);
-    
+    } while(ready < 1 || !FD_ISSET(_socObject, &write));
     
     long result = send(_socObject, [buffer buffer], [buffer bufferUsedSize], 0);
     if(result < 0) {

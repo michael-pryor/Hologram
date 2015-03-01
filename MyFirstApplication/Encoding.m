@@ -94,7 +94,7 @@
     
     AVCaptureConnection *conn = [output connectionWithMediaType:AVMediaTypeVideo];
     [conn setVideoOrientation:AVCaptureVideoOrientationPortrait];
-    conn.videoMinFrameDuration = CMTimeMake(1, 6);
+    conn.videoMinFrameDuration = CMTimeMake(1, 10);
     
     output.videoSettings = @{ (NSString *)kCVPixelBufferPixelFormatTypeKey : @(kCVPixelFormatType_32BGRA) };
     

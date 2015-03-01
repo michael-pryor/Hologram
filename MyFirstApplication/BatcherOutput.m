@@ -42,7 +42,7 @@ double sleep_amount = 0.02;
         // is made to send this). This logic tries to hold back and not exceed this limit, giving
         // time for packets to be sent.
         if(chunkId % sleep_threshold == 0) {
-            [NSThread sleepForTimeInterval:sleep_amount];
+       //     [NSThread sleepForTimeInterval:sleep_amount];
         }
 
         [_outputSession onNewPacket:chunk fromProtocol:protocol];
