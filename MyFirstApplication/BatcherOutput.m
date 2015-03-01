@@ -8,6 +8,8 @@
 
 #import "BatcherOutput.h"
 
+uint sleep_threshold = 8;
+double sleep_amount = 0.01;
 @implementation BatcherOutput {
     uint _chunkSize;
     uint _batchId;
@@ -25,7 +27,21 @@
     while([packet getUnreadDataFromCursor] > 0) {
         ByteBuffer* chunk = [self getChunkToSendFromBatch:packet withBatchId:_batchId withChunkId:chunkId];
         chunkId++;
-        //[NSThread sleepForTimeInterval:0.01]; // <------ we are sending too quickly, OS is dropping UDP packets without even trying to send them :(
+
+        // Formula for estimated latency impact in milliseconds:
+        // (bytes_per_chunk / sleep_threshold) * (sleep_amount * 1000)
+        //
+        // So this is:
+        // (96 / 8) * (0.01 * 1000) = 120ms
+        //
+        // This logic is necessary because iOS send queues are limited in size; exceeding this
+        // causes packets to be dropped without any indication as to which were dropped (no attempt
+        // is made to send this). This logic tries to hold back and not exceed this limit, giving
+        // time for packets to be sent.
+        if(chunkId % sleep_threshold == 0) {
+            [NSThread sleepForTimeInterval:sleep_amount];
+        }
+
         [_outputSession onNewPacket:chunk fromProtocol:protocol];
     }
     _batchId++;

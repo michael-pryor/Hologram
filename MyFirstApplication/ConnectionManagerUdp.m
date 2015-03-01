@@ -19,6 +19,7 @@
     dispatch_queue_t _gcd_queue;
     dispatch_source_t _dispatch_source;
     id<NewPacketDelegate> _newPacketDelegate;
+    ByteBuffer* _recvBuffer;
 }
 
 - (id) initWithNewPacketDelegate:(id<NewPacketDelegate>)newPacketDelegate {
@@ -27,6 +28,7 @@
         _gcd_queue = dispatch_queue_create("ConnectionManagerUdp", NULL);
         _socObject = 0;
         _newPacketDelegate = newPacketDelegate;
+        _recvBuffer = [[ByteBuffer alloc] init];
     }
     return self;
 }
@@ -58,9 +60,10 @@
     size_t realAmountReceived;
     
     do {
-        ByteBuffer* buffer = [[ByteBuffer alloc] init];
-        [buffer setMemorySize:maximumAmountReceivable retaining:false];
-        realAmountReceived = recv(_socObject, [buffer getRawDataPtr], maximumAmountReceivable, 0);
+        if(maximumAmountReceivable > [_recvBuffer bufferMemorySize]) {
+            [_recvBuffer setMemorySize:(uint)maximumAmountReceivable retaining:false];
+        }
+        realAmountReceived = recv(_socObject, [_recvBuffer getRawDataPtr], maximumAmountReceivable, 0);
     
         // This would cause buffer overrun and indicates a serious bug somewhere (probably not in our code though *puts on sunglasses slowly*).
         if(realAmountReceived == -1) {
@@ -72,10 +75,10 @@
             NSLog(@"Receive error detected: %zu (real) vs %ld (maximum)", realAmountReceived, maximumAmountReceivable);
         }
         
-        [buffer setUsedSize: realAmountReceived];
+        [_recvBuffer setUsedSize: (uint)realAmountReceived];
     
-        NSLog(@"Received UDP packet of size: %ul", [buffer bufferUsedSize]);
-        [_newPacketDelegate onNewPacket:buffer fromProtocol:UDP];
+        //NSLog(@"Received UDP packet of size: %ul", [_recvBuffer bufferUsedSize]);
+        [_newPacketDelegate onNewPacket:_recvBuffer fromProtocol:UDP];
         
         maximumAmountReceivable -= realAmountReceived;
     } while(maximumAmountReceivable > 0);
@@ -104,10 +107,23 @@
 }
 
 - (void)onNewPacket:(ByteBuffer *)buffer fromProtocol:(ProtocolType)protocol {
+    fd_set write;
+    uint ready;
+    do {
+        FD_ZERO(&write);
+        FD_SET(_socObject, &write);
+        ready = select(FD_SETSIZE, nil, &write, nil, nil);
+        if(ready == -1) {
+            NSLog(@"Select error!!!");
+        } else if(ready < 1) {
+            NSLog(@"Not ready yet!");
+            [NSThread sleepForTimeInterval:0.01];
+        }
+    } while(ready < 1);
+    
+    
     long result = send(_socObject, [buffer buffer], [buffer bufferUsedSize], 0);
-    if(result >= 0) {
-        NSLog(@"Sent UDP packet with size: %ldl", result);
-    } else {
+    if(result < 0) {
         NSLog(@"Failed to send message with size: %ul", [buffer bufferUsedSize]);
         [self validateResult: -1];
     }

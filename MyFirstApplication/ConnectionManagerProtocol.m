@@ -185,7 +185,7 @@
             NSLog(@"Invalid state, received UDP packet prior to connection ACK, discarding");
             return;
         } else {
-            NSLog(@"New UDP packet received with size: %ul", [packet bufferUsedSize]);
+            //NSLog(@"New UDP packet received with size: %ul", [packet bufferUsedSize]);
             [_recvDelegate onNewPacket:packet fromProtocol:protocol];
         }
     }

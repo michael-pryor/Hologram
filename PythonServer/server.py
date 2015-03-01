@@ -113,6 +113,9 @@ class Client(object):
         self.udp_remote_address = None
         logger.info("New client connected, awaiting logon message")
 
+        self.chunks = 0
+        self.batch = 0
+
     def setUdp(self, clientUdp):
         assert isinstance(clientUdp, ClientUdp)
         self.udp = clientUdp;
@@ -184,8 +187,17 @@ class Client(object):
 
     def onFriendlyPacketUdp(self, packet):
         assert isinstance(packet, ByteBuffer)
-        logger.info("Received a friendly UDP packet with length: %d" % packet.used_size)
-        logger.info("Echoing back")
+        batchId = packet.getUnsignedInteger()
+        chunkId = packet.getUnsignedInteger()
+
+        if self.batch != batchId:
+            logger.info("%d of %d received for batch %d, %.2f success" % (self.chunks, 96, self.batch, (float(self.chunks) / 96.0)))
+            self.batch = batchId
+            self.chunks = 0
+
+        self.chunks += 1
+
+        #logger.info("Received a friendly UDP packet, batch ID: %s, chunk ID: %s" % (batchId, chunkId))
         self.udp.sendByteBuffer(packet)
 
 # TCP connection of client.
@@ -268,7 +280,7 @@ class Server(ClientFactory, protocol.DatagramProtocol):
         logger.info('Connection failed. Reason:')
 
     def datagramReceived(self, data, remoteAddress):
-        logger.info('UDP packet received with size %d from host [%s], port [%s]' % (len(data), remoteAddress[0], remoteAddress[1]))
+        #logger.info('UDP packet received with size %d from host [%s], port [%s]' % (len(data), remoteAddress[0], remoteAddress[1]))
         knownClient = self.clientsByUdpAddress.get(remoteAddress)
 
         theBuffer = ByteBuffer.buildFromIterable(data)
