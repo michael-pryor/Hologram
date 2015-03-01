@@ -354,4 +354,9 @@
     return _buffer;
 }
 
+- (void) clear {
+    [self setCursorPosition:0];
+    [self setUsedSize:0];
+}
+
 @end

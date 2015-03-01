@@ -9,16 +9,19 @@
 #import "BatcherOutput.h"
 
 uint sleep_threshold = 8;
-double sleep_amount = 0.01;
+double sleep_amount = 0.02;
 @implementation BatcherOutput {
     uint _chunkSize;
     uint _batchId;
+    ByteBuffer* _sendBuffer;
 }
 - (id)initWithOutputSession:(id<NewPacketDelegate>)outputSession andChunkSize:(uint)chunkSize {
     self = [super initWithOutputSession:outputSession];
     if(self) {
         _chunkSize = chunkSize;
         _batchId = 0;
+        _sendBuffer = [[ByteBuffer alloc] initWithSize:chunkSize + sizeof(uint) * 2]; // space for IDs too.
+        [_sendBuffer setUsedSize:_sendBuffer.bufferMemorySize];
     }
     return self;
 }
@@ -32,7 +35,7 @@ double sleep_amount = 0.01;
         // (bytes_per_chunk / sleep_threshold) * (sleep_amount * 1000)
         //
         // So this is:
-        // (96 / 8) * (0.01 * 1000) = 120ms
+        // (96 / 8) * (0.02 * 1000) = 240ms
         //
         // This logic is necessary because iOS send queues are limited in size; exceeding this
         // causes packets to be dropped without any indication as to which were dropped (no attempt
@@ -48,14 +51,16 @@ double sleep_amount = 0.01;
 }
 - (ByteBuffer*)getChunkToSendFromBatch:(ByteBuffer*)batchPacket withBatchId:(uint)batchId withChunkId:(uint)chunkId {
     // Enough space to do something meaningful.
-    ByteBuffer* buffer = [[ByteBuffer alloc] initWithSize:(_chunkSize + sizeof(uint) * 2)];
+    _sendBuffer.cursorPosition = 0;
     
-    [buffer addUnsignedInteger:batchId]; // batch ID.
-    [buffer addUnsignedInteger:chunkId]; // chunk ID; ID within batch.
+    [_sendBuffer addUnsignedInteger:batchId]; // batch ID.
+    [_sendBuffer addUnsignedInteger:chunkId]; // chunk ID; ID within batch.
  
     // TODO: inefficiencies here copying buffers around and allocating memory.
-    [buffer addByteBuffer: [batchPacket getByteBufferWithLength:_chunkSize] includingPrefix:false];
+    memcpy(_sendBuffer.buffer + _sendBuffer.cursorPosition, batchPacket.buffer + batchPacket.cursorPosition, _chunkSize);
+    batchPacket.cursorPosition += _chunkSize;
+    _sendBuffer.cursorPosition += _chunkSize;
     
-    return buffer;
+    return _sendBuffer;
 }
 @end
