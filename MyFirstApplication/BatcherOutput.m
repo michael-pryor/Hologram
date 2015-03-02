@@ -37,12 +37,10 @@ double sleep_amount = 0.02;
         // So this is:
         // (96 / 8) * (0.02 * 1000) = 240ms
         //
-        // This logic is necessary because iOS send queues are limited in size; exceeding this
-        // causes packets to be dropped without any indication as to which were dropped (no attempt
-        // is made to send this). This logic tries to hold back and not exceed this limit, giving
-        // time for packets to be sent.
+        // This logic can be useful if we want to throttle speeds.
+        // But we should try to optimize out code as required ;)
         if(chunkId % sleep_threshold == 0) {
-            [NSThread sleepForTimeInterval:sleep_amount];
+            //[NSThread sleepForTimeInterval:sleep_amount];
         }
 
         [_outputSession onNewPacket:chunk fromProtocol:protocol];

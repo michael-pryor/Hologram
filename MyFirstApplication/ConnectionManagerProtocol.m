@@ -12,7 +12,7 @@
 #import "InputSessionTcp.h"
 #import "OutputSessionTcp.h"
 
-uint NUM_SOCKETS = 20;
+uint NUM_SOCKETS = 1;
 @implementation ConnectionManagerProtocolTcpSession {
     ConnectionManagerProtocol* _connectionManager;
 }

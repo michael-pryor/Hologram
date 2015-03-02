@@ -271,23 +271,6 @@ class ClientUdp(object):
         assert isinstance(other, ClientUdp)
         return other.remote_address == self.remote_address
 
-class ClientUdpGroup(object):
-    def __init__(self):
-        self.udps = set()
-        self.sender = None
-
-    def addClientUdp(self, isSender, clientUdp):
-        assert isinstance(clientUdp, ClientUdp)
-        if isSender:
-            if self.sender is not None:
-                logger.error("Multiple senders detected")
-                return
-            else:
-                self.sender = clientUdp
-
-        self.udps.add(clientUdp)
-
-
 # Represents server in memory state.
 # There will only be one instance of this object.
 #
@@ -324,12 +307,15 @@ class Server(ClientFactory, protocol.DatagramProtocol):
         #logger.info('UDP packet received with size %d from host [%s], port [%s]' % (len(data), remoteAddress[0], remoteAddress[1]))
         knownClient = self.clientsByUdpAddress.get(remoteAddress)
 
-        theBuffer = ByteBuffer.buildFromIterable(data)
         if not knownClient:
+            theBuffer = ByteBuffer.buildFromIterable(data)
             self.onUnknownData(theBuffer, remoteAddress)
         else:
-            assert isinstance(knownClient, Client)
-            knownClient.handleUdpPacket(theBuffer)
+            # FAST ECHO
+            self.transport.write(data,knownClient.udp.remote_address)
+            # END OF FAST ECHO
+            #assert isinstance(knownClient, Client)
+            #knownClient.handleUdpPacket(theBuffer)
 
     def onUnknownData(self, data, remoteAddress):
         assert isinstance(data, ByteBuffer)

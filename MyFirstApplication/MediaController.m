@@ -53,7 +53,7 @@
         PacketToImageProcessor * p = [[PacketToImageProcessor alloc] initWithImageDelegate:newImageDelegate];
         
         _batcherOutput = [[BatcherOutput alloc] initWithOutputSession:networkOutputSession andChunkSize:[_mediaEncoder suggestedBatchSize]];
-        _batcherInput = [[BatcherInput alloc] initWithOutputSession:p chunkSize:[_mediaEncoder suggestedBatchSize] numChunks:[_mediaEncoder suggestedBatches] andNumChunksThreshold:0 andTimeoutMs:350];
+        _batcherInput = [[BatcherInput alloc] initWithOutputSession:p chunkSize:[_mediaEncoder suggestedBatchSize] numChunks:[_mediaEncoder suggestedBatches] andNumChunksThreshold:[_mediaEncoder suggestedBatches] andTimeoutMs:100];
         
         _connected = false;
     }
