@@ -171,7 +171,7 @@ class ByteBuffer(object):
 
     def getStringWithLength(self, length):
         def handlerFunc(theBuffer, dataSize):
-            return "".join(map(chr, theBuffer))
+            return "".join(map(chr, theBuffer[:dataSize]))
 
         return self.getVariableLengthData(handlerFunc, length)
 

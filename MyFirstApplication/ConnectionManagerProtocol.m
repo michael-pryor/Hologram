@@ -12,6 +12,7 @@
 #import "InputSessionTcp.h"
 #import "OutputSessionTcp.h"
 
+uint NUM_SOCKETS = 20;
 @implementation ConnectionManagerProtocolTcpSession {
     ConnectionManagerProtocol* _connectionManager;
 }
@@ -92,7 +93,7 @@
     _tcpOutputSession = [[OutputSessionTcp alloc] init];
     _tcpConnection = [[ConnectionManagerTcp alloc] initWithDelegate:self inputSession:tcpSession outputSession:_tcpOutputSession];
     
-    _udpConnection = [[ConnectionManagerUdp alloc] initWithNewPacketDelegate:self];
+    _udpConnection = [[ConnectionManagerUdp alloc] initWithNewPacketDelegate:self andNumSockets:NUM_SOCKETS];
     _udpLogonDispatchQueue = dispatch_queue_create("ConnectionManagerProtocolUdpLogonQueue", DISPATCH_QUEUE_SERIAL);
     
     NSLog(@"Connecting to TCP: %@:%ul, UDP: %@:%ul", tcpHost, tcpPort, udpHost, udpPort);
@@ -132,7 +133,13 @@
 - (void) sendUdpLogonHash: (ByteBuffer*)bufferToSend {
     if(_connectionStatus == P_WAITING_FOR_UDP_HASH_ACK) {
         NSLog(@"Sending UDP hash logon attempt..");
-        [self sendUdpPacket:bufferToSend];
+        ByteBuffer* primary = [[ByteBuffer alloc] initFromByteBuffer:bufferToSend];
+        [primary addUnsignedInteger:1];
+        
+        ByteBuffer* secondary = [[ByteBuffer alloc] initFromByteBuffer:bufferToSend];
+        [secondary addUnsignedInteger:0];
+        
+        [_udpConnection sendBufferToPrimary:primary andToSecondary:secondary];
         [self triggerUdpLogonHashSendAsync:bufferToSend]; // We need to repeatedly send this until timeout.
     }
 }
@@ -203,6 +210,7 @@
         ByteBuffer* theLogonBuffer = [[ByteBuffer alloc] init];
         [theLogonBuffer addUnsignedInteger:100];                // version
         [theLogonBuffer addString:@"My name is Michael"];       // login name
+        [theLogonBuffer addUnsignedInteger:[_udpConnection numSockets]];
         [self sendTcpPacket:theLogonBuffer];
     } else {
         [self shutdownWithDescription:@"Invalid TCP state"];

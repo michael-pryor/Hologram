@@ -35,6 +35,20 @@
     return self;
 }
 
+- (id) initFromByteBuffer:(ByteBuffer*)buffer {
+    self = [super init];
+    if(self) {
+        _buffer = nil;
+        _bufferMemorySize = 0;
+        _bufferUsedSize = 0;
+        _cursorPosition = 0;
+        [self addByteBuffer:buffer includingPrefix:false atPosition:0];
+        _bufferUsedSize = [buffer bufferUsedSize];
+        _cursorPosition = [buffer cursorPosition];
+    }
+    return self;
+}
+
 - (void) enforceBounds {
     // Ensure used size is within memory bounds.
     if(_bufferUsedSize > _bufferMemorySize) {

@@ -48,6 +48,7 @@
 
 - (id) initWithSize: (uint)size;
 - (id) initFromBuffer: (uint8_t*)sourceBuffer withSize: (uint)size;
+- (id) initFromByteBuffer:(ByteBuffer*)buffer;
 
 - (void) increaseUsedSize: (uint)amount;
 - (Boolean) increaseUsedSizePassively: (uint)amount;

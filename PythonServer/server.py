@@ -26,6 +26,7 @@ class UdpConnectionLink(object):
             assert isinstance(waitingClient, Client)
         self.udp_hash = udpHash
         self.waiting_client = waitingClient
+        self.registered_addresses = set()
 
     def __hash__(self):
         return hash(self.udp_hash)
@@ -75,12 +76,14 @@ class UdpConnectionLinker(object):
         logger.info("UDP connection with hash [%s] was prematurely aborted" % udpHash)
         self.waiting_hashes.remove(UdpConnectionLink(udpHash, waitingClient))
 
-    def registerCompletion(self, udpHash, clientUdp):
+    def registerCompletion(self, udpHash, clientUdp, isSender):
         try:
-            hashObj = self.waiting_hashes[UdpConnectionLink(udpHash, None)];
-            del self.waiting_hashes[hashObj];
+            hashObj = self.waiting_hashes[UdpConnectionLink(udpHash, None)]
             assert isinstance(hashObj, UdpConnectionLink)
-            hashObj.waiting_client.setUdp(clientUdp)
+
+            if hashObj.waiting_client.setUdp(clientUdp, isSender):
+                del self.waiting_hashes[hashObj]
+
             logger.info("UDP connection with hash [%s] and connection details [%s] has been established" % (udpHash, unicode(clientUdp.remote_address)))
             return hashObj.waiting_client
         except KeyError:
@@ -104,6 +107,8 @@ class Client(object):
         assert isinstance(tcp, ClientTcp)
         assert isinstance(udpConnectionLinker, UdpConnectionLinker)
 
+        self.udp = None
+        self.udp_secondary = set()
         self.tcp = tcp
         self.tcp.parent = self
         self.connection_status = Client.ConnectionStatus.WAITING_LOGON
@@ -115,17 +120,28 @@ class Client(object):
 
         self.chunks = 0
         self.batch = 0
+        self.expectedNumUdpSockets = 0
 
-    def setUdp(self, clientUdp):
+    def setUdp(self, clientUdp, isSender):
         assert isinstance(clientUdp, ClientUdp)
-        self.udp = clientUdp;
 
-        self.connection_status = Client.ConnectionStatus.CONNECTED
+        if isSender:
+            logger.info("UDP socket which accepts receive data has connected: [%s]" % unicode(clientUdp.remote_address))
+            self.udp = clientUdp;
+        else:
+            logger.info("UDP socket which sends us data only has connected: [%s], %d of %d expected" % (unicode(clientUdp.remote_address), len(self.udp_secondary), self.expectedNumUdpSockets-1))
+            self.udp_secondary.add(clientUdp)
 
-        # don't need this anymore.
-        self.udp_connection_linker = None
+        if self.udp is not None and len(self.udp_secondary) == (self.expectedNumUdpSockets - 1):
+            self.connection_status = Client.ConnectionStatus.CONNECTED
 
-        logger.info("Client UDP stream activated, client is fully connected")
+            # don't need this anymore.
+            self.udp_connection_linker = None
+
+            logger.info("Client UDP stream activated, client is fully connected")
+            return True
+        else:
+            return False
 
     def closeConnection(self):
         self.tcp.transport.loseConnection()
@@ -138,9 +154,11 @@ class Client(object):
         assert isinstance(packet, ByteBuffer)
         versionNum = packet.getUnsignedInteger()
         loginName = packet.getString()
+        self.expectedNumUdpSockets = packet.getUnsignedInteger()
         hashUdp = self.udp_connection_linker.registerInterestGenerated(self)
 
-        logger.info("Login processed with details, version number: [%d], login name: [%s], udp hash: [%s]", versionNum, loginName, hashUdp)
+
+        logger.info("Login processed with details, version number: [%d], login name: [%s], udp hash: [%s], num UDP sockets expected: [%d]", versionNum, loginName, hashUdp, self.expectedNumUdpSockets)
         return True, hashUdp
 
     def handleTcpPacket(self, packet):
@@ -246,6 +264,29 @@ class ClientUdp(object):
         strRepresentation = byteBuffer.convertToString()
         self.datagram_sender_func(strRepresentation, self.remote_address)
 
+    def __hash__(self):
+        return hash(self.remote_address)
+
+    def __eq__(self, other):
+        assert isinstance(other, ClientUdp)
+        return other.remote_address == self.remote_address
+
+class ClientUdpGroup(object):
+    def __init__(self):
+        self.udps = set()
+        self.sender = None
+
+    def addClientUdp(self, isSender, clientUdp):
+        assert isinstance(clientUdp, ClientUdp)
+        if isSender:
+            if self.sender is not None:
+                logger.error("Multiple senders detected")
+                return
+            else:
+                self.sender = clientUdp
+
+        self.udps.add(clientUdp)
+
 
 # Represents server in memory state.
 # There will only be one instance of this object.
@@ -298,18 +339,22 @@ class Server(ClientFactory, protocol.DatagramProtocol):
             logger.warn("Malformed hash received in unknown UDP packet, discarding")
             return
 
-        registeredClient = self.udp_connection_linker.registerCompletion(theHash, ClientUdp(remoteAddress, self.transport.write))
+        isSender = data.getUnsignedInteger() > 0
+
+        registeredClient = self.udp_connection_linker.registerCompletion(theHash, ClientUdp(remoteAddress, self.transport.write), isSender)
 
         if registeredClient:
             if remoteAddress not in self.clientsByUdpAddress:
-                successPing = ByteBuffer()
-                successPing.addUnsignedInteger(Client.UdpOperationCodes.OP_ACCEPT_UDP)
-
-                logger.info("Sending fully connected ACK")
-                registeredClient.tcp.sendByteBuffer(successPing)
-
                 self.clientsByUdpAddress[remoteAddress] = registeredClient
-                logger.info("Client successfully connected, sent success ack")
+
+                if registeredClient.connection_status == Client.ConnectionStatus.CONNECTED:
+                    successPing = ByteBuffer()
+                    successPing.addUnsignedInteger(Client.UdpOperationCodes.OP_ACCEPT_UDP)
+
+                    logger.info("Sending fully connected ACK")
+                    registeredClient.tcp.sendByteBuffer(successPing)
+
+                    logger.info("Client successfully connected, sent success ack")
 
 if __name__ == "__main__":
     logging.basicConfig(level = logging.DEBUG)

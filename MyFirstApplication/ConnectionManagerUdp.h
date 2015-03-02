@@ -13,10 +13,16 @@
 #import "InputSessionBase.h"
 
 @interface ConnectionManagerUdp : NSObject<ConnectionManagerBase, NewPacketDelegate>
-- (id) initWithNewPacketDelegate:(id<NewPacketDelegate>)newPacketDelegate;
+@property (readonly) uint numSockets;
+
+- (id) initWithNewPacketDelegate:(id<NewPacketDelegate>)newPacketDelegate andNumSockets:(uint)numSockets;
 - (void) connectToHost: (NSString*) host andPort: (ushort) port;
 - (void) shutdown;
 - (Boolean) isConnected;
 
+- (void) sendBufferToAllSockets:(ByteBuffer*)buffer;
+- (void) sendBufferToPrimary:(ByteBuffer*)primary andToSecondary:(ByteBuffer*)secondary;
+- (void) sendBuffer:(ByteBuffer*)buffer toSocketWithId:(uint)socketId;
+- (void) sendBuffer:(ByteBuffer*)buffer;
 - (void) onNewPacket:(ByteBuffer*)packet fromProtocol:(ProtocolType)protocol;
 @end
