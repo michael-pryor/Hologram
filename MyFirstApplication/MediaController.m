@@ -12,6 +12,7 @@
 #import "MediaController.h"
 #import "BatcherInput.h"
 #import "BatcherOutput.h"
+#import "SoundEncoding.h"
 
 @implementation PacketToImageProcessor {
     id<NewImageDelegate> _newImageDelegate;
@@ -39,6 +40,10 @@
     BatcherInput* _batcherInput;
     BatcherOutput* _batcherOutput;
     
+    // Audio
+    SoundEncoding* _soundEncoder;
+    
+    
     bool _connected;
 }
 
@@ -55,6 +60,8 @@
         _batcherOutput = [[BatcherOutput alloc] initWithOutputSession:networkOutputSession andChunkSize:[_mediaEncoder suggestedBatchSize]];
         _batcherInput = [[BatcherInput alloc] initWithOutputSession:p chunkSize:[_mediaEncoder suggestedBatchSize] numChunks:[_mediaEncoder suggestedBatches] andNumChunksThreshold:[_mediaEncoder suggestedBatches] andTimeoutMs:100];
         
+        _soundEncoder = [[SoundEncoding alloc] init];
+        
         _connected = false;
     }
     return self;
@@ -62,10 +69,12 @@
 
 - (void) startCapturing {
     [_session startRunning];
+    [_soundEncoder startCapturing];
 }
 
 - (void) stopCapturing {
     [_session stopRunning];
+    [_soundEncoder stopCapturing];
 }
 
 - (void)captureOutput:(AVCaptureOutput *)captureOutput didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection {
