@@ -8,6 +8,4 @@
 
 #import <Foundation/Foundation.h>
 
-@interface SoundEncodingShared : NSObject
 NSString *NSStringFromOSStatus(OSStatus errCode);
-@end

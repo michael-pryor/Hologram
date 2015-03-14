@@ -9,7 +9,12 @@
 #import <Foundation/Foundation.h>
 #include <AudioToolbox/AudioQueue.h>
 #import "ByteBuffer.h"
+#import "InputSessionBase.h"
 
-@interface SoundPlayback : NSObject
+@interface SoundPlayback : NSObject<NewPacketDelegate>
+- (id) initWithAudioDescription:(AudioStreamBasicDescription)description;
 - (ByteBuffer*) getSoundPacketToPlay;
+- (void) shutdown;
+- (void) startPlayback;
+- (void) stopPlayback;
 @end
