@@ -108,7 +108,9 @@ static void HandleOutputBuffer (void                *aqData,
                            mBuffers[i]);*/
     }
     
-    _readyToStart = true;
+    while(!_readyToStart) {
+    }
+    [self startPlayback];
     CFRunLoopRun();
     
     NSLog(@"Sound playback thread exiting");
@@ -132,26 +134,19 @@ static void HandleOutputBuffer (void                *aqData,
                                           object:nil];
         [_outputThread start];
         NSLog(@"Sound playback thread started");
-        
-        while(!_readyToStart) {
-            [NSThread sleepForTimeInterval:0.01];
-        }
-        
-        if(_readyToStart) {
-           //
-        }
     }
     return self;
 }
 
 - (void)onNewPacket:(ByteBuffer*)packet fromProtocol:(ProtocolType)protocol {
+
     [_soundQueue add:packet];
+    _readyToStart = true;
     if(_objInitialPlayCount < kNumberBuffers) {
         NSLog(@"DOing initial on queue");
         [self playSoundData:packet withBuffer:mBuffers[_objInitialPlayCount]];
         _objInitialPlayCount++;
     }
-    [self startPlayback];
 }
 
 @end

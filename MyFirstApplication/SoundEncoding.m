@@ -25,10 +25,47 @@ static const int kNumberBuffers = 3;
     
     AudioStreamBasicDescription  df;
     id<NewPacketDelegate>        outputSession;
+    NSThread*                    _inputThread;
 }
 - (id) init {
     self = [self initWithOutputSession:nil];
     return self;
+}
+
+- (void) inputThreadEntryPoint: var {
+    OSStatus result = AudioQueueNewInput(&df,
+                                         HandleInputBuffer,
+                                         (__bridge void *)(self),
+                                         CFRunLoopGetCurrent(), // Use internal thread
+                                         kCFRunLoopCommonModes,
+                                         0, // Reserved, must be 0
+                                         &mQueue);
+    
+    NSLog(@"Error: %@",NSStringFromOSStatus(result));
+    
+    // 1/8 second
+    bufferByteSize = 24000;
+    
+    for (int i = 0; i < kNumberBuffers; ++i) {
+        AudioQueueAllocateBuffer(mQueue,
+                                 bufferByteSize,
+                                 &mBuffers[i]);
+        
+        ByteBuffer* byteBuffer = [[ByteBuffer alloc] initWithSize:bufferByteSize];
+        [_audioToByteBufferMap setObject:byteBuffer forKey: [NSNumber numberWithInteger:(long)mBuffers[i]]];
+        
+        AudioQueueEnqueueBuffer(mQueue,
+                                mBuffers[i],
+                                0,
+                                NULL);
+    }
+    
+    mCurrentPacket = 0;
+    mIsRunning = true;
+    
+    isRecording = false;
+    
+    CFRunLoopRun();
 }
 
 - (id) initWithOutputSession: (id<NewPacketDelegate>)output {
@@ -39,38 +76,14 @@ static const int kNumberBuffers = 3;
         outputSession = output;
         df = [self getAudioDescription];
         
-        OSStatus result = AudioQueueNewInput(&df,
-                           HandleInputBuffer,
-                           (__bridge void *)(self),
-                           CFRunLoopGetCurrent(), // Use internal thread
-                           kCFRunLoopCommonModes,
-                           0, // Reserved, must be 0
-                           &mQueue);
-        
-        NSLog(@"Error: %@",NSStringFromOSStatus(result));
-        
-        // 1/8 second
-        bufferByteSize = 24000;
-        
-        for (int i = 0; i < kNumberBuffers; ++i) {
-            AudioQueueAllocateBuffer(mQueue,
-                                     bufferByteSize,
-                                     &mBuffers[i]);
-            
-            ByteBuffer* byteBuffer = [[ByteBuffer alloc] initWithSize:bufferByteSize];
-            [_audioToByteBufferMap setObject:byteBuffer forKey: [NSNumber numberWithInteger:(long)mBuffers[i]]];
-            
-            AudioQueueEnqueueBuffer(mQueue,
-                                    mBuffers[i],
-                                    0,
-                                    NULL);
-        }
-        
-        mCurrentPacket = 0;
-        mIsRunning = true;
-        
-        isRecording = false;
-
+        // Run send operations in a seperate run loop (and thread) because we wait for packets to
+        // enter a queue and block indefinitely, which would block anything else in the run loop (e.g.
+        // receive operations) if there were some.
+        _inputThread = [[NSThread alloc] initWithTarget:self
+                                                selector:@selector(inputThreadEntryPoint:)
+                                                  object:nil];
+        [_inputThread start];
+        NSLog(@"Sound input thread started");
     }
     return self;
 }
