@@ -10,6 +10,9 @@
 		513205E71AAE4CA600C80AD9 /* SoundEncoding.m in Sources */ = {isa = PBXBuildFile; fileRef = 513205E61AAE4CA600C80AD9 /* SoundEncoding.m */; };
 		51BF42541A750CDB00C16F9A /* ConnectionManagerProtocol.m in Sources */ = {isa = PBXBuildFile; fileRef = 51BF42531A750CDB00C16F9A /* ConnectionManagerProtocol.m */; };
 		51C18D2B1A9A3882000C42A8 /* Batch.m in Sources */ = {isa = PBXBuildFile; fileRef = 51C18D2A1A9A3882000C42A8 /* Batch.m */; };
+		51C263851AB450E600285C6E /* SoundPlayback.m in Sources */ = {isa = PBXBuildFile; fileRef = 51C263841AB450E600285C6E /* SoundPlayback.m */; };
+		51C263881AB4545000285C6E /* SoundEncodingShared.m in Sources */ = {isa = PBXBuildFile; fileRef = 51C263871AB4545000285C6E /* SoundEncodingShared.m */; };
+		51C2638B1AB45CE400285C6E /* BlockingQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = 51C2638A1AB45CE400285C6E /* BlockingQueue.m */; };
 		51C3F13F1A6C4388004040BB /* ConnectionManagerUdp.m in Sources */ = {isa = PBXBuildFile; fileRef = 51C3F13E1A6C4388004040BB /* ConnectionManagerUdp.m */; };
 		51CE2B941A8ECD9100B8E5B7 /* PipelineProcessor.m in Sources */ = {isa = PBXBuildFile; fileRef = 51CE2B931A8ECD9000B8E5B7 /* PipelineProcessor.m */; };
 		51D584BB19AB648000BB6CE6 /* InputSessionTcp.m in Sources */ = {isa = PBXBuildFile; fileRef = 51D584BA19AB648000BB6CE6 /* InputSessionTcp.m */; };
@@ -58,6 +61,12 @@
 		51BF42531A750CDB00C16F9A /* ConnectionManagerProtocol.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = ConnectionManagerProtocol.m; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objc; };
 		51C18D291A9A3882000C42A8 /* Batch.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = Batch.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		51C18D2A1A9A3882000C42A8 /* Batch.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = Batch.m; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objc; };
+		51C263831AB450E600285C6E /* SoundPlayback.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SoundPlayback.h; sourceTree = "<group>"; };
+		51C263841AB450E600285C6E /* SoundPlayback.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SoundPlayback.m; sourceTree = "<group>"; };
+		51C263861AB4545000285C6E /* SoundEncodingShared.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SoundEncodingShared.h; sourceTree = "<group>"; };
+		51C263871AB4545000285C6E /* SoundEncodingShared.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SoundEncodingShared.m; sourceTree = "<group>"; };
+		51C263891AB45CE400285C6E /* BlockingQueue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BlockingQueue.h; sourceTree = "<group>"; };
+		51C2638A1AB45CE400285C6E /* BlockingQueue.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BlockingQueue.m; sourceTree = "<group>"; };
 		51C3F13D1A6C4388004040BB /* ConnectionManagerUdp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = ConnectionManagerUdp.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		51C3F13E1A6C4388004040BB /* ConnectionManagerUdp.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ConnectionManagerUdp.m; sourceTree = "<group>"; };
 		51CE2B921A8ECD9000B8E5B7 /* PipelineProcessor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = PipelineProcessor.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
@@ -289,6 +298,8 @@
 			children = (
 				51E8889F1A597585005F8825 /* Signal.h */,
 				51E888A01A597585005F8825 /* Signal.m */,
+				51C263891AB45CE400285C6E /* BlockingQueue.h */,
+				51C2638A1AB45CE400285C6E /* BlockingQueue.m */,
 			);
 			name = Util;
 			sourceTree = "<group>";
@@ -302,6 +313,10 @@
 				51E888A71A59E218005F8825 /* MediaByteBuffer.m */,
 				513205E51AAE4CA600C80AD9 /* SoundEncoding.h */,
 				513205E61AAE4CA600C80AD9 /* SoundEncoding.m */,
+				51C263831AB450E600285C6E /* SoundPlayback.h */,
+				51C263841AB450E600285C6E /* SoundPlayback.m */,
+				51C263861AB4545000285C6E /* SoundEncodingShared.h */,
+				51C263871AB4545000285C6E /* SoundEncodingShared.m */,
 			);
 			name = Media;
 			sourceTree = "<group>";
@@ -408,6 +423,7 @@
 				51C18D2B1A9A3882000C42A8 /* Batch.m in Sources */,
 				51DB961B19A8EE05001A63F8 /* ConnectionViewController.m in Sources */,
 				51E888A11A597585005F8825 /* Signal.m in Sources */,
+				51C263851AB450E600285C6E /* SoundPlayback.m in Sources */,
 				51E888A51A59DFB8005F8825 /* Encoding.m in Sources */,
 				51E1BF2B1A5DD7A4007D8A56 /* MediaController.m in Sources */,
 				51D87CB51A8F7C3000CE919E /* BatcherOutput.m in Sources */,
@@ -415,8 +431,10 @@
 				51E888A81A59E218005F8825 /* MediaByteBuffer.m in Sources */,
 				51D87CB21A8F7C1B00CE919E /* BatcherInput.m in Sources */,
 				51D584BE19AB649500BB6CE6 /* OutputSessionTcp.m in Sources */,
+				51C263881AB4545000285C6E /* SoundEncodingShared.m in Sources */,
 				51BF42541A750CDB00C16F9A /* ConnectionManagerProtocol.m in Sources */,
 				51DB961819A8E3D0001A63F8 /* ConnectionManagerTcp.m in Sources */,
+				51C2638B1AB45CE400285C6E /* BlockingQueue.m in Sources */,
 				51CE2B941A8ECD9100B8E5B7 /* PipelineProcessor.m in Sources */,
 				51E5BE321936A982003E45C3 /* MJPAppDelegate.m in Sources */,
 				513205E71AAE4CA600C80AD9 /* SoundEncoding.m in Sources */,

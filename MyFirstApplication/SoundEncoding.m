@@ -7,19 +7,12 @@
 //
 
 #import "SoundEncoding.h"
+#import "SoundEncodingShared.h"
 #include <unistd.h>
-#include <AudioToolbox/AudioQueue.h>
 
 static const int kNumberBuffers = 3;
 
-NSString *NSStringFromOSStatus(OSStatus errCode)
-{
-    if (errCode == noErr)
-        return @"noErr";
-    char message[5] = {0};
-    *(UInt32*) message = CFSwapInt32HostToBig(errCode);
-    return [NSString stringWithCString:message encoding:NSASCIIStringEncoding];
-}
+
 
 @implementation SoundEncoding {
     bool isRecording;
@@ -28,11 +21,12 @@ NSString *NSStringFromOSStatus(OSStatus errCode)
     UInt32                       bufferByteSize;
     SInt64                       mCurrentPacket;
     bool                         mIsRunning;
+    
+    AudioStreamBasicDescription  df;
 }
 - (id) init {
     self = [super init];
     if(self) {
-        AudioStreamBasicDescription df;
         df.mFormatID = kAudioFormatLinearPCM;
         df.mSampleRate = 44100.0;
         df.mChannelsPerFrame = 1; // Mono
@@ -76,6 +70,10 @@ NSString *NSStringFromOSStatus(OSStatus errCode)
 
     }
     return self;
+}
+
+- (AudioStreamBasicDescription) getAudioDescription {
+    return df;
 }
 
 - (void) dispose {

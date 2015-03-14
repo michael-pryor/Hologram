@@ -8,66 +8,32 @@
 
 #import "OutputSessionTcp.h"
 #import <Foundation/Foundation.h>
+#import "BlockingQueue.h"
 
 @implementation OutputSessionTcp {
-    NSCondition * _lock;
-    NSMutableArray * _queue;
-    Boolean _queueShutdown;
+    BlockingQueue* _queue;
 }
 - (id) init {
     self = [super init];
     if(self) {
-	    _queue = [[NSMutableArray alloc] init];
-        _lock =  [[NSCondition alloc] init];
-        _queueShutdown = false;
+	    _queue = [[BlockingQueue alloc] init];
     }
     return self;
 }
 
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
-    if(_queueShutdown) {
-        NSLog(@"TCP send queue is shutdown, discarding send attempt");
-        return;
-    }
-    
-    [_lock lock];
-    
-    ByteBuffer* prefixed;
     if(packet != nil) {
+        ByteBuffer* prefixed;
         prefixed = [[ByteBuffer alloc] initWithSize:[packet bufferUsedSize] + sizeof(uint)];
         [prefixed addByteBuffer:packet includingPrefix:true];
+        [_queue add: prefixed];
     } else {
-        prefixed = (ByteBuffer*)[NSNull null];
-        [_queue removeAllObjects];
-        _queueShutdown = true;
+        [_queue shutdown];
     }
-
-    [_queue addObject:prefixed];
-    [_lock signal];
-    [_lock unlock];
 }
 
 - (ByteBuffer*) processPacket {
-    if(_queueShutdown) {
-        NSLog(@"TCP send queue is shutdown, rejecting receive attempt");
-        return nil;
-    }
-    
-    [_lock lock];
-    while (_queue.count == 0) {
-        [_lock wait];
-    }
-
-    ByteBuffer* retVal = (ByteBuffer*)_queue[0];
-    
-    if(retVal == (ByteBuffer*)[NSNull null]) {
-        retVal = nil;
-    }
-    
-    [_queue removeObjectAtIndex:0];
-    [_lock unlock];
-    return retVal;
+    return [_queue get];
 }
-
 
 @end
