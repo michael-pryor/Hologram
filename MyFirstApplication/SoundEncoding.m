@@ -8,6 +8,7 @@
 
 #import "SoundEncoding.h"
 #import "SoundEncodingShared.h"
+#import "Signal.h"
 #include <unistd.h>
 
 static const int kNumberBuffers = 1;
@@ -18,7 +19,7 @@ static const int kNumberBuffers = 1;
     bool isRecording;
     AudioQueueRef                mQueue;
     AudioQueueBufferRef          mBuffers[kNumberBuffers];
-    NSMutableDictionary*         _audioToByteBufferMap;
+    //NSMutableDictionary*         _audioToByteBufferMap;
     UInt32                       bufferByteSize;
     SInt64                       mCurrentPacket;
     bool                         mIsRunning;
@@ -26,6 +27,9 @@ static const int kNumberBuffers = 1;
     AudioStreamBasicDescription  df;
     id<NewPacketDelegate>        outputSession;
     NSThread*                    _inputThread;
+    
+    Signal*                       _outputThreadStartupSignal;
+    Signal*                       _primed;
 }
 - (id) init {
     self = [self initWithOutputSession:nil];
@@ -36,7 +40,7 @@ static const int kNumberBuffers = 1;
     OSStatus result = AudioQueueNewInput(&df,
                                          HandleInputBuffer,
                                          (__bridge void *)(self),
-                                         0, // Use internal thread
+                                         0,
                                          0,
                                          0, // Reserved, must be 0
                                          &mQueue);
@@ -44,15 +48,15 @@ static const int kNumberBuffers = 1;
     NSLog(@"Error: %@",NSStringFromOSStatus(result));
     
     // 1/8 second
-    bufferByteSize = 24000;
+    bufferByteSize = 8000;
     
     for (int i = 0; i < kNumberBuffers; ++i) {
         AudioQueueAllocateBuffer(mQueue,
                                  bufferByteSize,
                                  &mBuffers[i]);
         
-        ByteBuffer* byteBuffer = [[ByteBuffer alloc] initWithSize:bufferByteSize];
-        [_audioToByteBufferMap setObject:byteBuffer forKey: [NSNumber numberWithInteger:(long)mBuffers[i]]];
+        //ByteBuffer* byteBuffer = [[ByteBuffer alloc] initWithSize:bufferByteSize];
+        //[_audioToByteBufferMap setObject:byteBuffer forKey: [NSNumber numberWithInteger:(long)mBuffers[i]]];
         
         AudioQueueEnqueueBuffer(mQueue,
                                 mBuffers[i],
@@ -64,6 +68,8 @@ static const int kNumberBuffers = 1;
     mIsRunning = true;
     
     isRecording = false;
+
+    [_outputThreadStartupSignal signal];
     
     CFRunLoopRun();
 }
@@ -71,10 +77,13 @@ static const int kNumberBuffers = 1;
 - (id) initWithOutputSession: (id<NewPacketDelegate>)output {
     self = [super init];
     if(self) {
-        _audioToByteBufferMap = [[NSMutableDictionary alloc] init];
+        //_audioToByteBufferMap = [[NSMutableDictionary alloc] init];
         
         outputSession = output;
         df = [self getAudioDescription];
+        
+        _outputThreadStartupSignal = [[Signal alloc] initWithFlag:false];
+        _primed = [[Signal alloc] initWithFlag:false];
     }
     return self;
 }
@@ -87,6 +96,7 @@ static const int kNumberBuffers = 1;
                                            selector:@selector(inputThreadEntryPoint:)
                                              object:nil];
     [_inputThread start];
+    [_outputThreadStartupSignal wait];
     NSLog(@"Sound input thread started");
 }
 
@@ -97,16 +107,14 @@ static const int kNumberBuffers = 1;
 - (AudioStreamBasicDescription) getAudioDescription {
     AudioStreamBasicDescription dfa;
     dfa.mFormatID = kAudioFormatLinearPCM;
-    dfa.mSampleRate = 44100.0;
+    dfa.mSampleRate = 8000.0;
     dfa.mChannelsPerFrame = 1; // Mono
-    dfa.mBitsPerChannel = 16;
+    dfa.mBitsPerChannel = 8;
     dfa.mBytesPerPacket =
     dfa.mBytesPerFrame =
-    dfa.mChannelsPerFrame * sizeof(SInt16);
+    dfa.mChannelsPerFrame * sizeof(SInt8);
     dfa.mFramesPerPacket = 1;
-    dfa.mFormatFlags = kLinearPCMFormatFlagIsBigEndian
-    | kLinearPCMFormatFlagIsSignedInteger
-    | kLinearPCMFormatFlagIsPacked;
+    dfa.mFormatFlags = kAudioFormatFlagIsPacked | kAudioFormatFlagIsSignedInteger;
     return dfa;
 }
 
@@ -129,9 +137,9 @@ static const int kNumberBuffers = 1;
     }
 }
 
-- (NSMutableDictionary*) getAudioToByteBufferMap {
-    return _audioToByteBufferMap;
-}
+//- (NSMutableDictionary*) getAudioToByteBufferMap {
+    //return _audioToByteBufferMap;
+//}
 
 - (id<NewPacketDelegate>) getOutputSession {
     return outputSession;

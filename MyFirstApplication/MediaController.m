@@ -64,10 +64,17 @@
         
         _soundEncoder = [[SoundEncoding alloc] init];
         _soundPlayback = [[SoundPlayback alloc] initWithAudioDescription:[_soundEncoder getAudioDescription]];
-        //[_soundEncoder setOutputSession:_soundPlayback];
+        [_soundEncoder setOutputSession:_soundPlayback];
         
-        //[_soundEncoder start];
+        NSLog(@"Initializing playback and recording...");
         [_soundPlayback start];
+        [_soundEncoder start];
+        
+        NSLog(@"Starting recording...");
+        [_soundEncoder startCapturing];
+        [NSThread sleepForTimeInterval:1];
+        NSLog(@"Starting playback...");
+        [_soundPlayback startPlayback];
         
         _connected = false;
     }
@@ -76,7 +83,7 @@
 
 - (void) startCapturing {
     [_session startRunning];
-    [_soundEncoder startCapturing];
+    //[_soundEncoder startCapturing];
     //[_soundPlayback startPlayback];
 }
 

@@ -34,7 +34,7 @@ static const int kNumberBuffers = 3;
     self = [super init];
     if(self) {
         _readyToStart = false;
-        bufferByteSize = 24000;
+        bufferByteSize = 8000;
         df = description;
         _soundQueue = [[BlockingQueue alloc] init];
         _outputThreadStartupSignal = [[Signal alloc] initWithFlag:false];
@@ -100,6 +100,7 @@ static void HandleOutputBuffer (void                *aqData,
 
 - (void) startPlayback {
     if(!_isPlaying && mIsRunning) {
+        [_primed wait];
         Float32 gain = 1.0;                                       // 1
         // Optionally, allow user to override gain setting here
         OSStatus result = AudioQueueSetParameter (                                  // 2
@@ -124,7 +125,7 @@ static void HandleOutputBuffer (void                *aqData,
 
 - (void) outputThreadEntryPoint: var {
     mIsRunning = true;
-    OSStatus result = AudioQueueNewOutput(&df, HandleOutputBuffer, (__bridge void *)(self), CFRunLoopGetCurrent(), kCFRunLoopCommonModes, 0, &mQueue);
+    OSStatus result = AudioQueueNewOutput(&df, HandleOutputBuffer, (__bridge void *)(self), 0, 0, 0, &mQueue);
     NSLog(@"Output audio result: %@", NSStringFromOSStatus(result));
   
     for (int i = 0; i < kNumberBuffers; i++) {
@@ -149,7 +150,8 @@ static void HandleOutputBuffer (void                *aqData,
         
         primeCount++;
     }
-    [self startPlayback];
+    
+    [_primed signal];
 
     CFRunLoopRun();
     
@@ -159,10 +161,10 @@ static void HandleOutputBuffer (void                *aqData,
 
 - (void) start {
     // Fill our buffers with some random data to get going!
-    for(int n = 0;n<256;n++) {
+    for(int n = 0;n<1;n++) {
         ByteBuffer* buf = [[ByteBuffer alloc] init];
-        [buf setMemorySize:24000 retaining:false];
-        for(int i = 0;i<24000 / 4;i++) {
+        [buf setMemorySize:8000 retaining:false];
+        for(int i = 0;i<8000 / 4;i++) {
             uint r = rand();
             [buf addUnsignedInteger:r];
         }
