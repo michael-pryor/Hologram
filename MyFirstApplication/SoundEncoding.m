@@ -161,10 +161,10 @@ static void HandleInputBuffer(void *aqData,
         memcpy(buff.buffer, inBuffer->mAudioData, inBuffer->mAudioDataByteSize);
         [buff setUsedSize:inBuffer->mAudioDataByteSize];
     
-        NSLog(@"Received some audio data");
+        NSLog(@"Received some audio data from audio input");
         [[obj getOutputSession] onNewPacket:buff fromProtocol:UDP];
     } else {
-        NSLog(@"Received empty input buffer");
+        NSLog(@"Received empty input buffer from audio input");
     }
     OSStatus status = AudioQueueEnqueueBuffer(obj->mQueue,
                             inBuffer,

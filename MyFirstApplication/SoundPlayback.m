@@ -161,7 +161,7 @@ static void HandleOutputBuffer (void                *aqData,
 
 - (void) start {
     // Fill our buffers with some random data to get going!
-    for(int n = 0;n<1;n++) {
+    for(int n = 0;n<10;n++) {
         ByteBuffer* buf = [[ByteBuffer alloc] init];
         [buf setMemorySize:8000 retaining:false];
         for(int i = 0;i<8000 / 4;i++) {
