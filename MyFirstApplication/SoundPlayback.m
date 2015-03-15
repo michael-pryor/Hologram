@@ -34,7 +34,7 @@ static const int kNumberBuffers = 3;
     self = [super init];
     if(self) {
         _readyToStart = false;
-        bufferByteSize = 8000;
+        bufferByteSize = 22000;
         df = description;
         _soundQueue = [[BlockingQueue alloc] init];
         _outputThreadStartupSignal = [[Signal alloc] initWithFlag:false];
@@ -65,7 +65,9 @@ static const int kNumberBuffers = 3;
 }
 
 - (void) playSoundData:(ByteBuffer*)packet withBuffer:(AudioQueueBufferRef)inBuffer {
-    memcpy(inBuffer->mAudioData, packet.buffer, packet.bufferUsedSize);
+    if(packet.bufferUsedSize > 0) {
+        memcpy(inBuffer->mAudioData, packet.buffer, packet.bufferUsedSize);
+    }
     inBuffer->mAudioDataByteSize = [packet bufferUsedSize];
     OSStatus result = AudioQueueEnqueueBuffer ([self getAudioQueue],
                                                inBuffer,
@@ -125,7 +127,7 @@ static void HandleOutputBuffer (void                *aqData,
 
 - (void) outputThreadEntryPoint: var {
     mIsRunning = true;
-    OSStatus result = AudioQueueNewOutput(&df, HandleOutputBuffer, (__bridge void *)(self), 0, 0, 0, &mQueue);
+    OSStatus result = AudioQueueNewOutput(&df, HandleOutputBuffer, (__bridge void *)(self), CFRunLoopGetCurrent(), kCFRunLoopCommonModes, 0, &mQueue);
     NSLog(@"Output audio result: %@", NSStringFromOSStatus(result));
   
     for (int i = 0; i < kNumberBuffers; i++) {
@@ -161,11 +163,11 @@ static void HandleOutputBuffer (void                *aqData,
 
 - (void) start {
     // Fill our buffers with some random data to get going!
-    for(int n = 0;n<10;n++) {
+    for(int n = 0;n<kNumberBuffers;n++) {
         ByteBuffer* buf = [[ByteBuffer alloc] init];
-        [buf setMemorySize:8000 retaining:false];
-        for(int i = 0;i<8000 / 4;i++) {
-            uint r = rand();
+        [buf setMemorySize:bufferByteSize retaining:false];
+        for(int i = 0;i<bufferByteSize;i+=sizeof(uint)) {
+            uint r = 0;//rand();
             [buf addUnsignedInteger:r];
         }
         [_soundQueue add:buf];

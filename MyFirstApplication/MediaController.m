@@ -72,7 +72,7 @@
         
         NSLog(@"Starting recording...");
         [_soundEncoder startCapturing];
-        [NSThread sleepForTimeInterval:1];
+        //[NSThread sleepForTimeInterval:1];
         NSLog(@"Starting playback...");
         [_soundPlayback startPlayback];
         

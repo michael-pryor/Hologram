@@ -11,7 +11,7 @@
 #import "Signal.h"
 #include <unistd.h>
 
-static const int kNumberBuffers = 1;
+static const int kNumberBuffers = 3;
 
 
 
@@ -40,8 +40,8 @@ static const int kNumberBuffers = 1;
     OSStatus result = AudioQueueNewInput(&df,
                                          HandleInputBuffer,
                                          (__bridge void *)(self),
-                                         0,
-                                         0,
+                                         CFRunLoopGetCurrent(),
+                                         kCFRunLoopCommonModes,
                                          0, // Reserved, must be 0
                                          &mQueue);
     
@@ -107,12 +107,12 @@ static const int kNumberBuffers = 1;
 - (AudioStreamBasicDescription) getAudioDescription {
     AudioStreamBasicDescription dfa;
     dfa.mFormatID = kAudioFormatLinearPCM;
-    dfa.mSampleRate = 8000.0;
+    dfa.mSampleRate = 44100.0;
     dfa.mChannelsPerFrame = 1; // Mono
-    dfa.mBitsPerChannel = 8;
+    dfa.mBitsPerChannel = 16;
     dfa.mBytesPerPacket =
     dfa.mBytesPerFrame =
-    dfa.mChannelsPerFrame * sizeof(SInt8);
+    dfa.mChannelsPerFrame * sizeof(SInt16);
     dfa.mFramesPerPacket = 1;
     dfa.mFormatFlags = kAudioFormatFlagIsPacked | kAudioFormatFlagIsSignedInteger;
     return dfa;
