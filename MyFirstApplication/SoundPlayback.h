@@ -17,4 +17,5 @@
 - (void) shutdown;
 - (void) startPlayback;
 - (void) stopPlayback;
+- (void) start;
 @end

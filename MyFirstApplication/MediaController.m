@@ -64,7 +64,10 @@
         
         _soundEncoder = [[SoundEncoding alloc] init];
         _soundPlayback = [[SoundPlayback alloc] initWithAudioDescription:[_soundEncoder getAudioDescription]];
-        [_soundEncoder setOutputSession:_soundPlayback];
+        //[_soundEncoder setOutputSession:_soundPlayback];
+        
+        //[_soundEncoder start];
+        [_soundPlayback start];
         
         _connected = false;
     }

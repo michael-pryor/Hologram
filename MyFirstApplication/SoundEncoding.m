@@ -10,7 +10,7 @@
 #import "SoundEncodingShared.h"
 #include <unistd.h>
 
-static const int kNumberBuffers = 3;
+static const int kNumberBuffers = 1;
 
 
 
@@ -36,8 +36,8 @@ static const int kNumberBuffers = 3;
     OSStatus result = AudioQueueNewInput(&df,
                                          HandleInputBuffer,
                                          (__bridge void *)(self),
-                                         CFRunLoopGetCurrent(), // Use internal thread
-                                         kCFRunLoopCommonModes,
+                                         0, // Use internal thread
+                                         0,
                                          0, // Reserved, must be 0
                                          &mQueue);
     
@@ -75,17 +75,19 @@ static const int kNumberBuffers = 3;
         
         outputSession = output;
         df = [self getAudioDescription];
-        
-        // Run send operations in a seperate run loop (and thread) because we wait for packets to
-        // enter a queue and block indefinitely, which would block anything else in the run loop (e.g.
-        // receive operations) if there were some.
-        _inputThread = [[NSThread alloc] initWithTarget:self
-                                                selector:@selector(inputThreadEntryPoint:)
-                                                  object:nil];
-        [_inputThread start];
-        NSLog(@"Sound input thread started");
     }
     return self;
+}
+
+- (void) start {
+    // Run send operations in a seperate run loop (and thread) because we wait for packets to
+    // enter a queue and block indefinitely, which would block anything else in the run loop (e.g.
+    // receive operations) if there were some.
+    _inputThread = [[NSThread alloc] initWithTarget:self
+                                           selector:@selector(inputThreadEntryPoint:)
+                                             object:nil];
+    [_inputThread start];
+    NSLog(@"Sound input thread started");
 }
 
 - (void) setOutputSession: (id<NewPacketDelegate>)output {
@@ -145,7 +147,8 @@ static void HandleInputBuffer(void *aqData,
     SoundEncoding* obj = (__bridge SoundEncoding *)(aqData);
     
     if(inBuffer->mAudioDataByteSize > 0) {
-        ByteBuffer* buff = [[obj getAudioToByteBufferMap] objectForKey:[NSNumber numberWithInteger:(long)inBuffer]];
+        //ByteBuffer* buff = [[obj getAudioToByteBufferMap] objectForKey:[NSNumber numberWithInteger:(long)inBuffer]];
+        ByteBuffer* buff = [[ByteBuffer alloc] initWithSize:inBuffer->mAudioDataByteSize];
         [buff setMemorySize:inBuffer->mAudioDataByteSize retaining:false];
         memcpy(buff.buffer, inBuffer->mAudioData, inBuffer->mAudioDataByteSize);
         [buff setUsedSize:inBuffer->mAudioDataByteSize];

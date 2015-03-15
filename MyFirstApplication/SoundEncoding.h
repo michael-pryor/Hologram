@@ -17,4 +17,5 @@
 - (void) stopCapturing;
 - (AudioStreamBasicDescription) getAudioDescription;
 - (void) setOutputSession: (id<NewPacketDelegate>)output;
+- (void) start;
 @end
