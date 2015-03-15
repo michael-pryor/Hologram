@@ -182,6 +182,7 @@ static void HandleOutputBuffer (void                *aqData,
     [_outputThread start];
     NSLog(@"Sound playback thread started");
     [_outputThreadStartupSignal wait];
+    [_primed wait];
     NSLog(@"Sound playback thread initialized");
 }
 

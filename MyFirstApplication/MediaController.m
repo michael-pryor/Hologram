@@ -67,12 +67,12 @@
         [_soundEncoder setOutputSession:_soundPlayback];
         
         NSLog(@"Initializing playback and recording...");
-        [_soundPlayback start];
         [_soundEncoder start];
+        [_soundPlayback start];
         
         NSLog(@"Starting recording...");
         [_soundEncoder startCapturing];
-        //[NSThread sleepForTimeInterval:1];
+        
         NSLog(@"Starting playback...");
         [_soundPlayback startPlayback];
         
