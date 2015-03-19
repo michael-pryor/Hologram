@@ -77,7 +77,15 @@
     session.sessionPreset = _sessionPreset;
     
     // access input device.
-    AVCaptureDevice *device = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
+    AVCaptureDevice *device;
+    NSArray* devices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
+    for(AVCaptureDevice* d in devices) {
+        if([d position] == AVCaptureDevicePositionFront) {
+            device = d;
+            break;
+        }
+    }
+    
     
     NSError *error = nil;
     AVCaptureDeviceInput *input = [AVCaptureDeviceInput deviceInputWithDevice:device error:&error];
@@ -94,6 +102,7 @@
     
     AVCaptureConnection *conn = [output connectionWithMediaType:AVMediaTypeVideo];
     [conn setVideoOrientation:AVCaptureVideoOrientationPortrait];
+    
     conn.videoMinFrameDuration = CMTimeMake(1, 20);
     
     output.videoSettings = @{ (NSString *)kCVPixelBufferPixelFormatTypeKey : @(kCVPixelFormatType_32BGRA) };
