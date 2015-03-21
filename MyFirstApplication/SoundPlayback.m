@@ -12,7 +12,7 @@
 #import "Signal.h"
 @import AVFoundation;
 
-static const int kNumberBuffers = 3;
+static const int kNumberBuffers = 26;
 
 @implementation SoundPlayback {
     AudioStreamBasicDescription   df;
@@ -34,8 +34,10 @@ static const int kNumberBuffers = 3;
 - (id) initWithAudioDescription:(AudioStreamBasicDescription)description {
     self = [super init];
     if(self) {
+        
+       
         _readyToStart = false;
-        bufferByteSize = 22000;
+        bufferByteSize = 1225;
         df = description;
         _soundQueue = [[BlockingQueue alloc] init];
         _outputThreadStartupSignal = [[Signal alloc] initWithFlag:false];
@@ -103,9 +105,7 @@ static void HandleOutputBuffer (void                *aqData,
 
 - (void) startPlayback {
     if(!_isPlaying && mIsRunning) {
-        
-        [self selectSpeaker];
-        
+       
         [_primed wait];
         Float32 gain = 1.0;                                       // 1
         // Optionally, allow user to override gain setting here
@@ -159,7 +159,7 @@ static void HandleOutputBuffer (void                *aqData,
     }
     
     [_primed signal];
-    
+            [self selectSpeaker];
     CFRunLoopRun();
     
     NSLog(@"Sound playback thread exiting");
@@ -198,26 +198,9 @@ static void HandleOutputBuffer (void                *aqData,
 
 - (void)selectSpeaker {
     AVAudioSession* session = [AVAudioSession sharedInstance];
-    NSArray * arr = [session outputDataSources];
-    for(AVAudioSessionDataSourceDescription* a in arr) {
-        NSNumber* ida = [a dataSourceID];
-        NSString* name = [a dataSourceName];
-        bool wait = true;
-    }
-    
-   // for(AVCaptureDevice *d in devices) {
-    //    NSString* a = [d uniqueID];
-     //   NSLog(@"Device UID: %@",a);
-    //}
-	/* NSArray of AVAudioSessionDataSourceDescriptions.  Key-value observable. */
-    //@property(readonly) NSArray * outputDataSources NS_AVAILABLE_IOS(6_0);
-    
-    CFStringRef result;
-    UInt32 size;
-    OSStatus resulte = AudioQueueGetPropertySize(mQueue, kAudioQueueProperty_CurrentDevice, &size);
-    resulte = AudioQueueGetProperty (mQueue, kAudioQueueProperty_CurrentDevice, &result, &size);
-    resulte = AudioQueueSetProperty (mQueue, kAudioQueueProperty_CurrentDevice, &result, size);
-    NSLog(@"set device result: %@", NSStringFromOSStatus(resulte));
+    NSError* error;
+    //[session setMode:AVAudioSessionModeVideoChat error:&error];
+    [session setCategory:AVAudioSessionCategoryPlayAndRecord withOptions:AVAudioSessionCategoryOptionDefaultToSpeaker error:&error];
 }
 
 @end

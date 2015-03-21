@@ -11,7 +11,7 @@
 #import "Signal.h"
 #include <unistd.h>
 
-static const int kNumberBuffers = 3;
+static const int kNumberBuffers = 26;
 
 
 
@@ -48,7 +48,7 @@ static const int kNumberBuffers = 3;
     NSLog(@"Error: %@",NSStringFromOSStatus(result));
     
     // 1/8 second
-    bufferByteSize = 8000;
+    bufferByteSize = 1225;
     
     for (int i = 0; i < kNumberBuffers; ++i) {
         AudioQueueAllocateBuffer(mQueue,
