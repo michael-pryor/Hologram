@@ -13,14 +13,16 @@ double sleep_amount = 0.02;
 @implementation BatcherOutput {
     uint _chunkSize;
     uint _batchId;
+    uint _leftPadding;
     ByteBuffer* _sendBuffer;
 }
-- (id)initWithOutputSession:(id<NewPacketDelegate>)outputSession andChunkSize:(uint)chunkSize {
+- (id)initWithOutputSession:(id<NewPacketDelegate>)outputSession andChunkSize:(uint)chunkSize withLeftPadding:(uint)leftPadding {
     self = [super initWithOutputSession:outputSession];
     if(self) {
+        _leftPadding = leftPadding;
         _chunkSize = chunkSize;
         _batchId = 0;
-        _sendBuffer = [[ByteBuffer alloc] initWithSize:chunkSize + sizeof(uint) * 2]; // space for IDs too.
+        _sendBuffer = [[ByteBuffer alloc] initWithSize:chunkSize + (sizeof(uint) * 2) + _leftPadding]; // space for IDs and padding too.
         [_sendBuffer setUsedSize:_sendBuffer.bufferMemorySize];
     }
     return self;
@@ -31,25 +33,13 @@ double sleep_amount = 0.02;
         ByteBuffer* chunk = [self getChunkToSendFromBatch:packet withBatchId:_batchId withChunkId:chunkId];
         chunkId++;
 
-        // Formula for estimated latency impact in milliseconds:
-        // (bytes_per_chunk / sleep_threshold) * (sleep_amount * 1000)
-        //
-        // So this is:
-        // (96 / 8) * (0.02 * 1000) = 240ms
-        //
-        // This logic can be useful if we want to throttle speeds.
-        // But we should try to optimize out code as required ;)
-        if(chunkId % sleep_threshold == 0) {
-            //[NSThread sleepForTimeInterval:sleep_amount];
-        }
-
         [_outputSession onNewPacket:chunk fromProtocol:protocol];
     }
     _batchId++;
 }
 - (ByteBuffer*)getChunkToSendFromBatch:(ByteBuffer*)batchPacket withBatchId:(uint)batchId withChunkId:(uint)chunkId {
     // Enough space to do something meaningful.
-    _sendBuffer.cursorPosition = 0;
+    _sendBuffer.cursorPosition = _leftPadding;
     
     [_sendBuffer addUnsignedInteger:batchId]; // batch ID.
     [_sendBuffer addUnsignedInteger:chunkId]; // chunk ID; ID within batch.

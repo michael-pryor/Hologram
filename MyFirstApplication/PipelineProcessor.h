@@ -10,7 +10,7 @@
 #import "InputSessionBase.h"
 #import "InputSessionBase.h"
 
-@interface PipelineProcessor : NSObject<NewPacketDelegate, NewPacketDelegate> {
+@interface PipelineProcessor : NSObject<NewPacketDelegate> {
     @protected
     id<NewPacketDelegate> _outputSession;
 }

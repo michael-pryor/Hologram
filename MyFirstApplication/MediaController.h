@@ -21,5 +21,4 @@
 - (void) startCapturing;
 - (void) stopCapturing;
 - (void)captureOutput:(AVCaptureOutput *)captureOutput didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection;
-- (void)onNewPacket: (ByteBuffer*)packet fromProtocol:(ProtocolType)protocol;
 @end

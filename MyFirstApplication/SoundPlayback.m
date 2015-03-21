@@ -34,8 +34,6 @@ static const int kNumberBuffers = 26;
 - (id) initWithAudioDescription:(AudioStreamBasicDescription)description {
     self = [super init];
     if(self) {
-        
-       
         _readyToStart = false;
         bufferByteSize = 1225;
         df = description;
@@ -68,10 +66,10 @@ static const int kNumberBuffers = 26;
 }
 
 - (void) playSoundData:(ByteBuffer*)packet withBuffer:(AudioQueueBufferRef)inBuffer {
-    if(packet.bufferUsedSize > 0) {
-        memcpy(inBuffer->mAudioData, packet.buffer, packet.bufferUsedSize);
+    if(packet.getUnreadDataFromCursor > 0) {
+        memcpy(inBuffer->mAudioData, packet.buffer + packet.cursorPosition, packet.getUnreadDataFromCursor);
     }
-    inBuffer->mAudioDataByteSize = [packet bufferUsedSize];
+    inBuffer->mAudioDataByteSize = [packet getUnreadDataFromCursor];
     OSStatus result = AudioQueueEnqueueBuffer ([self getAudioQueue],
                                                inBuffer,
                                                0,
@@ -171,10 +169,11 @@ static void HandleOutputBuffer (void                *aqData,
     for(int n = 0;n<kNumberBuffers;n++) {
         ByteBuffer* buf = [[ByteBuffer alloc] init];
         [buf setMemorySize:bufferByteSize retaining:false];
-        for(int i = 0;i<bufferByteSize;i+=sizeof(uint)) {
+        for(int i = 0;i<bufferByteSize-1;i+=sizeof(uint)) {
             uint r = 0;//rand();
             [buf addUnsignedInteger:r];
         }
+        [buf setCursorPosition:0];
         [_soundQueue add:buf];
     }
     
@@ -192,8 +191,13 @@ static void HandleOutputBuffer (void                *aqData,
 }
 
 - (void)onNewPacket:(ByteBuffer*)packet fromProtocol:(ProtocolType)protocol {
-    NSLog(@"Adding packet of size [%d] to sound output queue", [packet bufferUsedSize]);
-    [_soundQueue add:packet];
+    if(_isPlaying) {
+        NSLog(@"Adding packet of size [%d] to sound output queue", [packet bufferUsedSize]);
+
+        // Make sure you don't hold onto this reference, only valid for this callback.
+        ByteBuffer* copy = [[ByteBuffer alloc] initFromByteBuffer:packet];
+        [_soundQueue add:copy];
+    }
 }
 
 - (void)selectSpeaker {

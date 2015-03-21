@@ -37,6 +37,8 @@
 		51E5BE3D1936A982003E45C3 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 51E5BE251936A982003E45C3 /* UIKit.framework */; };
 		51E5BE451936A982003E45C3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 51E5BE431936A982003E45C3 /* InfoPlist.strings */; };
 		51E5BE471936A982003E45C3 /* MyFirstApplicationTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 51E5BE461936A982003E45C3 /* MyFirstApplicationTests.m */; };
+		51E5BE811ABD03FD003E035C /* EncodingPipe.m in Sources */ = {isa = PBXBuildFile; fileRef = 51E5BE801ABD03FD003E035C /* EncodingPipe.m */; };
+		51E5BE841ABD0450003E035C /* DecodingPipe.m in Sources */ = {isa = PBXBuildFile; fileRef = 51E5BE831ABD0450003E035C /* DecodingPipe.m */; };
 		51E888A11A597585005F8825 /* Signal.m in Sources */ = {isa = PBXBuildFile; fileRef = 51E888A01A597585005F8825 /* Signal.m */; };
 		51E888A51A59DFB8005F8825 /* Encoding.m in Sources */ = {isa = PBXBuildFile; fileRef = 51E888A41A59DFB8005F8825 /* Encoding.m */; };
 		51E888A81A59E218005F8825 /* MediaByteBuffer.m in Sources */ = {isa = PBXBuildFile; fileRef = 51E888A71A59E218005F8825 /* MediaByteBuffer.m */; };
@@ -105,6 +107,10 @@
 		51E5BE421936A982003E45C3 /* MyFirstApplicationTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "MyFirstApplicationTests-Info.plist"; sourceTree = "<group>"; };
 		51E5BE441936A982003E45C3 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		51E5BE461936A982003E45C3 /* MyFirstApplicationTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MyFirstApplicationTests.m; sourceTree = "<group>"; };
+		51E5BE7F1ABD03FD003E035C /* EncodingPipe.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EncodingPipe.h; sourceTree = "<group>"; };
+		51E5BE801ABD03FD003E035C /* EncodingPipe.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EncodingPipe.m; sourceTree = "<group>"; };
+		51E5BE821ABD0450003E035C /* DecodingPipe.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DecodingPipe.h; sourceTree = "<group>"; };
+		51E5BE831ABD0450003E035C /* DecodingPipe.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DecodingPipe.m; sourceTree = "<group>"; };
 		51E8889F1A597585005F8825 /* Signal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Signal.h; sourceTree = "<group>"; };
 		51E888A01A597585005F8825 /* Signal.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Signal.m; sourceTree = "<group>"; };
 		51E888A31A59DFB8005F8825 /* Encoding.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Encoding.h; sourceTree = "<group>"; };
@@ -212,6 +218,10 @@
 				51E1BF2A1A5DD7A4007D8A56 /* MediaController.m */,
 				51BF42521A750CDB00C16F9A /* ConnectionManagerProtocol.h */,
 				51BF42531A750CDB00C16F9A /* ConnectionManagerProtocol.m */,
+				51E5BE7F1ABD03FD003E035C /* EncodingPipe.h */,
+				51E5BE801ABD03FD003E035C /* EncodingPipe.m */,
+				51E5BE821ABD0450003E035C /* DecodingPipe.h */,
+				51E5BE831ABD0450003E035C /* DecodingPipe.m */,
 			);
 			name = Protocol;
 			sourceTree = "<group>";
@@ -426,6 +436,7 @@
 				51C263851AB450E600285C6E /* SoundPlayback.m in Sources */,
 				51E888A51A59DFB8005F8825 /* Encoding.m in Sources */,
 				51E1BF2B1A5DD7A4007D8A56 /* MediaController.m in Sources */,
+				51E5BE811ABD03FD003E035C /* EncodingPipe.m in Sources */,
 				51D87CB51A8F7C3000CE919E /* BatcherOutput.m in Sources */,
 				51D584C119AB7A9400BB6CE6 /* ByteBuffer.m in Sources */,
 				51E888A81A59E218005F8825 /* MediaByteBuffer.m in Sources */,
@@ -440,6 +451,7 @@
 				513205E71AAE4CA600C80AD9 /* SoundEncoding.m in Sources */,
 				51C3F13F1A6C4388004040BB /* ConnectionManagerUdp.m in Sources */,
 				51D584BB19AB648000BB6CE6 /* InputSessionTcp.m in Sources */,
+				51E5BE841ABD0450003E035C /* DecodingPipe.m in Sources */,
 				51E5BE2E1936A982003E45C3 /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -11,8 +11,8 @@
 #import "InputSessionBase.h"
 
 @interface SoundEncoding : NSObject
-- (id) init;
-- (id) initWithOutputSession: (id<NewPacketDelegate>)output;
+- (id) initWithLeftPadding: (uint)padding;
+- (id) initWithOutputSession: (id<NewPacketDelegate>)output andLeftPadding:(uint)padding;
 - (void) startCapturing;
 - (void) stopCapturing;
 - (AudioStreamBasicDescription) getAudioDescription;

@@ -28,11 +28,30 @@ static const int kNumberBuffers = 26;
     id<NewPacketDelegate>        outputSession;
     NSThread*                    _inputThread;
     
-    Signal*                       _outputThreadStartupSignal;
-    Signal*                       _primed;
+    Signal*                      _outputThreadStartupSignal;
+    Signal*                      _primed;
+    
+    uint                         _leftPadding;
 }
-- (id) init {
-    self = [self initWithOutputSession:nil];
+
+- (id) initWithLeftPadding: (uint)padding {
+    self = [self initWithOutputSession:nil andLeftPadding:padding];
+    return self;
+}
+
+- (id) initWithOutputSession:(id<NewPacketDelegate>)output andLeftPadding:(uint)padding {
+    self = [super init];
+    if(self) {
+        //_audioToByteBufferMap = [[NSMutableDictionary alloc] init];
+        
+        outputSession = output;
+        df = [self getAudioDescription];
+        
+        _outputThreadStartupSignal = [[Signal alloc] initWithFlag:false];
+        _primed = [[Signal alloc] initWithFlag:false];
+        
+        _leftPadding = padding;
+    }
     return self;
 }
 
@@ -47,7 +66,7 @@ static const int kNumberBuffers = 26;
     
     NSLog(@"Error: %@",NSStringFromOSStatus(result));
     
-    // 1/8 second
+    // A fraction of a second.
     bufferByteSize = 1225;
     
     for (int i = 0; i < kNumberBuffers; ++i) {
@@ -72,20 +91,6 @@ static const int kNumberBuffers = 26;
     [_outputThreadStartupSignal signal];
     
     CFRunLoopRun();
-}
-
-- (id) initWithOutputSession: (id<NewPacketDelegate>)output {
-    self = [super init];
-    if(self) {
-        //_audioToByteBufferMap = [[NSMutableDictionary alloc] init];
-        
-        outputSession = output;
-        df = [self getAudioDescription];
-        
-        _outputThreadStartupSignal = [[Signal alloc] initWithFlag:false];
-        _primed = [[Signal alloc] initWithFlag:false];
-    }
-    return self;
 }
 
 - (void) start {
@@ -145,6 +150,10 @@ static const int kNumberBuffers = 26;
     return outputSession;
 }
 
+- (uint) getLeftPadding {
+    return _leftPadding;
+}
+
 static void HandleInputBuffer(void *aqData,
                               AudioQueueRef inAQ,
                               AudioQueueBufferRef inBuffer,
@@ -153,13 +162,14 @@ static void HandleInputBuffer(void *aqData,
                               const AudioStreamPacketDescription *inPacketDesc)
 {
     SoundEncoding* obj = (__bridge SoundEncoding *)(aqData);
+    uint leftPadding = [obj getLeftPadding];
+    uint size = leftPadding + inBuffer->mAudioDataByteSize;
     
     if(inBuffer->mAudioDataByteSize > 0) {
         //ByteBuffer* buff = [[obj getAudioToByteBufferMap] objectForKey:[NSNumber numberWithInteger:(long)inBuffer]];
-        ByteBuffer* buff = [[ByteBuffer alloc] initWithSize:inBuffer->mAudioDataByteSize];
-        [buff setMemorySize:inBuffer->mAudioDataByteSize retaining:false];
-        memcpy(buff.buffer, inBuffer->mAudioData, inBuffer->mAudioDataByteSize);
-        [buff setUsedSize:inBuffer->mAudioDataByteSize];
+        ByteBuffer* buff = [[ByteBuffer alloc] initWithSize:size];
+        memcpy(buff.buffer+leftPadding, inBuffer->mAudioData, inBuffer->mAudioDataByteSize);
+        [buff setUsedSize: size];
     
         NSLog(@"Received some audio data from audio input");
         [[obj getOutputSession] onNewPacket:buff fromProtocol:UDP];
