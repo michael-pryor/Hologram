@@ -11,14 +11,13 @@
 #import "Signal.h"
 #include <unistd.h>
 
-static const int kNumberBuffers = 1;
 
 
 
 @implementation SoundMicrophone {
     bool isRecording;
     AudioQueueRef                mQueue;
-    AudioQueueBufferRef          mBuffers[kNumberBuffers];
+    AudioQueueBufferRef*         mBuffers;
     //NSMutableDictionary*         _audioToByteBufferMap;
     UInt32                       bufferByteSize;
     SInt64                       mCurrentPacket;
@@ -31,14 +30,10 @@ static const int kNumberBuffers = 1;
     Signal*                      _outputThreadStartupSignal;
     
     uint                         _leftPadding;
+    uint                         kNumberBuffers;
 }
 
-- (id) initWithLeftPadding: (uint)padding {
-    self = [self initWithOutputSession:nil andLeftPadding:padding];
-    return self;
-}
-
-- (id) initWithOutputSession:(id<NewPacketDelegate>)output andLeftPadding:(uint)padding {
+- (id) initWithOutputSession:(id<NewPacketDelegate>)output numBuffers:(uint)numBuffers leftPadding:(uint)padding secondPerBuffer:(Float64)secondsPerBuffer {
     self = [super init];
     if(self) {
         //_audioToByteBufferMap = [[NSMutableDictionary alloc] init];
@@ -57,9 +52,21 @@ static const int kNumberBuffers = 1;
         
         _outputThreadStartupSignal = [[Signal alloc] initWithFlag:false];
         
+        kNumberBuffers = numBuffers;
         _leftPadding = padding;
+        mBuffers = malloc(sizeof(AudioQueueBufferRef) * kNumberBuffers);
+        bufferByteSize = calculateBufferSize(&df, secondsPerBuffer);
     }
     return self;
+}
+
+- (void) dealloc {
+    [self stopCapturing];
+    OSStatus result = AudioQueueDispose(mQueue, true);
+    HandleResultOSStatus(result, @"Disposing of audio input queue", true);
+    
+    free(mBuffers);
+    mIsRunning = false;
 }
 
 - (void) inputThreadEntryPoint: var {
@@ -72,9 +79,6 @@ static const int kNumberBuffers = 1;
                                          &mQueue);
     
     HandleResultOSStatus(result, @"Initializing audio input queue", true);
-    
-    // A fraction of a second.
-    bufferByteSize = 8000;
     
     for (int i = 0; i < kNumberBuffers; ++i) {
         result = AudioQueueAllocateBuffer(mQueue,
@@ -121,12 +125,6 @@ static const int kNumberBuffers = 1;
 
 - (AudioStreamBasicDescription*) getAudioDescription {
     return &df;
-}
-
-- (void) dispose {
-    mIsRunning = false;
-    OSStatus result = AudioQueueDispose(mQueue, true);
-    HandleResultOSStatus(result, @"Disposing of audio input queue", true);
 }
 
 - (void) startCapturing {

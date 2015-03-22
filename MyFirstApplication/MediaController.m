@@ -93,8 +93,12 @@
         // Audio.
         _encodingPipeAudio = [[EncodingPipe alloc] initWithOutputSession:networkOutputSession andPrefixId:AUDIO_ID];
         
-        _soundEncoder = [[SoundMicrophone alloc] initWithOutputSession:nil andLeftPadding:sizeof(uint)];
-        _soundPlayback = [[SoundPlayback alloc] initWithAudioDescription:[_soundEncoder getAudioDescription] secondsPerBuffer:1 numBuffers:2 restartPlaybackThreshold:2 maxPendingAmount:2];
+        
+        Float64 secondsPerBuffer = 1;
+        uint numBuffers = 3;
+        
+        _soundEncoder = [[SoundMicrophone alloc] initWithOutputSession:nil numBuffers:numBuffers leftPadding:sizeof(uint) secondPerBuffer:secondsPerBuffer];
+        _soundPlayback = [[SoundPlayback alloc] initWithAudioDescription:[_soundEncoder getAudioDescription] secondsPerBuffer:secondsPerBuffer numBuffers:numBuffers restartPlaybackThreshold:2 maxPendingAmount:2];
         
         [_decodingPipe addPrefix:AUDIO_ID mappingToOutputSession:_soundPlayback];
         [_soundEncoder setOutputSession:_soundPlayback];

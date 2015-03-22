@@ -21,9 +21,8 @@
     NSThread*                     _outputThread;
     uint                          _numAudioBuffers;
     AudioQueueBufferRef*          _audioBuffers;
-    int                           _bufferSizeBytes;
+    uint                           _bufferSizeBytes;
     bool                          _readyToStart;
-    int                           _objInitialPlayCount;
     uint                          _restartPlaybackNumBuffersThreshold;
     uint                          _maxQueueSize;
     Signal*                       _outputThreadStartupSignal;
