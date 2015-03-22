@@ -19,15 +19,17 @@ NSString *NSStringFromOSStatus(OSStatus errCode)
     return [NSString stringWithFormat:@"[%@]: %@", code, [error debugDescription]];
 }
 
-void HandleResultOSStatus(OSStatus errCode, NSString* performing, bool fatal) {
+bool HandleResultOSStatus(OSStatus errCode, NSString* performing, bool fatal) {
     if(errCode == noErr) {
-        return;
+        return false;
     }
     
     NSString* errorMessage = NSStringFromOSStatus(errCode);
     
     NSLog(@"While %@ the following error occurred: %@", performing, errorMessage);
-//    if(fatal) {
+    if(fatal) {
         exit(1);
-//    }
+    } else {
+        return true;
+    }
 }

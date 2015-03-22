@@ -13,7 +13,7 @@
 @import AVFoundation;
 
 static const int kNumberBuffers = 1;
-static const int restartPlaybackThreshold = kNumberBuffers;
+static const int restartPlaybackThreshold = kNumberBuffers + 1;
 
 @implementation SoundPlayback {
     AudioStreamBasicDescription   df;
@@ -80,9 +80,19 @@ static const int restartPlaybackThreshold = kNumberBuffers;
                                                inBuffer,
                                                0,
                                                NULL);
+    if(result == ERR_NOT_PLAYING) {
+        NSLog(@"Audio output queue paused by OS, updating flags (AudioQueueEnqueueBuffer)");
+        _isPlaying = false;
+        return;
+    }
     HandleResultOSStatus(result, @"Enqueing audio output buffer", true);
     
     result = AudioQueuePrime([self getAudioQueue], 0, NULL);
+    if(result == ERR_NOT_PLAYING) {
+        NSLog(@"Audio output queue paused by OS, updating flags (AudioQueuePrime)");
+        _isPlaying = false;
+        return;
+    }
     HandleResultOSStatus(result, @"Priming audio output buffer", true);
 }
 
@@ -96,13 +106,9 @@ static void HandleOutputBuffer (void                *aqData,
         return;
     }
     
-    double timeStart = [[NSDate date] timeIntervalSince1970];
+    // Latest must be kept low here otherwise sound queue API stops working properly.
     ByteBuffer* packet = [obj getSoundPacketToPlay];
-    double elapsed = [[NSDate date] timeIntervalSince1970] - timeStart;
-    elapsed *= 1000;
-    NSLog(@"Elapsed: %fms", elapsed);
-    
-    
+   
     if (packet != nil) {
         [obj playSoundData:packet withBuffer:inBuffer];
     }
@@ -112,8 +118,17 @@ static void HandleOutputBuffer (void                *aqData,
     if(!_isPlaying && mIsRunning && [_soundQueue getPendingAmount] >= kNumberBuffers) {
         // Start the queue.
         NSLog(@"Starting audio output queue");
-        OSStatus result = AudioQueueStart(mQueue, NULL);
-        HandleResultOSStatus(result, @"Starting audio output queue", true);
+        while(true) {
+            OSStatus result = AudioQueueStart(mQueue, NULL);
+            if(result == ERR_NOT_PLAYING) {
+                NSLog(@"Audio output queue paused by OS, attempting multiple restarts (AudioQueueStart)");
+                [NSThread sleepForTimeInterval:0.01];
+                continue;
+            }
+            if(!HandleResultOSStatus(result, @"Starting audio output queue", true)) {
+                break;
+            }
+        }
         
         // Requeue buffers.
         int primeCount = 0;
