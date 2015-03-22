@@ -15,7 +15,7 @@
 - (id) initWithOutputSession: (id<NewPacketDelegate>)output andLeftPadding:(uint)padding;
 - (void) startCapturing;
 - (void) stopCapturing;
-- (AudioStreamBasicDescription) getAudioDescription;
+- (AudioStreamBasicDescription*) getAudioDescription;
 - (void) setOutputSession: (id<NewPacketDelegate>)output;
 - (void) start;
 @end

@@ -33,3 +33,7 @@ bool HandleResultOSStatus(OSStatus errCode, NSString* performing, bool fatal) {
         return true;
     }
 }
+
+Float64 calculateBufferSize(AudioStreamBasicDescription* audioDescription, Float64 numSecondsPerBuffer) {
+    return audioDescription->mSampleRate / audioDescription->mFramesPerPacket * numSecondsPerBuffer;
+}

@@ -44,7 +44,16 @@ static const int kNumberBuffers = 1;
         //_audioToByteBufferMap = [[NSMutableDictionary alloc] init];
         
         outputSession = output;
-        df = [self getAudioDescription];
+
+        df.mFormatID = kAudioFormatLinearPCM;
+        df.mSampleRate = 8000.0;
+        df.mChannelsPerFrame = 1; // Mono
+        df.mBitsPerChannel = 16;
+        df.mBytesPerPacket =
+        df.mBytesPerFrame =
+        df.mChannelsPerFrame * sizeof(SInt16);
+        df.mFramesPerPacket = 1;
+        df.mFormatFlags = kAudioFormatFlagIsPacked | kAudioFormatFlagIsSignedInteger;
         
         _outputThreadStartupSignal = [[Signal alloc] initWithFlag:false];
         
@@ -110,18 +119,8 @@ static const int kNumberBuffers = 1;
     outputSession = output;
 }
 
-- (AudioStreamBasicDescription) getAudioDescription {
-    AudioStreamBasicDescription dfa;
-    dfa.mFormatID = kAudioFormatLinearPCM;
-    dfa.mSampleRate = 8000.0;
-    dfa.mChannelsPerFrame = 1; // Mono
-    dfa.mBitsPerChannel = 16;
-    dfa.mBytesPerPacket =
-    dfa.mBytesPerFrame =
-    dfa.mChannelsPerFrame * sizeof(SInt16);
-    dfa.mFramesPerPacket = 1;
-    dfa.mFormatFlags = kAudioFormatFlagIsPacked | kAudioFormatFlagIsSignedInteger;
-    return dfa;
+- (AudioStreamBasicDescription*) getAudioDescription {
+    return &df;
 }
 
 - (void) dispose {

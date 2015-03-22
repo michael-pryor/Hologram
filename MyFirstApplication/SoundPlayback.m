@@ -12,36 +12,48 @@
 #import "Signal.h"
 @import AVFoundation;
 
-static const int kNumberBuffers = 1;
-static const int restartPlaybackThreshold = kNumberBuffers + 1;
-static const int maxQueueSize = 2;
-
 @implementation SoundPlayback {
-    AudioStreamBasicDescription   df;
+    AudioStreamBasicDescription*  df;
     AudioQueueRef                 mQueue;
     bool                          mIsRunning;
     bool                          _isPlaying;
     BlockingQueue*                _soundQueue;
     NSThread*                     _outputThread;
-    AudioQueueBufferRef           mBuffers[kNumberBuffers];
+    uint                          kNumberBuffers;
+    AudioQueueBufferRef*          mBuffers;
     int                           bufferByteSize;
     bool                          _readyToStart;
     int                           _objInitialPlayCount;
+    uint                          restartPlaybackThreshold;
+    uint                          maxQueueSize;
     
     Signal*                       _outputThreadStartupSignal;
 }
 
 
-- (id) initWithAudioDescription:(AudioStreamBasicDescription)description {
+- (id)initWithAudioDescription:(AudioStreamBasicDescription*)description secondsPerBuffer:(Float64)seconds numBuffers:(uint)numBuffers restartPlaybackThreshold:(uint)restartPlayback maxPendingAmount:(uint)maxAmount {
     self = [super init];
     if(self) {
+        if(restartPlayback < maxQueueSize) {
+            [NSException raise:@"Invalid input audio configuration" format:@"Restart playback threshold must be >= maximum queue size"];
+        }
+        
         _readyToStart = false;
-        bufferByteSize = 8000;
+        bufferByteSize = calculateBufferSize(description, seconds);
+        kNumberBuffers = numBuffers;
+        mBuffers = malloc(sizeof(AudioQueueBufferRef) * kNumberBuffers);
+        restartPlaybackThreshold = kNumberBuffers + restartPlayback;
+        maxQueueSize = maxAmount;
+        
         df = description;
-        _soundQueue = [[BlockingQueue alloc] initWithMaxQueueSize:maxQueueSize];
+        _soundQueue = [[BlockingQueue alloc] initWithMaxQueueSize:kNumberBuffers + maxQueueSize];
         _outputThreadStartupSignal = [[Signal alloc] initWithFlag:false];
     }
     return self;
+}
+
+- (void)dealloc {
+    free(mBuffers);
 }
 
 - (bool) isQueueActive {
@@ -159,7 +171,7 @@ static void HandleOutputBuffer (void                *aqData,
 
 - (void) outputThreadEntryPoint: var {
     mIsRunning = true;
-    OSStatus result = AudioQueueNewOutput(&df, HandleOutputBuffer, (__bridge void *)(self), CFRunLoopGetCurrent(), kCFRunLoopCommonModes, 0, &mQueue);
+    OSStatus result = AudioQueueNewOutput(df, HandleOutputBuffer, (__bridge void *)(self), CFRunLoopGetCurrent(), kCFRunLoopCommonModes, 0, &mQueue);
     HandleResultOSStatus(result, @"Initializing audio output queue", true);
     
     for (int i = 0; i < kNumberBuffers; i++) {
