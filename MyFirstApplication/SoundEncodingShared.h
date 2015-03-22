@@ -9,3 +9,4 @@
 #import <Foundation/Foundation.h>
 
 NSString *NSStringFromOSStatus(OSStatus errCode);
+void HandleResultOSStatus(OSStatus errCode, NSString* performing, bool fatal);

@@ -42,7 +42,7 @@
     [_lock unlock];
 }
 
-- (id) get {
+- (id) getImmediate:(bool)immediate {
     if(_queueShutdown) {
         NSLog(@"Queue is shutdown, rejecting receive attempt");
         return nil;
@@ -50,7 +50,12 @@
     
     [_lock lock];
     while (_queue.count == 0) {
-        [_lock wait];
+        if(!immediate) {
+            [_lock wait];
+        } else {
+            [_lock unlock];
+            return nil;
+        }
     }
     
     id retVal = _queue[0];
@@ -62,6 +67,21 @@
     [_queue removeObjectAtIndex:0];
     [_lock unlock];
     return retVal;
+}
+
+- (id) getImmediate {
+    return [self getImmediate:true];
+}
+
+- (id) get {
+    return [self getImmediate:false];
+}
+
+- (unsigned long) getPendingAmount {
+    [_lock lock];
+    unsigned long size = _queue.count;
+    [_lock unlock];
+    return size;
 }
 
 - (void)shutdown {

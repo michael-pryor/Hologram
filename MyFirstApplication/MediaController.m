@@ -6,7 +6,6 @@
 //
 //
 
-#import "MediaByteBuffer.h"
 #import "Encoding.h"
 #import "OutputSessionTcp.h"
 #import "MediaController.h"
@@ -19,19 +18,20 @@
 
 @implementation PacketToImageProcessor {
     id<NewImageDelegate> _newImageDelegate;
+    Encoding* _videoEncoder;
 }
-- (id)initWithImageDelegate:(id<NewImageDelegate>)newImageDelegate {
+
+- (id)initWithImageDelegate:(id<NewImageDelegate>)newImageDelegate encoder:(Encoding*)videoEncoder {
     self = [super init];
     if(self) {
 	    _newImageDelegate = newImageDelegate;
+        _videoEncoder = videoEncoder;
     }
     return self;
 }
 
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
-    // Update display with image retrieved from packet.
-    MediaByteBuffer* buffer = [[MediaByteBuffer alloc] initFromBuffer: packet];
-    UIImage *image = [buffer getImage];
+    UIImage *image = [_videoEncoder getImageFromByteBuffer:packet];
     [_newImageDelegate onNewImage: image];
 }
 @end
@@ -80,7 +80,7 @@
         _mediaEncoder = [[Encoding alloc] init];
         _session = [_mediaEncoder setupCaptureSessionWithDelegate: self];
 
-        PacketToImageProcessor * p = [[PacketToImageProcessor alloc] initWithImageDelegate:newImageDelegate];
+        PacketToImageProcessor * p = [[PacketToImageProcessor alloc] initWithImageDelegate:newImageDelegate encoder:_mediaEncoder];
         
         _encodingPipeVideo = [[EncodingPipe alloc] initWithOutputSession:networkOutputSession andPrefixId:VIDEO_ID];
         
@@ -105,9 +105,6 @@
         
         NSLog(@"Starting recording...");
         [_soundEncoder startCapturing];
-        
-        NSLog(@"Starting playback...");
-        [_soundPlayback startPlayback];
         
         _connected = false;
     }
@@ -134,9 +131,10 @@
     } else {
         // Send image as packet.
         ByteBuffer * rawBuffer = [[ByteBuffer alloc] init];
-        MediaByteBuffer* buffer = [[MediaByteBuffer alloc] initFromBuffer: rawBuffer];
-        [buffer addImage: sampleBuffer];
+        
+        [_mediaEncoder addImage:sampleBuffer toByteBuffer:rawBuffer];
         rawBuffer.cursorPosition = 0;
+
         [_batcherOutput onNewPacket:rawBuffer fromProtocol:UDP];
     }
 }

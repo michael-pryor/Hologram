@@ -15,7 +15,5 @@
 - (id) initWithAudioDescription:(AudioStreamBasicDescription)description;
 - (ByteBuffer*) getSoundPacketToPlay;
 - (void) shutdown;
-- (void) startPlayback;
-- (void) stopPlayback;
 - (void) start;
 @end

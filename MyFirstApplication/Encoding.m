@@ -114,4 +114,51 @@
     
     return session;
 }
+
+- (void) addImage:(CMSampleBufferRef)image toByteBuffer:(ByteBuffer*)buffer {
+    CVImageBufferRef imageBuffer = CMSampleBufferGetImageBuffer(image);
+    
+    CVPixelBufferLockBaseAddress(imageBuffer, 0);
+    
+    void *baseAddress = CVPixelBufferGetBaseAddress(imageBuffer);
+    uint bytes = (uint)CVPixelBufferGetDataSize(imageBuffer);
+    uint width = (uint)CVPixelBufferGetWidth(imageBuffer);
+
+    uint height = (uint)CVPixelBufferGetHeight(imageBuffer);
+    uint bytesPerRow = (uint)CVPixelBufferGetBytesPerRow(imageBuffer);
+    
+    [buffer addVariableLengthData: baseAddress withLength: bytesPerRow * height includingPrefix:false];
+    
+    CVPixelBufferUnlockBaseAddress(imageBuffer,0);
+}
+
+- (UIImage*) getImageFromByteBuffer:(ByteBuffer*)byteBuffer {
+    // Create a device-dependent RGB color space
+    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+    
+    uint bytesPerRow = 576;//[_buffer getUnsignedInteger];
+    uint width = 144;//[_buffer getUnsignedInteger];
+    uint height = 192;//[_buffer getUnsignedInteger];
+    
+    
+    uint8_t * buffer = [byteBuffer buffer] + [byteBuffer cursorPosition];
+    
+    // Create a bitmap graphics context with the sample buffer data
+    CGContextRef context = CGBitmapContextCreate(buffer, width, height, 8,
+                                                 bytesPerRow, colorSpace, kCGBitmapByteOrder32Little | kCGImageAlphaPremultipliedFirst);
+    // Create a Quartz image from the pixel data in the bitmap graphics context
+    CGImageRef quartzImage = CGBitmapContextCreateImage(context);
+    
+    // Free up the context and color space
+    CGContextRelease(context);
+    CGColorSpaceRelease(colorSpace);
+    
+    // Create an image object from the Quartz image
+    UIImage *image = [UIImage imageWithCGImage:quartzImage];
+    
+    // Release the Quartz image
+    CGImageRelease(quartzImage);
+    
+    return image;
+}
 @end

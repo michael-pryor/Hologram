@@ -18,3 +18,16 @@ NSString *NSStringFromOSStatus(OSStatus errCode)
     NSError *error = [NSError errorWithDomain:NSOSStatusErrorDomain code:errCode userInfo:nil];
     return [NSString stringWithFormat:@"[%@]: %@", code, [error debugDescription]];
 }
+
+void HandleResultOSStatus(OSStatus errCode, NSString* performing, bool fatal) {
+    if(errCode == noErr) {
+        return;
+    }
+    
+    NSString* errorMessage = NSStringFromOSStatus(errCode);
+    
+    NSLog(@"While %@ the following error occurred: %@", performing, errorMessage);
+//    if(fatal) {
+        exit(1);
+//    }
+}

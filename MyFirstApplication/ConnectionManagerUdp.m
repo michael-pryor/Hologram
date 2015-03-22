@@ -197,8 +197,6 @@
 }
 
 - (void)sendBuffer:(ByteBuffer *)buffer {
-    //NSLog(@"Current socket is: %d", _currentSocket);
-    int currentSocketObject = _sockets[_currentSocket];
     _currentSocket++;
     _currentSocket = _currentSocket % _numSockets;
     [self sendBuffer:buffer toSocketWithId:_currentSocket];

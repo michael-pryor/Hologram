@@ -12,5 +12,7 @@
 - (id) init;
 - (void) add:(id)obj;
 - (id) get;
+- (unsigned long) getPendingAmount;
+- (id) getImmediate;
 - (void) shutdown;
 @end

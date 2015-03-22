@@ -21,7 +21,7 @@
 }
 
 - (void)onTimeout:(NSTimer*)timer {
-    NSLog(@"Timed out with chunks received: %ul and threshold: %ul", _chunksReceived, _numChunksThreshold);
+    //NSLog(@"Timed out with chunks received: %ul and threshold: %ul", _chunksReceived, _numChunksThreshold);
     if(_chunksReceived >= _numChunksThreshold) {
         @synchronized(_partialPacket) {
             if(!_hasOutput) {

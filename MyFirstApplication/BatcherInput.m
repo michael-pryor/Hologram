@@ -34,7 +34,7 @@
 
 - (void)onTimeout:(NSTimer*)timer  {
     NSNumber* batchId = [timer userInfo];
-    NSLog(@"Removing old batch, with ID: %@l", batchId);
+    //NSLog(@"Removing old batch, with ID: %@l", batchId);
     @synchronized(_batches) {
         [_batches removeObjectForKey:batchId];
     }

@@ -41,7 +41,6 @@
 		51E5BE841ABD0450003E035C /* DecodingPipe.m in Sources */ = {isa = PBXBuildFile; fileRef = 51E5BE831ABD0450003E035C /* DecodingPipe.m */; };
 		51E888A11A597585005F8825 /* Signal.m in Sources */ = {isa = PBXBuildFile; fileRef = 51E888A01A597585005F8825 /* Signal.m */; };
 		51E888A51A59DFB8005F8825 /* Encoding.m in Sources */ = {isa = PBXBuildFile; fileRef = 51E888A41A59DFB8005F8825 /* Encoding.m */; };
-		51E888A81A59E218005F8825 /* MediaByteBuffer.m in Sources */ = {isa = PBXBuildFile; fileRef = 51E888A71A59E218005F8825 /* MediaByteBuffer.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -115,8 +114,6 @@
 		51E888A01A597585005F8825 /* Signal.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Signal.m; sourceTree = "<group>"; };
 		51E888A31A59DFB8005F8825 /* Encoding.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Encoding.h; sourceTree = "<group>"; };
 		51E888A41A59DFB8005F8825 /* Encoding.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Encoding.m; sourceTree = "<group>"; };
-		51E888A61A59E218005F8825 /* MediaByteBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MediaByteBuffer.h; sourceTree = "<group>"; };
-		51E888A71A59E218005F8825 /* MediaByteBuffer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MediaByteBuffer.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -319,8 +316,6 @@
 			children = (
 				51E888A31A59DFB8005F8825 /* Encoding.h */,
 				51E888A41A59DFB8005F8825 /* Encoding.m */,
-				51E888A61A59E218005F8825 /* MediaByteBuffer.h */,
-				51E888A71A59E218005F8825 /* MediaByteBuffer.m */,
 				513205E51AAE4CA600C80AD9 /* SoundEncoding.h */,
 				513205E61AAE4CA600C80AD9 /* SoundEncoding.m */,
 				51C263831AB450E600285C6E /* SoundPlayback.h */,
@@ -439,7 +434,6 @@
 				51E5BE811ABD03FD003E035C /* EncodingPipe.m in Sources */,
 				51D87CB51A8F7C3000CE919E /* BatcherOutput.m in Sources */,
 				51D584C119AB7A9400BB6CE6 /* ByteBuffer.m in Sources */,
-				51E888A81A59E218005F8825 /* MediaByteBuffer.m in Sources */,
 				51D87CB21A8F7C1B00CE919E /* BatcherInput.m in Sources */,
 				51D584BE19AB649500BB6CE6 /* OutputSessionTcp.m in Sources */,
 				51C263881AB4545000285C6E /* SoundEncodingShared.m in Sources */,

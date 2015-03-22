@@ -11,7 +11,7 @@
 #import "Signal.h"
 #include <unistd.h>
 
-static const int kNumberBuffers = 26;
+static const int kNumberBuffers = 1;
 
 
 
@@ -29,7 +29,6 @@ static const int kNumberBuffers = 26;
     NSThread*                    _inputThread;
     
     Signal*                      _outputThreadStartupSignal;
-    Signal*                      _primed;
     
     uint                         _leftPadding;
 }
@@ -48,7 +47,6 @@ static const int kNumberBuffers = 26;
         df = [self getAudioDescription];
         
         _outputThreadStartupSignal = [[Signal alloc] initWithFlag:false];
-        _primed = [[Signal alloc] initWithFlag:false];
         
         _leftPadding = padding;
     }
@@ -64,15 +62,16 @@ static const int kNumberBuffers = 26;
                                          0, // Reserved, must be 0
                                          &mQueue);
     
-    NSLog(@"Error: %@",NSStringFromOSStatus(result));
+    HandleResultOSStatus(result, @"Initializing audio input queue", true);
     
     // A fraction of a second.
-    bufferByteSize = 1225;
+    bufferByteSize = 8000;
     
     for (int i = 0; i < kNumberBuffers; ++i) {
-        AudioQueueAllocateBuffer(mQueue,
-                                 bufferByteSize,
-                                 &mBuffers[i]);
+        result = AudioQueueAllocateBuffer(mQueue,
+                                          bufferByteSize,
+                                          &mBuffers[i]);
+        HandleResultOSStatus(result, @"Allocating audio input queue buffer", true);
         
         //ByteBuffer* byteBuffer = [[ByteBuffer alloc] initWithSize:bufferByteSize];
         //[_audioToByteBufferMap setObject:byteBuffer forKey: [NSNumber numberWithInteger:(long)mBuffers[i]]];
@@ -81,6 +80,8 @@ static const int kNumberBuffers = 26;
                                 mBuffers[i],
                                 0,
                                 NULL);
+        
+        HandleResultOSStatus(result, @"Enqueing initial audio input buffer", true);
     }
     
     mCurrentPacket = 0;
@@ -112,7 +113,7 @@ static const int kNumberBuffers = 26;
 - (AudioStreamBasicDescription) getAudioDescription {
     AudioStreamBasicDescription dfa;
     dfa.mFormatID = kAudioFormatLinearPCM;
-    dfa.mSampleRate = 44100.0;
+    dfa.mSampleRate = 8000.0;
     dfa.mChannelsPerFrame = 1; // Mono
     dfa.mBitsPerChannel = 16;
     dfa.mBytesPerPacket =
@@ -125,19 +126,22 @@ static const int kNumberBuffers = 26;
 
 - (void) dispose {
     mIsRunning = false;
-    AudioQueueDispose(mQueue, true);
+    OSStatus result = AudioQueueDispose(mQueue, true);
+    HandleResultOSStatus(result, @"Disposing of audio input queue", true);
 }
 
 - (void) startCapturing {
     if(!isRecording && mIsRunning) {
-        AudioQueueStart(mQueue, NULL);
+        OSStatus result = AudioQueueStart(mQueue, NULL);
+        HandleResultOSStatus(result, @"Starting audio input queue", true);
         isRecording = true;
     }
 }
 
 - (void) stopCapturing {
     if(isRecording && mIsRunning) {
-        AudioQueueStop(mQueue, TRUE);
+        OSStatus result = AudioQueueStop(mQueue, TRUE);
+        HandleResultOSStatus(result, @"Stopping audio input queue", true);
         isRecording = false;
     }
 }
@@ -171,16 +175,15 @@ static void HandleInputBuffer(void *aqData,
         memcpy(buff.buffer+leftPadding, inBuffer->mAudioData, inBuffer->mAudioDataByteSize);
         [buff setUsedSize: size];
     
-        NSLog(@"Received some audio data from audio input");
+        //NSLog(@"Sleeping for a bit...");
+        //[NSThread sleepForTimeInterval:1];
+        //NSLog(@"Input buffer sent");
         [[obj getOutputSession] onNewPacket:buff fromProtocol:UDP];
     } else {
         NSLog(@"Received empty input buffer from audio input");
     }
-    OSStatus status = AudioQueueEnqueueBuffer(obj->mQueue,
-                            inBuffer,
-                            0,
-                            NULL);
-    NSLog(@"Result of enqueing input buffer: %@", NSStringFromOSStatus(status));
+    OSStatus result = AudioQueueEnqueueBuffer(obj->mQueue, inBuffer, 0, NULL);
+    HandleResultOSStatus(result, @"Enqueing audio input buffer", true);
 }
 
 

@@ -7,6 +7,7 @@
 //
 
 @import AVFoundation;
+#import "ByteBuffer.h"
 
 @interface Encoding : NSObject
 @property (readonly) uint bytesPerRow;
@@ -17,4 +18,7 @@
 
 - (UIImage *) imageFromSampleBuffer:(CMSampleBufferRef) sampleBuffer;
 - (AVCaptureSession *) setupCaptureSessionWithDelegate: (id<AVCaptureVideoDataOutputSampleBufferDelegate>) delegate;
+
+- (void) addImage:(CMSampleBufferRef)image toByteBuffer:(ByteBuffer*)buffer;
+- (UIImage*) getImageFromByteBuffer:(ByteBuffer*)buffer;
 @end
