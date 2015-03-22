@@ -12,8 +12,8 @@
 - (id) initWithFlag: (bool)flag;
 - (id) init;
 - (void) wait;
-- (void) signal;
-- (void) clear;
-- (void) signalAll;
+- (bool) signal;
+- (bool) clear;
+- (bool) signalAll;
 - (bool) isSignaled;
 @end

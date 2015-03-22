@@ -35,24 +35,36 @@
     [_condition unlock];
 }
 
-- (void) signal {
+- (bool)signal {
     [_condition lock];
-    _flag = true;
-    [_condition signal];
+    bool ret = _flag;
+    if(!ret) {
+        _flag = true;
+        [_condition signal];
+    }
     [_condition unlock];
+    return ret;
 }
 
-- (void) clear {
+- (bool)clear {
     [_condition lock];
-    _flag = false;
+    bool ret = _flag;
+    if(ret) {
+        _flag = false;
+    }
     [_condition unlock];
+    return ret;
 }
 
-- (void) signalAll {
+- (bool)signalAll {
     [_condition lock];
-    _flag = true;
-    [_condition broadcast];
+    bool ret = _flag;
+    if(!ret) {
+        _flag = true;
+        [_condition broadcast];
+    }
     [_condition unlock];
+    return ret;
 }
 
 - (bool) isSignaled {

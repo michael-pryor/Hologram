@@ -13,20 +13,19 @@
 @import AVFoundation;
 
 @implementation SoundPlayback {
-    AudioStreamBasicDescription*  df;
-    AudioQueueRef                 mQueue;
-    bool                          mIsRunning;
-    bool                          _isPlaying;
+    AudioStreamBasicDescription*  _audioDescription;
+    AudioQueueRef                 _audioQueue;
+    bool                          _queueSetup;
+    Signal*                       _isPlaying;
     BlockingQueue*                _soundQueue;
     NSThread*                     _outputThread;
-    uint                          kNumberBuffers;
-    AudioQueueBufferRef*          mBuffers;
-    int                           bufferByteSize;
+    uint                          _numAudioBuffers;
+    AudioQueueBufferRef*          _audioBuffers;
+    int                           _bufferSizeBytes;
     bool                          _readyToStart;
     int                           _objInitialPlayCount;
-    uint                          restartPlaybackThreshold;
-    uint                          maxQueueSize;
-    
+    uint                          _restartPlaybackNumBuffersThreshold;
+    uint                          _maxQueueSize;
     Signal*                       _outputThreadStartupSignal;
 }
 
@@ -34,42 +33,43 @@
 - (id)initWithAudioDescription:(AudioStreamBasicDescription*)description secondsPerBuffer:(Float64)seconds numBuffers:(uint)numBuffers restartPlaybackThreshold:(uint)restartPlayback maxPendingAmount:(uint)maxAmount {
     self = [super init];
     if(self) {
-        if(restartPlayback < maxQueueSize) {
+        if(restartPlayback < _maxQueueSize) {
             [NSException raise:@"Invalid input audio configuration" format:@"Restart playback threshold must be >= maximum queue size"];
         }
         
         _readyToStart = false;
-        bufferByteSize = calculateBufferSize(description, seconds);
-        kNumberBuffers = numBuffers;
-        mBuffers = malloc(sizeof(AudioQueueBufferRef) * kNumberBuffers);
-        restartPlaybackThreshold = kNumberBuffers + restartPlayback;
-        maxQueueSize = maxAmount;
+        _bufferSizeBytes = calculateBufferSize(description, seconds);
+        _numAudioBuffers = numBuffers;
+        _audioBuffers = malloc(sizeof(AudioQueueBufferRef) * _numAudioBuffers);
+        _restartPlaybackNumBuffersThreshold = _numAudioBuffers + restartPlayback;
+        _maxQueueSize = maxAmount;
         
-        df = description;
-        _soundQueue = [[BlockingQueue alloc] initWithMaxQueueSize:kNumberBuffers + maxQueueSize];
+        _audioDescription = description;
+        _soundQueue = [[BlockingQueue alloc] initWithMaxQueueSize:_numAudioBuffers + _maxQueueSize];
         _outputThreadStartupSignal = [[Signal alloc] initWithFlag:false];
+        
+        _isPlaying = [[Signal alloc] initWithFlag:false];
     }
     return self;
 }
 
 - (void)dealloc {
-    free(mBuffers);
+    free(_audioBuffers);
 }
 
 - (bool) isQueueActive {
-    return mIsRunning;
+    return _queueSetup;
 }
 
 - (AudioQueueRef) getAudioQueue {
-    return mQueue;
+    return _audioQueue;
 }
 
 - (void) shutdown {
-    if(mIsRunning) {
+    if(_queueSetup) {
         [self stopPlayback];
-        mIsRunning = false;
         [_soundQueue shutdown];
-        AudioQueueStop(mQueue, false);
+        _queueSetup = false;
     }
 }
 
@@ -79,31 +79,39 @@
         return result;
     }
     
-    NSLog(@"Audio output queue paused because no pending data");
+    //NSLog(@"Audio output queue paused because no pending data");
     [self stopPlayback];
     return nil;
 }
 
 - (void) playSoundData:(ByteBuffer*)packet withBuffer:(AudioQueueBufferRef)inBuffer {
-    if(packet.getUnreadDataFromCursor > 0) {
-        memcpy(inBuffer->mAudioData, packet.buffer + packet.cursorPosition, packet.getUnreadDataFromCursor);
+    uint unreadData = packet.getUnreadDataFromCursor;
+    if(unreadData > 0) {
+        if(unreadData > _bufferSizeBytes) {
+            NSLog(@"Incorrectly sized output buffer received, expected [%d], received [%d]", _bufferSizeBytes, unreadData);
+            unreadData = _bufferSizeBytes;
+        }
+        
+        memcpy(inBuffer->mAudioData, packet.buffer + packet.cursorPosition, unreadData);
     }
-    inBuffer->mAudioDataByteSize = [packet getUnreadDataFromCursor];
+    inBuffer->mAudioDataByteSize = unreadData;
     OSStatus result = AudioQueueEnqueueBuffer ([self getAudioQueue],
                                                inBuffer,
                                                0,
                                                NULL);
     if(result == ERR_NOT_PLAYING) {
-        NSLog(@"Audio output queue paused by OS, updating flags (AudioQueueEnqueueBuffer)");
-        _isPlaying = false;
+        if([_isPlaying clear]) {
+            NSLog(@"Audio output queue paused by OS, updated flag (AudioQueueEnqueueBuffer)");
+        }
         return;
     }
     HandleResultOSStatus(result, @"Enqueing audio output buffer", true);
     
     result = AudioQueuePrime([self getAudioQueue], 0, NULL);
     if(result == ERR_NOT_PLAYING) {
-        NSLog(@"Audio output queue paused by OS, updating flags (AudioQueuePrime)");
-        _isPlaying = false;
+        if([_isPlaying clear]) {
+            NSLog(@"Audio output queue paused by OS, updated flag (AudioQueuePrime)");
+        }
         return;
     }
     HandleResultOSStatus(result, @"Priming audio output buffer", true);
@@ -128,11 +136,11 @@ static void HandleOutputBuffer (void                *aqData,
 }
 
 - (void) startPlayback {
-    if(!_isPlaying && mIsRunning && [_soundQueue getPendingAmount] >= kNumberBuffers) {
+    if(![_isPlaying signal] && _queueSetup && [_soundQueue getPendingAmount] >= _numAudioBuffers) {
         // Start the queue.
         NSLog(@"Starting audio output queue");
         while(true) {
-            OSStatus result = AudioQueueStart(mQueue, NULL);
+            OSStatus result = AudioQueueStart(_audioQueue, NULL);
             if(result == ERR_NOT_PLAYING) {
                 NSLog(@"Audio output queue paused by OS, attempting multiple restarts (AudioQueueStart)");
                 [NSThread sleepForTimeInterval:0.01];
@@ -145,39 +153,37 @@ static void HandleOutputBuffer (void                *aqData,
         
         // Requeue buffers.
         int primeCount = 0;
-        while(primeCount < kNumberBuffers) {
+        while(primeCount < _numAudioBuffers) {
             ByteBuffer* buffer = [_soundQueue get];
             if(buffer == nil) {
                 NSLog(@"Premature termination signal while priming output buffers, sound output thread exiting");
                 return;
             }
             
-            [self playSoundData:buffer withBuffer:mBuffers[primeCount]];
+            [self playSoundData:buffer withBuffer:_audioBuffers[primeCount]];
             primeCount++;
         }
-
-        _isPlaying = true;
     }
 }
 
 - (void) stopPlayback {
-    if(_isPlaying && mIsRunning) {
-        OSStatus result = AudioQueueStop(mQueue, TRUE);
+    if([_isPlaying clear] && _queueSetup) {
+        NSLog(@"Pausing audio output queue");
+        OSStatus result = AudioQueueStop(_audioQueue, TRUE);
         HandleResultOSStatus(result, @"Stopping audio output queue", true);
-        _isPlaying = false;
     }
 }
 
 
 - (void) outputThreadEntryPoint: var {
-    mIsRunning = true;
-    OSStatus result = AudioQueueNewOutput(df, HandleOutputBuffer, (__bridge void *)(self), CFRunLoopGetCurrent(), kCFRunLoopCommonModes, 0, &mQueue);
+    _queueSetup = true;
+    OSStatus result = AudioQueueNewOutput(_audioDescription, HandleOutputBuffer, (__bridge void *)(self), CFRunLoopGetCurrent(), kCFRunLoopCommonModes, 0, &_audioQueue);
     HandleResultOSStatus(result, @"Initializing audio output queue", true);
     
-    for (int i = 0; i < kNumberBuffers; i++) {
-        result = AudioQueueAllocateBuffer (mQueue,
-                                           bufferByteSize,
-                                           &mBuffers[i]);
+    for (int i = 0; i < _numAudioBuffers; i++) {
+        result = AudioQueueAllocateBuffer (_audioQueue,
+                                           _bufferSizeBytes,
+                                           &_audioBuffers[i]);
         HandleResultOSStatus(result, @"Initializing audio output buffer", true);
     }
     
@@ -192,10 +198,10 @@ static void HandleOutputBuffer (void                *aqData,
 
 - (void) start {
     // Fill our buffers with some random data to get going!
-    for(int n = 0;n<kNumberBuffers;n++) {
+    for(int n = 0;n<_numAudioBuffers;n++) {
         ByteBuffer* buf = [[ByteBuffer alloc] init];
-        [buf setMemorySize:bufferByteSize retaining:false];
-        for(int i = 0;i<bufferByteSize-1;i+=sizeof(uint)) {
+        [buf setMemorySize:_bufferSizeBytes retaining:false];
+        for(int i = 0;i<_bufferSizeBytes-1;i+=sizeof(uint)) {
             uint r = 0;//rand();
             [buf addUnsignedInteger:r];
         }
@@ -219,7 +225,7 @@ static void HandleOutputBuffer (void                *aqData,
     ByteBuffer* copy = [[ByteBuffer alloc] initFromByteBuffer:packet];
     [_soundQueue add:copy];
     
-    if(!_isPlaying && [_soundQueue getPendingAmount] >= restartPlaybackThreshold) {
+    if(![_isPlaying isSignaled] && [_soundQueue getPendingAmount] >= _restartPlaybackNumBuffersThreshold) {
         [self startPlayback];
     }
 }
