@@ -14,6 +14,7 @@
 
 static const int kNumberBuffers = 1;
 static const int restartPlaybackThreshold = kNumberBuffers + 1;
+static const int maxQueueSize = 2;
 
 @implementation SoundPlayback {
     AudioStreamBasicDescription   df;
@@ -37,7 +38,7 @@ static const int restartPlaybackThreshold = kNumberBuffers + 1;
         _readyToStart = false;
         bufferByteSize = 8000;
         df = description;
-        _soundQueue = [[BlockingQueue alloc] init];
+        _soundQueue = [[BlockingQueue alloc] initWithMaxQueueSize:maxQueueSize];
         _outputThreadStartupSignal = [[Signal alloc] initWithFlag:false];
     }
     return self;

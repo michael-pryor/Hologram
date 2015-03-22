@@ -10,6 +10,7 @@
 
 @interface BlockingQueue : NSObject
 - (id) init;
+- (id) initWithMaxQueueSize:(unsigned long)maxSize;
 - (void) add:(id)obj;
 - (id) get;
 - (unsigned long) getPendingAmount;

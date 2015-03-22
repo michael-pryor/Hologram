@@ -12,15 +12,21 @@
     NSCondition * _lock;
     NSMutableArray * _queue;
     Boolean _queueShutdown;
+    unsigned long _maxQueueSize;
 }
-- (id) init {
+- (id) initWithMaxQueueSize:(unsigned long)maxSize {
     self = [super init];
     if(self) {
 	    _queue = [[NSMutableArray alloc] init];
         _lock =  [[NSCondition alloc] init];
         _queueShutdown = false;
+        _maxQueueSize = maxSize;
     }
     return self;
+}
+
+- (id) init {
+    return [self initWithMaxQueueSize:0];
 }
 
 - (void) add:(id)obj {
@@ -37,7 +43,16 @@
         _queueShutdown = true;
     }
     
+    if(_maxQueueSize > 0 && [_queue count] >= _maxQueueSize) {
+        NSLog(@"Removing item from queue, breached maximum queue size of: %lu", _maxQueueSize);
+        
+        // Remove object from start of array.
+        [_queue removeObjectAtIndex:0];
+    }
+    
+    // Add to end of array.
     [_queue addObject:obj];
+    
     [_lock signal];
     [_lock unlock];
 }
@@ -66,6 +81,10 @@
     
     [_queue removeObjectAtIndex:0];
     [_lock unlock];
+    
+    if(retVal != nil) {
+        
+    }
     return retVal;
 }
 
