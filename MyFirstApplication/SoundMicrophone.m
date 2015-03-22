@@ -15,22 +15,18 @@
 
 
 @implementation SoundMicrophone {
-    bool isRecording;
-    AudioQueueRef                mQueue;
-    AudioQueueBufferRef*         mBuffers;
-    //NSMutableDictionary*         _audioToByteBufferMap;
-    UInt32                       bufferByteSize;
-    SInt64                       mCurrentPacket;
-    bool                         mIsRunning;
-    
-    AudioStreamBasicDescription  df;
-    id<NewPacketDelegate>        outputSession;
+    bool                         _isRecording;
+    AudioQueueRef                _audioQueue;
+    AudioQueueBufferRef*         _audioBuffers;
+    //NSMutableDictionary*       _audioToByteBufferMap;
+    UInt32                       _bufferSizeBytes;
+    bool                         _queueSetup;
+    AudioStreamBasicDescription  _audioDescription;
+    id<NewPacketDelegate>        _outputSession;
     NSThread*                    _inputThread;
-    
     Signal*                      _outputThreadStartupSignal;
-    
     uint                         _leftPadding;
-    uint                         kNumberBuffers;
+    uint                         _numBuffers;
 }
 
 - (id) initWithOutputSession:(id<NewPacketDelegate>)output numBuffers:(uint)numBuffers leftPadding:(uint)padding secondPerBuffer:(Float64)secondsPerBuffer {
@@ -38,69 +34,67 @@
     if(self) {
         //_audioToByteBufferMap = [[NSMutableDictionary alloc] init];
         
-        outputSession = output;
+        _outputSession = output;
 
-        df.mFormatID = kAudioFormatLinearPCM;
-        df.mSampleRate = 8000.0;
-        df.mChannelsPerFrame = 1; // Mono
-        df.mBitsPerChannel = 16;
-        df.mBytesPerPacket =
-        df.mBytesPerFrame =
-        df.mChannelsPerFrame * sizeof(SInt16);
-        df.mFramesPerPacket = 1;
-        df.mFormatFlags = kAudioFormatFlagIsPacked | kAudioFormatFlagIsSignedInteger;
+        _audioDescription.mFormatID = kAudioFormatLinearPCM;
+        _audioDescription.mSampleRate = 8000.0;
+        _audioDescription.mChannelsPerFrame = 1; // Mono
+        _audioDescription.mBitsPerChannel = 16;
+        _audioDescription.mBytesPerPacket =
+        _audioDescription.mBytesPerFrame =
+        _audioDescription.mChannelsPerFrame * sizeof(SInt16);
+        _audioDescription.mFramesPerPacket = 1;
+        _audioDescription.mFormatFlags = kAudioFormatFlagIsPacked | kAudioFormatFlagIsSignedInteger;
         
         _outputThreadStartupSignal = [[Signal alloc] initWithFlag:false];
         
-        kNumberBuffers = numBuffers;
+        _numBuffers = numBuffers;
         _leftPadding = padding;
-        mBuffers = malloc(sizeof(AudioQueueBufferRef) * kNumberBuffers);
-        bufferByteSize = calculateBufferSize(&df, secondsPerBuffer);
+        _audioBuffers = malloc(sizeof(AudioQueueBufferRef) * _numBuffers);
+        _bufferSizeBytes = calculateBufferSize(&_audioDescription, secondsPerBuffer);
     }
     return self;
 }
 
 - (void) dealloc {
     [self stopCapturing];
-    OSStatus result = AudioQueueDispose(mQueue, true);
+    OSStatus result = AudioQueueDispose(_audioQueue, true);
     HandleResultOSStatus(result, @"Disposing of audio input queue", true);
     
-    free(mBuffers);
-    mIsRunning = false;
+    free(_audioBuffers);
+    _queueSetup = false;
 }
 
 - (void) inputThreadEntryPoint: var {
-    OSStatus result = AudioQueueNewInput(&df,
+    OSStatus result = AudioQueueNewInput(&_audioDescription,
                                          HandleInputBuffer,
                                          (__bridge void *)(self),
                                          CFRunLoopGetCurrent(),
                                          kCFRunLoopCommonModes,
                                          0, // Reserved, must be 0
-                                         &mQueue);
+                                         &_audioQueue);
     
     HandleResultOSStatus(result, @"Initializing audio input queue", true);
     
-    for (int i = 0; i < kNumberBuffers; ++i) {
-        result = AudioQueueAllocateBuffer(mQueue,
-                                          bufferByteSize,
-                                          &mBuffers[i]);
+    for (int i = 0; i < _numBuffers; ++i) {
+        result = AudioQueueAllocateBuffer(_audioQueue,
+                                          _bufferSizeBytes,
+                                          &_audioBuffers[i]);
         HandleResultOSStatus(result, @"Allocating audio input queue buffer", true);
         
         //ByteBuffer* byteBuffer = [[ByteBuffer alloc] initWithSize:bufferByteSize];
         //[_audioToByteBufferMap setObject:byteBuffer forKey: [NSNumber numberWithInteger:(long)mBuffers[i]]];
         
-        AudioQueueEnqueueBuffer(mQueue,
-                                mBuffers[i],
+        AudioQueueEnqueueBuffer(_audioQueue,
+                                _audioBuffers[i],
                                 0,
                                 NULL);
         
         HandleResultOSStatus(result, @"Enqueing initial audio input buffer", true);
     }
     
-    mCurrentPacket = 0;
-    mIsRunning = true;
-    
-    isRecording = false;
+    _queueSetup = true;
+    _isRecording = false;
 
     [_outputThreadStartupSignal signal];
     
@@ -120,26 +114,26 @@
 }
 
 - (void) setOutputSession: (id<NewPacketDelegate>)output {
-    outputSession = output;
+    _outputSession = output;
 }
 
 - (AudioStreamBasicDescription*) getAudioDescription {
-    return &df;
+    return &_audioDescription;
 }
 
 - (void) startCapturing {
-    if(!isRecording && mIsRunning) {
-        OSStatus result = AudioQueueStart(mQueue, NULL);
+    if(!_isRecording && _queueSetup) {
+        OSStatus result = AudioQueueStart(_audioQueue, NULL);
         HandleResultOSStatus(result, @"Starting audio input queue", true);
-        isRecording = true;
+        _isRecording = true;
     }
 }
 
 - (void) stopCapturing {
-    if(isRecording && mIsRunning) {
-        OSStatus result = AudioQueueStop(mQueue, TRUE);
+    if(_isRecording && _queueSetup) {
+        OSStatus result = AudioQueueStop(_audioQueue, TRUE);
         HandleResultOSStatus(result, @"Stopping audio input queue", true);
-        isRecording = false;
+        _isRecording = false;
     }
 }
 
@@ -148,7 +142,7 @@
 //}
 
 - (id<NewPacketDelegate>) getOutputSession {
-    return outputSession;
+    return _outputSession;
 }
 
 - (uint) getLeftPadding {
@@ -179,7 +173,7 @@ static void HandleInputBuffer(void *aqData,
     } else {
         NSLog(@"Received empty input buffer from audio input");
     }
-    OSStatus result = AudioQueueEnqueueBuffer(obj->mQueue, inBuffer, 0, NULL);
+    OSStatus result = AudioQueueEnqueueBuffer(obj->_audioQueue, inBuffer, 0, NULL);
     HandleResultOSStatus(result, @"Enqueing audio input buffer", true);
 }
 

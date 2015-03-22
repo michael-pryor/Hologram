@@ -36,7 +36,20 @@
 }
 @end
 
-
+@implementation OfflineAudioProcessor : PipelineProcessor
+- (id)initWithOutputSession:(id<NewPacketDelegate>)outputSession {
+    self = [super initWithOutputSession: outputSession];
+    if(self) {
+        
+    }
+    return self;
+}
+- (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
+    // Skip the left padding, since we don't need this when not using networking.
+    [packet setCursorPosition:sizeof(uint)];
+    [_outputSession onNewPacket:packet fromProtocol:protocol];
+}
+@end
 
 
 #define AUDIO_ID 1
@@ -57,10 +70,13 @@
     
     EncodingPipe* _encodingPipeAudio;
     
+    OfflineAudioProcessor* _offlineAudioProcessor;
+    
     // Both audio and video.
     DecodingPipe* _decodingPipe;
     
     id<NewPacketDelegate> _networkOutputSession;
+    
     
     
     bool _connected;
@@ -94,14 +110,15 @@
         _encodingPipeAudio = [[EncodingPipe alloc] initWithOutputSession:networkOutputSession andPrefixId:AUDIO_ID];
         
         
-        Float64 secondsPerBuffer = 1;
+        Float64 secondsPerBuffer = 0.25;
         uint numBuffers = 3;
         
         _soundEncoder = [[SoundMicrophone alloc] initWithOutputSession:nil numBuffers:numBuffers leftPadding:sizeof(uint) secondPerBuffer:secondsPerBuffer];
         _soundPlayback = [[SoundPlayback alloc] initWithAudioDescription:[_soundEncoder getAudioDescription] secondsPerBuffer:secondsPerBuffer numBuffers:numBuffers restartPlaybackThreshold:2 maxPendingAmount:2];
+        _offlineAudioProcessor = [[OfflineAudioProcessor alloc] initWithOutputSession:_soundPlayback];
         
         [_decodingPipe addPrefix:AUDIO_ID mappingToOutputSession:_soundPlayback];
-        [_soundEncoder setOutputSession:_soundPlayback];
+        [_soundEncoder setOutputSession:_offlineAudioProcessor];
         
         NSLog(@"Initializing playback and recording...");
         [_soundEncoder start];
@@ -152,7 +169,7 @@
     _connected = status == P_CONNECTED;
     
     if(!_connected) {
-        [_soundEncoder setOutputSession:_soundPlayback];
+        [_soundEncoder setOutputSession:_offlineAudioProcessor];
     } else {
         [_soundEncoder setOutputSession:_encodingPipeAudio];
     }
