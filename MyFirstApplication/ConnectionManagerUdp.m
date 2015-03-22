@@ -7,6 +7,7 @@
 //
 
 #import "ConnectionManagerUdp.h"
+#import "Signal.h"
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <fcntl.h>
@@ -20,15 +21,17 @@
     dispatch_source_t _dispatch_source;
     id<NewPacketDelegate> _newPacketDelegate;
     ByteBuffer* _recvBuffer;
+    Signal* _closingNotInProgress;
 }
 
 - (id) initWithNewPacketDelegate:(id<NewPacketDelegate>)newPacketDelegate andNumSockets:(uint)numSockets {
     self = [super init];
     if(self) {
-        _gcd_queue = dispatch_queue_create("ConnectionManagerUdp", NULL);
         _socket = 0;
         _newPacketDelegate = newPacketDelegate;
         _recvBuffer = [[ByteBuffer alloc] init];
+        _closingNotInProgress = [[Signal alloc] initWithFlag:true];
+        _gcd_queue = dispatch_queue_create("ConnectionManagerUdp", NULL);
     }
     return self;
 }
@@ -46,10 +49,11 @@
 }
 
 - (void) close {
-    if([self isConnected]) {
-        NSLog(@"Closing existing UDP socket");
-        close(_socket);
-        _socket = 0;
+    [_closingNotInProgress wait];
+    if([self isConnected] && dispatch_source_testcancel(_dispatch_source) == 0) {
+        NSLog(@"Signaling UDP socket closure");
+        [_closingNotInProgress clear];
+        dispatch_source_cancel(_dispatch_source);
     }
 }
 
@@ -73,7 +77,7 @@
     
         // This would cause buffer overrun and indicates a serious bug somewhere (probably not in our code though *puts on sunglasses slowly*).
         if(realAmountReceived == -1) {
-            NSLog(@"Serious receive error detected");
+            NSLog(@"Serious receive error detected while attempting to receive UDP data");
             [self validateResult:-1];
             return;
         }
@@ -109,6 +113,12 @@
     _dispatch_source = dispatch_source_create(DISPATCH_SOURCE_TYPE_READ, _socket, 0, _gcd_queue);
     dispatch_source_set_event_handler(_dispatch_source, ^{
         [self onRecv];
+    });
+    dispatch_source_set_cancel_handler(_dispatch_source, ^{
+        NSLog(@"Closing UDP socket");
+        close(_socket);
+        _socket = 0;
+        [_closingNotInProgress signalAll];
     });
     dispatch_resume(_dispatch_source);
 }
