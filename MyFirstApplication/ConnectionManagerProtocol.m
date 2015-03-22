@@ -133,13 +133,8 @@ uint NUM_SOCKETS = 1;
 - (void) sendUdpLogonHash: (ByteBuffer*)bufferToSend {
     if(_connectionStatus == P_WAITING_FOR_UDP_HASH_ACK) {
         NSLog(@"Sending UDP hash logon attempt..");
-        ByteBuffer* primary = [[ByteBuffer alloc] initFromByteBuffer:bufferToSend];
-        [primary addUnsignedInteger:1];
-        
-        ByteBuffer* secondary = [[ByteBuffer alloc] initFromByteBuffer:bufferToSend];
-        [secondary addUnsignedInteger:0];
-        
-        [_udpConnection sendBufferToPrimary:primary andToSecondary:secondary];
+      
+        [_udpConnection sendBuffer:bufferToSend];
         [self triggerUdpLogonHashSendAsync:bufferToSend]; // We need to repeatedly send this until timeout.
     }
 }
@@ -210,7 +205,6 @@ uint NUM_SOCKETS = 1;
         ByteBuffer* theLogonBuffer = [[ByteBuffer alloc] init];
         [theLogonBuffer addUnsignedInteger:100];                // version
         [theLogonBuffer addString:@"My name is Michael"];       // login name
-        [theLogonBuffer addUnsignedInteger:[_udpConnection numSockets]];
         [self sendTcpPacket:theLogonBuffer];
     } else {
         [self shutdownWithDescription:@"Invalid TCP state"];

@@ -76,12 +76,12 @@ class UdpConnectionLinker(object):
         logger.info("UDP connection with hash [%s] was prematurely aborted" % udpHash)
         self.waiting_hashes.remove(UdpConnectionLink(udpHash, waitingClient))
 
-    def registerCompletion(self, udpHash, clientUdp, isSender):
+    def registerCompletion(self, udpHash, clientUdp):
         try:
             hashObj = self.waiting_hashes[UdpConnectionLink(udpHash, None)]
             assert isinstance(hashObj, UdpConnectionLink)
 
-            if hashObj.waiting_client.setUdp(clientUdp, isSender):
+            if hashObj.waiting_client.setUdp(clientUdp):
                 del self.waiting_hashes[hashObj]
 
             logger.info("UDP connection with hash [%s] and connection details [%s] has been established" % (udpHash, unicode(clientUdp.remote_address)))
@@ -108,7 +108,6 @@ class Client(object):
         assert isinstance(udpConnectionLinker, UdpConnectionLinker)
 
         self.udp = None
-        self.udp_secondary = set()
         self.tcp = tcp
         self.tcp.parent = self
         self.connection_status = Client.ConnectionStatus.WAITING_LOGON
@@ -120,19 +119,14 @@ class Client(object):
 
         self.chunks = 0
         self.batch = 0
-        self.expectedNumUdpSockets = 0
 
-    def setUdp(self, clientUdp, isSender):
+    def setUdp(self, clientUdp):
         assert isinstance(clientUdp, ClientUdp)
 
-        if isSender:
-            logger.info("UDP socket which accepts receive data has connected: [%s]" % unicode(clientUdp.remote_address))
-            self.udp = clientUdp;
-        else:
-            logger.info("UDP socket which sends us data only has connected: [%s], %d of %d expected" % (unicode(clientUdp.remote_address), len(self.udp_secondary), self.expectedNumUdpSockets-1))
-            self.udp_secondary.add(clientUdp)
+        logger.info("UDP socket has connected: [%s]" % unicode(clientUdp.remote_address))
+        self.udp = clientUdp;
 
-        if self.udp is not None and len(self.udp_secondary) == (self.expectedNumUdpSockets - 1):
+        if self.udp is not None:
             self.connection_status = Client.ConnectionStatus.CONNECTED
 
             # don't need this anymore.
@@ -154,11 +148,10 @@ class Client(object):
         assert isinstance(packet, ByteBuffer)
         versionNum = packet.getUnsignedInteger()
         loginName = packet.getString()
-        self.expectedNumUdpSockets = packet.getUnsignedInteger()
         hashUdp = self.udp_connection_linker.registerInterestGenerated(self)
 
 
-        logger.info("Login processed with details, version number: [%d], login name: [%s], udp hash: [%s], num UDP sockets expected: [%d]", versionNum, loginName, hashUdp, self.expectedNumUdpSockets)
+        logger.info("Login processed with details, version number: [%d], login name: [%s], udp hash: [%s]", versionNum, loginName, hashUdp)
         return True, hashUdp
 
     def handleTcpPacket(self, packet):
@@ -325,9 +318,7 @@ class Server(ClientFactory, protocol.DatagramProtocol):
             logger.warn("Malformed hash received in unknown UDP packet, discarding")
             return
 
-        isSender = data.getUnsignedInteger() > 0
-
-        registeredClient = self.udp_connection_linker.registerCompletion(theHash, ClientUdp(remoteAddress, self.transport.write), isSender)
+        registeredClient = self.udp_connection_linker.registerCompletion(theHash, ClientUdp(remoteAddress, self.transport.write))
 
         if registeredClient:
             if remoteAddress not in self.clientsByUdpAddress:
