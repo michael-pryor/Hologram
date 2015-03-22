@@ -6,9 +6,9 @@
 //
 //
 
-#import "Encoding.h"
+#import "VideoEncoding.h"
 
-@implementation Encoding {
+@implementation VideoEncoding {
     NSString * _sessionPreset;
 }
 - (id) init {

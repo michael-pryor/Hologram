@@ -9,7 +9,7 @@
 @import AVFoundation;
 #import "ByteBuffer.h"
 
-@interface Encoding : NSObject
+@interface VideoEncoding : NSObject
 @property (readonly) uint bytesPerRow;
 @property (readonly) uint height;
 @property (readonly) uint totalSize;

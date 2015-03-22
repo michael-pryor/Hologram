@@ -6,22 +6,22 @@
 //
 //
 
-#import "Encoding.h"
+#import "VideoEncoding.h"
 #import "OutputSessionTcp.h"
 #import "MediaController.h"
 #import "BatcherInput.h"
 #import "BatcherOutput.h"
-#import "SoundEncoding.h"
+#import "SoundMicrophone.h"
 #import "SoundPlayback.h"
 #import "EncodingPipe.h"
 #import "DecodingPipe.h"
 
 @implementation PacketToImageProcessor {
     id<NewImageDelegate> _newImageDelegate;
-    Encoding* _videoEncoder;
+    VideoEncoding* _videoEncoder;
 }
 
-- (id)initWithImageDelegate:(id<NewImageDelegate>)newImageDelegate encoder:(Encoding*)videoEncoder {
+- (id)initWithImageDelegate:(id<NewImageDelegate>)newImageDelegate encoder:(VideoEncoding*)videoEncoder {
     self = [super init];
     if(self) {
 	    _newImageDelegate = newImageDelegate;
@@ -45,14 +45,14 @@
     // Video
     AVCaptureSession* _session;
     id<NewImageDelegate> _newImageDelegate;
-    Encoding* _mediaEncoder;
+    VideoEncoding* _mediaEncoder;
     BatcherInput* _batcherInput;
     BatcherOutput* _batcherOutput;
     
     EncodingPipe* _encodingPipeVideo;
     
     // Audio
-    SoundEncoding* _soundEncoder;
+    SoundMicrophone* _soundEncoder;
     SoundPlayback* _soundPlayback;
     
     EncodingPipe* _encodingPipeAudio;
@@ -77,7 +77,7 @@
         // Video frames from this device are sent to a callback in this class.
 	    _newImageDelegate = newImageDelegate;
 
-        _mediaEncoder = [[Encoding alloc] init];
+        _mediaEncoder = [[VideoEncoding alloc] init];
         _session = [_mediaEncoder setupCaptureSessionWithDelegate: self];
 
         PacketToImageProcessor * p = [[PacketToImageProcessor alloc] initWithImageDelegate:newImageDelegate encoder:_mediaEncoder];
@@ -93,7 +93,7 @@
         // Audio.
         _encodingPipeAudio = [[EncodingPipe alloc] initWithOutputSession:networkOutputSession andPrefixId:AUDIO_ID];
         
-        _soundEncoder = [[SoundEncoding alloc] initWithOutputSession:nil andLeftPadding:sizeof(uint)];
+        _soundEncoder = [[SoundMicrophone alloc] initWithOutputSession:nil andLeftPadding:sizeof(uint)];
         _soundPlayback = [[SoundPlayback alloc] initWithAudioDescription:[_soundEncoder getAudioDescription]];
         
         [_decodingPipe addPrefix:AUDIO_ID mappingToOutputSession:_soundPlayback];

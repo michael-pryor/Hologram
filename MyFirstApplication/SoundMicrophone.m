@@ -6,7 +6,7 @@
 //
 //
 
-#import "SoundEncoding.h"
+#import "SoundMicrophone.h"
 #import "SoundEncodingShared.h"
 #import "Signal.h"
 #include <unistd.h>
@@ -15,7 +15,7 @@ static const int kNumberBuffers = 1;
 
 
 
-@implementation SoundEncoding {
+@implementation SoundMicrophone {
     bool isRecording;
     AudioQueueRef                mQueue;
     AudioQueueBufferRef          mBuffers[kNumberBuffers];
@@ -165,7 +165,7 @@ static void HandleInputBuffer(void *aqData,
                               UInt32 inNumPackets,
                               const AudioStreamPacketDescription *inPacketDesc)
 {
-    SoundEncoding* obj = (__bridge SoundEncoding *)(aqData);
+    SoundMicrophone* obj = (__bridge SoundMicrophone *)(aqData);
     uint leftPadding = [obj getLeftPadding];
     uint size = leftPadding + inBuffer->mAudioDataByteSize;
     

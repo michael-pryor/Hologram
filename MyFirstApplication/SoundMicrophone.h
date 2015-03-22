@@ -10,7 +10,7 @@
 #include <AudioToolbox/AudioQueue.h>
 #import "InputSessionBase.h"
 
-@interface SoundEncoding : NSObject
+@interface SoundMicrophone : NSObject
 - (id) initWithLeftPadding: (uint)padding;
 - (id) initWithOutputSession: (id<NewPacketDelegate>)output andLeftPadding:(uint)padding;
 - (void) startCapturing;
