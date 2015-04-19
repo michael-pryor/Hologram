@@ -264,6 +264,9 @@
         newSize += sizeof(uint);
     }
     [self increaseMemorySize:newSize];
+    if([self bufferUsedSize] < newSize) {
+        _bufferUsedSize = newSize;
+    }
     if(includePrefix) {
         [self addUnsignedInteger:length atPosition:position];
         position += sizeof(uint);

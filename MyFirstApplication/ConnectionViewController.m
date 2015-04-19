@@ -40,7 +40,15 @@
 }
 
 - (IBAction)onConnectButtonClick:(id)sender {
-    static NSString *const CONNECT_IP = @"192.168.1.92";
+    static NSString *const CONNECT_IP = @"212.227.84.229"; // remote machine (paid hosting).
+    static const int CONNECT_PORT_TCP = 12340;
+    static const int CONNECT_PORT_UDP = 12341;
+    [_connection shutdown];
+    [_connection connectToTcpHost:CONNECT_IP tcpPort:CONNECT_PORT_TCP udpHost:CONNECT_IP udpPort:CONNECT_PORT_UDP];
+}
+
+- (IBAction)onLocalConnectButtonClick:(id)sender {
+    static NSString *const CONNECT_IP = @"192.168.1.92"; // local arden crescent network.
     static const int CONNECT_PORT_TCP = 12340;
     static const int CONNECT_PORT_UDP = 12341;
     [_connection shutdown];

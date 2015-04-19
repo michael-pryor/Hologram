@@ -15,11 +15,11 @@
     NSMutableDictionary* _batches;
     uint _chunkSize;
     uint _numChunks;
-    uint _numChunksThreshold;
+    float _numChunksThreshold;
     double _timeoutMs;
     double _batchRemovalTimeout;
 }
-- (id)initWithOutputSession:(id<NewPacketDelegate>)outputSession chunkSize:(uint)chunkSize numChunks:(uint)numChunks andNumChunksThreshold:(uint)numChunksThreshold andTimeoutMs:(uint)timeoutMs {
+- (id)initWithOutputSession:(id<NewPacketDelegate>)outputSession chunkSize:(uint)chunkSize numChunks:(uint)numChunks andNumChunksThreshold:(float)numChunksThreshold andTimeoutMs:(uint)timeoutMs {
     self = [super initWithOutputSession:outputSession];
     if(self) {
         _batches = [[NSMutableDictionary alloc] init];

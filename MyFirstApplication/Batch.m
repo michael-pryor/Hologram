@@ -12,8 +12,9 @@
 @implementation Batch {
     uint _chunksReceived;
     uint _chunkSize;
-    uint _numChunksThreshold;
+    float _numChunksThreshold;
     uint _totalChunks;
+    Boolean _totalChunksIsPreset;
     double _timeoutSeconds;
     ByteBuffer* _partialPacket;
     NSTimer* _timer;
@@ -22,7 +23,13 @@
 
 - (void)onTimeout:(NSTimer*)timer {
     //NSLog(@"Timed out with chunks received: %ul and threshold: %ul", _chunksReceived, _numChunksThreshold);
-    if(_chunksReceived >= _numChunksThreshold) {
+    if(_totalChunks == 0) { // value not loaded yet.
+        return;
+    }
+    
+    uint integerNumChunksThreshold = _numChunksThreshold * (float)_totalChunks;
+    
+    if(_chunksReceived >= integerNumChunksThreshold) {
         @synchronized(_partialPacket) {
             if(!_hasOutput) {
                 [_outputSession onNewPacket:_partialPacket fromProtocol:UDP];
@@ -32,13 +39,14 @@
     }
 }
 
-- (id)initWithOutputSession:(id<NewPacketDelegate>)outputSession chunkSize:(uint)chunkSize numChunks:(uint)numChunks andNumChunksThreshold:(uint)numChunksThreshold andTimeoutSeconds:(double)timeoutSeconds {
+- (id)initWithOutputSession:(id<NewPacketDelegate>)outputSession chunkSize:(uint)chunkSize numChunks:(uint)numChunks andNumChunksThreshold:(float)numChunksThreshold andTimeoutSeconds:(double)timeoutSeconds {
     self = [super initWithOutputSession:outputSession];
     if(self) {
         _chunksReceived = 0;
         _numChunksThreshold = numChunksThreshold;
         _chunkSize = chunkSize;
         _totalChunks = numChunks;
+        _totalChunksIsPreset = _totalChunks != 0;
         _partialPacket = [[ByteBuffer alloc] initWithSize:numChunks * chunkSize];
         [_partialPacket setUsedSize: [_partialPacket bufferMemorySize]];
         _timeoutSeconds = timeoutSeconds;
@@ -59,6 +67,15 @@
     _chunksReceived += 1;
     
     uint chunkId = [packet getUnsignedInteger];
+    
+    // Total chunks may be unknown, in which case each chunk also contains
+    // a total chunks field.
+    if(_totalChunks == 0) {
+        _totalChunks = [packet getUnsignedInteger]; // use total chunks field.
+    } else if(!_totalChunksIsPreset) {
+        [packet getUnsignedInteger]; // discard total chunks field.
+    }
+    
     uint buffPosition = [self getBufferPositionFromChunkId: chunkId];
     
     // Copy contents of chunk packet into partial packet.

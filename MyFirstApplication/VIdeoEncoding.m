@@ -17,12 +17,7 @@
         _sessionPreset = AVCaptureSessionPresetLow;
         
         if(_sessionPreset == AVCaptureSessionPresetLow) {
-            _bytesPerRow = 576;
-            _height = 192;
-            _totalSize = _bytesPerRow * _height;
-            
-            _suggestedBatchSize = _bytesPerRow * 2;
-            _suggestedBatches = _height / 2;
+            _suggestedBatchSize = 128;
         } else {
             [NSException raise:@"Invalid session preset" format:@"Session preset must be preconfigured in code"];
         }
@@ -72,92 +67,84 @@
 }
 
 - (AVCaptureSession *) setupCaptureSessionWithDelegate: (id<AVCaptureVideoDataOutputSampleBufferDelegate>) delegate {
+    // AVCaptureSession contains all information about the video input.
+    //
+    // An AVCaptureSession receives data from AVCaptureDeviceInput, optionally maniuplates this data
+    // (e.g. compression) and then passes it to an AVCaptureDeviceOutput instance.
     AVCaptureSession* session = [[AVCaptureSession alloc] init];
+    session.sessionPreset = _sessionPreset; // Set the video quality.
     
-    session.sessionPreset = _sessionPreset;
-    
-    // access input device.
-    AVCaptureDevice *device;
-    NSArray* devices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
-    for(AVCaptureDevice* d in devices) {
-        if([d position] == AVCaptureDevicePositionFront) {
-            device = d;
-            break;
+    // Setup AVCaptureDeviceInput and load this into the session.
+    {
+        AVCaptureDeviceInput *input;
+        {
+            // Select the AVCaptureDevice, choose the front facing camera.
+            AVCaptureDevice *device;
+            NSArray* devices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
+            for(AVCaptureDevice* d in devices) {
+                if([d position] == AVCaptureDevicePositionFront) {
+                    device = d;
+                    break;
+                }
+            }
+            
+            // From the device, create an AVCaptureDeviceInput.
+            // This initializes the device, the camera is now active.
+            NSError *error = nil;
+            input = [AVCaptureDeviceInput deviceInputWithDevice:device error:&error];
+            if (!input) {
+                NSLog(@"Could not access input device: %@", error);
+            }
         }
+
+        // Load the chosen AVCaptureDeviceInput into the AVCaptureSession
+        [session addInput:input];
     }
     
-    
-    NSError *error = nil;
-    AVCaptureDeviceInput *input = [AVCaptureDeviceInput deviceInputWithDevice:device error:&error];
-    if (!input) {
-        NSLog(@"Could not access input device: %@", error);
-    }
-    
-    // add input device to session.
-    [session addInput:input];
-    
-    // setup output session.
+
+    // Setup AVCaptureVideoDataOutput
     AVCaptureVideoDataOutput *output = [[AVCaptureVideoDataOutput alloc] init];
+        
+    // Load AVCaptureVideoDataOutput into AVCaptureSession
     [session addOutput:output];
     
+     // Set video orientation and frame rate.
     AVCaptureConnection *conn = [output connectionWithMediaType:AVMediaTypeVideo];
     [conn setVideoOrientation:AVCaptureVideoOrientationPortrait];
-    
     conn.videoMinFrameDuration = CMTimeMake(1, 20);
+   
+    NSArray* availableVideoCodecs = [output availableVideoCVPixelFormatTypes];
+    for(NSString* codec in availableVideoCodecs) {
+        NSLog(@"Codec available: %@", codec);
+    }
     
+    // Set video encoding settings.
     output.videoSettings = @{ (NSString *)kCVPixelBufferPixelFormatTypeKey : @(kCVPixelFormatType_32BGRA) };
     
+    // Pass video output to delegate function (parameter of this method).
     dispatch_queue_t queue = dispatch_queue_create("CameraOutputQueue", NULL);
-    
-    // tell output session to use newly created queue, and push to captureOutput function.
     [output setSampleBufferDelegate:delegate queue:queue];
-    
+
+
     return session;
 }
 
-- (void) addImage:(CMSampleBufferRef)image toByteBuffer:(ByteBuffer*)buffer {
-    CVImageBufferRef imageBuffer = CMSampleBufferGetImageBuffer(image);
-    
-    CVPixelBufferLockBaseAddress(imageBuffer, 0);
-    
-    void *baseAddress = CVPixelBufferGetBaseAddress(imageBuffer);
-    uint bytes = (uint)CVPixelBufferGetDataSize(imageBuffer);
-    uint width = (uint)CVPixelBufferGetWidth(imageBuffer);
-
-    uint height = (uint)CVPixelBufferGetHeight(imageBuffer);
-    uint bytesPerRow = (uint)CVPixelBufferGetBytesPerRow(imageBuffer);
-    
-    [buffer addVariableLengthData: baseAddress withLength: bytesPerRow * height includingPrefix:false];
-    
-    CVPixelBufferUnlockBaseAddress(imageBuffer,0);
+- (void) addImage:(void*)data withLength:(uint)length toByteBuffer:(ByteBuffer*)buffer {
+    [buffer addVariableLengthData:data withLength:length includingPrefix:false];
 }
 
+- (void) addImage:(CMSampleBufferRef)image toByteBuffer:(ByteBuffer*)buffer {
+    // With compression.
+    UIImage* imageObject = [self imageFromSampleBuffer:image];
+    NSData* data = UIImageJPEGRepresentation(imageObject, 0.5);
+    [self addImage:(void*)[data bytes] withLength:(uint)[data length] toByteBuffer:buffer];
+}
+
+
 - (UIImage*) getImageFromByteBuffer:(ByteBuffer*)byteBuffer {
-    // Create a device-dependent RGB color space
-    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
-    
-    uint bytesPerRow = 576;//[_buffer getUnsignedInteger];
-    uint width = 144;//[_buffer getUnsignedInteger];
-    uint height = 192;//[_buffer getUnsignedInteger];
-    
-    
-    uint8_t * buffer = [byteBuffer buffer] + [byteBuffer cursorPosition];
-    
-    // Create a bitmap graphics context with the sample buffer data
-    CGContextRef context = CGBitmapContextCreate(buffer, width, height, 8,
-                                                 bytesPerRow, colorSpace, kCGBitmapByteOrder32Little | kCGImageAlphaPremultipliedFirst);
-    // Create a Quartz image from the pixel data in the bitmap graphics context
-    CGImageRef quartzImage = CGBitmapContextCreateImage(context);
-    
-    // Free up the context and color space
-    CGContextRelease(context);
-    CGColorSpaceRelease(colorSpace);
-    
-    // Create an image object from the Quartz image
-    UIImage *image = [UIImage imageWithCGImage:quartzImage];
-    
-    // Release the Quartz image
-    CGImageRelease(quartzImage);
+    uint8_t* buffer = [byteBuffer buffer] + [byteBuffer cursorPosition];
+    NSData* nsData = [NSData dataWithBytes:buffer length:[byteBuffer getUnreadDataFromCursor]];
+    UIImage* image = [UIImage imageWithData:nsData];
     
     return image;
 }
