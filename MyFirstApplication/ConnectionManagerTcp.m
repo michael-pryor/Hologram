@@ -23,7 +23,7 @@
     NSThread* _outputThread;
 }
 
-- (id) initWithDelegate: (id<ConnectionStatusDelegateTcp>)connectionStatusDelegate inputSession: (id<NewDataDelegate>)inputSession outputSession: (OutputSessionTcp*)outputSession {
+- (id) initWithConnectionStatusDelegate: (id<ConnectionStatusDelegateTcp>)connectionStatusDelegate inputSession: (id<NewDataDelegate>)inputSession outputSession: (OutputSessionTcp*)outputSession {
     self = [super init];
     if(self) {
         _connectionStatusDelegate = connectionStatusDelegate;
@@ -51,7 +51,7 @@
 }
 
 - (void) connectToHost: (NSString*)host andPort: (ushort)port; {
-    [_connectionStatusDelegate connectionStatusChange:T_CONNECTING withDescription:@"Connecting"];
+    [_connectionStatusDelegate connectionStatusChangeTcp:T_CONNECTING withDescription:@"Connecting"];
 
     CFReadStreamRef readStream;
     CFWriteStreamRef writeStream;
@@ -115,7 +115,7 @@
 - (void) closeStream: (NSStream*)stream withStatus: (ConnectionStatusTcp)status andReason: (NSString*)reason {
     [self closeStream: stream];
     NSString * description = [NSString localizedStringWithFormat:@"Connection closed, with reason: %@", reason];
-    [_connectionStatusDelegate connectionStatusChange:status withDescription:description];
+    [_connectionStatusDelegate connectionStatusChangeTcp:status withDescription:description];
 }
 
 - (void) closeStream: (NSStream*) stream {
@@ -150,7 +150,7 @@
         case NSStreamEventOpenCompleted:
             // Send for only one stream, don't want to duplicate the message.
             if(isOutputStream) {
-                [_connectionStatusDelegate connectionStatusChange:T_CONNECTED withDescription:@"Connection open"];
+                [_connectionStatusDelegate connectionStatusChangeTcp:T_CONNECTED withDescription:@"Connection open"];
             }
             break;
             

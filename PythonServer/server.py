@@ -18,6 +18,7 @@ from utility import DataConstants
 
 from byte_buffer import ByteBuffer
 import uuid
+from threading import Lock
 
 class UdpConnectionLink(object):
     def __init__(self, udpHash, waitingClient):
@@ -120,6 +121,8 @@ class Client(object):
         self.chunks = 0
         self.batch = 0
 
+        self.client_lock = Lock()
+
     def setUdp(self, clientUdp):
         assert isinstance(clientUdp, ClientUdp)
 
@@ -148,8 +151,16 @@ class Client(object):
         assert isinstance(packet, ByteBuffer)
         versionNum = packet.getUnsignedInteger()
         loginName = packet.getString()
-        hashUdp = self.udp_connection_linker.registerInterestGenerated(self)
 
+        # Reconnection attempt, UDP hash included in logon.
+        if packet.used_size != packet.cursor_position:
+            hashUdp = packet.getString()
+            if hashUdp not in self.udp_connection_linker.clientsByUdpHash:
+                return False, "Hash timed out, please reconnect fresh"
+
+            logger.info("Reconnect accepted, hash: %s", hashUdp)
+        else:
+            hashUdp = self.udp_connection_linker.registerInterestGenerated(self)
 
         logger.info("Login processed with details, version number: [%d], login name: [%s], udp hash: [%s]", versionNum, loginName, hashUdp)
         return True, hashUdp
@@ -274,6 +285,8 @@ class Server(ClientFactory, protocol.DatagramProtocol):
         self.clients = set()
         self.udp_connection_linker = UdpConnectionLinker()
         self.clientsByUdpAddress = dict()
+        self.clientsByUdpHash = dict()
+        self.udp_connection_linker.clientsByUdpHash = self.clientsByUdpHash
 
     def startedConnecting(self, connector):
         logger.info('Started to connect.')
@@ -322,9 +335,10 @@ class Server(ClientFactory, protocol.DatagramProtocol):
 
         if registeredClient:
             if remoteAddress not in self.clientsByUdpAddress:
-                self.clientsByUdpAddress[remoteAddress] = registeredClient
-
                 if registeredClient.connection_status == Client.ConnectionStatus.CONNECTED:
+                    self.clientsByUdpAddress[remoteAddress] = registeredClient
+                    self.clientsByUdpHash[theHash] = registeredClient
+
                     successPing = ByteBuffer()
                     successPing.addUnsignedInteger(Client.UdpOperationCodes.OP_ACCEPT_UDP)
 
@@ -332,6 +346,26 @@ class Server(ClientFactory, protocol.DatagramProtocol):
                     registeredClient.tcp.sendByteBuffer(successPing)
 
                     logger.info("Client successfully connected, sent success ack")
+        else:
+            # not a new client, possibly a client reconnecting.
+            existingClient = self.clientsByUdpHash.get(theHash)
+            if existingClient is not None:
+                assert isinstance(existingClient, Client)
+                assert isinstance(existingClient.udp, ClientUdp)
+
+                existingClient.client_lock.acquire()
+                try:
+                    oldUdpRemoteAddress = existingClient.udp.remote_address
+                    if oldUdpRemoteAddress != remoteAddress:
+                        logger.info("Updating clients remote address from %s to %s", (oldUdpRemoteAddress, remoteAddress))
+                        del self.clientsByUdpAddress[oldUdpRemoteAddress]
+                        self.clientsByUdpAddress[remoteAddress] = existingClient
+                        existingClient.udp.remote_address = remoteAddress
+                    else:
+                        logger.info("Client reconnected with same address: %s" % remoteAddress)
+                finally:
+                    existingClient.client_lock.release()
+
 
 if __name__ == "__main__":
     logging.basicConfig(level = logging.DEBUG)

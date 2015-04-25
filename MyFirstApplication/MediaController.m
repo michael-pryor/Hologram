@@ -101,7 +101,7 @@
         _encodingPipeVideo = [[EncodingPipe alloc] initWithOutputSession:networkOutputSession andPrefixId:VIDEO_ID];
         
         _batcherOutput = [[BatcherOutput alloc] initWithOutputSession:_encodingPipeVideo andChunkSize:[_mediaEncoder suggestedBatchSize] withLeftPadding:sizeof(uint) includeTotalChunks:true];
-        _batcherInput = [[BatcherInput alloc] initWithOutputSession:p chunkSize:[_mediaEncoder suggestedBatchSize] numChunks:0 andNumChunksThreshold:1.0 andTimeoutMs:100];
+        _batcherInput = [[BatcherInput alloc] initWithOutputSession:p chunkSize:[_mediaEncoder suggestedBatchSize] numChunks:0 andNumChunksThreshold:0 andTimeoutMs:100];
 
         [_decodingPipe addPrefix:VIDEO_ID mappingToOutputSession:_batcherInput];
         
@@ -114,7 +114,7 @@
         uint numBuffers = 3;
         
         _soundEncoder = [[SoundMicrophone alloc] initWithOutputSession:nil numBuffers:numBuffers leftPadding:sizeof(uint) secondPerBuffer:secondsPerBuffer];
-        _soundPlayback = [[SoundPlayback alloc] initWithAudioDescription:[_soundEncoder getAudioDescription] secondsPerBuffer:secondsPerBuffer numBuffers:numBuffers restartPlaybackThreshold:2 maxPendingAmount:2];
+        _soundPlayback = [[SoundPlayback alloc] initWithAudioDescription:[_soundEncoder getAudioDescription] secondsPerBuffer:secondsPerBuffer numBuffers:numBuffers restartPlaybackThreshold:3 maxPendingAmount:9];
         _offlineAudioProcessor = [[OfflineAudioProcessor alloc] initWithOutputSession:_soundPlayback];
         
         [_decodingPipe addPrefix:AUDIO_ID mappingToOutputSession:_soundPlayback];

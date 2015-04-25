@@ -8,6 +8,7 @@
 
 #import <Foundation/Foundation.h>
 #import "ConnectionManagerTcp.h"
+#import "ConnectionManagerUdp.h"
 #import "ConnectionManagerBase.h"
 #import "InputSessionBase.h"
 
@@ -23,7 +24,7 @@ typedef enum {
 - (void)connectionStatusChange: (ConnectionStatusProtocol)status withDescription: (NSString*)description;
 @end
 
-@interface ConnectionManagerProtocol : NSObject<ConnectionManagerBase, NewPacketDelegate, ConnectionStatusDelegateTcp>
+@interface ConnectionManagerProtocol : NSObject<ConnectionManagerBase, NewPacketDelegate, ConnectionStatusDelegateTcp, ConnectionStatusDelegateUdp>
 - (id) initWithRecvDelegate:(id<NewPacketDelegate>)recvDelegate andConnectionStatusDelegate:(id<ConnectionStatusDelegateProtocol>)connectionStatusDelegate;
 - (void) connectToTcpHost:(NSString*)tcpHost tcpPort:(ushort)tcpPort udpHost:(NSString*)udpHost udpPort:(ushort)udpPort;
 - (void) shutdownWithDescription:(NSString*)description;
