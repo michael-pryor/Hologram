@@ -357,7 +357,7 @@ class Server(ClientFactory, protocol.DatagramProtocol):
                 try:
                     oldUdpRemoteAddress = existingClient.udp.remote_address
                     if oldUdpRemoteAddress != remoteAddress:
-                        logger.info("Updating clients remote address from %s to %s", (oldUdpRemoteAddress, remoteAddress))
+                        logger.info("Updating clients remote address from %s to %s" % (oldUdpRemoteAddress, remoteAddress))
                         del self.clientsByUdpAddress[oldUdpRemoteAddress]
                         self.clientsByUdpAddress[remoteAddress] = existingClient
                         existingClient.udp.remote_address = remoteAddress
