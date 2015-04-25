@@ -64,11 +64,12 @@ class UdpConnectionLinker(object):
                 return newHash
 
 
-    def registerInterestGenerated(self, waitingClient):
+    def registerInterestGenerated(self, waitingClient, newHash = None):
         while True:
             # it is possible for a race condition to occur where same hash generated at
             # similar time and attempted to be added. Allowing for failure here solves that problem.
-            newHash = self.generateHash()
+            if newHash is None:
+                newHash = self.generateHash()
             success = self.registerInterest(newHash, waitingClient)
             if success:
                 return newHash
@@ -158,6 +159,11 @@ class Client(object):
             if hashUdp not in self.udp_connection_linker.clientsByUdpHash:
                 return False, "Hash timed out, please reconnect fresh"
 
+            # Update dict with new client object (old one is replaced).
+            self.udp_connection_linker.clientsByUdpHash[hashUdp] = self
+
+            # This indicates that a logon ACK should be sent via TCP.
+            hashUdp = self.udp_connection_linker.registerInterestGenerated(self, hashUdp)
             logger.info("Reconnect accepted, hash: %s", hashUdp)
         else:
             hashUdp = self.udp_connection_linker.registerInterestGenerated(self)
@@ -334,18 +340,17 @@ class Server(ClientFactory, protocol.DatagramProtocol):
         registeredClient = self.udp_connection_linker.registerCompletion(theHash, ClientUdp(remoteAddress, self.transport.write))
 
         if registeredClient:
-            if remoteAddress not in self.clientsByUdpAddress:
-                if registeredClient.connection_status == Client.ConnectionStatus.CONNECTED:
-                    self.clientsByUdpAddress[remoteAddress] = registeredClient
-                    self.clientsByUdpHash[theHash] = registeredClient
+            if registeredClient.connection_status == Client.ConnectionStatus.CONNECTED:
+                self.clientsByUdpAddress[remoteAddress] = registeredClient
+                self.clientsByUdpHash[theHash] = registeredClient
 
-                    successPing = ByteBuffer()
-                    successPing.addUnsignedInteger(Client.UdpOperationCodes.OP_ACCEPT_UDP)
+                successPing = ByteBuffer()
+                successPing.addUnsignedInteger(Client.UdpOperationCodes.OP_ACCEPT_UDP)
 
-                    logger.info("Sending fully connected ACK")
-                    registeredClient.tcp.sendByteBuffer(successPing)
+                logger.info("Sending fully connected ACK")
+                registeredClient.tcp.sendByteBuffer(successPing)
 
-                    logger.info("Client successfully connected, sent success ack")
+                logger.info("Client successfully connected, sent success ack")
         else:
             # not a new client, possibly a client reconnecting.
             existingClient = self.clientsByUdpHash.get(theHash)
