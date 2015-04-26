@@ -89,7 +89,7 @@ class UdpConnectionLinker(object):
             logger.info("UDP connection with hash [%s] and connection details [%s] has been established" % (udpHash, unicode(clientUdp.remote_address)))
             return hashObj.waiting_client
         except KeyError:
-            logger.warn("An invalid UDP hash was received from [%s], discarding [%s]" % (unicode(clientUdp.remote_address), unicode(udpHash)))
+            logger.warn("An invalid UDP hash was received from [%s], discarding [%s]" % (unicode(clientUdp.remote_address), udpHash))
 
 
 # Representation of client from server's perspective.
