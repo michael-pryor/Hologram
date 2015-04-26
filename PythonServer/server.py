@@ -352,25 +352,6 @@ class Server(ClientFactory, protocol.DatagramProtocol):
                 registeredClient.tcp.sendByteBuffer(successPing)
 
                 logger.info("Client successfully connected, sent success ack")
-        else:
-            # not a new client, possibly a client reconnecting.
-            existingClient = self.clientsByUdpHash.get(theHash)
-            if existingClient is not None:
-                assert isinstance(existingClient, Client)
-                assert isinstance(existingClient.udp, ClientUdp)
-
-                existingClient.client_lock.acquire()
-                try:
-                    oldUdpRemoteAddress = existingClient.udp.remote_address
-                    if oldUdpRemoteAddress != remoteAddress:
-                        logger.info("Updating clients remote address from %s to %s" % (oldUdpRemoteAddress, remoteAddress))
-                        del self.clientsByUdpAddress[oldUdpRemoteAddress]
-                        self.clientsByUdpAddress[remoteAddress] = existingClient
-                        existingClient.udp.remote_address = remoteAddress
-                    else:
-                        logger.info("Client reconnected with same address: %s" % remoteAddress)
-                finally:
-                    existingClient.client_lock.release()
 
 
 if __name__ == "__main__":

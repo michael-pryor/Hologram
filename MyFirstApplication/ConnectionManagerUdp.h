@@ -14,8 +14,7 @@
 
 typedef enum {
     U_ERROR,
-    U_CONNECTED,
-    U_RECONNECTED
+    U_CONNECTED
 } ConnectionStatusUdp;
 
 @protocol ConnectionStatusDelegateUdp

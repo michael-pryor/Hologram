@@ -25,6 +25,10 @@ uint NUM_SOCKETS = 1;
     return self;
 }
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
+    // Drop until we are connected.
+    if(![_connectionManager isConnected]) {
+        return;
+    }
     [_connectionManager sendTcpPacket:packet];
 }
 @end
@@ -40,6 +44,10 @@ uint NUM_SOCKETS = 1;
     return self;
 }
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
+    // Drop until we are connected.
+    if(![_connectionManager isConnected]) {
+        return;
+    }
     [_connectionManager sendUdpPacket:packet];
 }
 @end
@@ -230,7 +238,7 @@ uint NUM_SOCKETS = 1;
     } else if(status == T_ERROR) {
         if(_connectionStatus != P_NOT_CONNECTED) {
             NSString* rejectDescription = [@"TCP connection failed: " stringByAppendingString:description];
-            NSLog(rejectDescription);
+            NSLog(@"%@",rejectDescription);
             if(![_failureTracker increment]) {
                 [NSThread sleepForTimeInterval:1];
                 NSLog(@"Reconnecting after TCP failure..");
@@ -260,17 +268,10 @@ uint NUM_SOCKETS = 1;
     if(status == U_ERROR) {
         NSString* rejectDescription = [@"UDP connection failed: " stringByAppendingString:description];
         [self shutdownWithDescription:rejectDescription];
+        
+        [self reconnect];
     } else if(status == U_CONNECTED) {
         // TCP handles connection signal, nothing to do here.
-    } else if(status == U_RECONNECTED) {
-        if(_udpHashPacket == nil) {
-            [self connectionStatusChangeUdp:status withDescription:@"UDP connection failed during login process (no hash to resent in reconnect)"];
-            return;
-        }
-        
-        // Send UDP hash to login again.
-        // We might have changed address, so important server can identify us.
-        [self sendUdpLogonHash:_udpHashPacket];        
     } else {
         [self shutdownWithDescription:@"Invalid UDP state"];
     }

@@ -14,7 +14,6 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <dispatch/dispatch.h>
-#include "EventTracker.h"
 
 @implementation ConnectionManagerUdp {
     int _socket;
@@ -24,15 +23,6 @@
     id<ConnectionStatusDelegateUdp> _connectionDelegate;
     ByteBuffer* _recvBuffer;
     Signal* _closingNotInProgress;
-    
-    // Failure tracker is used to say; if we fail to setup socket multiple times in a row, we give up. If however
-    // we fail / succeed / fail / succeed, we continue doing this indefinitely. Sockets fail regularly e.g.
-    // if 3G is unreliabile or switching between 3G and wifi.
-    EventTracker* _failureTracker;
-    
-    // For reconnecting.
-    Boolean _matureConnection;
-    struct sockaddr_in addr;
 }
 
 - (id) initWithNewPacketDelegate:(id<NewPacketDelegate>)newPacketDelegate andConnectionDelegate:(id<ConnectionStatusDelegateUdp>)connectionDelegate andRetryCount:(uint)retryCountMax {
@@ -40,17 +30,10 @@
     if(self) {
         _socket = 0;
         _connectionDelegate = connectionDelegate;
-        _failureTracker = [[EventTracker alloc] initWithMaxEvents:retryCountMax];
         _newPacketDelegate = newPacketDelegate;
         _recvBuffer = [[ByteBuffer alloc] init];
         _closingNotInProgress = [[Signal alloc] initWithFlag:true];
         _gcd_queue = dispatch_queue_create("ConnectionManagerUdp", NULL);
-        _matureConnection = false;
-
-        memset(&addr, 0, sizeof(addr));
-        
-        addr.sin_family = AF_INET;
-        addr.sin_addr.s_addr = INADDR_ANY;
     }
     return self;
 }
@@ -59,27 +42,12 @@
     [self close];
 }
 
-- (void) onSuccess {
-    [_failureTracker reset];
-}
-
 - (void) onFailure {
     int err = errno;
     NSString * description = [NSString localizedStringWithFormat:@"UDP connection failure, with reason: %d", err];
     NSLog(@"%@",description);
     [self close];
-    
-    // UDP sockets fail regularly with blips in 3G connectivity. The same does not appear to be the case for TCP.
-    // To handle this we ignore first few failures and rebuild (and reestablish the 3G connection) straight away.
-    // Protocol is notified of this (higher level user of this class) so that it can recapture the original session.
-    // If interface used (from point of view of server) changes then TCP will also fail, in which case we do a full
-    // reconnect and attempt to reuse old session (this logic is at protocol level).
-    if(![_failureTracker increment]) {
-        [NSThread sleepForTimeInterval:5];
-        [self reconnect];
-    } else {
-        [_connectionDelegate connectionStatusChangeUdp:U_ERROR withDescription:description];
-    }
+    [_connectionDelegate connectionStatusChangeUdp:U_ERROR withDescription:description];
 }
 
 - (void) validateResult: (int)result {
@@ -127,8 +95,6 @@
             return;
         }
         
-        [self onSuccess];
-        
         [_recvBuffer setUsedSize: (uint)realAmountReceived];
     
         //NSLog(@"Received UDP packet of size: %ul", [_recvBuffer bufferUsedSize]);
@@ -138,12 +104,21 @@
     } while(maximumAmountReceivable > 0);
 }
 
-- (void) _doReconnect {
+- (void) connectToHost:(NSString*)host andPort:(ushort)port {
+    [self close];
+        
+    struct sockaddr_in addr;
+    memset(&addr, 0, sizeof(addr));
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = INADDR_ANY;
+    
+    addr.sin_port = htons(port);
+    addr.sin_addr.s_addr = inet_addr([host UTF8String]);
+    
     // Termination of socket happens asynchronously, make sure we don't reconnect
     // midway through termination.
     [_closingNotInProgress wait];
     
-    NSLog(@"Connecting (or reconnecting) UDP socket");
     _socket = socket(AF_INET, SOCK_DGRAM, 0);
     
     [self validateResult: connect(_socket, (const struct sockaddr *)&addr, sizeof(addr))];
@@ -160,33 +135,9 @@
     });
     dispatch_resume(_dispatch_source);
     
-    if(_matureConnection) {
-        [_connectionDelegate connectionStatusChangeUdp:U_RECONNECTED withDescription:@"Successfully reconnected"];
-    } else {
-        [_connectionDelegate connectionStatusChangeUdp:U_CONNECTED withDescription:@"Successfully connected"];
-    }
-}
-
-- (void) reconnect {
-    // So that sockets/streams are owned by main thread.
-    if([NSThread isMainThread]) {
-        [self _doReconnect];
-    } else {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            [self _doReconnect];
-        });
-    }
-}
-
-- (void) connectToHost:(NSString*)host andPort:(ushort)port {
-    [self close];
+    [_connectionDelegate connectionStatusChangeUdp:U_CONNECTED withDescription:@"Successfully connected"];
     
-    addr.sin_port = htons(port);
-    addr.sin_addr.s_addr = inet_addr([host UTF8String]);
-    
-    [self reconnect];
     NSLog(@"Connected UDP socket to host %@ and port %u", host, port);
-    _matureConnection = true;
 }
 
 - (void)onNewPacket:(ByteBuffer *)buffer fromProtocol:(ProtocolType)protocol {
@@ -206,8 +157,6 @@
             NSLog(@"Failed to send message with size: %ul", [buffer bufferUsedSize]);
             [self onFailure];
         }
-    } else {
-        [self onSuccess];
     }
 }
 @end

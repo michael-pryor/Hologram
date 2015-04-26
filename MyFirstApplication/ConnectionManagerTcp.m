@@ -121,7 +121,7 @@
     
     NSLog(@"Terminating run loop and closing streams");
     @try {
-        [self performSelector: @selector(performShutdownInRunLoop) onThread: _outputThread withObject: nil waitUntilDone: true];
+        [self performSelector: @selector(performShutdownInRunLoop) onThread: _outputThread withObject: nil waitUntilDone: false];
     } @catch(NSException* ex) {
         NSLog(@"NSException, oh dear: %@", ex);
     }
@@ -130,7 +130,7 @@
     NSLog(@"Confirmation of closure received");
     
     // Finished shutting down.
-    [_notInProcessOfShuttingDownSignal signalAll];
+    [_notInProcessOfShuttingDownSignal signal];
 }
 
 - (void) restart {
