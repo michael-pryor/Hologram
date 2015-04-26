@@ -51,7 +51,7 @@ uint NUM_SOCKETS = 1;
     OutputSessionTcp* _tcpOutputSession;
     ConnectionStatusProtocol _connectionStatus;
     id<ConnectionStatusDelegateProtocol> _connectionStatusDelegate;
-    Boolean _shutdownCalled;
+    NSObject* _connectionStatusLock;
     
     // For reconnect attempts after TCP failure.
     NSString* _udpHash;
@@ -75,15 +75,21 @@ uint NUM_SOCKETS = 1;
     if(self) {
         _udpHash = nil;
         _udpHashPacket = nil;
-        _shutdownCalled = true;  // no point shutting down an unconnected instance.
         
         _recvDelegate = recvDelegate;
         _connectionStatusDelegate = connectionStatusDelegate;
         _connectionStatus = P_NOT_CONNECTED;
+        _connectionStatusLock = [[NSObject alloc] init];
         
         _failureTracker = [[EventTracker alloc] initWithMaxEvents:5];
         
         [_connectionStatusDelegate connectionStatusChange:P_NOT_CONNECTED withDescription:@"Not yet connected"];
+        
+        InputSessionTCP* tcpSession = [[InputSessionTCP alloc] initWithDelegate:self];
+        _tcpOutputSession = [[OutputSessionTcp alloc] init];
+        _tcpConnection = [[ConnectionManagerTcp alloc] initWithConnectionStatusDelegate:self inputSession:tcpSession outputSession:_tcpOutputSession];
+        
+        _udpConnection = [[ConnectionManagerUdp alloc] initWithNewPacketDelegate:self andConnectionDelegate:self andRetryCount:5];
     }
     return self;
 }
@@ -108,22 +114,10 @@ uint NUM_SOCKETS = 1;
 }
 
 - (void) _doReconnect {
-    if(_connectionStatus != P_NOT_CONNECTED) {
-        [self shutdown];
-    }
-    
-    _shutdownCalled = false;
-    
-    InputSessionTCP* tcpSession = [[InputSessionTCP alloc] initWithDelegate:self];
-    _tcpOutputSession = [[OutputSessionTcp alloc] init];
-    _tcpConnection = [[ConnectionManagerTcp alloc] initWithConnectionStatusDelegate:self inputSession:tcpSession outputSession:_tcpOutputSession];
-    
-    _udpConnection = [[ConnectionManagerUdp alloc] initWithNewPacketDelegate:self andConnectionDelegate:self andRetryCount:5];
+    [_tcpConnection restart];
     
     NSLog(@"Connecting to TCP: %@:%ul, UDP: %@:%ul", _tcpHost, _tcpPort, _udpHost, _udpPort);
-    _connectionStatus = P_CONNECTING;
-    [_connectionStatusDelegate connectionStatusChange:P_CONNECTING withDescription:@"Connecting..."];
-    
+    [self updateConnectionStatus:P_CONNECTING withDescription:@"Connecting..."];
     
     [_tcpConnection connectToHost:_tcpHost andPort:_tcpPort];
     [_udpConnection connectToHost:_udpHost andPort:_udpPort];
@@ -139,10 +133,20 @@ uint NUM_SOCKETS = 1;
     }
 }
 
+- (Boolean) updateConnectionStatus:(ConnectionStatusProtocol)connectionStatus withDescription:(NSString*)description {
+    @synchronized(_connectionStatusLock) {
+        if(_connectionStatus != connectionStatus) {
+            _connectionStatus = connectionStatus;
+            [_connectionStatusDelegate connectionStatusChange:connectionStatus withDescription:description];
+            return true;
+        } else {
+            return false;
+        }
+    }
+}
+
 - (void) shutdownWithDescription:(NSString*)description {
-    if(!_shutdownCalled) {
-        _shutdownCalled = true;
-        [_connectionStatusDelegate connectionStatusChange:P_NOT_CONNECTED withDescription:description];
+    if([self updateConnectionStatus:P_NOT_CONNECTED withDescription:description]) {
         [_tcpConnection shutdown];
         [_udpConnection shutdown];
     }
@@ -202,8 +206,7 @@ uint NUM_SOCKETS = 1;
             } else if(_connectionStatus == P_WAITING_FOR_UDP_HASH_ACK) {
                 if(logon == OP_ACCEPT_UDP) {
                     NSLog(@"UDP hash accepted, fully connected");
-                    _connectionStatus = P_CONNECTED;
-                    [_connectionStatusDelegate connectionStatusChange:P_CONNECTED withDescription:@"Connected!"];
+                    [self updateConnectionStatus:P_CONNECTED withDescription:@"Connected!"];
                 } else {
                     [self shutdownWithDescription:@"Invalid hash ack op code"];
                 }

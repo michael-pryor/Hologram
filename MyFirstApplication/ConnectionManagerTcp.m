@@ -121,6 +121,11 @@
     NSLog(@"Confirmation of closure received");
 }
 
+- (void) restart {
+    [self shutdown];
+    [_outputSession restartSession];
+}
+
 - (Boolean) isConnected {
     return ![_shutdownSignal isSignaled];
 }

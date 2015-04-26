@@ -82,9 +82,6 @@
     [_queue removeObjectAtIndex:0];
     [_lock unlock];
     
-    if(retVal != nil) {
-        
-    }
     return retVal;
 }
 
@@ -105,6 +102,11 @@
 
 - (void)shutdown {
     [self add: nil];
+}
+
+- (void)restartQueue {
+    _queueShutdown = false;
+    [_queue removeAllObjects];
 }
 
 @end

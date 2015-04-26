@@ -16,4 +16,5 @@
 - (unsigned long) getPendingAmount;
 - (id) getImmediate;
 - (void) shutdown;
+- (void) restartQueue;
 @end

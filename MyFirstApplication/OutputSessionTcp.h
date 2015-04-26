@@ -13,4 +13,5 @@
 - (id) init;
 - (void) onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol;
 - (ByteBuffer*) processPacket;
+- (void) restartSession;
 @end

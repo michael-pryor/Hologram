@@ -21,6 +21,10 @@
     return self;
 }
 
+- (void) restartSession {
+    [_queue restartQueue];
+}
+
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
     if(packet != nil) {
         ByteBuffer* prefixed;

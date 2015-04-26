@@ -26,6 +26,7 @@ typedef enum {
 - (id) initWithConnectionStatusDelegate:(id<ConnectionStatusDelegateTcp>)connectionStatusDelegate inputSession:(id<NewDataDelegate>)inputSession outputSession:(OutputSessionTcp*)outputSession;
 - (void) connectToHost: (NSString*)host andPort: (ushort)port;
 - (void) shutdown;
+- (void) restart;
 - (Boolean) isConnected;
 @end
 
