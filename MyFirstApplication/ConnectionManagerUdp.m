@@ -117,7 +117,11 @@
         }
         if(realAmountReceived > maximumAmountReceivable) {
             NSLog(@"Receive error detected: %zu (real) vs %ld (maximum)", realAmountReceived, maximumAmountReceivable);
+            [self onFailure];
+            return;
         }
+        
+        [self onSuccess];
         
         [_recvBuffer setUsedSize: (uint)realAmountReceived];
     
