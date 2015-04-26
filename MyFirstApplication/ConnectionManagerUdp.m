@@ -87,7 +87,7 @@
     if([self isConnected] && dispatch_source_testcancel(_dispatch_source) == 0) {
         NSLog(@"Signaling UDP socket closure");
         [_closingNotInProgress clear];
-        dispatch_source_cancel(_dispatch_source);
+        dispatch_source_cancel(_dispatch_source); // only triggered once, so don't have to worry about multiple calls to this.
     }
 }
 
@@ -129,6 +129,10 @@
 }
 
 - (void) reconnect {
+    // Termination of socket happens asynchronously, make sure we don't reconnect
+    // midway through termination.
+    [_closingNotInProgress wait];
+    
     NSLog(@"Connecting (or reconnecting) UDP socket");
     _socket = socket(AF_INET, SOCK_DGRAM, 0);
     
