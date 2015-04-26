@@ -20,6 +20,7 @@
     ByteBuffer * _currentSendBuffer;
     Signal* _initializedSignal;
     Signal* _shutdownSignal;
+    Signal* _notInProcessOfShuttingDownSignal;
     NSThread* _outputThread;
 }
 
@@ -31,6 +32,7 @@
         _outputSession = outputSession;
         _initializedSignal = [[Signal alloc] initWithFlag:false];
         _shutdownSignal = [[Signal alloc] initWithFlag:true];
+        _notInProcessOfShuttingDownSignal = [[Signal alloc] initWithFlag:true];
     }
     return self;
 }
@@ -51,6 +53,9 @@
 }
 
 - (void) _doConnectToHost: (NSString*)host andPort: (ushort)port {
+    // Do not try to setup a new connection when in the middle of shutting down (thread safety).
+    [_notInProcessOfShuttingDownSignal wait];
+    
     [_connectionStatusDelegate connectionStatusChangeTcp:T_CONNECTING withDescription:@"Connecting"];
     
     CFReadStreamRef readStream;
@@ -83,6 +88,7 @@
 }
 
 - (void) connectToHost: (NSString*)host andPort: (ushort)port; {
+    // So that sockets/streams are owned by main thread.
     if([NSThread isMainThread]) {
         [self _doConnectToHost:host andPort:port];
     } else {
@@ -103,10 +109,13 @@
 }
 
 - (void) shutdown {
-    if(![self isConnected]) {
+    // If no socket to destroy
+    // or already completely shutdown
+    // or already in the process of shutting down (if not, signal is cleared and we allow continuation).
+    if(![self isConnected] || [_shutdownSignal isSignaled] || ![_notInProcessOfShuttingDownSignal clear]) {
         return;
     }
-    
+
     NSLog(@"Waking up output thread");
     [_outputSession onNewPacket:nil fromProtocol:UDP];
     
@@ -119,6 +128,9 @@
     NSLog(@"Waiting for confirmation of closure");
     [_shutdownSignal wait];
     NSLog(@"Confirmation of closure received");
+    
+    // Finished shutting down.
+    [_notInProcessOfShuttingDownSignal signalAll];
 }
 
 - (void) restart {
@@ -132,8 +144,11 @@
 
 - (void) closeStream: (NSStream*)stream withStatus: (ConnectionStatusTcp)status andReason: (NSString*)reason {
     [self closeStream: stream];
-    NSString * description = [NSString localizedStringWithFormat:@"Connection closed, with reason: %@", reason];
-    [_connectionStatusDelegate connectionStatusChangeTcp:status withDescription:description];
+    // Don't report errors upstream if these are errors caused by shutdown process (we don't care, we want it to die).
+    if(![_notInProcessOfShuttingDownSignal isSignaled]) {
+        NSString * description = [NSString localizedStringWithFormat:@"Connection closed, with reason: %@", reason];
+        [_connectionStatusDelegate connectionStatusChangeTcp:status withDescription:description];
+    }
 }
 
 - (void) closeStream: (NSStream*) stream {

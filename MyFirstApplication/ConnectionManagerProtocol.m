@@ -124,13 +124,7 @@ uint NUM_SOCKETS = 1;
 }
 
 - (void) reconnect {
-    if([NSThread isMainThread]) {
-        [self _doReconnect];
-    } else {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            [self _doReconnect];
-        });
-    }
+    [self _doReconnect];
 }
 
 - (Boolean) updateConnectionStatus:(ConnectionStatusProtocol)connectionStatus withDescription:(NSString*)description {
@@ -234,15 +228,17 @@ uint NUM_SOCKETS = 1;
     if(status == T_CONNECTING) {
         // Nothing to do here, we preemptively reported this when starting the connection attempt.
     } else if(status == T_ERROR) {
-        NSString* rejectDescription = [@"TCP connection failed: " stringByAppendingString:description];
-        NSLog(rejectDescription);
-        if(![_failureTracker increment]) {
-            [NSThread sleepForTimeInterval:1];
-            NSLog(@"Reconnecting after TCP failure..");
-            [self reconnect];
-        } else {
-            [self shutdownWithDescription:rejectDescription];
-            NSLog(@"Given up attempting to reconnect after TCP failure");
+        if(_connectionStatus != P_NOT_CONNECTED) {
+            NSString* rejectDescription = [@"TCP connection failed: " stringByAppendingString:description];
+            NSLog(rejectDescription);
+            if(![_failureTracker increment]) {
+                [NSThread sleepForTimeInterval:1];
+                NSLog(@"Reconnecting after TCP failure..");
+                [self reconnect];
+            } else {
+                [self shutdownWithDescription:rejectDescription];
+                NSLog(@"Given up attempting to reconnect after TCP failure");
+            }
         }
     } else if(status == T_CONNECTED) {
         NSLog(@"Connected, sending login request");

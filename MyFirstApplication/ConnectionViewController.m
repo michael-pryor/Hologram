@@ -65,7 +65,7 @@
     [_connection sendTcpPacket:buffer];
 }
 
-- (void)connectionStatusChange:(ConnectionStatusProtocol)status withDescription:(NSString *)description {
+- (void) _doConnectionStatusChange:(ConnectionStatusProtocol)status withDescription:(NSString *)description {
     NSLog(@"Received status change: %u and description: %@", status, description);
     [[self connectionStatus] setText: description];
     
@@ -98,6 +98,19 @@
             [_connection shutdown];
             _connected = false;
             break;
+    }
+}
+
+- (void)connectionStatusChange:(ConnectionStatusProtocol)status withDescription:(NSString *)description {
+    [[self connectionStatus] setNeedsDisplay];
+    
+    // So that sockets/streams are owned by main thread.
+    if([NSThread isMainThread]) {
+        [self _doConnectionStatusChange:status withDescription:description];
+    } else {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self _doConnectionStatusChange:status withDescription:description];
+        });
     }
 }
 

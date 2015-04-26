@@ -75,6 +75,7 @@
     // If interface used (from point of view of server) changes then TCP will also fail, in which case we do a full
     // reconnect and attempt to reuse old session (this logic is at protocol level).
     if(![_failureTracker increment]) {
+        [NSThread sleepForTimeInterval:5];
         [self reconnect];
     } else {
         [_connectionDelegate connectionStatusChangeUdp:U_ERROR withDescription:description];
@@ -137,7 +138,7 @@
     } while(maximumAmountReceivable > 0);
 }
 
-- (void) reconnect {
+- (void) _doReconnect {
     // Termination of socket happens asynchronously, make sure we don't reconnect
     // midway through termination.
     [_closingNotInProgress wait];
@@ -163,6 +164,17 @@
         [_connectionDelegate connectionStatusChangeUdp:U_RECONNECTED withDescription:@"Successfully reconnected"];
     } else {
         [_connectionDelegate connectionStatusChangeUdp:U_CONNECTED withDescription:@"Successfully connected"];
+    }
+}
+
+- (void) reconnect {
+    // So that sockets/streams are owned by main thread.
+    if([NSThread isMainThread]) {
+        [self _doReconnect];
+    } else {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self _doReconnect];
+        });
     }
 }
 
