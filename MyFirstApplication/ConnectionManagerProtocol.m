@@ -52,7 +52,6 @@ uint NUM_SOCKETS = 1;
     ConnectionStatusProtocol _connectionStatus;
     id<ConnectionStatusDelegateProtocol> _connectionStatusDelegate;
     Boolean _shutdownCalled;
-    dispatch_queue_t _udpLogonDispatchQueue;
     
     // For reconnect attempts after TCP failure.
     NSString* _udpHash;
@@ -82,7 +81,7 @@ uint NUM_SOCKETS = 1;
         _connectionStatusDelegate = connectionStatusDelegate;
         _connectionStatus = P_NOT_CONNECTED;
         
-        _failureTracker = [[EventTracker alloc] initWithMaxEvents:2];
+        _failureTracker = [[EventTracker alloc] initWithMaxEvents:5];
         
         [_connectionStatusDelegate connectionStatusChange:P_NOT_CONNECTED withDescription:@"Not yet connected"];
     }
@@ -108,7 +107,7 @@ uint NUM_SOCKETS = 1;
     [self reconnect];
 }
 
-- (void) reconnect {
+- (void) _doReconnect {
     if(_connectionStatus != P_NOT_CONNECTED) {
         [self shutdown];
     }
@@ -120,7 +119,6 @@ uint NUM_SOCKETS = 1;
     _tcpConnection = [[ConnectionManagerTcp alloc] initWithConnectionStatusDelegate:self inputSession:tcpSession outputSession:_tcpOutputSession];
     
     _udpConnection = [[ConnectionManagerUdp alloc] initWithNewPacketDelegate:self andConnectionDelegate:self andRetryCount:5];
-    _udpLogonDispatchQueue = dispatch_queue_create("ConnectionManagerProtocolUdpLogonQueue", DISPATCH_QUEUE_SERIAL);
     
     NSLog(@"Connecting to TCP: %@:%ul, UDP: %@:%ul", _tcpHost, _tcpPort, _udpHost, _udpPort);
     _connectionStatus = P_CONNECTING;
@@ -129,6 +127,16 @@ uint NUM_SOCKETS = 1;
     
     [_tcpConnection connectToHost:_tcpHost andPort:_tcpPort];
     [_udpConnection connectToHost:_udpHost andPort:_udpPort];
+}
+
+- (void) reconnect {
+    if([NSThread isMainThread]) {
+        [self _doReconnect];
+    } else {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self _doReconnect];
+        });
+    }
 }
 
 - (void) shutdownWithDescription:(NSString*)description {
@@ -226,6 +234,7 @@ uint NUM_SOCKETS = 1;
         NSString* rejectDescription = [@"TCP connection failed: " stringByAppendingString:description];
         NSLog(rejectDescription);
         if(![_failureTracker increment]) {
+            [NSThread sleepForTimeInterval:1];
             NSLog(@"Reconnecting after TCP failure..");
             [self reconnect];
         } else {

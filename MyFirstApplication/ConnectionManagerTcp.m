@@ -50,22 +50,22 @@
     NSLog(@"Output thread exiting");
 }
 
-- (void) connectToHost: (NSString*)host andPort: (ushort)port; {
+- (void) _doConnectToHost: (NSString*)host andPort: (ushort)port {
     [_connectionStatusDelegate connectionStatusChangeTcp:T_CONNECTING withDescription:@"Connecting"];
-
+    
     CFReadStreamRef readStream;
     CFWriteStreamRef writeStream;
     CFStringRef remoteHost = (__bridge CFStringRef)(host);
     CFStreamCreatePairWithSocketToHost(NULL, remoteHost, port, &readStream, &writeStream);
     CFReadStreamSetProperty(readStream, kCFStreamPropertyShouldCloseNativeSocket, kCFBooleanTrue);
     CFWriteStreamSetProperty(writeStream, kCFStreamPropertyShouldCloseNativeSocket, kCFBooleanTrue);
-
+    
     _inputStream = objc_unretainedObject(readStream);
     _outputStream = objc_unretainedObject(writeStream);
-
+    
     [_outputStream setDelegate: self];
     [_inputStream setDelegate: self];
-
+    
     [_inputStream scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
     [_inputStream open];
     
@@ -76,10 +76,23 @@
     // enter a queue and block indefinitely, which would block anything else in the run loop (e.g.
     // receive operations) if there were some.
     _outputThread = [[NSThread alloc] initWithTarget:self
-                                      selector:@selector(outputThreadEntryPoint:)
-                                      object:nil];
+                                            selector:@selector(outputThreadEntryPoint:)
+                                              object:nil];
     [_outputThread start];
     NSLog(@"Output thread started");
+}
+
+- (void) connectToHost: (NSString*)host andPort: (ushort)port; {
+    if([NSThread isMainThread]) {
+        [self _doConnectToHost:host andPort:port];
+    } else {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self _doConnectToHost:host andPort:port];
+        });
+    }
+    
+    [_initializedSignal wait];
+    NSLog(@"Fully initialized");
 }
 
 - (void) performShutdownInRunLoop {
