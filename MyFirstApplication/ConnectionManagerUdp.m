@@ -69,6 +69,11 @@
     NSLog(@"%@",description);
     [self close];
     
+    // UDP sockets fail regularly with blips in 3G connectivity. The same does not appear to be the case for TCP.
+    // To handle this we ignore first few failures and rebuild (and reestablish the 3G connection) straight away.
+    // Protocol is notified of this (higher level user of this class) so that it can recapture the original session.
+    // If interface used (from point of view of server) changes then TCP will also fail, in which case we do a full
+    // reconnect and attempt to reuse old session (this logic is at protocol level).
     if(![_failureTracker increment]) {
         [self reconnect];
     } else {
