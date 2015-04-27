@@ -65,13 +65,15 @@ class UdpConnectionLinker(object):
 
 
     def registerInterestGenerated(self, waitingClient, newHash = None):
+        provided = newHash is not None
+
         while True:
             # it is possible for a race condition to occur where same hash generated at
             # similar time and attempted to be added. Allowing for failure here solves that problem.
             if newHash is None:
                 newHash = self.generateHash()
             success = self.registerInterest(newHash, waitingClient)
-            if success:
+            if success or provided:
                 return newHash
 
     def registerPrematureCompletion(self, udpHash, waitingClient):

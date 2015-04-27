@@ -53,8 +53,12 @@
 }
 
 - (void) _doConnectToHost: (NSString*)host andPort: (ushort)port {
+    [self shutdown];
+    
     // Do not try to setup a new connection when in the middle of shutting down (thread safety).
     [_notInProcessOfShuttingDownSignal wait];
+    
+    [_outputSession restartSession];
     
     [_connectionStatusDelegate connectionStatusChangeTcp:T_CONNECTING withDescription:@"Connecting"];
     
@@ -131,11 +135,6 @@
     
     // Finished shutting down.
     [_notInProcessOfShuttingDownSignal signal];
-}
-
-- (void) restart {
-    [self shutdown];
-    [_outputSession restartSession];
 }
 
 - (Boolean) isConnected {

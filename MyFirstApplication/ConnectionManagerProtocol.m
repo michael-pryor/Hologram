@@ -122,8 +122,6 @@ uint NUM_SOCKETS = 1;
 }
 
 - (void) reconnect {
-    [_tcpConnection restart];
-    
     NSLog(@"Connecting to TCP: %@:%ul, UDP: %@:%ul", _tcpHost, _tcpPort, _udpHost, _udpPort);
     [self updateConnectionStatus:P_CONNECTING withDescription:@"Connecting..."];
     
