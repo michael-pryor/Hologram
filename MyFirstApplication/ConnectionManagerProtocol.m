@@ -121,7 +121,7 @@ uint NUM_SOCKETS = 1;
     [self reconnect];
 }
 
-- (void) _doReconnect {
+- (void) reconnect {
     [_tcpConnection restart];
     
     NSLog(@"Connecting to TCP: %@:%ul, UDP: %@:%ul", _tcpHost, _tcpPort, _udpHost, _udpPort);
@@ -131,11 +131,23 @@ uint NUM_SOCKETS = 1;
     [_udpConnection connectToHost:_udpHost andPort:_udpPort];
 }
 
-- (void) reconnect {
-    [self _doReconnect];
+- (void) reconnectLimitedWithBackoff:(float)backoffTime failureDescription:(NSString*)failureDescription {
+    if(![_failureTracker increment]) {
+        NSLog(@"Reconnecting after failure: %@, backoff time of %f seconds", failureDescription, backoffTime);
+        [NSThread sleepForTimeInterval:backoffTime];
+        NSLog(@"Starting reconnect process");
+        [self reconnect];
+    } else {
+        NSLog(@"Terminating entire connection due to failure: %@", failureDescription);
+        [self shutdownWithDescription:failureDescription];
+    }
 }
 
 - (Boolean) updateConnectionStatus:(ConnectionStatusProtocol)connectionStatus withDescription:(NSString*)description {
+    if(connectionStatus == P_CONNECTED) {
+        [_failureTracker reset];
+    }
+    
     @synchronized(_connectionStatusLock) {
         if(_connectionStatus != connectionStatus) {
             _connectionStatus = connectionStatus;
@@ -238,15 +250,7 @@ uint NUM_SOCKETS = 1;
     } else if(status == T_ERROR) {
         if(_connectionStatus != P_NOT_CONNECTED) {
             NSString* rejectDescription = [@"TCP connection failed: " stringByAppendingString:description];
-            NSLog(@"%@",rejectDescription);
-            if(![_failureTracker increment]) {
-                [NSThread sleepForTimeInterval:1];
-                NSLog(@"Reconnecting after TCP failure..");
-                [self reconnect];
-            } else {
-                [self shutdownWithDescription:rejectDescription];
-                NSLog(@"Given up attempting to reconnect after TCP failure");
-            }
+            [self reconnectLimitedWithBackoff:0.1 failureDescription:rejectDescription];
         }
     } else if(status == T_CONNECTED) {
         NSLog(@"Connected, sending login request");
@@ -267,9 +271,7 @@ uint NUM_SOCKETS = 1;
 - (void) connectionStatusChangeUdp: (ConnectionStatusUdp)status withDescription: (NSString*)description {
     if(status == U_ERROR) {
         NSString* rejectDescription = [@"UDP connection failed: " stringByAppendingString:description];
-        [self shutdownWithDescription:rejectDescription];
-        
-        [self reconnect];
+        [self reconnectLimitedWithBackoff:0.1 failureDescription:rejectDescription];
     } else if(status == U_CONNECTED) {
         // TCP handles connection signal, nothing to do here.
     } else {

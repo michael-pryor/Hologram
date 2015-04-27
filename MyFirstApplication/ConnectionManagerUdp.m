@@ -18,11 +18,13 @@
 @implementation ConnectionManagerUdp {
     int _socket;
     dispatch_queue_t _gcd_queue;
+    dispatch_queue_t _gcd_queue_sending;
     dispatch_source_t _dispatch_source;
     id<NewPacketDelegate> _newPacketDelegate;
     id<ConnectionStatusDelegateUdp> _connectionDelegate;
     ByteBuffer* _recvBuffer;
     Signal* _closingNotInProgress;
+    Signal* _openingNotInProgress;
 }
 
 - (id) initWithNewPacketDelegate:(id<NewPacketDelegate>)newPacketDelegate andConnectionDelegate:(id<ConnectionStatusDelegateUdp>)connectionDelegate andRetryCount:(uint)retryCountMax {
@@ -33,7 +35,9 @@
         _newPacketDelegate = newPacketDelegate;
         _recvBuffer = [[ByteBuffer alloc] init];
         _closingNotInProgress = [[Signal alloc] initWithFlag:true];
+        _openingNotInProgress = [[Signal alloc] initWithFlag:true];
         _gcd_queue = dispatch_queue_create("ConnectionManagerUdp", NULL);
+        _gcd_queue_sending = dispatch_queue_create("ConnectionManagerUdpSendQueue", NULL);
     }
     return self;
 }
@@ -118,6 +122,7 @@
     // Termination of socket happens asynchronously, make sure we don't reconnect
     // midway through termination.
     [_closingNotInProgress wait];
+    [_openingNotInProgress clear];
     
     _socket = socket(AF_INET, SOCK_DGRAM, 0);
     
@@ -135,6 +140,8 @@
     });
     dispatch_resume(_dispatch_source);
     
+    [_openingNotInProgress signalAll];
+    
     [_connectionDelegate connectionStatusChangeUdp:U_CONNECTED withDescription:@"Successfully connected"];
     
     NSLog(@"Connected UDP socket to host %@ and port %u", host, port);
@@ -145,18 +152,21 @@
 }
 
 - (void)sendBuffer:(ByteBuffer*)buffer {
-    if(![self isConnected]) {
-        return;
-    }
-    
-    long result = send(_socket, [buffer buffer], [buffer bufferUsedSize], 0);
-    if(result < 0) {
-        if(errno == EWOULDBLOCK) {
-            NSLog(@"Async");
-        } else {
-            NSLog(@"Failed to send message with size: %ul", [buffer bufferUsedSize]);
-            [self onFailure];
+    dispatch_sync(_gcd_queue_sending, ^{
+        if(![self isConnected]) {
+            return;
         }
-    }
+        [_openingNotInProgress wait];
+        
+        long result = send(_socket, [buffer buffer], [buffer bufferUsedSize], 0);
+        if(result < 0) {
+            if(errno == EWOULDBLOCK) {
+                NSLog(@"Async");
+            } else {
+                NSLog(@"Failed to send message with size: %ul", [buffer bufferUsedSize]);
+                [self onFailure];
+            }
+        }
+    });
 }
 @end
