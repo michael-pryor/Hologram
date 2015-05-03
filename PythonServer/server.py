@@ -303,6 +303,7 @@ class Server(ClientFactory, protocol.DatagramProtocol):
     def clientDisconnected(self, client):
         self.clients.remove(client)
         del self.clientsByUdpAddress[client.udp]
+        logger.info("Client has disconnected");
 
     def buildProtocol(self, addr):
         logger.info('TCP connection initiated with new client [%s]' % addr)

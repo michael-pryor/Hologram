@@ -10,12 +10,13 @@
 #import <AudioToolbox/AudioToolbox.h>
 #import <CoreFoundation/CoreFoundation.h>
 #import "OutputSessionTcp.h"
+#import "InputSessionTcp.h"
 #import "Signal.h"
 
 @implementation ConnectionManagerTcp {
     NSInputStream * _inputStream;
     NSOutputStream * _outputStream;
-    id<NewDataDelegate> _inputSession;
+    InputSessionTcp* _inputSession;
     OutputSessionTcp * _outputSession;
     ByteBuffer * _currentSendBuffer;
     Signal* _initializedSignal;
@@ -25,7 +26,7 @@
     dispatch_queue_t _connectionQueue;
 }
 
-- (id) initWithConnectionStatusDelegate: (id<ConnectionStatusDelegateTcp>)connectionStatusDelegate inputSession: (id<NewDataDelegate>)inputSession outputSession: (OutputSessionTcp*)outputSession {
+- (id) initWithConnectionStatusDelegate: (id<ConnectionStatusDelegateTcp>)connectionStatusDelegate inputSession: (InputSessionTcp*)inputSession outputSession: (OutputSessionTcp*)outputSession {
     self = [super init];
     if(self) {
         _connectionQueue = dispatch_queue_create("ConnectionManagerTcpQueue", NULL);
@@ -61,9 +62,11 @@
     dispatch_sync(_connectionQueue, ^{
         // Do not try to setup a new connection when in the middle of shutting down (thread safety).
         [_notInProcessOfShuttingDownSignal wait];
-        
+    
         [_outputSession restartSession];
-        
+        [_inputSession restartSession];
+        [_currentSendBuffer clear];
+    
         [_connectionStatusDelegate connectionStatusChangeTcp:T_CONNECTING withDescription:@"Connecting"];
         
         CFReadStreamRef readStream;

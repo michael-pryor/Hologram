@@ -8,16 +8,20 @@
 
 #import "InputSessionTcp.h"
 
-@implementation InputSessionTCP
-@synthesize getDestinationBuffer = recvBuffer;
+@implementation InputSessionTcp
+@synthesize getDestinationBuffer = _recvBuffer;
 
 - (id)initWithDelegate:(id<NewPacketDelegate>)packetDelegate {
     self = [super init];
     if(self) {
 	    _packetDelegate = packetDelegate;
-        recvBuffer = [[ByteBuffer alloc] initWithSize:1024];
+        _recvBuffer = [[ByteBuffer alloc] initWithSize:1024];
     }
     return self;
+}
+
+- (void) restartSession {
+    [_recvBuffer clear];
 }
 
 - (void)onNewData: (uint)length {
