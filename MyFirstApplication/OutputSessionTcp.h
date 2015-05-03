@@ -12,6 +12,7 @@
 @interface OutputSessionTcp : NSObject<NewPacketDelegate>
 - (id) init;
 - (void) onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol;
-- (ByteBuffer*) processPacket;
+- (Boolean) doSendOperation;
 - (void) restartSession;
+- (void) loadOutputStream:(NSOutputStream*)stream;
 @end

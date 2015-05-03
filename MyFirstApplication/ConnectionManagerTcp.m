@@ -18,7 +18,6 @@
     NSOutputStream * _outputStream;
     InputSessionTcp* _inputSession;
     OutputSessionTcp * _outputSession;
-    ByteBuffer * _currentSendBuffer;
     Signal* _initializedSignal;
     Signal* _shutdownSignal;
     Signal* _notInProcessOfShuttingDownSignal;
@@ -43,16 +42,15 @@
 - (void) outputThreadEntryPoint: var {
     [_outputStream scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
     [_outputStream open];
+    [_outputSession loadOutputStream:_outputStream];
     
-    NSLog(@"Finished initializing output thread");
     [_initializedSignal signal]; // finished initializing.
 
-    NSLog(@"Starting run loop");
+    NSLog(@"TCP output - Starting run loop");
     CFRunLoopRun();
-    NSLog(@"Finished run loop");
     
     [_shutdownSignal signal]; // finished shutting down.
-    NSLog(@"Output thread exiting");
+    NSLog(@"TCP output - Finished run loop, output thread exiting");
 }
 
 - (void) connectToHost: (NSString*)host andPort: (ushort)port; {
@@ -65,8 +63,7 @@
     
         [_outputSession restartSession];
         [_inputSession restartSession];
-        [_currentSendBuffer clear];
-    
+     
         [_connectionStatusDelegate connectionStatusChangeTcp:T_CONNECTING withDescription:@"Connecting"];
         
         CFReadStreamRef readStream;
@@ -95,17 +92,15 @@
                                                 selector:@selector(outputThreadEntryPoint:)
                                                   object:nil];
         [_outputThread start];
-        NSLog(@"Output thread started");
     });
     
     [_initializedSignal wait];
-    NSLog(@"Fully initialized");
+    NSLog(@"TCP connection - Fully initialized");
 }
 
 - (void) performShutdownInRunLoop {
-    NSLog(@"Terminating run loop and closing output stream");
+    NSLog(@"TCP output - Terminating run loop and closing streams");
     [self onNormalError: _outputStream withError:@"Terminating TCP connection"];
-    NSLog(@"Closing input stream");
     [self closeStream: _inputStream];
 }
 
@@ -117,18 +112,15 @@
         return;
     }
 
-    NSLog(@"Waking up output thread");
     [_outputSession onNewPacket:nil fromProtocol:UDP];
     
-    NSLog(@"Terminating run loop and closing streams");
     @try {
         [self performSelector: @selector(performShutdownInRunLoop) onThread: _outputThread withObject: nil waitUntilDone: false];
     } @catch(NSException* ex) {
-        NSLog(@"NSException, oh dear: %@", ex);
+        NSLog(@"TCP - NSException while shutting down run loop: %@", ex);
     }
-    NSLog(@"Waiting for confirmation of closure");
     [_shutdownSignal wait];
-    NSLog(@"Confirmation of closure received");
+    NSLog(@"TCP - Termination complete");
     
     // Finished shutting down.
     [_notInProcessOfShuttingDownSignal signal];
@@ -150,7 +142,6 @@
 - (void) closeStream: (NSStream*) stream {
     if (stream == _outputStream) {
         // Stop the worker thread.
-        NSLog(@"Closing output stream thread!! OH MY!!");
         CFRunLoopStop(CFRunLoopGetCurrent());
     }
 
@@ -209,28 +200,10 @@
             break;
         case NSStreamEventHasSpaceAvailable:
             if(isOutputStream) {
-                if(_currentSendBuffer == nil || [_currentSendBuffer getUnreadDataFromCursor] == 0) {
-                    _currentSendBuffer = [_outputSession processPacket];
-                    // A nil packet indicates thread termination.
-                    // A further message in the run loop queue will close the sockets.
-                    if(_currentSendBuffer == nil) {
-                        return;
-                    }
-                    [_currentSendBuffer setCursorPosition:0];
-                }                
-                
-                NSUInteger remaining = [_currentSendBuffer getUnreadDataFromCursor];
-                uint8_t* buffer = [_currentSendBuffer buffer] + [_currentSendBuffer cursorPosition];
-           
-                if(remaining > 0) {
-                    NSUInteger bytesSent = [_outputStream write:buffer maxLength:remaining];
-                    if(bytesSent == -1) {
-                        [self onStreamError:theStream];
-                        return;
-                    }
-                    [_currentSendBuffer moveCursorForwardsPassively:(uint)bytesSent];
-                    NSLog(@"%lu TCP bytes sent, %lu remaining", (unsigned long)bytesSent, (unsigned long)[_currentSendBuffer getUnreadDataFromCursor]);
-                }                
+                Boolean success = [_outputSession doSendOperation];
+                if(!success) {
+                    [self onStreamError:_outputStream];
+                }
             }
             break;
             

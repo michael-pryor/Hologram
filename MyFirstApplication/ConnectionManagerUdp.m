@@ -63,7 +63,7 @@
 - (void) close {
     [_closingNotInProgress wait];
     if([self isConnected] && dispatch_source_testcancel(_dispatch_source) == 0) {
-        NSLog(@"Signaling UDP socket closure");
+        NSLog(@"UDP - Signaling UDP socket closure");
         [_closingNotInProgress clear];
         dispatch_source_cancel(_dispatch_source); // only triggered once, so don't have to worry about multiple calls to this.
     }
@@ -89,19 +89,19 @@
     
         // This would cause buffer overrun and indicates a serious bug somewhere (probably not in our code though *puts on sunglasses slowly*).
         if(realAmountReceived == -1) {
-            NSLog(@"Serious receive error detected while attempting to receive UDP data");
+            NSLog(@"UDP - Serious receive error detected while attempting to receive data");
             [self onFailure];
             return;
         }
         if(realAmountReceived > maximumAmountReceivable) {
-            NSLog(@"Receive error detected: %zu (real) vs %ld (maximum)", realAmountReceived, maximumAmountReceivable);
+            NSLog(@"UDP - Receive error detected: %zu (real) vs %ld (maximum)", realAmountReceived, maximumAmountReceivable);
             [self onFailure];
             return;
         }
         
         [_recvBuffer setUsedSize: (uint)realAmountReceived];
     
-        //NSLog(@"Received UDP packet of size: %ul", [_recvBuffer bufferUsedSize]);
+        //NSLog(@"UDP - Received packet of size: %ul", [_recvBuffer bufferUsedSize]);
         [_newPacketDelegate onNewPacket:_recvBuffer fromProtocol:UDP];
         
         maximumAmountReceivable -= realAmountReceived;
@@ -133,7 +133,7 @@
         [self onRecv];
     });
     dispatch_source_set_cancel_handler(_dispatch_source, ^{
-        NSLog(@"Closing UDP socket");
+        NSLog(@"UDP - Closing socket");
         close(_socket);
         _socket = 0;
         [_closingNotInProgress signalAll];
@@ -144,7 +144,7 @@
     
     [_connectionDelegate connectionStatusChangeUdp:U_CONNECTED withDescription:@"Successfully connected"];
     
-    NSLog(@"Connected UDP socket to host %@ and port %u", host, port);
+    NSLog(@"UDP - Connected socket to host %@ and port %u", host, port);
 }
 
 - (void)onNewPacket:(ByteBuffer *)buffer fromProtocol:(ProtocolType)protocol {
@@ -163,7 +163,7 @@
             if(errno == EWOULDBLOCK) {
                 NSLog(@"Async");
             } else {
-                NSLog(@"Failed to send message with size: %ul", [buffer bufferUsedSize]);
+                NSLog(@"UDP - Failed to send message with size: %ul", [buffer bufferUsedSize]);
                 [self onFailure];
             }
         }

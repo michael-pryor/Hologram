@@ -136,7 +136,6 @@ uint NUM_SOCKETS = 1;
     if(![_failureTracker increment]) {
         NSLog(@"Reconnecting after failure: %@, backoff time of %f seconds", failureDescription, backoffTime);
         [NSThread sleepForTimeInterval:backoffTime];
-        NSLog(@"Starting reconnect process");
         [self reconnect];
     } else {
         NSLog(@"Terminating entire connection due to failure: %@", failureDescription);
@@ -198,7 +197,6 @@ uint NUM_SOCKETS = 1;
 
 - (void) onNewPacket:(ByteBuffer*)packet fromProtocol:(ProtocolType)protocol{
     if(protocol == TCP) {
-        NSLog(@"Received TCP packet of size: %d", [packet bufferUsedSize]);
         if(_connectionStatus != P_CONNECTED ) {
             uint logon = [packet getUnsignedInteger];
             
