@@ -102,7 +102,7 @@ class Client(object):
                 response.addString("Reject reason: %s" % dataString)
                 self.closeConnection()
 
-            logger.debug("Sending success ACK to TCP client: %s", self.tcp)
+            logger.debug("Sending success ACK to TCP client: %s", self.tcp.remote_address)
             self.tcp.sendByteBuffer(response)
 
         elif self.connection_status == Client.ConnectionStatus.WAITING_UDP:
