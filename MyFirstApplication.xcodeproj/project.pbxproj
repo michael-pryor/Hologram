@@ -42,6 +42,7 @@
 		51E5BE841ABD0450003E035C /* DecodingPipe.m in Sources */ = {isa = PBXBuildFile; fileRef = 51E5BE831ABD0450003E035C /* DecodingPipe.m */; };
 		51E888A11A597585005F8825 /* Signal.m in Sources */ = {isa = PBXBuildFile; fileRef = 51E888A01A597585005F8825 /* Signal.m */; };
 		51E888A51A59DFB8005F8825 /* VIdeoEncoding.m in Sources */ = {isa = PBXBuildFile; fileRef = 51E888A41A59DFB8005F8825 /* VIdeoEncoding.m */; };
+		51FBE0441AF66AF3009115AE /* ActivityMonitor.m in Sources */ = {isa = PBXBuildFile; fileRef = 51FBE0431AF66AF3009115AE /* ActivityMonitor.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -117,6 +118,8 @@
 		51E888A01A597585005F8825 /* Signal.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Signal.m; sourceTree = "<group>"; };
 		51E888A31A59DFB8005F8825 /* VIdeoEncoding.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VIdeoEncoding.h; sourceTree = "<group>"; };
 		51E888A41A59DFB8005F8825 /* VIdeoEncoding.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = VIdeoEncoding.m; sourceTree = "<group>"; };
+		51FBE0421AF66AF3009115AE /* ActivityMonitor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ActivityMonitor.h; sourceTree = "<group>"; };
+		51FBE0431AF66AF3009115AE /* ActivityMonitor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ActivityMonitor.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -172,6 +175,8 @@
 				51D584C019AB7A9400BB6CE6 /* ByteBuffer.m */,
 				51BDB1491A6F0E7E00E0DA49 /* InputSessionBase.h */,
 				51BDB14D1A6F121400E0DA49 /* ConnectionManagerBase.h */,
+				51FBE0421AF66AF3009115AE /* ActivityMonitor.h */,
+				51FBE0431AF66AF3009115AE /* ActivityMonitor.m */,
 			);
 			name = Base;
 			sourceTree = "<group>";
@@ -436,6 +441,7 @@
 				51C263851AB450E600285C6E /* SoundPlayback.m in Sources */,
 				51E888A51A59DFB8005F8825 /* VIdeoEncoding.m in Sources */,
 				51E1BF2B1A5DD7A4007D8A56 /* MediaController.m in Sources */,
+				51FBE0441AF66AF3009115AE /* ActivityMonitor.m in Sources */,
 				51E5BE811ABD03FD003E035C /* EncodingPipe.m in Sources */,
 				51D87CB51A8F7C3000CE919E /* BatcherOutput.m in Sources */,
 				51D584C119AB7A9400BB6CE6 /* ByteBuffer.m in Sources */,

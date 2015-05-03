@@ -12,6 +12,7 @@
 #import "InputSessionTcp.h"
 #import "OutputSessionTcp.h"
 #import "EventTracker.h"
+#import "ActivityMonitor.h"
 
 uint NUM_SOCKETS = 1;
 @implementation ConnectionManagerProtocolTcpSession {
@@ -71,7 +72,7 @@ uint NUM_SOCKETS = 1;
     ushort _tcpPort;
     ushort _udpPort;
     
-    dispatch_queue_t _statusChangeQueue;
+    ActivityMonitor* _reconnectMonitor;
     
     // Must be kept in sync with server.
     #define OP_REJECT_LOGON 1
@@ -85,14 +86,12 @@ uint NUM_SOCKETS = 1;
         _udpHash = nil;
         _udpHashPacket = nil;
         
-        _statusChangeQueue = dispatch_queue_create("StatusChangeQueue", NULL);
-        
         _recvDelegate = recvDelegate;
         _connectionStatusDelegate = connectionStatusDelegate;
         _connectionStatus = P_NOT_CONNECTED;
         _connectionStatusLock = [[NSObject alloc] init];
         
-        _failureTracker = [[EventTracker alloc] initWithMaxEvents:5];
+        _failureTracker = [[EventTracker alloc] initWithMaxEvents:500];
         
         [_connectionStatusDelegate connectionStatusChange:P_NOT_CONNECTED withDescription:@"Not yet connected"];
         
@@ -101,8 +100,16 @@ uint NUM_SOCKETS = 1;
         _tcpConnection = [[ConnectionManagerTcp alloc] initWithConnectionStatusDelegate:self inputSession:tcpSession outputSession:_tcpOutputSession];
         
         _udpConnection = [[ConnectionManagerUdp alloc] initWithNewPacketDelegate:self andConnectionDelegate:self andRetryCount:5];
+        
+        [self _setupReconnectMonitor];
     }
     return self;
+}
+
+- (void) _setupReconnectMonitor {
+    _reconnectMonitor = [[ActivityMonitor alloc] initWithAction: ^{
+        [self reconnect];
+    } andBackoff:1];
 }
 
 /**
@@ -121,6 +128,9 @@ uint NUM_SOCKETS = 1;
     _tcpPort = tcpPort;
     _udpPort = udpPort;
     
+    [_reconnectMonitor terminate];
+    [self _setupReconnectMonitor];
+    
     [self reconnect];
 }
 
@@ -132,14 +142,13 @@ uint NUM_SOCKETS = 1;
     [_udpConnection connectToHost:_udpHost andPort:_udpPort];
 }
 
-- (void) reconnectLimitedWithBackoff:(float)backoffTime failureDescription:(NSString*)failureDescription {
+- (void) reconnectLimitedWithFailureDescription:(NSString*)failureDescription {
+    NSLog(@"Terminating entire connection due to failure: %@", failureDescription);
+    [self shutdownWithDescription:failureDescription];
+    
     if(![_failureTracker increment]) {
-        NSLog(@"Reconnecting after failure: %@, backoff time of %f seconds", failureDescription, backoffTime);
-        [NSThread sleepForTimeInterval:backoffTime];
-        [self reconnect];
-    } else {
-        NSLog(@"Terminating entire connection due to failure: %@", failureDescription);
-        [self shutdownWithDescription:failureDescription];
+        NSLog(@"Signaling reconnect request due to failure: %@", failureDescription);
+        [_reconnectMonitor performAction];
     }
 }
 
@@ -245,42 +254,38 @@ uint NUM_SOCKETS = 1;
 }
 
 - (void) connectionStatusChangeTcp: (ConnectionStatusTcp)status withDescription: (NSString*)description {
-    dispatch_async(_statusChangeQueue, ^{
-        if(status == T_CONNECTING) {
-            // Nothing to do here, we preemptively reported this when starting the connection attempt.
-        } else if(status == T_ERROR) {
-            if(_connectionStatus != P_NOT_CONNECTED) {
-                NSString* rejectDescription = [@"TCP connection failed: " stringByAppendingString:description];
-                [self reconnectLimitedWithBackoff:0.1 failureDescription:rejectDescription];
-            }
-        } else if(status == T_CONNECTED) {
-            NSLog(@"Connected, sending login request");
-            _connectionStatus = P_WAITING_FOR_TCP_LOGON_ACK;
-            ByteBuffer* theLogonBuffer = [[ByteBuffer alloc] init];
-            [theLogonBuffer addUnsignedInteger:100];                // version
-            [theLogonBuffer addString:@"My name is Michael"];       // login name
-            // We are reconnecting, identify our session via the UDP hash.
-            if(_udpHash != nil) {
-                [theLogonBuffer addString:_udpHash];
-            }
-            [self sendTcpPacket:theLogonBuffer];
-        } else {
-            [self shutdownWithDescription:@"Invalid TCP state"];
+    if(status == T_CONNECTING) {
+        // Nothing to do here, we preemptively reported this when starting the connection attempt.
+    } else if(status == T_ERROR) {
+        if(_connectionStatus != P_NOT_CONNECTED) {
+            NSString* rejectDescription = [@"TCP connection failed: " stringByAppendingString:description];
+            [self reconnectLimitedWithFailureDescription:rejectDescription];
         }
-    });
+    } else if(status == T_CONNECTED) {
+        NSLog(@"Connected, sending login request");
+        _connectionStatus = P_WAITING_FOR_TCP_LOGON_ACK;
+        ByteBuffer* theLogonBuffer = [[ByteBuffer alloc] init];
+        [theLogonBuffer addUnsignedInteger:100];                // version
+        [theLogonBuffer addString:@"My name is Michael"];       // login name
+        // We are reconnecting, identify our session via the UDP hash.
+        if(_udpHash != nil) {
+            [theLogonBuffer addString:_udpHash];
+        }
+        [self sendTcpPacket:theLogonBuffer];
+    } else {
+        [self shutdownWithDescription:@"Invalid TCP state"];
+    }
 }
 
 - (void) connectionStatusChangeUdp: (ConnectionStatusUdp)status withDescription: (NSString*)description {
-    dispatch_async(_statusChangeQueue, ^{
-        if(status == U_ERROR) {
-            NSString* rejectDescription = [@"UDP connection failed: " stringByAppendingString:description];
-            [self reconnectLimitedWithBackoff:0.1 failureDescription:rejectDescription];
-        } else if(status == U_CONNECTED) {
-            // TCP handles connection signal, nothing to do here.
-        } else {
-            [self shutdownWithDescription:@"Invalid UDP state"];
-        }
-    });
+    if(status == U_ERROR) {
+        NSString* rejectDescription = [@"UDP connection failed: " stringByAppendingString:description];
+        [self reconnectLimitedWithFailureDescription:rejectDescription];
+    } else if(status == U_CONNECTED) {
+        // TCP handles connection signal, nothing to do here.
+    } else {
+        [self shutdownWithDescription:@"Invalid UDP state"];
+    }
 }
 
 
