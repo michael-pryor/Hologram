@@ -145,7 +145,11 @@ uint NUM_SOCKETS = 1;
 - (void) reconnectLimitedWithFailureDescription:(NSString*)failureDescription {
     NSLog(@"Terminating entire connection due to failure: %@", failureDescription);
     [self shutdownWithDescription:failureDescription];
-    
+
+    // We may get lots of different reconnect requests from different threads at roughly
+    // the same time. The idea here is that for all of those we do one reconnect.
+    // reconnectMonitor has a back off configured in its initialization, so long as
+    // all reconnect requests come in within that backoff then only one reconnect will be done.
     if(![_failureTracker increment]) {
         NSLog(@"Signaling reconnect request due to failure: %@", failureDescription);
         [_reconnectMonitor performAction];
