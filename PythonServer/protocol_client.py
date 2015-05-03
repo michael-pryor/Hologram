@@ -28,7 +28,7 @@ class ClientTcp(IntNStringReceiver):
         logger.info("Connection made to client")
 
     def stringReceived(self, data):
-        logger.info("Client received TCP packet, length: %d, from: %s" % (len(data), self.remote_adddress))
+        logger.info("Client received TCP packet, length: %d, from: %s" % (len(data), self.remote_address))
         byteBuffer = ByteBuffer.buildFromIterable(data)
         self.parent.handleTcpPacket(byteBuffer)
 
