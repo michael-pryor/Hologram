@@ -32,6 +32,10 @@
 
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
     UIImage *image = [_videoEncoder getImageFromByteBuffer:packet];
+    if(image == nil) {
+        return;
+    }
+    
     [_newImageDelegate onNewImage: image];
 }
 @end

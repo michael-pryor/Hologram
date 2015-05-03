@@ -18,44 +18,22 @@
     NSOutputStream * _outputStream;
     InputSessionTcp* _inputSession;
     OutputSessionTcp * _outputSession;
-    Signal* _initializedSignal;
     Signal* _shutdownSignal;
-    Signal* _notInProcessOfShuttingDownSignal;
-    NSThread* _outputThread;
-    dispatch_queue_t _connectionQueue;
 }
 
 - (id) initWithConnectionStatusDelegate: (id<ConnectionStatusDelegateTcp>)connectionStatusDelegate inputSession: (InputSessionTcp*)inputSession outputSession: (OutputSessionTcp*)outputSession {
     self = [super init];
     if(self) {
-        _connectionQueue = dispatch_queue_create("ConnectionManagerTcpQueue", NULL);
         _connectionStatusDelegate = connectionStatusDelegate;
         _inputSession = inputSession;
         _outputSession = outputSession;
-        _initializedSignal = [[Signal alloc] initWithFlag:false];
         _shutdownSignal = [[Signal alloc] initWithFlag:true];
-        _notInProcessOfShuttingDownSignal = [[Signal alloc] initWithFlag:true];
     }
     return self;
 }
 
-- (void) outputThreadEntryPoint: var {
-    [_outputStream scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
-    [_outputStream open];
-    [_outputSession loadOutputStream:_outputStream];
-    
-    NSLog(@"TCP output - Starting run loop");
-    CFRunLoopRun();
-    
-    [_shutdownSignal signal]; // finished shutting down.
-    NSLog(@"TCP output - Finished run loop, output thread exiting");
-}
-
 - (void) _doConnectToHost: (NSString*)host andPort: (ushort)port {
     [self shutdown];
-    
-    // Do not try to setup a new connection when in the middle of shutting down (thread safety).
-    [_notInProcessOfShuttingDownSignal wait];
     
     [_outputSession restartSession];
     [_inputSession restartSession];
@@ -75,25 +53,14 @@
     [_outputStream setDelegate: self];
     [_inputStream setDelegate: self];
     
+    [_outputStream scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
+    [_outputStream open];
+    [_outputSession loadOutputStream:_outputStream];
+    
     [_inputStream scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
     [_inputStream open];
     
-    [_initializedSignal clear]; // not finished initializing yet.
     [_shutdownSignal clear]; // not shutdown yet.
-    
-    // Run send operations in a seperate run loop (and thread) because we wait for packets to
-    // enter a queue and block indefinitely, which would block anything else in the run loop (e.g.
-    // receive operations) if there were some.
-    _outputThread = [[NSThread alloc] initWithTarget:self
-                                            selector:@selector(outputThreadEntryPoint:)
-                                              object:nil];
-    [_outputThread start];
-
-    
-    [_initializedSignal wait];
-    
-    NSLog(@"TCP connection - Fully initialized");
-    [_connectionStatusDelegate connectionStatusChangeTcp:T_CONNECTED withDescription:@"Connection open"];
 }
 
 - (void) connectToHost: (NSString*)host andPort: (ushort)port; {
@@ -114,25 +81,12 @@
 }
 
 - (void) shutdown {
-    // If no socket to destroy
-    // or already completely shutdown
-    // or already in the process of shutting down (if not, signal is cleared and we allow continuation).
-    if(![self isConnected] || [_shutdownSignal isSignaled] || ![_notInProcessOfShuttingDownSignal clear]) {
+    if([_shutdownSignal signal]) {
         return;
     }
 
-    [_outputSession onNewPacket:nil fromProtocol:UDP];
-    
-    @try {
-        [self performSelector: @selector(performShutdownInRunLoop) onThread: _outputThread withObject: nil waitUntilDone: false];
-    } @catch(NSException* ex) {
-        NSLog(@"TCP - NSException while shutting down run loop: %@", ex);
-    }
-    [_shutdownSignal wait];
-    NSLog(@"TCP - Termination complete");
-    
-    // Finished shutting down.
-    [_notInProcessOfShuttingDownSignal signal];
+    [self closeStream: _outputStream];
+    [self closeStream: _inputStream];
 }
 
 - (Boolean) isConnected {
@@ -141,19 +95,12 @@
 
 - (void) closeStream: (NSStream*)stream withStatus: (ConnectionStatusTcp)status andReason: (NSString*)reason {
     [self closeStream: stream];
-    // Don't report errors upstream if these are errors caused by shutdown process (we don't care, we want it to die).
-    if([_notInProcessOfShuttingDownSignal isSignaled]) {
-        NSString * description = [NSString localizedStringWithFormat:@"Connection closed, with reason: %@", reason];
-        [_connectionStatusDelegate connectionStatusChangeTcp:status withDescription:description];
-    }
+
+    NSString * description = [NSString localizedStringWithFormat:@"Connection closed, with reason: %@", reason];
+    [_connectionStatusDelegate connectionStatusChangeTcp:status withDescription:description];
 }
 
 - (void) closeStream: (NSStream*) stream {
-    if (stream == _outputStream) {
-        // Stop the worker thread.
-        CFRunLoopStop(CFRunLoopGetCurrent());
-    }
-
     [stream close];
 }
 
@@ -179,7 +126,8 @@
         case NSStreamEventOpenCompleted:
             // Send for only one stream, don't want to duplicate the message.
             if(isOutputStream) {
-                [_initializedSignal signal]; // finished initializing.
+                NSLog(@"TCP connection - Fully initialized");
+                [_connectionStatusDelegate connectionStatusChangeTcp:T_CONNECTED withDescription:@"Connection open"];
             }
             break;
             

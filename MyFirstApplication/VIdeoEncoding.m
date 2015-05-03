@@ -144,8 +144,6 @@
 - (UIImage*) getImageFromByteBuffer:(ByteBuffer*)byteBuffer {
     uint8_t* buffer = [byteBuffer buffer] + [byteBuffer cursorPosition];
     NSData* nsData = [NSData dataWithBytes:buffer length:[byteBuffer getUnreadDataFromCursor]];
-    UIImage* image = [UIImage imageWithData:nsData];
-    
-    return image;
+    return [UIImage imageWithData:nsData];
 }
 @end
