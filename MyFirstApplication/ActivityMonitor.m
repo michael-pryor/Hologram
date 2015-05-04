@@ -45,7 +45,9 @@
             _action();
         }
         @finally {
-            [_actionSignal clear];
+            // On termination will be 2, decrementing to 1,
+            // meaning will not block on next wait.
+            [_actionSignal decrement];
         }
     }
     NSLog(@"Activity monitor terminated");
@@ -57,15 +59,8 @@
 }
 
 - (void)terminate {
-    dispatch_async(dispatch_get_main_queue(), ^{
-        // Small change we'l have to loop round twice,
-        // that avoids race condition.
-        while(![_terminatedSignal isSignaled]) {
-            [_terminationSignal signal];
-            [_actionSignal signal];
-            [NSThread sleepForTimeInterval:0.1];
-        }
-    });
+    [_terminationSignal signal];
+    [_actionSignal incrementAndSignal];
 }
 
 @end

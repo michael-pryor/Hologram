@@ -11,14 +11,18 @@
 
 @implementation Signal {
     NSCondition * _condition;
-    bool _flag;
+    int _counter;
 }
 
 - (id) initWithFlag: (bool)flag {
     self = [super init];
     if(self) {
         _condition = [[NSCondition alloc] init];
-        _flag = flag;
+        if(flag) {
+            _counter = 1;
+        } else {
+            _counter = 0;
+        }
     }
     return self;
 }
@@ -29,7 +33,7 @@
 
 - (void) wait {
     [_condition lock];
-    while (!_flag) {
+    while (_counter == 0) {
         [_condition wait];
     }
     [_condition unlock];
@@ -37,9 +41,9 @@
 
 - (bool)signal {
     [_condition lock];
-    bool ret = _flag;
+    bool ret = _counter > 0;
     if(!ret) {
-        _flag = true;
+        _counter = 1;
         [_condition signal];
     }
     [_condition unlock];
@@ -48,9 +52,9 @@
 
 - (bool)clear {
     [_condition lock];
-    bool ret = _flag;
+    bool ret = _counter > 0;
     if(ret) {
-        _flag = false;
+        _counter = 0;
     }
     [_condition unlock];
     return ret;
@@ -58,9 +62,9 @@
 
 - (bool)signalAll {
     [_condition lock];
-    bool ret = _flag;
+    bool ret = _counter > 0;
     if(!ret) {
-        _flag = true;
+        _counter = 1;
         [_condition broadcast];
     }
     [_condition unlock];
@@ -69,9 +73,38 @@
 
 - (bool) isSignaled {
     [_condition lock];
-    bool result = _flag;
+    bool result = _counter > 0;
     [_condition unlock];
     return result;
+}
+
+- (int) incrementAndSignal {
+    [_condition lock];
+    int ret = _counter;
+    _counter++;
+    [_condition signal];
+
+    [_condition unlock];
+    return ret;
+}
+
+
+- (int) incrementAndSignalAll {
+    [_condition lock];
+    int ret = _counter;
+    _counter++;
+    [_condition broadcast];
+    
+    [_condition unlock];
+    return ret;
+}
+
+- (int) decrement {
+    [_condition lock];
+    int ret = _counter;
+    _counter--;
+    [_condition unlock];
+    return ret;
 }
 
 @end

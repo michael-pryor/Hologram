@@ -16,4 +16,7 @@
 - (bool) clear;
 - (bool) signalAll;
 - (bool) isSignaled;
+- (int) incrementAndSignal;
+- (int) incrementAndSignalAll;
+- (int) decrement;
 @end
