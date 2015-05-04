@@ -63,10 +63,13 @@
 
 - (void) close {
     [_closingNotInProgress wait];
-    if([self isConnected] && _dispatch_source != nil && dispatch_source_testcancel(_dispatch_source) == 0) {
-        NSLog(@"UDP - Signaling UDP socket closure");
+    if([self isConnected] && _dispatch_source != nil) {
+        NSLog(@"UDP - Closing socket");
         [_closingNotInProgress clear];
-        dispatch_source_cancel(_dispatch_source); // only triggered once, so don't have to worry about multiple calls to this.
+        dispatch_source_cancel(_dispatch_source);
+        close(_socket);
+        _socket = 0;
+        [_closingNotInProgress signalAll];
     }
 }
 
@@ -87,7 +90,7 @@
         }
         
         realAmountReceived = recv(_socket, [_recvBuffer getRawDataPtr], maximumAmountReceivable, 0);
-    
+            
         // This would cause buffer overrun and indicates a serious bug somewhere (probably not in our code though *puts on sunglasses slowly*).
         if(realAmountReceived == -1) {
             NSLog(@"UDP - Serious receive error detected while attempting to receive data");
@@ -127,12 +130,6 @@
     
     _socket = socket(AF_INET, SOCK_DGRAM, 0);
     _dispatch_source = dispatch_source_create(DISPATCH_SOURCE_TYPE_READ, _socket, 0, _gcd_queue);
-    dispatch_source_set_cancel_handler(_dispatch_source, ^{
-        NSLog(@"UDP - Closing socket");
-        close(_socket);
-        _socket = 0;
-        [_closingNotInProgress signalAll];
-    });
     dispatch_source_set_event_handler(_dispatch_source, ^{
         [self onRecv];
     });
