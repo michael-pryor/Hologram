@@ -71,7 +71,7 @@
         dispatch_sync(dispatch_get_main_queue(), ^{
             [self _doConnectToHost:host andPort:port];
         });
-      }
+    }
 }
 
 - (void) performShutdownInRunLoop {
@@ -116,7 +116,12 @@
 
 - (void)stream:(NSStream *)theStream handleEvent:(NSStreamEvent)streamEvent {
     Boolean isInputStream = (theStream == _inputStream);
-    Boolean isOutputStream = !isInputStream;
+    Boolean isOutputStream = (theStream == _outputStream);
+    
+    if(!isInputStream && !isOutputStream) {
+        NSLog(@"TCP - ignoring notification, old message from prior connection");
+        return;
+    }
     
     switch(streamEvent) {
         case NSStreamEventNone:

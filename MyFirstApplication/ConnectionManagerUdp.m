@@ -38,6 +38,7 @@
         _openingNotInProgress = [[Signal alloc] initWithFlag:true];
         _gcd_queue = dispatch_queue_create("ConnectionManagerUdp", NULL);
         _gcd_queue_sending = dispatch_queue_create("ConnectionManagerUdpSendQueue", NULL);
+        _dispatch_source = nil;
     }
     return self;
 }
@@ -62,7 +63,7 @@
 
 - (void) close {
     [_closingNotInProgress wait];
-    if([self isConnected] && dispatch_source_testcancel(_dispatch_source) == 0) {
+    if([self isConnected] && _dispatch_source != nil && dispatch_source_testcancel(_dispatch_source) == 0) {
         NSLog(@"UDP - Signaling UDP socket closure");
         [_closingNotInProgress clear];
         dispatch_source_cancel(_dispatch_source); // only triggered once, so don't have to worry about multiple calls to this.
@@ -125,20 +126,20 @@
     [_openingNotInProgress clear];
     
     _socket = socket(AF_INET, SOCK_DGRAM, 0);
-    
-    [self validateResult: connect(_socket, (const struct sockaddr *)&addr, sizeof(addr))];
-    
     _dispatch_source = dispatch_source_create(DISPATCH_SOURCE_TYPE_READ, _socket, 0, _gcd_queue);
-    dispatch_source_set_event_handler(_dispatch_source, ^{
-        [self onRecv];
-    });
     dispatch_source_set_cancel_handler(_dispatch_source, ^{
         NSLog(@"UDP - Closing socket");
         close(_socket);
         _socket = 0;
         [_closingNotInProgress signalAll];
     });
+    dispatch_source_set_event_handler(_dispatch_source, ^{
+        [self onRecv];
+    });
     dispatch_resume(_dispatch_source);
+    
+    [self validateResult: connect(_socket, (const struct sockaddr *)&addr, sizeof(addr))];
+    
     
     [_openingNotInProgress signalAll];
     

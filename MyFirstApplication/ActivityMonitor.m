@@ -57,13 +57,15 @@
 }
 
 - (void)terminate {
-    // Small change we'l have to loop round twice,
-    // that avoids race condition.
-    while(![_terminatedSignal isSignaled]) {
-        [_terminationSignal signal];
-        [_actionSignal signal];
-        [NSThread sleepForTimeInterval:0.1];
-    }
+    dispatch_async(dispatch_get_main_queue(), ^{
+        // Small change we'l have to loop round twice,
+        // that avoids race condition.
+        while(![_terminatedSignal isSignaled]) {
+            [_terminationSignal signal];
+            [_actionSignal signal];
+            [NSThread sleepForTimeInterval:0.1];
+        }
+    });
 }
 
 @end
