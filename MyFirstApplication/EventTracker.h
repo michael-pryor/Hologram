@@ -10,4 +10,5 @@
 - (id) initWithMaxEvents:(uint)maxEvents;
 - (Boolean) increment;
 - (void) reset;
+- (uint) getNumFailures;
 @end

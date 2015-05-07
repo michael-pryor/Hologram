@@ -8,6 +8,7 @@
 
 #import "ConnectionManagerUdp.h"
 #import "Signal.h"
+#import "EventTracker.h"
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <fcntl.h>
@@ -25,6 +26,7 @@
     ByteBuffer* _recvBuffer;
     Signal* _closingNotInProgress;
     Signal* _openingNotInProgress;
+    EventTracker* _sendFailureEventTracker;
 }
 
 - (id) initWithNewPacketDelegate:(id<NewPacketDelegate>)newPacketDelegate andConnectionDelegate:(id<ConnectionStatusDelegateUdp>)connectionDelegate andRetryCount:(uint)retryCountMax {
@@ -39,6 +41,7 @@
         _gcd_queue = dispatch_queue_create("ConnectionManagerUdp", NULL);
         _gcd_queue_sending = dispatch_queue_create("ConnectionManagerUdpSendQueue", NULL);
         _dispatch_source = nil;
+        _sendFailureEventTracker = [[EventTracker alloc] initWithMaxEvents:retryCountMax];
     }
     return self;
 }
@@ -114,6 +117,8 @@
 
 - (void) connectToHost:(NSString*)host andPort:(ushort)port {
     [self close];
+    
+    [_sendFailureEventTracker reset];
         
     struct sockaddr_in addr;
     memset(&addr, 0, sizeof(addr));
@@ -158,12 +163,16 @@
         
         long result = send(_socket, [buffer buffer], [buffer bufferUsedSize], 0);
         if(result < 0) {
-            if(errno == EWOULDBLOCK) {
-                NSLog(@"Async");
-            } else {
-                NSLog(@"UDP - Failed to send message with size: %ul", [buffer bufferUsedSize]);
+            if([_sendFailureEventTracker increment]) {
                 [self onFailure];
+            } else {
+                int err = errno;
+                float waitForSeconds = [_sendFailureEventTracker getNumFailures] * 0.2;
+                NSLog(@"UDP - Non fatal failure to send message with size: %ul, reason: %d, backoff time: %f", [buffer bufferUsedSize], err, waitForSeconds);
+                [NSThread sleepForTimeInterval:waitForSeconds];
             }
+        } else {
+            [_sendFailureEventTracker reset];
         }
     });
 }
