@@ -33,15 +33,10 @@ class Client(object):
         self.udp_remote_address = None
         logger.info("New client connected, awaiting logon message")
 
-        self.chunks = 0
-        self.batch = 0
-
-        self.client_lock = Lock()
-
     def setUdp(self, clientUdp):
         assert isinstance(clientUdp, ClientUdp)
 
-        logger.info("UDP socket has connected: [%s]" % unicode(clientUdp.remote_address))
+        logger.info("UDP socket has connected: [%s]" % unicode(clientUdp))
         self.udp = clientUdp;
 
         if self.udp is not None:
@@ -73,9 +68,6 @@ class Client(object):
             if hashUdp not in self.udp_connection_linker.clientsByUdpHash:
                 return False, "Hash timed out, please reconnect fresh"
 
-            # Update dict with new client object (old one is replaced).
-            self.udp_connection_linker.clientsByUdpHash[hashUdp] = self
-
             # This indicates that a logon ACK should be sent via TCP.
             hashUdp = self.udp_connection_linker.registerInterestGenerated(self, hashUdp)
             logger.info("Reconnect accepted, hash: %s", hashUdp)
@@ -97,12 +89,12 @@ class Client(object):
                 response.addUnsignedInteger(Client.UdpOperationCodes.OP_ACCEPT_LOGON)
                 response.addString(dataString) # the UDP hash code.
             else:
-                logger.warn("Logon rejected, closing connection")
+                logger.warn("Logon rejected, closing connection, reason [%s]" % dataString)
                 response.addUnsignedInteger(Client.UdpOperationCodes.OP_REJECT_LOGON)
                 response.addString("Reject reason: %s" % dataString)
                 self.closeConnection()
 
-            logger.debug("Sending success ACK to TCP client: %s", self.tcp.remote_address)
+            logger.debug("Sending response accept/reject to TCP client: %s", self.tcp)
             self.tcp.sendByteBuffer(response)
 
         elif self.connection_status == Client.ConnectionStatus.WAITING_UDP:
@@ -129,16 +121,17 @@ class Client(object):
         self.tcp.sendByteBuffer(packet)
 
     def onFriendlyPacketUdp(self, packet):
-        assert isinstance(packet, ByteBuffer)
-        batchId = packet.getUnsignedInteger()
-        chunkId = packet.getUnsignedInteger()
+        pass
 
-        if self.batch != batchId:
-            logger.info("%d of %d received for batch %d, %.2f success" % (self.chunks, 96, self.batch, (float(self.chunks) / 96.0)))
-            self.batch = batchId
-            self.chunks = 0
+    def __str__(self):
+        if self.tcp is not None:
+            tcpString = unicode(self.tcp)
+        else:
+            tcpString = "No TCP connection"
 
-        self.chunks += 1
+        if self.udp is not None:
+            udpString = unicode(self.udp)
+        else:
+            udpString = "No UDP connection"
 
-        #logger.info("Received a friendly UDP packet, batch ID: %s, chunk ID: %s" % (batchId, chunkId))
-        self.udp.sendByteBuffer(packet)
+        return "{Client: [%s] and [%s]}" % (tcpString, udpString)

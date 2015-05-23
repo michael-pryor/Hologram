@@ -55,16 +55,6 @@
     [_connection connectToTcpHost:CONNECT_IP tcpPort:CONNECT_PORT_TCP udpHost:CONNECT_IP udpPort:CONNECT_PORT_UDP];
 }
 
-- (IBAction)onSendButtonClick:(id)sender {
-    NSString * text = [_textToSend text];
-    NSLog(@"Sending packet: %@", text);
-    
-    ByteBuffer * buffer = [[ByteBuffer alloc] init];
-    [buffer addUnsignedInteger: 0];
-    [buffer addString: text];
-    [_connection sendTcpPacket:buffer];
-}
-
 - (void) _doConnectionStatusChange:(ConnectionStatusProtocol)status withDescription:(NSString *)description {
     NSLog(@"Received status change: %u and description: %@", status, description);
     [[self connectionStatus] setText: description];

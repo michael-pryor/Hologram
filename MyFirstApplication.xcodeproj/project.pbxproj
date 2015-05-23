@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		5103A96E1B077E42003573FE /* NatPunchthroughViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 5103A96D1B077E42003573FE /* NatPunchthroughViewController.m */; };
 		513205E71AAE4CA600C80AD9 /* SoundMicrophone.m in Sources */ = {isa = PBXBuildFile; fileRef = 513205E61AAE4CA600C80AD9 /* SoundMicrophone.m */; };
 		519573041AEBEB26000247E1 /* EventTracker.m in Sources */ = {isa = PBXBuildFile; fileRef = 519573031AEBEB26000247E1 /* EventTracker.m */; };
 		51BF42541A750CDB00C16F9A /* ConnectionManagerProtocol.m in Sources */ = {isa = PBXBuildFile; fileRef = 51BF42531A750CDB00C16F9A /* ConnectionManagerProtocol.m */; };
@@ -56,6 +57,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		5103A96C1B077E42003573FE /* NatPunchthroughViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NatPunchthroughViewController.h; sourceTree = "<group>"; };
+		5103A96D1B077E42003573FE /* NatPunchthroughViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NatPunchthroughViewController.m; sourceTree = "<group>"; };
 		513205E51AAE4CA600C80AD9 /* SoundMicrophone.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SoundMicrophone.h; sourceTree = "<group>"; };
 		513205E61AAE4CA600C80AD9 /* SoundMicrophone.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SoundMicrophone.m; sourceTree = "<group>"; };
 		519573021AEBEB26000247E1 /* EventTracker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EventTracker.h; sourceTree = "<group>"; };
@@ -278,6 +281,8 @@
 				51D584B819AB63FB00BB6CE6 /* Networking */,
 				51DB961919A8EE05001A63F8 /* ConnectionViewController.h */,
 				51DB961A19A8EE05001A63F8 /* ConnectionViewController.m */,
+				5103A96C1B077E42003573FE /* NatPunchthroughViewController.h */,
+				5103A96D1B077E42003573FE /* NatPunchthroughViewController.m */,
 				51E5BE291936A982003E45C3 /* MyFirstApplication-Info.plist */,
 				51E5BE2A1936A982003E45C3 /* InfoPlist.strings */,
 				51E5BE2D1936A982003E45C3 /* main.m */,
@@ -449,6 +454,7 @@
 				51D584BE19AB649500BB6CE6 /* OutputSessionTcp.m in Sources */,
 				51C263881AB4545000285C6E /* SoundEncodingShared.m in Sources */,
 				51BF42541A750CDB00C16F9A /* ConnectionManagerProtocol.m in Sources */,
+				5103A96E1B077E42003573FE /* NatPunchthroughViewController.m in Sources */,
 				51DB961819A8E3D0001A63F8 /* ConnectionManagerTcp.m in Sources */,
 				51C2638B1AB45CE400285C6E /* BlockingQueue.m in Sources */,
 				51CE2B941A8ECD9100B8E5B7 /* PipelineProcessor.m in Sources */,

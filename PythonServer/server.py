@@ -39,9 +39,11 @@ class Server(ClientFactory, protocol.DatagramProtocol):
         self.client_mappings_lock.release()
 
     def _cleanupUdp(self, udpClient):
+        assert isinstance(udpClient, ClientUdp)
+
         try:
-            del self.clientsByUdpAddress[udpClient]
-            logger.info("Cleaning up UDP address of client: %s" % udpClient)
+            del self.clientsByUdpAddress[udpClient.remote_address]
+            logger.info("Cleaning up UDP address of client: [%s]" % udpClient)
         except KeyError:
             logger.debug("Attempt to cleanup UDP address failed, not yet connected via UDP")
             pass
@@ -49,7 +51,7 @@ class Server(ClientFactory, protocol.DatagramProtocol):
     def clientDisconnected(self, client):
         self._lockClm()
         try:
-            origClient = self.clientsByTcpAddress.get(client.tcp)
+            origClient = self.clientsByTcpAddress.get(client.tcp.remote_address)
 
             # There is the possibility that client reconnected, creating new
             # Client object, but there was a delay in the original client
@@ -59,14 +61,16 @@ class Server(ClientFactory, protocol.DatagramProtocol):
             if origClient is not client:
                 # Only need to cleanup UDP address if they are different.
                 if origClient.udp != client.udp:
+                    logger.info("Client has reconnected via UDP on a different interface, cleaning up old UDP connection. Old: %s vs new: %s" % (origClient.udp, client.udp))
                     self._cleanupUdp(origClient.udp)
                 else:
-                    logger.debug("Not cleaning up UDP address; as has been reused by reconnect: %s" % client.udp)
+                    logger.debug("Not cleaning up UDP address; as has been reused by reconnect: [%s]" % client.udp)
             else:
                 # No reconnect concerns, cleanup the client normally.
                 logger.info("Client has disconnected normally")
-                del self.clientsByTcpAddress[origClient]
-                self._cleanupUdp(origClient.udp)
+                del self.clientsByTcpAddress[origClient.tcp.remote_address]
+                if origClient.udp is not None:
+                    self._cleanupUdp(origClient.udp)
 
             logger.info("Client has disconnected")
         finally:
@@ -80,7 +84,7 @@ class Server(ClientFactory, protocol.DatagramProtocol):
 
         self._lockClm()
         try:
-            self.clientsByTcpAddress[tcpCon] = client
+            self.clientsByTcpAddress[tcpCon.remote_address] = client
         finally:
             self._unlockClm()
 
@@ -124,8 +128,13 @@ class Server(ClientFactory, protocol.DatagramProtocol):
             if registeredClient.connection_status == Client.ConnectionStatus.CONNECTED:
                 self._lockClm()
                 try:
-                    self.clientsByUdpAddress[remoteAddress] = registeredClient
+                    existingClient = self.clientsByUdpHash.get(theHash)
+                    if existingClient is not None:
+                        logger.info("Cleaning up existing client before processing reconnect: %s" % existingClient)
+                        self.clientDisconnected(existingClient)
+
                     self.clientsByUdpHash[theHash] = registeredClient
+                    self.clientsByUdpAddress[remoteAddress] = registeredClient
                 finally:
                     self._unlockClm()
 

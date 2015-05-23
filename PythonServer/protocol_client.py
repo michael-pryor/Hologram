@@ -28,10 +28,10 @@ class ClientTcp(IntNStringReceiver):
         logger.info("Connection made to client")
 
     def connectionLost(self, reason):
-        logger.info("TCP connection lost with: %s", self.remote_address);
+        logger.info("TCP connection lost with: [%s]", self);
 
     def stringReceived(self, data):
-        logger.info("Client received TCP packet, length: %d, from: %s" % (len(data), self.remote_address))
+        logger.info("Client received TCP packet, length: %d, from: [%s]" % (len(data), self))
         byteBuffer = ByteBuffer.buildFromIterable(data)
         self.parent.handleTcpPacket(byteBuffer)
 
@@ -39,12 +39,18 @@ class ClientTcp(IntNStringReceiver):
         assert isinstance(byteBuffer, ByteBuffer)
         self.sendString(byteBuffer.convertToString())
 
+    def formatAddress(self, addressTuple):
+        return "%s:%s" % (addressTuple.host, addressTuple.port)
+
     def __hash__(self):
         return hash(self.remote_address)
 
     def __eq__(self, other):
         assert isinstance(other, ClientTcp)
         return other.remote_address == self.remote_address
+
+    def __str__(self):
+        return "{ClientTCP: [%s]}" % self.formatAddress(self.remote_address)
 
 # UDP interactions with client.
 class ClientUdp(object):
@@ -58,9 +64,15 @@ class ClientUdp(object):
         strRepresentation = byteBuffer.convertToString()
         self.datagram_sender_func(strRepresentation, self.remote_address)
 
+    def formatAddress(self, address):
+        return "%s:%s" % address
+
     def __hash__(self):
         return hash(self.remote_address)
 
     def __eq__(self, other):
         assert isinstance(other, ClientUdp)
         return other.remote_address == self.remote_address
+
+    def __str__(self):
+        return "{ClientUDP: [%s]}" % self.formatAddress(self.remote_address)

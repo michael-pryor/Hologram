@@ -49,6 +49,9 @@ class UdpConnectionLinker(object):
             if newHash not in self.waiting_hashes:
                 return newHash
 
+            # Incase we end up with lots of spinning.
+            logger.warn("Hash clash found with hash [%s], generating new hash" % newHash)
+
 
     def registerInterestGenerated(self, waitingClient, newHash = None):
         provided = newHash is not None
@@ -74,8 +77,9 @@ class UdpConnectionLinker(object):
             if hashObj.waiting_client.setUdp(clientUdp):
                 del self.waiting_hashes[hashObj]
 
-            logger.info("UDP connection with hash [%s] and connection details [%s] has been established" % (udpHash, unicode(clientUdp.remote_address)))
+            logger.info("UDP connection with hash [%s] and details [%s] has been established" % (udpHash, unicode(clientUdp)))
             return hashObj.waiting_client
         except KeyError:
             pass
-            #logger.warn("An invalid UDP hash was received from [%s], discarding" % unicode(clientUdp.remote_address))
+            # This happens when if a client thinks it is connected but is not and spams us with data.
+            #logger.warn("An invalid UDP hash was received from [%s], discarding" % unicode(clientUdp))
