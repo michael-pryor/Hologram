@@ -28,9 +28,13 @@ class UdpConnectionLink(object):
 
 
 class UdpConnectionLinker(object):
-    def __init__(self):
+    DELAY = 10
+
+    def __init__(self, clientsByUdpHash):
         super(UdpConnectionLinker, self).__init__()
         self.waiting_hashes = dict()
+        self.clients_by_udp_hash = clientsByUdpHash
+
 
     def registerInterest(self, udpHash, waitingClient):
         obj = UdpConnectionLink(udpHash, waitingClient)
@@ -66,8 +70,12 @@ class UdpConnectionLinker(object):
                 return newHash
 
     def registerPrematureCompletion(self, udpHash, waitingClient):
-        logger.info("UDP connection with hash [%s] was prematurely aborted" % udpHash)
-        self.waiting_hashes.remove(UdpConnectionLink(udpHash, waitingClient))
+        try:
+            del self.waiting_hashes[UdpConnectionLink(udpHash, waitingClient)]
+            logger.info("UDP connection with hash [%s] was prematurely aborted" % udpHash)
+        except KeyError:
+            logger.info("UDP hash not found in waiting hashes, no need to remove [%s]" % udpHash)
+
 
     def registerCompletion(self, udpHash, clientUdp):
         try:

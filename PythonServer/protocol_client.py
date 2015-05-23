@@ -25,10 +25,11 @@ class ClientTcp(IntNStringReceiver):
         self.parent = None
 
     def connectionMade(self):
-        logger.info("Connection made to client")
+        logger.info("New client connection [%s]" % self)
 
     def connectionLost(self, reason):
-        logger.info("TCP connection lost with: [%s]", self);
+        logger.info("Client TCP connection lost [%s]", self);
+        self.parent.on_close_func(self.parent)
 
     def stringReceived(self, data):
         logger.info("Client received TCP packet, length: %d, from: [%s]" % (len(data), self))

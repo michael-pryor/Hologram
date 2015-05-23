@@ -52,10 +52,9 @@ class Client(object):
 
     def closeConnection(self):
         self.tcp.transport.loseConnection()
-        self.on_close_func(self)
 
-        if self.udp_hash is not None:
-            self.udp_connection_linker.registerPrematureCompletion(self.udp_hash)
+        if self.udp_hash is not None and self.udp_connection_linker is not None:
+            self.udp_connection_linker.registerPrematureCompletion(self.udp_hash, self)
 
     def handleLogon(self, packet):
         assert isinstance(packet, ByteBuffer)
@@ -64,18 +63,18 @@ class Client(object):
 
         # Reconnection attempt, UDP hash included in logon.
         if packet.used_size != packet.cursor_position:
-            hashUdp = packet.getString()
-            if hashUdp not in self.udp_connection_linker.clientsByUdpHash:
+            self.udp_hash = packet.getString()
+            if self.udp_hash not in self.udp_connection_linker.clients_by_udp_hash:
                 return False, "Hash timed out, please reconnect fresh"
 
             # This indicates that a logon ACK should be sent via TCP.
-            hashUdp = self.udp_connection_linker.registerInterestGenerated(self, hashUdp)
-            logger.info("Reconnect accepted, hash: %s", hashUdp)
+            self.udp_hash = self.udp_connection_linker.registerInterestGenerated(self, self.udp_hash)
+            logger.info("Reconnect accepted, hash: %s", self.udp_hash)
         else:
-            hashUdp = self.udp_connection_linker.registerInterestGenerated(self)
+            self.udp_hash = self.udp_connection_linker.registerInterestGenerated(self)
 
-        logger.info("Login processed with details, version number: [%d], login name: [%s], udp hash: [%s]", versionNum, loginName, hashUdp)
-        return True, hashUdp
+        logger.info("Login processed with details, version number: [%d], login name: [%s], udp hash: [%s]", versionNum, loginName, self.udp_hash)
+        return True, self.udp_hash
 
     def handleTcpPacket(self, packet):
         assert isinstance(packet, ByteBuffer)
