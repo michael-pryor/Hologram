@@ -167,7 +167,7 @@
                 [self onFailure];
             } else {
                 int err = errno;
-                float waitForSeconds = [_sendFailureEventTracker getNumFailures] * 0.2;
+                float waitForSeconds = [_sendFailureEventTracker getNumEvents] * 0.2;
                 NSLog(@"UDP - Non fatal failure to send message with size: %ul, reason: %d, backoff time: %f", [buffer bufferUsedSize], err, waitForSeconds);
                 [NSThread sleepForTimeInterval:waitForSeconds];
             }

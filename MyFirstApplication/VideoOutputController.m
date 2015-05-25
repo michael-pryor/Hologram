@@ -11,7 +11,7 @@
 #import "BatcherInput.h"
 #import "BatcherOutput.h"
 #import "EncodingPipe.h"
-
+#import "TimedEventTracker.h"
 
 @implementation PacketToImageProcessor {
     id<NewImageDelegate> _newImageDelegate;
@@ -49,11 +49,15 @@
     id<NewImageDelegate> _newImageDelegate;           // Push to users' screens.
     
     id<NewPacketDelegate> _tcpNetworkOutputSession;   // For requesting slow down in network usage.
+    
+    TimedEventTracker* _slowDownThreshold;            // Decides when to ask for less network traffic.
+    
 }
 - (id)initWithTcpNetworkOutputSession:(id<NewPacketDelegate>)tcpNetworkOutputSession udpNetworkOutputSession:(id<NewPacketDelegate>)udpNetworkOutputSession imageDelegate:(id<NewImageDelegate>)newImageDelegate {
     self = [super init];
     if(self) {
         _newImageDelegate = newImageDelegate;
+        _tcpNetworkOutputSession = tcpNetworkOutputSession;
         
         _videoEncoder = [[VideoEncoding alloc] init];
         
@@ -65,10 +69,13 @@
         
         _batcherOutput = [[BatcherOutput alloc] initWithOutputSession:_encodingPipeVideo andChunkSize:[_videoEncoder suggestedBatchSize] withLeftPadding:sizeof(uint) includeTotalChunks:true];
         
-        _batcherInput = [[BatcherInput alloc] initWithOutputSession:p chunkSize:[_videoEncoder suggestedBatchSize] numChunks:0 andNumChunksThreshold:0 andTimeoutMs:1000 andPerformanceInformaitonDelegate:self];
+        _batcherInput = [[BatcherInput alloc] initWithOutputSession:p chunkSize:[_videoEncoder suggestedBatchSize] numChunks:0 andNumChunksThreshold:1 andTimeoutMs:1000 andPerformanceInformaitonDelegate:self];
         
         _session = [_videoEncoder setupCaptureSessionWithDelegate: self];
-                
+        
+        // 5 second of bad data.
+        _slowDownThreshold = [[TimedEventTracker alloc] initWithMaxEvents:10 timePeriod:1];
+        
         NSLog(@"Starting recording...");
         [_session startRunning];
     }
@@ -90,7 +97,7 @@
 
 // Handle degrading network performance.
 - (void)onNewOutput:(float)percentageFilled {
-    if(percentageFilled < 100.0) {
+    if(percentageFilled < 100.0 && [_slowDownThreshold increment]) {
         NSLog(@"Requesting slow down in video");
         ByteBuffer* buffer = [[ByteBuffer alloc] init];
         [buffer addUnsignedInteger:SLOW_DOWN_VIDEO];
@@ -101,6 +108,11 @@
 // Handle new data received on network to be pushed out to the user.
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
     [_batcherInput onNewPacket:packet fromProtocol:protocol];
+}
+
+- (void)slowSendRate {
+    NSLog(@"Slowing send rate of vide");
+    [_throttledBlock slowRate];
 }
 
 @end

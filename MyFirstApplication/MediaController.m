@@ -70,8 +70,8 @@
         _encodingPipeAudio = [[EncodingPipe alloc] initWithOutputSession:_udpNetworkOutputSession andPrefixId:AUDIO_ID];
         
         
-        Float64 secondsPerBuffer = 0.25;
-        uint numBuffers = 3;
+        Float64 secondsPerBuffer = 0.1;
+        uint numBuffers = 6;
         
         _soundEncoder = [[SoundMicrophone alloc] initWithOutputSession:nil numBuffers:numBuffers leftPadding:sizeof(uint) secondPerBuffer:secondsPerBuffer];
         _soundPlayback = [[SoundPlayback alloc] initWithAudioDescription:[_soundEncoder getAudioDescription] secondsPerBuffer:secondsPerBuffer numBuffers:numBuffers restartPlaybackThreshold:3 maxPendingAmount:9];
@@ -83,6 +83,7 @@
         NSLog(@"Initializing playback and recording...");
         [_soundEncoder start];
         [_soundPlayback start];
+        [_soundEncoder startCapturing];
         
         _connected = false;
     }
@@ -98,7 +99,7 @@
         uint prefix = [packet getUnsignedInteger];
         if(prefix == SLOW_DOWN_VIDEO) {
             NSLog(@"Slowing down video send rate");
-            //[_throttledBlock slowRate];
+            [_videoOutputController slowSendRate];
         } else {
             NSLog(@"Invalid TCP packet received");
         }

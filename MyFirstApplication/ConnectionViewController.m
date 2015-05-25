@@ -106,12 +106,7 @@
 
 
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
-    uint op = 1;//[packet getUnsignedInteger];
-    if(op == 1) {
-        [_mediaController onNewPacket:packet fromProtocol:UDP];
-    } else {
-        NSLog(@"Dropping unusual packet: %ul", op);
-    }
+    [_mediaController onNewPacket:packet fromProtocol:protocol];
 }
 
 @end

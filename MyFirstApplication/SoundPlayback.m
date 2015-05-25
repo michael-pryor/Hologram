@@ -151,11 +151,15 @@ static void HandleOutputBuffer (void                *aqData,
         }
         
         // Requeue buffers.
+        // Saw a case where blocked forever on get, so changed it to getImmediate.
+        // It blocked forever because receiving by UDP starts playback, but queue can only be filled
+        // by another UDP packet later on.
+        // Not sure why check above did not do the job, i.e. getPendingAmount >= _numAudioBuffers.
+        // Perhaps shutdown was called?
         int primeCount = 0;
         while(primeCount < _numAudioBuffers) {
-            ByteBuffer* buffer = [_soundQueue get];
+            ByteBuffer* buffer = [_soundQueue getImmediate];
             if(buffer == nil) {
-                NSLog(@"Premature termination signal while priming output buffers, sound output thread exiting");
                 return;
             }
             

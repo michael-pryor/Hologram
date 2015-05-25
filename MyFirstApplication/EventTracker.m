@@ -27,7 +27,7 @@
 - (void) reset {
     _numEvents = 0;
 }
-- (uint) getNumFailures {
+- (uint) getNumEvents {
     return _numEvents;
 }
 @end
