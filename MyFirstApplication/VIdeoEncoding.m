@@ -10,6 +10,7 @@
 
 @implementation VideoEncoding {
     NSString * _sessionPreset;
+    dispatch_queue_t _videoOutputQueue;
 }
 - (id) init {
     self = [super init];
@@ -21,6 +22,8 @@
         } else {
             [NSException raise:@"Invalid session preset" format:@"Session preset must be preconfigured in code"];
         }
+        
+        _videoOutputQueue = dispatch_queue_create("CameraOutputQueue", NULL);
     }
     return self;
 }
@@ -79,7 +82,7 @@
         AVCaptureDeviceInput *input;
         {
             // Select the AVCaptureDevice, choose the front facing camera.
-            AVCaptureDevice *device;
+            AVCaptureDevice *device=nil;
             NSArray* devices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
             for(AVCaptureDevice* d in devices) {
                 if([d position] == AVCaptureDevicePositionFront) {
@@ -87,6 +90,22 @@
                     break;
                 }
             }
+            
+            if(device == nil) {
+                NSLog(@"No video output device found matching specification, defaulting to first in list");
+                device = devices[0];
+            }
+            
+            if(device == nil) {
+                NSLog(@"No video output devices found");
+                return nil;
+            }
+            
+            // Set frame rate.
+            /*if([device lockForConfiguration:NULL] == YES) {
+                device.activeVideoMaxFrameDuration = CMTimeMake(1, 20);
+                [device unlockForConfiguration];
+            }*/
             
             // From the device, create an AVCaptureDeviceInput.
             // This initializes the device, the camera is now active.
@@ -111,7 +130,6 @@
      // Set video orientation and frame rate.
     AVCaptureConnection *conn = [output connectionWithMediaType:AVMediaTypeVideo];
     [conn setVideoOrientation:AVCaptureVideoOrientationPortrait];
-    conn.videoMinFrameDuration = CMTimeMake(1, 20);
    
     NSArray* availableVideoCodecs = [output availableVideoCVPixelFormatTypes];
     for(NSString* codec in availableVideoCodecs) {
@@ -122,9 +140,7 @@
     output.videoSettings = @{ (NSString *)kCVPixelBufferPixelFormatTypeKey : @(kCVPixelFormatType_32BGRA) };
     
     // Pass video output to delegate function (parameter of this method).
-    dispatch_queue_t queue = dispatch_queue_create("CameraOutputQueue", NULL);
-    [output setSampleBufferDelegate:delegate queue:queue];
-
+    [output setSampleBufferDelegate:delegate queue:_videoOutputQueue];
 
     return session;
 }

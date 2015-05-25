@@ -15,30 +15,8 @@
 #import "SoundPlayback.h"
 #import "EncodingPipe.h"
 #import "DecodingPipe.h"
-
-@implementation PacketToImageProcessor {
-    id<NewImageDelegate> _newImageDelegate;
-    VideoEncoding* _videoEncoder;
-}
-
-- (id)initWithImageDelegate:(id<NewImageDelegate>)newImageDelegate encoder:(VideoEncoding*)videoEncoder {
-    self = [super init];
-    if(self) {
-	    _newImageDelegate = newImageDelegate;
-        _videoEncoder = videoEncoder;
-    }
-    return self;
-}
-
-- (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
-    UIImage *image = [_videoEncoder getImageFromByteBuffer:packet];
-    if(image == nil) {
-        return;
-    }
-    
-    [_newImageDelegate onNewImage: image];
-}
-@end
+#import "VideoOutputController.h"
+#import "NetworkOperations.h"
 
 @implementation OfflineAudioProcessor : PipelineProcessor
 - (id)initWithOutputSession:(id<NewPacketDelegate>)outputSession {
@@ -56,62 +34,40 @@
 @end
 
 
-#define AUDIO_ID 1
-#define VIDEO_ID 2
 @implementation MediaController {
     // Video
-    AVCaptureSession* _session;
-    id<NewImageDelegate> _newImageDelegate;
-    VideoEncoding* _mediaEncoder;
-    BatcherInput* _batcherInput;
-    BatcherOutput* _batcherOutput;
-    
-    EncodingPipe* _encodingPipeVideo;
+    VideoOutputController* _videoOutputController;
     
     // Audio
     SoundMicrophone* _soundEncoder;
     SoundPlayback* _soundPlayback;
-    
     EncodingPipe* _encodingPipeAudio;
-    
     OfflineAudioProcessor* _offlineAudioProcessor;
     
     // Both audio and video.
     DecodingPipe* _decodingPipe;
     
-    id<NewPacketDelegate> _networkOutputSession;
-    
-    
+    id<NewPacketDelegate> _udpNetworkOutputSession;
+    id<NewPacketDelegate> _tcpNetworkOutputSession;
     
     bool _connected;
 }
 
-- (id)initWithImageDelegate:(id<NewImageDelegate>)newImageDelegate andwithNetworkOutputSession:(id<NewPacketDelegate>)networkOutputSession {
+- (id)initWithImageDelegate:(id<NewImageDelegate>)newImageDelegate tcpNetworkOutputSession:(id<NewPacketDelegate>)tcpNetworkOutputSession udpNetworkOutputSession:(id<NewPacketDelegate>)udpNetworkOutputSession; {
     self = [super init];
     if(self) {
-        _networkOutputSession = networkOutputSession;
+        _tcpNetworkOutputSession = tcpNetworkOutputSession;
+        _udpNetworkOutputSession = udpNetworkOutputSession;
         
         _decodingPipe = [[DecodingPipe alloc] init];
         
-        // Setup video input/output.
-        // Video frames from this device are sent to a callback in this class.
-	    _newImageDelegate = newImageDelegate;
+        _videoOutputController = [[VideoOutputController alloc] initWithTcpNetworkOutputSession:_tcpNetworkOutputSession udpNetworkOutputSession:_udpNetworkOutputSession imageDelegate:newImageDelegate];
 
-        _mediaEncoder = [[VideoEncoding alloc] init];
-        _session = [_mediaEncoder setupCaptureSessionWithDelegate: self];
-
-        PacketToImageProcessor * p = [[PacketToImageProcessor alloc] initWithImageDelegate:newImageDelegate encoder:_mediaEncoder];
-        
-        _encodingPipeVideo = [[EncodingPipe alloc] initWithOutputSession:networkOutputSession andPrefixId:VIDEO_ID];
-        
-        _batcherOutput = [[BatcherOutput alloc] initWithOutputSession:_encodingPipeVideo andChunkSize:[_mediaEncoder suggestedBatchSize] withLeftPadding:sizeof(uint) includeTotalChunks:true];
-        _batcherInput = [[BatcherInput alloc] initWithOutputSession:p chunkSize:[_mediaEncoder suggestedBatchSize] numChunks:0 andNumChunksThreshold:0 andTimeoutMs:100];
-
-        [_decodingPipe addPrefix:VIDEO_ID mappingToOutputSession:_batcherInput];
+        [_decodingPipe addPrefix:VIDEO_ID mappingToOutputSession:_videoOutputController];
         
         
         // Audio.
-        _encodingPipeAudio = [[EncodingPipe alloc] initWithOutputSession:networkOutputSession andPrefixId:AUDIO_ID];
+        _encodingPipeAudio = [[EncodingPipe alloc] initWithOutputSession:_udpNetworkOutputSession andPrefixId:AUDIO_ID];
         
         
         Float64 secondsPerBuffer = 0.25;
@@ -128,45 +84,25 @@
         [_soundEncoder start];
         [_soundPlayback start];
         
-        NSLog(@"Starting recording...");
-        [_soundEncoder startCapturing];
-        
         _connected = false;
     }
     return self;
 }
 
-- (void) startCapturing {
-    [_session startRunning];
-    //[_soundEncoder startCapturing];
-    //[_soundPlayback startPlayback];
-}
-
-- (void) stopCapturing {
-    [_session stopRunning];
-    [_soundEncoder stopCapturing];
-    //[_soundPlayback stopPlayback];
-}
-
-- (void)captureOutput:(AVCaptureOutput *)captureOutput didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection {
-    if(!_connected) {
-        // update display with no networking.
-        UIImage *image = [_mediaEncoder imageFromSampleBuffer: sampleBuffer];
-        [_newImageDelegate onNewImage: image];
-    } else {
-        // Send image as packet.
-        ByteBuffer * rawBuffer = [[ByteBuffer alloc] init];
-        
-        [_mediaEncoder addImage:sampleBuffer toByteBuffer:rawBuffer];
-        rawBuffer.cursorPosition = 0;
-
-        [_batcherOutput onNewPacket:rawBuffer fromProtocol:UDP];
-    }
-}
 
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
-    packet.cursorPosition = 0;
-    [_decodingPipe onNewPacket:packet fromProtocol:protocol];
+    if(protocol == UDP) {
+        packet.cursorPosition = 0;
+        [_decodingPipe onNewPacket:packet fromProtocol:protocol];
+    } else if(protocol == TCP) {
+        uint prefix = [packet getUnsignedInteger];
+        if(prefix == SLOW_DOWN_VIDEO) {
+            NSLog(@"Slowing down video send rate");
+            //[_throttledBlock slowRate];
+        } else {
+            NSLog(@"Invalid TCP packet received");
+        }
+    }
 }
 
 - (void)connectionStatusChange:(ConnectionStatusProtocol)status withDescription:(NSString *)description {

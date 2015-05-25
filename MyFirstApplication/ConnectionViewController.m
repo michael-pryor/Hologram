@@ -26,8 +26,8 @@
 -(void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear: animated];
     _connection = [[ConnectionManagerProtocol alloc] initWithRecvDelegate:self andConnectionStatusDelegate:self];
-    _mediaController = [[MediaController alloc] initWithImageDelegate:self andwithNetworkOutputSession:[_connection getUdpOutputSession] ];
-    [_mediaController startCapturing];
+    _mediaController = [[MediaController alloc] initWithImageDelegate:self tcpNetworkOutputSession:[_connection getTcpOutputSession] udpNetworkOutputSession:[_connection getUdpOutputSession]];
+   // [_mediaController startCapturing];
 }
 
 - (void)onNewImage: (UIImage*)image {

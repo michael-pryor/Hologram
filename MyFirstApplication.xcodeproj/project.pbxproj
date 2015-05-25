@@ -8,6 +8,10 @@
 
 /* Begin PBXBuildFile section */
 		5103A96E1B077E42003573FE /* NatPunchthroughViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 5103A96D1B077E42003573FE /* NatPunchthroughViewController.m */; };
+		51197AFA1B132D6F006A7AEE /* Timer.m in Sources */ = {isa = PBXBuildFile; fileRef = 51197AF91B132D6F006A7AEE /* Timer.m */; };
+		51197AFD1B134D72006A7AEE /* ThrottledPipe.m in Sources */ = {isa = PBXBuildFile; fileRef = 51197AFC1B134D72006A7AEE /* ThrottledPipe.m */; };
+		51197B001B1350B1006A7AEE /* ThrottledBlock.m in Sources */ = {isa = PBXBuildFile; fileRef = 51197AFF1B1350B1006A7AEE /* ThrottledBlock.m */; };
+		51197B031B136CC3006A7AEE /* VideoOutputController.m in Sources */ = {isa = PBXBuildFile; fileRef = 51197B021B136CC3006A7AEE /* VideoOutputController.m */; };
 		513205E71AAE4CA600C80AD9 /* SoundMicrophone.m in Sources */ = {isa = PBXBuildFile; fileRef = 513205E61AAE4CA600C80AD9 /* SoundMicrophone.m */; };
 		519573041AEBEB26000247E1 /* EventTracker.m in Sources */ = {isa = PBXBuildFile; fileRef = 519573031AEBEB26000247E1 /* EventTracker.m */; };
 		51BF42541A750CDB00C16F9A /* ConnectionManagerProtocol.m in Sources */ = {isa = PBXBuildFile; fileRef = 51BF42531A750CDB00C16F9A /* ConnectionManagerProtocol.m */; };
@@ -59,6 +63,15 @@
 /* Begin PBXFileReference section */
 		5103A96C1B077E42003573FE /* NatPunchthroughViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NatPunchthroughViewController.h; sourceTree = "<group>"; };
 		5103A96D1B077E42003573FE /* NatPunchthroughViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NatPunchthroughViewController.m; sourceTree = "<group>"; };
+		51197AF81B132D6F006A7AEE /* Timer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Timer.h; sourceTree = "<group>"; };
+		51197AF91B132D6F006A7AEE /* Timer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Timer.m; sourceTree = "<group>"; };
+		51197AFB1B134D72006A7AEE /* ThrottledPipe.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ThrottledPipe.h; sourceTree = "<group>"; };
+		51197AFC1B134D72006A7AEE /* ThrottledPipe.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ThrottledPipe.m; sourceTree = "<group>"; };
+		51197AFE1B1350B1006A7AEE /* ThrottledBlock.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ThrottledBlock.h; sourceTree = "<group>"; };
+		51197AFF1B1350B1006A7AEE /* ThrottledBlock.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ThrottledBlock.m; sourceTree = "<group>"; };
+		51197B011B136CC3006A7AEE /* VideoOutputController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VideoOutputController.h; sourceTree = "<group>"; };
+		51197B021B136CC3006A7AEE /* VideoOutputController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = VideoOutputController.m; sourceTree = "<group>"; };
+		51197B041B137468006A7AEE /* NetworkOperations.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NetworkOperations.h; sourceTree = "<group>"; };
 		513205E51AAE4CA600C80AD9 /* SoundMicrophone.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SoundMicrophone.h; sourceTree = "<group>"; };
 		513205E61AAE4CA600C80AD9 /* SoundMicrophone.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SoundMicrophone.m; sourceTree = "<group>"; };
 		519573021AEBEB26000247E1 /* EventTracker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EventTracker.h; sourceTree = "<group>"; };
@@ -228,6 +241,11 @@
 				51E5BE801ABD03FD003E035C /* EncodingPipe.m */,
 				51E5BE821ABD0450003E035C /* DecodingPipe.h */,
 				51E5BE831ABD0450003E035C /* DecodingPipe.m */,
+				51197AFB1B134D72006A7AEE /* ThrottledPipe.h */,
+				51197AFC1B134D72006A7AEE /* ThrottledPipe.m */,
+				51197B011B136CC3006A7AEE /* VideoOutputController.h */,
+				51197B021B136CC3006A7AEE /* VideoOutputController.m */,
+				51197B041B137468006A7AEE /* NetworkOperations.h */,
 			);
 			name = Protocol;
 			sourceTree = "<group>";
@@ -322,6 +340,10 @@
 				51C2638A1AB45CE400285C6E /* BlockingQueue.m */,
 				519573021AEBEB26000247E1 /* EventTracker.h */,
 				519573031AEBEB26000247E1 /* EventTracker.m */,
+				51197AF81B132D6F006A7AEE /* Timer.h */,
+				51197AF91B132D6F006A7AEE /* Timer.m */,
+				51197AFE1B1350B1006A7AEE /* ThrottledBlock.h */,
+				51197AFF1B1350B1006A7AEE /* ThrottledBlock.m */,
 			);
 			name = Util;
 			sourceTree = "<group>";
@@ -455,16 +477,20 @@
 				51C263881AB4545000285C6E /* SoundEncodingShared.m in Sources */,
 				51BF42541A750CDB00C16F9A /* ConnectionManagerProtocol.m in Sources */,
 				5103A96E1B077E42003573FE /* NatPunchthroughViewController.m in Sources */,
+				51197AFD1B134D72006A7AEE /* ThrottledPipe.m in Sources */,
+				51197B001B1350B1006A7AEE /* ThrottledBlock.m in Sources */,
 				51DB961819A8E3D0001A63F8 /* ConnectionManagerTcp.m in Sources */,
 				51C2638B1AB45CE400285C6E /* BlockingQueue.m in Sources */,
 				51CE2B941A8ECD9100B8E5B7 /* PipelineProcessor.m in Sources */,
 				51E5BE321936A982003E45C3 /* MJPAppDelegate.m in Sources */,
 				513205E71AAE4CA600C80AD9 /* SoundMicrophone.m in Sources */,
+				51197B031B136CC3006A7AEE /* VideoOutputController.m in Sources */,
 				51C3F13F1A6C4388004040BB /* ConnectionManagerUdp.m in Sources */,
 				51D584BB19AB648000BB6CE6 /* InputSessionTcp.m in Sources */,
 				51E5BE841ABD0450003E035C /* DecodingPipe.m in Sources */,
 				519573041AEBEB26000247E1 /* EventTracker.m in Sources */,
 				51E5BE2E1936A982003E45C3 /* main.m in Sources */,
+				51197AFA1B132D6F006A7AEE /* Timer.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -19,6 +19,7 @@
     ByteBuffer* _partialPacket;
     NSTimer* _timer;
     Boolean _hasOutput;
+    id<BatchPerformanceInformation> _performanceDelegate;
 }
 
 - (void)onTimeout:(NSTimer*)timer {
@@ -28,6 +29,9 @@
     }
     
     uint integerNumChunksThreshold = _numChunksThreshold * (float)_totalChunks;
+    
+    float chunksReceivedPercentage = ((double)_chunksReceived) / ((double)_totalChunks);
+    [_performanceDelegate onNewOutput:chunksReceivedPercentage];
     
     if(_chunksReceived >= integerNumChunksThreshold) {
         @synchronized(_partialPacket) {
@@ -39,7 +43,7 @@
     }
 }
 
-- (id)initWithOutputSession:(id<NewPacketDelegate>)outputSession chunkSize:(uint)chunkSize numChunks:(uint)numChunks andNumChunksThreshold:(float)numChunksThreshold andTimeoutSeconds:(double)timeoutSeconds {
+- (id)initWithOutputSession:(id<NewPacketDelegate>)outputSession chunkSize:(uint)chunkSize numChunks:(uint)numChunks andNumChunksThreshold:(float)numChunksThreshold andTimeoutSeconds:(double)timeoutSeconds andPerformanceInformaitonDelegate:(id<BatchPerformanceInformation>)performanceInformationDelegate {
     self = [super initWithOutputSession:outputSession];
     if(self) {
         _chunksReceived = 0;
@@ -51,6 +55,7 @@
         [_partialPacket setUsedSize: [_partialPacket bufferMemorySize]];
         _timeoutSeconds = timeoutSeconds;
         _hasOutput = false;
+        _performanceDelegate = performanceInformationDelegate;
         
         dispatch_async(dispatch_get_main_queue(), ^(void){
             _timer = [NSTimer scheduledTimerWithTimeInterval:_timeoutSeconds target:self selector:@selector(onTimeout:) userInfo:nil repeats:NO];

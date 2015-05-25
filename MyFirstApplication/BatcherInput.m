@@ -18,8 +18,9 @@
     float _numChunksThreshold;
     double _timeoutMs;
     double _batchRemovalTimeout;
+    id<BatchPerformanceInformation> _performanceDelegate;
 }
-- (id)initWithOutputSession:(id<NewPacketDelegate>)outputSession chunkSize:(uint)chunkSize numChunks:(uint)numChunks andNumChunksThreshold:(float)numChunksThreshold andTimeoutMs:(uint)timeoutMs {
+- (id)initWithOutputSession:(id<NewPacketDelegate>)outputSession chunkSize:(uint)chunkSize numChunks:(uint)numChunks andNumChunksThreshold:(float)numChunksThreshold andTimeoutMs:(uint)timeoutMs andPerformanceInformaitonDelegate:(id<BatchPerformanceInformation>)performanceInformationDelegate {
     self = [super initWithOutputSession:outputSession];
     if(self) {
         _batches = [[NSMutableDictionary alloc] init];
@@ -28,6 +29,7 @@
         _numChunksThreshold = numChunksThreshold;
         _timeoutMs = ((double)timeoutMs) / 1000;
         _batchRemovalTimeout = _timeoutMs * 3;
+        _performanceDelegate = performanceInformationDelegate;
     }
     return self;
 }
@@ -47,7 +49,7 @@
     @synchronized(_batches) {
         batch = [_batches objectForKey: [NSNumber numberWithInt:batchId]];
         if(batch == nil) {
-            batch = [[Batch alloc] initWithOutputSession:_outputSession chunkSize:_chunkSize numChunks:_numChunks andNumChunksThreshold:_numChunksThreshold andTimeoutSeconds:_timeoutMs];
+            batch = [[Batch alloc] initWithOutputSession:_outputSession chunkSize:_chunkSize numChunks:_numChunks andNumChunksThreshold:_numChunksThreshold andTimeoutSeconds:_timeoutMs andPerformanceInformaitonDelegate:_performanceDelegate];
             [_batches setObject:batch forKey: [NSNumber numberWithInt:batchId]];
             
             dispatch_async(dispatch_get_main_queue(), ^(void){

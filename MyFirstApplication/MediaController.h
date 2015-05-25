@@ -8,17 +8,12 @@
 @import AVFoundation;
 #import "InputSessionBase.h"
 #import "ConnectionManagerProtocol.h"
+#import "Batch.h"
+#import "VideoOutputController.h"
 
-@protocol NewImageDelegate
-- (void)onNewImage: (UIImage*) image;
-@end
 
-@interface PacketToImageProcessor : NSObject<NewPacketDelegate>
-@end
 
-@interface MediaController : NSObject<AVCaptureVideoDataOutputSampleBufferDelegate, NewPacketDelegate, ConnectionStatusDelegateProtocol>
-- (id)initWithImageDelegate:(id<NewImageDelegate>)newImageDelegate andwithNetworkOutputSession:(id<NewPacketDelegate>)networkOutputSession;
-- (void)startCapturing;
-- (void)stopCapturing;
+@interface MediaController : NSObject<NewPacketDelegate, ConnectionStatusDelegateProtocol, BatchPerformanceInformation>
+- (id)initWithImageDelegate:(id<NewImageDelegate>)newImageDelegate tcpNetworkOutputSession:(id<NewPacketDelegate>)tcpNetworkOutputSession udpNetworkOutputSession:(id<NewPacketDelegate>)udpNetworkOutputSession;
 - (void)captureOutput:(AVCaptureOutput *)captureOutput didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection;
 @end

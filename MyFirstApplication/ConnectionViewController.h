@@ -9,7 +9,7 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIViewController.h>
 #import "ConnectionManagerProtocol.h"
-#import "MediaController.h"
+#import "VideoOutputController.h"
 @import AVFoundation;
 
 @interface ConnectionViewController : UIViewController<ConnectionStatusDelegateProtocol, NewPacketDelegate, UITextFieldDelegate, UIImagePickerControllerDelegate, NewImageDelegate>
