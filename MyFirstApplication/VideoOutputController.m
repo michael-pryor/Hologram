@@ -115,4 +115,9 @@
     [_throttledBlock slowRate];
 }
 
+- (void)resetSendRate {
+    NSLog(@"Resetting video send rate");
+    [_throttledBlock reset];
+}
+
 @end

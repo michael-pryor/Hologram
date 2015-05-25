@@ -47,6 +47,7 @@
 }
 
 - (void) resetFrequency {
+    NSLog(@"Resetting frequency to default of %.2f", _defaultSecondsFrequency);
     _secondsFrequency = _defaultSecondsFrequency;
 }
 

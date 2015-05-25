@@ -24,4 +24,5 @@
 @interface VideoOutputController : NSObject<AVCaptureVideoDataOutputSampleBufferDelegate, BatchPerformanceInformation, NewPacketDelegate>
 - (id)initWithTcpNetworkOutputSession:(id<NewPacketDelegate>)tcpNetworkOutputSession udpNetworkOutputSession:(id<NewPacketDelegate>)udpNetworkOutputSession imageDelegate:(id<NewImageDelegate>)newImageDelegate;
 - (void)slowSendRate;
+- (void)resetSendRate;
 @end

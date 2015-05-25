@@ -74,7 +74,7 @@
         uint numBuffers = 6;
         
         _soundEncoder = [[SoundMicrophone alloc] initWithOutputSession:nil numBuffers:numBuffers leftPadding:sizeof(uint) secondPerBuffer:secondsPerBuffer];
-        _soundPlayback = [[SoundPlayback alloc] initWithAudioDescription:[_soundEncoder getAudioDescription] secondsPerBuffer:secondsPerBuffer numBuffers:numBuffers restartPlaybackThreshold:3 maxPendingAmount:9];
+        _soundPlayback = [[SoundPlayback alloc] initWithAudioDescription:[_soundEncoder getAudioDescription] secondsPerBuffer:secondsPerBuffer numBuffers:numBuffers restartPlaybackThreshold:6 maxPendingAmount:30];
         _offlineAudioProcessor = [[OfflineAudioProcessor alloc] initWithOutputSession:_soundPlayback];
         
         [_decodingPipe addPrefix:AUDIO_ID mappingToOutputSession:_soundPlayback];
@@ -110,6 +110,7 @@
     _connected = status == P_CONNECTED;
     
     if(!_connected) {
+        [_videoOutputController resetSendRate];
         [_soundEncoder setOutputSession:_offlineAudioProcessor];
     } else {
         [_soundEncoder setOutputSession:_encodingPipeAudio];
