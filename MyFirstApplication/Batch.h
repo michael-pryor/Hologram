@@ -10,7 +10,7 @@
 #import "PipelineProcessor.h"
 
 @protocol BatchPerformanceInformation
-- (void)onNewOutput: (float)percentageFilled;
+- (void)onNewPerformanceNotification: (float)percentageFilled;
 @end
 
 @interface Batch : PipelineProcessor

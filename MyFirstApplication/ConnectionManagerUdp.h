@@ -22,7 +22,7 @@ typedef enum {
 @end
 
 @interface ConnectionManagerUdp : NSObject<ConnectionManagerBase, NewPacketDelegate>
-- (id) initWithNewPacketDelegate:(id<NewPacketDelegate>)newPacketDelegate andConnectionDelegate:(id<ConnectionStatusDelegateUdp>)connectionDelegate andRetryCount:(uint)retryCountMax;
+- (id) initWithNewPacketDelegate:(id<NewPacketDelegate>)newPacketDelegate slowNetworkDelegate:(id<SlowNetworkDelegate>)slowNetworkDelegate connectionDelegate:(id<ConnectionStatusDelegateUdp>)connectionDelegate retryCount:(uint)retryCountMax;
 - (void) connectToHost: (NSString*) host andPort: (ushort) port;
 - (void) shutdown;
 - (Boolean) isConnected;

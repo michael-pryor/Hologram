@@ -31,7 +31,7 @@
     uint integerNumChunksThreshold = _numChunksThreshold * (float)_totalChunks;
     
     float chunksReceivedPercentage = ((double)_chunksReceived) / ((double)_totalChunks);
-    [_performanceDelegate onNewOutput:chunksReceivedPercentage];
+    [_performanceDelegate onNewPerformanceNotification:chunksReceivedPercentage];
     
     if(_chunksReceived >= integerNumChunksThreshold) {
         @synchronized(_partialPacket) {

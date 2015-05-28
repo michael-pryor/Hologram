@@ -21,7 +21,7 @@
 
 -(void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear: animated];
-    _connection = [[ConnectionManagerProtocol alloc] initWithRecvDelegate:self andConnectionStatusDelegate:self];
+    _connection = [[ConnectionManagerProtocol alloc] initWithRecvDelegate:self connectionStatusDelegate:self slowNetworkDelegate:nil];
 }
 
 - (IBAction)onConnectButtonClick:(id)sender {

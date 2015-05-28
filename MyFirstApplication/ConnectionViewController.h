@@ -12,7 +12,7 @@
 #import "VideoOutputController.h"
 @import AVFoundation;
 
-@interface ConnectionViewController : UIViewController<ConnectionStatusDelegateProtocol, NewPacketDelegate, UITextFieldDelegate, UIImagePickerControllerDelegate, NewImageDelegate>
+@interface ConnectionViewController : UIViewController<ConnectionStatusDelegateProtocol, NewPacketDelegate, UITextFieldDelegate, UIImagePickerControllerDelegate, NewImageDelegate, VideoSpeedNotifier, SlowNetworkDelegate>
 @property (weak, nonatomic) IBOutlet UIActivityIndicatorView *connectionProgress;
 @property (weak, nonatomic) IBOutlet UILabel *connectionStatus;
 @end

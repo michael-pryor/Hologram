@@ -11,8 +11,13 @@
 #import "ByteBuffer.h"
 #import "InputSessionBase.h"
 
+@protocol SoundPlaybackDelegate
+- (void) playbackStopped;
+- (void) playbackStarted;
+@end
+
 @interface SoundPlayback : NSObject<NewPacketDelegate>
-- (id)initWithAudioDescription:(AudioStreamBasicDescription*)description secondsPerBuffer:(Float64)seconds numBuffers:(uint)numBuffers restartPlaybackThreshold:(uint)restartPlayback maxPendingAmount:(uint)maxAmount;
+- (id)initWithAudioDescription:(AudioStreamBasicDescription*)description secondsPerBuffer:(Float64)seconds numBuffers:(uint)numBuffers restartPlaybackThreshold:(uint)restartPlayback maxPendingAmount:(uint)maxAmount soundPlaybackDelegate:(id<SoundPlaybackDelegate>)soundPlaybackDelegate;
 - (ByteBuffer*) getSoundPacketToPlay;
 - (void) shutdown;
 - (void) start;

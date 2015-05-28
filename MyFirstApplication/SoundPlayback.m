@@ -10,6 +10,7 @@
 #import "SoundEncodingShared.h"
 #import "BlockingQueue.h"
 #import "Signal.h"
+#import "Timer.h"
 @import AVFoundation;
 
 @implementation SoundPlayback {
@@ -26,10 +27,11 @@
     uint                          _restartPlaybackNumBuffersThreshold;
     uint                          _maxQueueSize;
     Signal*                       _outputThreadStartupSignal;
+    id<SoundPlaybackDelegate>     _soundPlaybackDelegate;
 }
 
 
-- (id)initWithAudioDescription:(AudioStreamBasicDescription*)description secondsPerBuffer:(Float64)seconds numBuffers:(uint)numBuffers restartPlaybackThreshold:(uint)restartPlayback maxPendingAmount:(uint)maxAmount {
+- (id)initWithAudioDescription:(AudioStreamBasicDescription*)description secondsPerBuffer:(Float64)seconds numBuffers:(uint)numBuffers restartPlaybackThreshold:(uint)restartPlayback maxPendingAmount:(uint)maxAmount soundPlaybackDelegate:(id<SoundPlaybackDelegate>)soundPlaybackDelegate {
     self = [super init];
     if(self) {
         if(restartPlayback < _maxQueueSize) {
@@ -48,6 +50,7 @@
         _outputThreadStartupSignal = [[Signal alloc] initWithFlag:false];
         
         _isPlaying = [[Signal alloc] initWithFlag:false];
+        _soundPlaybackDelegate = soundPlaybackDelegate;
     }
     return self;
 }
@@ -166,6 +169,8 @@ static void HandleOutputBuffer (void                *aqData,
             [self playSoundData:buffer withBuffer:_audioBuffers[primeCount]];
             primeCount++;
         }
+        
+        [_soundPlaybackDelegate playbackStarted];
     }
 }
 
@@ -174,6 +179,7 @@ static void HandleOutputBuffer (void                *aqData,
         NSLog(@"Pausing audio output queue");
         OSStatus result = AudioQueueStop(_audioQueue, TRUE);
         HandleResultOSStatus(result, @"Stopping audio output queue", true);
+        [_soundPlaybackDelegate playbackStopped];
     }
 }
 

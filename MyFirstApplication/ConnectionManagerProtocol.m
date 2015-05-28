@@ -80,7 +80,7 @@ uint NUM_SOCKETS = 1;
     #define OP_ACCEPT_UDP 3
 }
 
-- (id)initWithRecvDelegate:(id<NewPacketDelegate>)recvDelegate andConnectionStatusDelegate:(id<ConnectionStatusDelegateProtocol>)connectionStatusDelegate {
+- (id)initWithRecvDelegate:(id<NewPacketDelegate>)recvDelegate connectionStatusDelegate:(id<ConnectionStatusDelegateProtocol>)connectionStatusDelegate slowNetworkDelegate:(id<SlowNetworkDelegate>)slowNetworkDelegate {
     self = [super init];
     if(self) {
         _udpHash = nil;
@@ -99,7 +99,7 @@ uint NUM_SOCKETS = 1;
         _tcpOutputSession = [[OutputSessionTcp alloc] init];
         _tcpConnection = [[ConnectionManagerTcp alloc] initWithConnectionStatusDelegate:self inputSession:tcpSession outputSession:_tcpOutputSession];
         
-        _udpConnection = [[ConnectionManagerUdp alloc] initWithNewPacketDelegate:self andConnectionDelegate:self andRetryCount:5];
+        _udpConnection = [[ConnectionManagerUdp alloc] initWithNewPacketDelegate:self slowNetworkDelegate:slowNetworkDelegate connectionDelegate:self retryCount:5];
         
         [self _setupReconnectMonitor];
     }

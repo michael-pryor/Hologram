@@ -35,4 +35,8 @@
     }
 }
 
+- (CFAbsoluteTime)secondsFrequency {
+    return [_timer secondsFrequency];
+}
+
 @end

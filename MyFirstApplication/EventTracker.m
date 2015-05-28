@@ -22,7 +22,11 @@
 }
 - (Boolean) increment {
     _numEvents += 1;
-    return _numEvents >= _maxEvents;
+    Boolean result = _numEvents >= _maxEvents;
+    if(result) {
+        _numEvents = 0;
+    }
+    return result;
 }
 - (void) reset {
     _numEvents = 0;

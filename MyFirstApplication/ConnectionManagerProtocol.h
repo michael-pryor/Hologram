@@ -25,7 +25,7 @@ typedef enum {
 @end
 
 @interface ConnectionManagerProtocol : NSObject<ConnectionManagerBase, NewPacketDelegate, ConnectionStatusDelegateTcp, ConnectionStatusDelegateUdp>
-- (id) initWithRecvDelegate:(id<NewPacketDelegate>)recvDelegate andConnectionStatusDelegate:(id<ConnectionStatusDelegateProtocol>)connectionStatusDelegate;
+- (id) initWithRecvDelegate:(id<NewPacketDelegate>)recvDelegate connectionStatusDelegate:(id<ConnectionStatusDelegateProtocol>)connectionStatusDelegate slowNetworkDelegate:(id<SlowNetworkDelegate>)slowNetworkDelegate;
 - (void) connectToTcpHost:(NSString*)tcpHost tcpPort:(ushort)tcpPort udpHost:(NSString*)udpHost udpPort:(ushort)udpPort;
 - (void) shutdownWithDescription:(NSString*)description;
 - (void) sendTcpPacket:(ByteBuffer*)packet;

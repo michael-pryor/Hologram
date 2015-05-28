@@ -17,6 +17,7 @@
     AVCaptureSession *session;
     MediaController *_mediaController;
     bool _connected;
+    IBOutlet UILabel *_frameRate;
 }
 
 -(void)viewDidLoad {
@@ -25,9 +26,8 @@
 
 -(void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear: animated];
-    _connection = [[ConnectionManagerProtocol alloc] initWithRecvDelegate:self andConnectionStatusDelegate:self];
-    _mediaController = [[MediaController alloc] initWithImageDelegate:self tcpNetworkOutputSession:[_connection getTcpOutputSession] udpNetworkOutputSession:[_connection getUdpOutputSession]];
-   // [_mediaController startCapturing];
+    _connection = [[ConnectionManagerProtocol alloc] initWithRecvDelegate:self connectionStatusDelegate:self slowNetworkDelegate:self];
+    _mediaController = [[MediaController alloc] initWithImageDelegate:self videoSpeedNotifier:self tcpNetworkOutputSession:[_connection getTcpOutputSession] udpNetworkOutputSession:[_connection getUdpOutputSession]];
 }
 
 - (void)onNewImage: (UIImage*)image {
@@ -109,4 +109,12 @@
     [_mediaController onNewPacket:packet fromProtocol:protocol];
 }
 
+- (void)onNewVideoFrameFrequency:(CFAbsoluteTime)secondsFrequency {
+    CFAbsoluteTime frameRate = 1.0 / secondsFrequency;
+    [_frameRate setText:[NSString stringWithFormat:@"%.2f", frameRate]];
+}
+
+- (void)slowNetworkNotification {
+    [_mediaController sendSlowdownRequest];
+}
 @end

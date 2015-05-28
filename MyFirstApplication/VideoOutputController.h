@@ -18,11 +18,18 @@
 - (void)onNewImage: (UIImage*) image;
 @end
 
+@protocol VideoSpeedNotifier
+- (void)onNewVideoFrameFrequency:(CFAbsoluteTime)secondsFrequency;
+@end
+
 @interface PacketToImageProcessor : NSObject<NewPacketDelegate>
 @end
 
+
+
 @interface VideoOutputController : NSObject<AVCaptureVideoDataOutputSampleBufferDelegate, BatchPerformanceInformation, NewPacketDelegate>
-- (id)initWithTcpNetworkOutputSession:(id<NewPacketDelegate>)tcpNetworkOutputSession udpNetworkOutputSession:(id<NewPacketDelegate>)udpNetworkOutputSession imageDelegate:(id<NewImageDelegate>)newImageDelegate;
+- (id)initWithTcpNetworkOutputSession:(id<NewPacketDelegate>)tcpNetworkOutputSession udpNetworkOutputSession:(id<NewPacketDelegate>)udpNetworkOutputSession imageDelegate:(id<NewImageDelegate>)newImageDelegate videoSpeedNotifier:(id<VideoSpeedNotifier>)videoSpeedNotifier;
 - (void)slowSendRate;
 - (void)resetSendRate;
+- (void)sendSlowdownRequest;
 @end

@@ -13,4 +13,5 @@
 - (void)reset;
 - (void)slowRate;
 - (Boolean)runBlock:(void (^)(void))theBlock;
+- (CFAbsoluteTime)secondsFrequency;
 @end

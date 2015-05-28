@@ -9,12 +9,14 @@
 #import "ConnectionManagerUdp.h"
 #import "Signal.h"
 #import "EventTracker.h"
+#import "Timer.h"
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <dispatch/dispatch.h>
+#include <sys/errno.h>
 
 @implementation ConnectionManagerUdp {
     int _socket;
@@ -27,9 +29,11 @@
     Signal* _closingNotInProgress;
     Signal* _openingNotInProgress;
     EventTracker* _sendFailureEventTracker;
+    id<SlowNetworkDelegate> _slowNetworkDelegate;
+    Timer* _slowNetworkDelegateThrottle;
 }
 
-- (id) initWithNewPacketDelegate:(id<NewPacketDelegate>)newPacketDelegate andConnectionDelegate:(id<ConnectionStatusDelegateUdp>)connectionDelegate andRetryCount:(uint)retryCountMax {
+- (id) initWithNewPacketDelegate:(id<NewPacketDelegate>)newPacketDelegate slowNetworkDelegate:(id<SlowNetworkDelegate>)slowNetworkDelegate connectionDelegate:(id<ConnectionStatusDelegateUdp>)connectionDelegate retryCount:(uint)retryCountMax {
     self = [super init];
     if(self) {
         _socket = 0;
@@ -42,6 +46,8 @@
         _gcd_queue_sending = dispatch_queue_create("ConnectionManagerUdpSendQueue", NULL);
         _dispatch_source = nil;
         _sendFailureEventTracker = [[EventTracker alloc] initWithMaxEvents:retryCountMax];
+        _slowNetworkDelegate = slowNetworkDelegate;
+        _slowNetworkDelegateThrottle = [[Timer alloc] initWithFrequencySeconds:5 firingInitially:true];
     }
     return self;
 }
@@ -163,6 +169,12 @@
         
         long result = send(_socket, [buffer buffer], [buffer bufferUsedSize], 0);
         if(result < 0) {
+            // No buffer space available, we are sending too quickly.
+            if(result == ENOBUFS && [_slowNetworkDelegateThrottle getState]) {
+                NSLog(@"UDP network send buffer is full, sending slow down notification");
+                [_slowNetworkDelegate slowNetworkNotification];
+            }
+            
             if([_sendFailureEventTracker increment]) {
                 [self onFailure];
             } else {

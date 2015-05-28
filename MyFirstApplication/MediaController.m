@@ -17,6 +17,7 @@
 #import "DecodingPipe.h"
 #import "VideoOutputController.h"
 #import "NetworkOperations.h"
+#import "TimedEventTracker.h"
 
 @implementation OfflineAudioProcessor : PipelineProcessor
 - (id)initWithOutputSession:(id<NewPacketDelegate>)outputSession {
@@ -43,6 +44,7 @@
     SoundPlayback* _soundPlayback;
     EncodingPipe* _encodingPipeAudio;
     OfflineAudioProcessor* _offlineAudioProcessor;
+    TimedEventTracker* _startStopTracker;
     
     // Both audio and video.
     DecodingPipe* _decodingPipe;
@@ -53,15 +55,17 @@
     bool _connected;
 }
 
-- (id)initWithImageDelegate:(id<NewImageDelegate>)newImageDelegate tcpNetworkOutputSession:(id<NewPacketDelegate>)tcpNetworkOutputSession udpNetworkOutputSession:(id<NewPacketDelegate>)udpNetworkOutputSession; {
+- (id)initWithImageDelegate:(id<NewImageDelegate>)newImageDelegate videoSpeedNotifier:(id<VideoSpeedNotifier>)videoSpeedNotifier tcpNetworkOutputSession:(id<NewPacketDelegate>)tcpNetworkOutputSession udpNetworkOutputSession:(id<NewPacketDelegate>)udpNetworkOutputSession; {
     self = [super init];
     if(self) {
+        _startStopTracker = [[TimedEventTracker alloc] initWithMaxEvents:8 timePeriod:5];
+        
         _tcpNetworkOutputSession = tcpNetworkOutputSession;
         _udpNetworkOutputSession = udpNetworkOutputSession;
         
         _decodingPipe = [[DecodingPipe alloc] init];
         
-        _videoOutputController = [[VideoOutputController alloc] initWithTcpNetworkOutputSession:_tcpNetworkOutputSession udpNetworkOutputSession:_udpNetworkOutputSession imageDelegate:newImageDelegate];
+        _videoOutputController = [[VideoOutputController alloc] initWithTcpNetworkOutputSession:_tcpNetworkOutputSession udpNetworkOutputSession:_udpNetworkOutputSession imageDelegate:newImageDelegate videoSpeedNotifier:videoSpeedNotifier];
 
         [_decodingPipe addPrefix:VIDEO_ID mappingToOutputSession:_videoOutputController];
         
@@ -74,7 +78,7 @@
         uint numBuffers = 6;
         
         _soundEncoder = [[SoundMicrophone alloc] initWithOutputSession:nil numBuffers:numBuffers leftPadding:sizeof(uint) secondPerBuffer:secondsPerBuffer];
-        _soundPlayback = [[SoundPlayback alloc] initWithAudioDescription:[_soundEncoder getAudioDescription] secondsPerBuffer:secondsPerBuffer numBuffers:numBuffers restartPlaybackThreshold:6 maxPendingAmount:30];
+        _soundPlayback = [[SoundPlayback alloc] initWithAudioDescription:[_soundEncoder getAudioDescription] secondsPerBuffer:secondsPerBuffer numBuffers:numBuffers restartPlaybackThreshold:6 maxPendingAmount:30 soundPlaybackDelegate:self];
         _offlineAudioProcessor = [[OfflineAudioProcessor alloc] initWithOutputSession:_soundPlayback];
         
         [_decodingPipe addPrefix:AUDIO_ID mappingToOutputSession:_soundPlayback];
@@ -114,6 +118,23 @@
         [_soundEncoder setOutputSession:_offlineAudioProcessor];
     } else {
         [_soundEncoder setOutputSession:_encodingPipeAudio];
+    }
+}
+
+- (void)sendSlowdownRequest {
+    [_videoOutputController sendSlowdownRequest];
+}
+
+- (void) playbackStopped {
+    if([_startStopTracker increment]) {
+        NSLog(@"Playback start/stopped too many times in a short space of time, slowing video send rate to free up network");
+        [self sendSlowdownRequest];
+    }
+}
+- (void) playbackStarted {
+    if([_startStopTracker increment]) {
+        NSLog(@"Playback start/stopped too many times in a short space of time, slowing video send rate to free up network");
+        [self sendSlowdownRequest];
     }
 }
 

@@ -51,9 +51,10 @@
     id<NewPacketDelegate> _tcpNetworkOutputSession;   // For requesting slow down in network usage.
     
     TimedEventTracker* _slowDownThreshold;            // Decides when to ask for less network traffic.
+    id<VideoSpeedNotifier> _videoSpeedNotifier;       // Notify of change in video frame rate.
     
 }
-- (id)initWithTcpNetworkOutputSession:(id<NewPacketDelegate>)tcpNetworkOutputSession udpNetworkOutputSession:(id<NewPacketDelegate>)udpNetworkOutputSession imageDelegate:(id<NewImageDelegate>)newImageDelegate {
+- (id)initWithTcpNetworkOutputSession:(id<NewPacketDelegate>)tcpNetworkOutputSession udpNetworkOutputSession:(id<NewPacketDelegate>)udpNetworkOutputSession imageDelegate:(id<NewImageDelegate>)newImageDelegate videoSpeedNotifier:(id<VideoSpeedNotifier>)videoSpeedNotifier {
     self = [super init];
     if(self) {
         _newImageDelegate = newImageDelegate;
@@ -76,6 +77,8 @@
         // 5 second of bad data.
         _slowDownThreshold = [[TimedEventTracker alloc] initWithMaxEvents:10 timePeriod:1];
         
+        _videoSpeedNotifier = videoSpeedNotifier;
+        
         NSLog(@"Starting recording...");
         [_session startRunning];
     }
@@ -96,13 +99,17 @@
 }
 
 // Handle degrading network performance.
-- (void)onNewOutput:(float)percentageFilled {
+- (void)onNewPerformanceNotification:(float)percentageFilled {
     if(percentageFilled < 100.0 && [_slowDownThreshold increment]) {
-        NSLog(@"Requesting slow down in video");
-        ByteBuffer* buffer = [[ByteBuffer alloc] init];
-        [buffer addUnsignedInteger:SLOW_DOWN_VIDEO];
-        [_tcpNetworkOutputSession onNewPacket:buffer fromProtocol:TCP];
+        [self sendSlowdownRequest];
     }
+}
+
+- (void)sendSlowdownRequest {
+    NSLog(@"Requesting slow down in video");
+    ByteBuffer* buffer = [[ByteBuffer alloc] init];
+    [buffer addUnsignedInteger:SLOW_DOWN_VIDEO];
+    [_tcpNetworkOutputSession onNewPacket:buffer fromProtocol:TCP];
 }
 
 // Handle new data received on network to be pushed out to the user.
@@ -111,13 +118,15 @@
 }
 
 - (void)slowSendRate {
-    NSLog(@"Slowing send rate of vide");
+    NSLog(@"Slowing send rate of video");
     [_throttledBlock slowRate];
+    [_videoSpeedNotifier onNewVideoFrameFrequency:[_throttledBlock secondsFrequency]];
 }
 
 - (void)resetSendRate {
     NSLog(@"Resetting video send rate");
     [_throttledBlock reset];
+    [_videoSpeedNotifier onNewVideoFrameFrequency:[_throttledBlock secondsFrequency]];
 }
 
 @end
