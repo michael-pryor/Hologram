@@ -49,6 +49,7 @@
 		51E888A11A597585005F8825 /* Signal.m in Sources */ = {isa = PBXBuildFile; fileRef = 51E888A01A597585005F8825 /* Signal.m */; };
 		51E888A51A59DFB8005F8825 /* VIdeoEncoding.m in Sources */ = {isa = PBXBuildFile; fileRef = 51E888A41A59DFB8005F8825 /* VIdeoEncoding.m */; };
 		51FBE0441AF66AF3009115AE /* ActivityMonitor.m in Sources */ = {isa = PBXBuildFile; fileRef = 51FBE0431AF66AF3009115AE /* ActivityMonitor.m */; };
+		51FE7E0C1B3C85EF00FF27F3 /* ConnectionManagerProtocolWithNatPunchtrough.m in Sources */ = {isa = PBXBuildFile; fileRef = 51FE7E0B1B3C85EF00FF27F3 /* ConnectionManagerProtocolWithNatPunchtrough.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -139,6 +140,8 @@
 		51E888A41A59DFB8005F8825 /* VIdeoEncoding.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = VIdeoEncoding.m; sourceTree = "<group>"; };
 		51FBE0421AF66AF3009115AE /* ActivityMonitor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ActivityMonitor.h; sourceTree = "<group>"; };
 		51FBE0431AF66AF3009115AE /* ActivityMonitor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ActivityMonitor.m; sourceTree = "<group>"; };
+		51FE7E0A1B3C85EF00FF27F3 /* ConnectionManagerProtocolWithNatPunchtrough.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConnectionManagerProtocolWithNatPunchtrough.h; sourceTree = "<group>"; };
+		51FE7E0B1B3C85EF00FF27F3 /* ConnectionManagerProtocolWithNatPunchtrough.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ConnectionManagerProtocolWithNatPunchtrough.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -249,6 +252,8 @@
 				51197B011B136CC3006A7AEE /* VideoOutputController.h */,
 				51197B021B136CC3006A7AEE /* VideoOutputController.m */,
 				51197B041B137468006A7AEE /* NetworkOperations.h */,
+				51FE7E0A1B3C85EF00FF27F3 /* ConnectionManagerProtocolWithNatPunchtrough.h */,
+				51FE7E0B1B3C85EF00FF27F3 /* ConnectionManagerProtocolWithNatPunchtrough.m */,
 			);
 			name = Protocol;
 			sourceTree = "<group>";
@@ -488,6 +493,7 @@
 				51DB961819A8E3D0001A63F8 /* ConnectionManagerTcp.m in Sources */,
 				51C2638B1AB45CE400285C6E /* BlockingQueue.m in Sources */,
 				51CE2B941A8ECD9100B8E5B7 /* PipelineProcessor.m in Sources */,
+				51FE7E0C1B3C85EF00FF27F3 /* ConnectionManagerProtocolWithNatPunchtrough.m in Sources */,
 				51E5BE321936A982003E45C3 /* MJPAppDelegate.m in Sources */,
 				513205E71AAE4CA600C80AD9 /* SoundMicrophone.m in Sources */,
 				51197B031B136CC3006A7AEE /* VideoOutputController.m in Sources */,
