@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 #import <UIKit/UIViewController.h>
-#import "ConnectionManagerProtocol.h"
+#import "ConnectionGovernorProtocol.h"
 #import "VideoOutputController.h"
 @import AVFoundation;
 

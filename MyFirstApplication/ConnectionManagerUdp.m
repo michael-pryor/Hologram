@@ -17,6 +17,7 @@
 #include <arpa/inet.h>
 #include <dispatch/dispatch.h>
 #include <sys/errno.h>
+#include "NetworkUtility.h"
 
 @implementation ConnectionManagerUdp {
     int _socket;
@@ -31,6 +32,7 @@
     EventTracker* _sendFailureEventTracker;
     id<SlowNetworkDelegate> _slowNetworkDelegate;
     Timer* _slowNetworkDelegateThrottle;
+    struct sockaddr_in _connectAddress;
 }
 
 - (id) initWithNewPacketDelegate:(id<NewPacketDelegate>)newPacketDelegate slowNetworkDelegate:(id<SlowNetworkDelegate>)slowNetworkDelegate connectionDelegate:(id<ConnectionStatusDelegateUdp>)connectionDelegate retryCount:(uint)retryCountMax {
@@ -98,8 +100,11 @@
             [_recvBuffer setMemorySize:(uint)maximumAmountReceivable retaining:false];
         }
         
-        realAmountReceived = recv(_socket, [_recvBuffer getRawDataPtr], maximumAmountReceivable, 0);
-            
+        struct sockaddr_in recvAddress;
+        uint recvAddressLen = sizeof(recvAddress);
+        
+        realAmountReceived = recvfrom(_socket, [_recvBuffer getRawDataPtr], maximumAmountReceivable, 0, (struct sockaddr*)&recvAddress, &recvAddressLen);
+        
         // This would cause buffer overrun and indicates a serious bug somewhere (probably not in our code though *puts on sunglasses slowly*).
         if(realAmountReceived == -1) {
             NSLog(@"UDP - Serious receive error detected while attempting to receive data");
@@ -115,7 +120,11 @@
         [_recvBuffer setUsedSize: (uint)realAmountReceived];
     
         //NSLog(@"UDP - Received packet of size: %ul", [_recvBuffer bufferUsedSize]);
-        [_newPacketDelegate onNewPacket:_recvBuffer fromProtocol:UDP];
+        if([NetworkUtility isEqualAddress:&_connectAddress address:&recvAddress]) {
+            [_newPacketDelegate onNewPacket:_recvBuffer fromProtocol:UDP];
+        } else {
+            NSLog(@"Discarding packet from unknown address");
+        }
         
         maximumAmountReceivable -= realAmountReceived;
     } while(maximumAmountReceivable > 0);
@@ -126,13 +135,12 @@
     
     [_sendFailureEventTracker reset];
         
-    struct sockaddr_in addr;
-    memset(&addr, 0, sizeof(addr));
-    addr.sin_family = AF_INET;
-    addr.sin_addr.s_addr = INADDR_ANY;
+    memset(&_connectAddress, 0, sizeof(_connectAddress));
+    _connectAddress.sin_family = AF_INET;
+    _connectAddress.sin_addr.s_addr = INADDR_ANY;
     
-    addr.sin_port = htons(port);
-    addr.sin_addr.s_addr = inet_addr([host UTF8String]);
+    _connectAddress.sin_port = htons(port);
+    _connectAddress.sin_addr.s_addr = inet_addr([host UTF8String]);
     
     // Termination of socket happens asynchronously, make sure we don't reconnect
     // midway through termination.
@@ -146,7 +154,7 @@
     });
     dispatch_resume(_dispatch_source);
     
-    [self validateResult: connect(_socket, (const struct sockaddr *)&addr, sizeof(addr))];
+    [self validateResult: connect(_socket, (const struct sockaddr *)&_connectAddress, sizeof(_connectAddress))];
     
     
     [_openingNotInProgress signalAll];

@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		5103A96E1B077E42003573FE /* NatPunchthroughViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 5103A96D1B077E42003573FE /* NatPunchthroughViewController.m */; };
+		511605F51B3EBE5D0071A183 /* NetworkUtility.m in Sources */ = {isa = PBXBuildFile; fileRef = 511605F41B3EBE5D0071A183 /* NetworkUtility.m */; };
 		51197AFA1B132D6F006A7AEE /* Timer.m in Sources */ = {isa = PBXBuildFile; fileRef = 51197AF91B132D6F006A7AEE /* Timer.m */; };
 		51197AFD1B134D72006A7AEE /* ThrottledPipe.m in Sources */ = {isa = PBXBuildFile; fileRef = 51197AFC1B134D72006A7AEE /* ThrottledPipe.m */; };
 		51197B001B1350B1006A7AEE /* ThrottledBlock.m in Sources */ = {isa = PBXBuildFile; fileRef = 51197AFF1B1350B1006A7AEE /* ThrottledBlock.m */; };
@@ -15,7 +15,7 @@
 		51197B071B13AAAD006A7AEE /* TimedEventTracker.m in Sources */ = {isa = PBXBuildFile; fileRef = 51197B061B13AAAD006A7AEE /* TimedEventTracker.m */; };
 		513205E71AAE4CA600C80AD9 /* SoundMicrophone.m in Sources */ = {isa = PBXBuildFile; fileRef = 513205E61AAE4CA600C80AD9 /* SoundMicrophone.m */; };
 		519573041AEBEB26000247E1 /* EventTracker.m in Sources */ = {isa = PBXBuildFile; fileRef = 519573031AEBEB26000247E1 /* EventTracker.m */; };
-		51BF42541A750CDB00C16F9A /* ConnectionManagerProtocol.m in Sources */ = {isa = PBXBuildFile; fileRef = 51BF42531A750CDB00C16F9A /* ConnectionManagerProtocol.m */; };
+		51BF42541A750CDB00C16F9A /* ConnectionGovernorProtocol.m in Sources */ = {isa = PBXBuildFile; fileRef = 51BF42531A750CDB00C16F9A /* ConnectionGovernorProtocol.m */; };
 		51C18D2B1A9A3882000C42A8 /* Batch.m in Sources */ = {isa = PBXBuildFile; fileRef = 51C18D2A1A9A3882000C42A8 /* Batch.m */; };
 		51C263851AB450E600285C6E /* SoundPlayback.m in Sources */ = {isa = PBXBuildFile; fileRef = 51C263841AB450E600285C6E /* SoundPlayback.m */; };
 		51C263881AB4545000285C6E /* SoundEncodingShared.m in Sources */ = {isa = PBXBuildFile; fileRef = 51C263871AB4545000285C6E /* SoundEncodingShared.m */; };
@@ -49,7 +49,7 @@
 		51E888A11A597585005F8825 /* Signal.m in Sources */ = {isa = PBXBuildFile; fileRef = 51E888A01A597585005F8825 /* Signal.m */; };
 		51E888A51A59DFB8005F8825 /* VIdeoEncoding.m in Sources */ = {isa = PBXBuildFile; fileRef = 51E888A41A59DFB8005F8825 /* VIdeoEncoding.m */; };
 		51FBE0441AF66AF3009115AE /* ActivityMonitor.m in Sources */ = {isa = PBXBuildFile; fileRef = 51FBE0431AF66AF3009115AE /* ActivityMonitor.m */; };
-		51FE7E0C1B3C85EF00FF27F3 /* ConnectionManagerProtocolWithNatPunchtrough.m in Sources */ = {isa = PBXBuildFile; fileRef = 51FE7E0B1B3C85EF00FF27F3 /* ConnectionManagerProtocolWithNatPunchtrough.m */; };
+		51FE7E0C1B3C85EF00FF27F3 /* ConnectionGovernorNatPunchthrough.m in Sources */ = {isa = PBXBuildFile; fileRef = 51FE7E0B1B3C85EF00FF27F3 /* ConnectionGovernorNatPunchthrough.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -63,8 +63,9 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		5103A96C1B077E42003573FE /* NatPunchthroughViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NatPunchthroughViewController.h; sourceTree = "<group>"; };
-		5103A96D1B077E42003573FE /* NatPunchthroughViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NatPunchthroughViewController.m; sourceTree = "<group>"; };
+		511605F31B3EBE5D0071A183 /* NetworkUtility.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NetworkUtility.h; sourceTree = "<group>"; };
+		511605F41B3EBE5D0071A183 /* NetworkUtility.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NetworkUtility.m; sourceTree = "<group>"; };
+		511605F61B3EEF8C0071A183 /* ConnectionGovernor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ConnectionGovernor.h; sourceTree = "<group>"; };
 		51197AF81B132D6F006A7AEE /* Timer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Timer.h; sourceTree = "<group>"; };
 		51197AF91B132D6F006A7AEE /* Timer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Timer.m; sourceTree = "<group>"; };
 		51197AFB1B134D72006A7AEE /* ThrottledPipe.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ThrottledPipe.h; sourceTree = "<group>"; };
@@ -82,8 +83,8 @@
 		519573031AEBEB26000247E1 /* EventTracker.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EventTracker.m; sourceTree = "<group>"; };
 		51BDB1491A6F0E7E00E0DA49 /* InputSessionBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InputSessionBase.h; sourceTree = "<group>"; };
 		51BDB14D1A6F121400E0DA49 /* ConnectionManagerBase.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ConnectionManagerBase.h; sourceTree = "<group>"; };
-		51BF42521A750CDB00C16F9A /* ConnectionManagerProtocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = ConnectionManagerProtocol.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
-		51BF42531A750CDB00C16F9A /* ConnectionManagerProtocol.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = ConnectionManagerProtocol.m; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objc; };
+		51BF42521A750CDB00C16F9A /* ConnectionGovernorProtocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = ConnectionGovernorProtocol.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
+		51BF42531A750CDB00C16F9A /* ConnectionGovernorProtocol.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = ConnectionGovernorProtocol.m; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objc; };
 		51C18D291A9A3882000C42A8 /* Batch.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = Batch.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		51C18D2A1A9A3882000C42A8 /* Batch.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = Batch.m; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objc; };
 		51C263831AB450E600285C6E /* SoundPlayback.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SoundPlayback.h; sourceTree = "<group>"; };
@@ -140,8 +141,8 @@
 		51E888A41A59DFB8005F8825 /* VIdeoEncoding.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = VIdeoEncoding.m; sourceTree = "<group>"; };
 		51FBE0421AF66AF3009115AE /* ActivityMonitor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ActivityMonitor.h; sourceTree = "<group>"; };
 		51FBE0431AF66AF3009115AE /* ActivityMonitor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ActivityMonitor.m; sourceTree = "<group>"; };
-		51FE7E0A1B3C85EF00FF27F3 /* ConnectionManagerProtocolWithNatPunchtrough.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConnectionManagerProtocolWithNatPunchtrough.h; sourceTree = "<group>"; };
-		51FE7E0B1B3C85EF00FF27F3 /* ConnectionManagerProtocolWithNatPunchtrough.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ConnectionManagerProtocolWithNatPunchtrough.m; sourceTree = "<group>"; };
+		51FE7E0A1B3C85EF00FF27F3 /* ConnectionGovernorNatPunchthrough.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConnectionGovernorNatPunchthrough.h; sourceTree = "<group>"; };
+		51FE7E0B1B3C85EF00FF27F3 /* ConnectionGovernorNatPunchthrough.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ConnectionGovernorNatPunchthrough.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -168,6 +169,21 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		511605F71B3EEFAD0071A183 /* Pipeline */ = {
+			isa = PBXGroup;
+			children = (
+				51CE2B921A8ECD9000B8E5B7 /* PipelineProcessor.h */,
+				51CE2B931A8ECD9000B8E5B7 /* PipelineProcessor.m */,
+				51E5BE7F1ABD03FD003E035C /* EncodingPipe.h */,
+				51E5BE801ABD03FD003E035C /* EncodingPipe.m */,
+				51E5BE821ABD0450003E035C /* DecodingPipe.h */,
+				51E5BE831ABD0450003E035C /* DecodingPipe.m */,
+				51197AFB1B134D72006A7AEE /* ThrottledPipe.h */,
+				51197AFC1B134D72006A7AEE /* ThrottledPipe.m */,
+			);
+			name = Pipeline;
+			sourceTree = "<group>";
+		};
 		51BDB1471A6F0E2A00E0DA49 /* TCP */ = {
 			isa = PBXGroup;
 			children = (
@@ -197,6 +213,8 @@
 				51D584C019AB7A9400BB6CE6 /* ByteBuffer.m */,
 				51BDB1491A6F0E7E00E0DA49 /* InputSessionBase.h */,
 				51BDB14D1A6F121400E0DA49 /* ConnectionManagerBase.h */,
+				511605F31B3EBE5D0071A183 /* NetworkUtility.h */,
+				511605F41B3EBE5D0071A183 /* NetworkUtility.m */,
 			);
 			name = Base;
 			sourceTree = "<group>";
@@ -204,8 +222,6 @@
 		51CE2B911A8ECD6B00B8E5B7 /* Batching */ = {
 			isa = PBXGroup;
 			children = (
-				51CE2B921A8ECD9000B8E5B7 /* PipelineProcessor.h */,
-				51CE2B931A8ECD9000B8E5B7 /* PipelineProcessor.m */,
 				51D87CB01A8F7C1A00CE919E /* BatcherInput.h */,
 				51D87CB11A8F7C1B00CE919E /* BatcherInput.m */,
 				51D87CB31A8F7C3000CE919E /* BatcherOutput.h */,
@@ -219,6 +235,7 @@
 		51D584B819AB63FB00BB6CE6 /* Networking */ = {
 			isa = PBXGroup;
 			children = (
+				511605F71B3EEFAD0071A183 /* Pipeline */,
 				51CE2B911A8ECD6B00B8E5B7 /* Batching */,
 				51E1BF281A5DD5C0007D8A56 /* Protocol */,
 				51E1BF271A5DD5A6007D8A56 /* Generic */,
@@ -239,21 +256,16 @@
 		51E1BF281A5DD5C0007D8A56 /* Protocol */ = {
 			isa = PBXGroup;
 			children = (
+				511605F61B3EEF8C0071A183 /* ConnectionGovernor.h */,
 				51E1BF291A5DD7A4007D8A56 /* MediaController.h */,
 				51E1BF2A1A5DD7A4007D8A56 /* MediaController.m */,
-				51BF42521A750CDB00C16F9A /* ConnectionManagerProtocol.h */,
-				51BF42531A750CDB00C16F9A /* ConnectionManagerProtocol.m */,
-				51E5BE7F1ABD03FD003E035C /* EncodingPipe.h */,
-				51E5BE801ABD03FD003E035C /* EncodingPipe.m */,
-				51E5BE821ABD0450003E035C /* DecodingPipe.h */,
-				51E5BE831ABD0450003E035C /* DecodingPipe.m */,
-				51197AFB1B134D72006A7AEE /* ThrottledPipe.h */,
-				51197AFC1B134D72006A7AEE /* ThrottledPipe.m */,
+				51BF42521A750CDB00C16F9A /* ConnectionGovernorProtocol.h */,
+				51BF42531A750CDB00C16F9A /* ConnectionGovernorProtocol.m */,
 				51197B011B136CC3006A7AEE /* VideoOutputController.h */,
 				51197B021B136CC3006A7AEE /* VideoOutputController.m */,
 				51197B041B137468006A7AEE /* NetworkOperations.h */,
-				51FE7E0A1B3C85EF00FF27F3 /* ConnectionManagerProtocolWithNatPunchtrough.h */,
-				51FE7E0B1B3C85EF00FF27F3 /* ConnectionManagerProtocolWithNatPunchtrough.m */,
+				51FE7E0A1B3C85EF00FF27F3 /* ConnectionGovernorNatPunchthrough.h */,
+				51FE7E0B1B3C85EF00FF27F3 /* ConnectionGovernorNatPunchthrough.m */,
 			);
 			name = Protocol;
 			sourceTree = "<group>";
@@ -307,8 +319,6 @@
 				51D584B819AB63FB00BB6CE6 /* Networking */,
 				51DB961919A8EE05001A63F8 /* ConnectionViewController.h */,
 				51DB961A19A8EE05001A63F8 /* ConnectionViewController.m */,
-				5103A96C1B077E42003573FE /* NatPunchthroughViewController.h */,
-				5103A96D1B077E42003573FE /* NatPunchthroughViewController.m */,
 				51E5BE291936A982003E45C3 /* MyFirstApplication-Info.plist */,
 				51E5BE2A1936A982003E45C3 /* InfoPlist.strings */,
 				51E5BE2D1936A982003E45C3 /* main.m */,
@@ -481,19 +491,19 @@
 				51FBE0441AF66AF3009115AE /* ActivityMonitor.m in Sources */,
 				51E5BE811ABD03FD003E035C /* EncodingPipe.m in Sources */,
 				51D87CB51A8F7C3000CE919E /* BatcherOutput.m in Sources */,
+				511605F51B3EBE5D0071A183 /* NetworkUtility.m in Sources */,
 				51197B071B13AAAD006A7AEE /* TimedEventTracker.m in Sources */,
 				51D584C119AB7A9400BB6CE6 /* ByteBuffer.m in Sources */,
 				51D87CB21A8F7C1B00CE919E /* BatcherInput.m in Sources */,
 				51D584BE19AB649500BB6CE6 /* OutputSessionTcp.m in Sources */,
 				51C263881AB4545000285C6E /* SoundEncodingShared.m in Sources */,
-				51BF42541A750CDB00C16F9A /* ConnectionManagerProtocol.m in Sources */,
-				5103A96E1B077E42003573FE /* NatPunchthroughViewController.m in Sources */,
+				51BF42541A750CDB00C16F9A /* ConnectionGovernorProtocol.m in Sources */,
 				51197AFD1B134D72006A7AEE /* ThrottledPipe.m in Sources */,
 				51197B001B1350B1006A7AEE /* ThrottledBlock.m in Sources */,
 				51DB961819A8E3D0001A63F8 /* ConnectionManagerTcp.m in Sources */,
 				51C2638B1AB45CE400285C6E /* BlockingQueue.m in Sources */,
 				51CE2B941A8ECD9100B8E5B7 /* PipelineProcessor.m in Sources */,
-				51FE7E0C1B3C85EF00FF27F3 /* ConnectionManagerProtocolWithNatPunchtrough.m in Sources */,
+				51FE7E0C1B3C85EF00FF27F3 /* ConnectionGovernorNatPunchthrough.m in Sources */,
 				51E5BE321936A982003E45C3 /* MJPAppDelegate.m in Sources */,
 				513205E71AAE4CA600C80AD9 /* SoundMicrophone.m in Sources */,
 				51197B031B136CC3006A7AEE /* VideoOutputController.m in Sources */,

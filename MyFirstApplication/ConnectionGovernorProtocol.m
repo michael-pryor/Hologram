@@ -6,7 +6,7 @@
 //
 //
 
-#import "ConnectionManagerProtocol.h"
+#import "ConnectionGovernorProtocol.h"
 #import "ConnectionManagerTcp.h"
 #import "ConnectionManagerUdp.h"
 #import "InputSessionTcp.h"
@@ -15,10 +15,10 @@
 #import "ActivityMonitor.h"
 
 uint NUM_SOCKETS = 1;
-@implementation ConnectionManagerProtocolTcpSession {
-    ConnectionManagerProtocol* _connectionManager;
+@implementation ConnectionGovernorProtocolTcpSession {
+    ConnectionGovernorProtocol* _connectionManager;
 }
-- (id)initWithConnectionManager: (ConnectionManagerProtocol*)connectionManager {
+- (id)initWithConnectionManager: (ConnectionGovernorProtocol*)connectionManager {
     self = [super init];
     if(self) {
         _connectionManager = connectionManager;
@@ -34,10 +34,10 @@ uint NUM_SOCKETS = 1;
 }
 @end
 
-@implementation ConnectionManagerProtocolUdpSession {
-    ConnectionManagerProtocol* _connectionManager;
+@implementation ConnectionGovernorProtocolUdpSession {
+    ConnectionGovernorProtocol* _connectionManager;
 }
-- (id)initWithConnectionManager: (ConnectionManagerProtocol*)connectionManager {
+- (id)initWithConnectionManager: (ConnectionGovernorProtocol*)connectionManager {
     self = [super init];
     if(self) {
         _connectionManager = connectionManager;
@@ -53,7 +53,7 @@ uint NUM_SOCKETS = 1;
 }
 @end
 
-@implementation ConnectionManagerProtocol {
+@implementation ConnectionGovernorProtocol {
     id<NewPacketDelegate> _recvDelegate;
     ConnectionManagerUdp* _udpConnection;
     ConnectionManagerTcp* _tcpConnection;
@@ -294,9 +294,9 @@ uint NUM_SOCKETS = 1;
 
 
 - (id<NewPacketDelegate>) getTcpOutputSession {
-    return [[ConnectionManagerProtocolTcpSession alloc] initWithConnectionManager:self];
+    return [[ConnectionGovernorProtocolTcpSession alloc] initWithConnectionManager:self];
 }
 - (id<NewPacketDelegate>) getUdpOutputSession {
-    return [[ConnectionManagerProtocolUdpSession alloc] initWithConnectionManager:self];
+    return [[ConnectionGovernorProtocolUdpSession alloc] initWithConnectionManager:self];
 }
 @end

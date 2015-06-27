@@ -7,7 +7,7 @@
 //
 @import AVFoundation;
 #import "InputSessionBase.h"
-#import "ConnectionManagerProtocol.h"
+#import "ConnectionGovernorProtocol.h"
 #import "Batch.h"
 #import "VideoOutputController.h"
 #import "SoundPlayback.h"

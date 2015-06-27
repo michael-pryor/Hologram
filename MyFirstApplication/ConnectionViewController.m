@@ -12,7 +12,7 @@
 @import AVFoundation;
 
 @implementation ConnectionViewController {
-    ConnectionManagerProtocol * _connection;
+    ConnectionGovernorProtocol * _connection;
     IBOutlet UIImageView *_cameraView;
     AVCaptureSession *session;
     MediaController *_mediaController;
@@ -26,7 +26,7 @@
 
 -(void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear: animated];
-    _connection = [[ConnectionManagerProtocol alloc] initWithRecvDelegate:self connectionStatusDelegate:self slowNetworkDelegate:self];
+    _connection = [[ConnectionGovernorProtocol alloc] initWithRecvDelegate:self connectionStatusDelegate:self slowNetworkDelegate:self];
     _mediaController = [[MediaController alloc] initWithImageDelegate:self videoSpeedNotifier:self tcpNetworkOutputSession:[_connection getTcpOutputSession] udpNetworkOutputSession:[_connection getUdpOutputSession]];
 }
 

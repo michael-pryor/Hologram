@@ -6,9 +6,9 @@
 //
 //
 
-#import "ConnectionManagerProtocolWithNatPunchtrough.h"
+#import "ConnectionGovernorNatPunchthrough.h"
 
-@implementation ConnectionManagerProtocolWithNatPunchtrough {
+@implementation ConnectionGovernorNatPunchthrough {
     ConnectionManagerUdp* _udpNatPunchthroughConnection;
     
 }
