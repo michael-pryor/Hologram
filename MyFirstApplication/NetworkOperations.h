@@ -25,5 +25,11 @@
 // we will periodically fire discovery messages to try and connect.
 #define NAT_PUNCHTHROUGH_ADDRESS 2
 
+// Client disconnected from master server, but may reconnect later under same
+// session.
+//
+// For now we should stop sending to the client via NAT punch through,
+// as the address may be invalid (e.g. interface change) when the client reconnects.
+#define NAT_PUNCHTHROUGH_DISCONNECT 3
 
 #endif

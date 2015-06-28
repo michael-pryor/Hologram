@@ -25,9 +25,7 @@
         _recvDelegate = recvDelegate;
         _connectionGovernor = [[ConnectionGovernorProtocol alloc] initWithRecvDelegate:self unknownRecvDelegate:self connectionStatusDelegate:connectionStatusDelegate slowNetworkDelegate:slowNetworkDelegate];
         
-        _punchthroughAddress = 0;
-        _punchthroughPort = 0;
-        _routeThroughPunchthroughAddress = false;
+        [self clearNatPunchthrough];
         _natPunchthroughDiscoveryTimer = [[Timer alloc] initWithFrequencySeconds:5 firingInitially:true];
         
         _natPunchthroughDiscoveryPacket = [[ByteBuffer alloc] initWithSize:sizeof(uint)];
@@ -41,6 +39,7 @@
 }
 
 - (void)connectToTcpHost:(NSString*)tcpHost tcpPort:(ushort)tcpPort udpHost:(NSString*)udpHost udpPort:(ushort)udpPort {
+    [self clearNatPunchthrough];
     [_connectionGovernor connectToTcpHost:tcpHost tcpPort:tcpPort udpHost:udpHost udpPort:udpPort];
 }
 - (void)sendTcpPacket:(ByteBuffer*)packet {
@@ -66,6 +65,12 @@
     return [[ConnectionGovernorProtocolUdpSession alloc] initWithConnectionManager:self];
 }
 
+- (void)clearNatPunchthrough {
+    _routeThroughPunchthroughAddress = false;
+    _punchthroughAddress = 0;
+    _punchthroughPort = 0;
+}
+
 - (void)onNewPacket:(ByteBuffer*)packet fromProtocol:(ProtocolType)protocol {
     if(protocol == UDP) {
         unsigned int prefix = [packet getUnsignedIntegerAtPosition:0];
@@ -81,6 +86,9 @@
             _punchthroughAddress = [packet getUnsignedInteger];
             _punchthroughPort = [packet getUnsignedInteger];
             NSLog(@"Loaded punch through address: %d / %d", _punchthroughAddress, _punchthroughPort);
+        } else if(prefix == NAT_PUNCHTHROUGH_DISCONNECT) {
+            NSLog(@"Request to stop using NAT punchthrough received");
+            [self clearNatPunchthrough];
         } else {
             // Not a packet that we care about, pass it downstream.
             [packet setCursorPosition:0];

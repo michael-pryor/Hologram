@@ -96,40 +96,40 @@
 }
 
 - (void) onRecv {
-    long maximumAmountReceivable = dispatch_source_get_data(_dispatch_source);
+    // dispatch_source_get_data seems to always return 1 after we switch the host we send/receive data to/from.
+    // so this looks like a bug.
+    //
+    // Instead we now fix the max size of packets we can handle to 2048, which should be more than enough for UDP.
+    long maximumAmountReceivable = 2048; //dispatch_source_get_data(_dispatch_source);
     size_t realAmountReceived;
     
-    do {
-        if(maximumAmountReceivable > [_recvBuffer bufferMemorySize]) {
-            [_recvBuffer setMemorySize:(uint)maximumAmountReceivable retaining:false];
-        }
-        
-        struct sockaddr_in recvAddress;
-        realAmountReceived = recvfrom(_socket, [_recvBuffer getRawDataPtr], maximumAmountReceivable, 0, (struct sockaddr*)&recvAddress, &_sockAddressSize);
-        
-        // This would cause buffer overrun and indicates a serious bug somewhere (probably not in our code though *puts on sunglasses slowly*).
-        if(realAmountReceived == -1) {
-            NSLog(@"UDP - Serious receive error detected while attempting to receive data");
-            [self onFailure];
-            return;
-        }
-        if(realAmountReceived > maximumAmountReceivable) {
-            NSLog(@"UDP - Receive error detected: %zu (real) vs %ld (maximum)", realAmountReceived, maximumAmountReceivable);
-            [self onFailure];
-            return;
-        }
-        
-        [_recvBuffer setUsedSize: (uint)realAmountReceived];
+    if(maximumAmountReceivable > [_recvBuffer bufferMemorySize]) {
+        [_recvBuffer setMemorySize:(uint)maximumAmountReceivable retaining:false];
+    }
     
-        //NSLog(@"UDP - Received packet of size: %ul", [_recvBuffer bufferUsedSize]);
-        if([NetworkUtility isEqualAddress:&_connectAddress address:&recvAddress]) {
-            [_newPacketDelegate onNewPacket:_recvBuffer fromProtocol:UDP];
-        } else {
-            [_newUnknownPacketDelegate onNewPacket:_recvBuffer fromProtocol:UDP fromAddress:recvAddress.sin_addr.s_addr andPort:recvAddress.sin_port];
-        }
-        
-        maximumAmountReceivable -= realAmountReceived;
-    } while(maximumAmountReceivable > 0);
+    struct sockaddr_in recvAddress;
+    realAmountReceived = recvfrom(_socket, [_recvBuffer getRawDataPtr], maximumAmountReceivable, 0, (struct sockaddr*)&recvAddress, &_sockAddressSize);
+    
+    // This would cause buffer overrun and indicates a serious bug somewhere (probably not in our code though *puts on sunglasses slowly*).
+    if(realAmountReceived == -1) {
+        NSLog(@"UDP - Serious receive error detected while attempting to receive data");
+        [self onFailure];
+        return;
+    }
+    if(realAmountReceived > maximumAmountReceivable) {
+        NSLog(@"UDP - Receive error detected: %zu (real) vs %ld (maximum)", realAmountReceived, maximumAmountReceivable);
+        [self onFailure];
+        return;
+    }
+    
+    [_recvBuffer setUsedSize: (uint)realAmountReceived];
+
+    //NSLog(@"UDP - Received packet of size: %ul", [_recvBuffer bufferUsedSize]);
+    if([NetworkUtility isEqualAddress:&_connectAddress address:&recvAddress]) {
+        [_newPacketDelegate onNewPacket:_recvBuffer fromProtocol:UDP];
+    } else {
+        [_newUnknownPacketDelegate onNewPacket:_recvBuffer fromProtocol:UDP fromAddress:recvAddress.sin_addr.s_addr andPort:recvAddress.sin_port];
+    }
 }
 
 - (void) connectToHost:(NSString*)host andPort:(ushort)port {

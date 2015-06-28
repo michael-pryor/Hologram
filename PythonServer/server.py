@@ -125,6 +125,9 @@ class Server(ClientFactory, protocol.DatagramProtocol):
 
                         # We need to make sure that client data is not left dangling without a UDP hash.
                         self.clientDisconnected(client)
+
+                        # Completely release that room.
+                        self.house.releaseRoom(client)
         finally:
             self._unlockClm()
 

@@ -16,6 +16,8 @@
 
 uint NUM_SOCKETS = 1;
 
+// Session hash has timed out, you need a fresh session.
+#define REJECT_HASH_TIMEOUT 1
 
 @implementation ConnectionGovernorProtocol {
     id<NewPacketDelegate> _recvDelegate;
@@ -180,6 +182,13 @@ uint NUM_SOCKETS = 1;
     [self performSelector: @selector(sendUdpLogonHash:) withObject: bufferToSend afterDelay:0.5];
 }
 
+- (void)handleRejectCode:(uint)rejectCode {
+    // Hash timed out, the next one will succeed if we clear it (server will give us a new one).
+    if(rejectCode == REJECT_HASH_TIMEOUT) {
+        _udpHash = nil;
+    }
+}
+
 - (void) onNewPacket:(ByteBuffer*)packet fromProtocol:(ProtocolType)protocol{
     if(protocol == TCP) {
         if(_connectionStatus != P_CONNECTED ) {
@@ -187,6 +196,8 @@ uint NUM_SOCKETS = 1;
             
             if(_connectionStatus == P_WAITING_FOR_TCP_LOGON_ACK) {
                 if(logon == OP_REJECT_LOGON) {
+                    uint rejectCode = [packet getUnsignedInteger];
+                    [self handleRejectCode:rejectCode];
                     NSString* rejectReason = [packet getString];
                     NSString* rejectDescription = [@"Logon rejected with reason: " stringByAppendingString:rejectReason];
                     [self shutdownWithDescription:rejectDescription];

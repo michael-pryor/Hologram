@@ -21,6 +21,11 @@ class Client(object):
 
     class TcpOperationCodes:
         OP_NAT_PUNCHTHROUGH_ADDRESS = 2
+        OP_NAT_PUNCHTHROUGH_CLIENT_DISCONNECT = 3
+
+    class RejectCodes:
+        SUCCESS = 0
+        REJECT_HASH_TIMEOUT = 1
 
     def __init__(self, tcp, onCloseFunc, udpConnectionLinker, house):
         super(Client, self).__init__()
@@ -57,8 +62,13 @@ class Client(object):
     def closeConnection(self):
         self.tcp.transport.loseConnection()
 
-        if self.udp_hash is not None and self.udp_connection_linker is not None:
-            self.udp_connection_linker.registerPrematureCompletion(self.udp_hash, self)
+        if self.udp_hash is not None:
+            if self.udp_connection_linker is not None:
+                self.udp_connection_linker.registerPrematureCompletion(self.udp_hash, self)
+
+            # Needs a UDP hash as that is our identifier.
+            # Client has disconnected so temporarily pause that room.
+            self.house.pauseRoom(self)
 
     def handleLogon(self, packet):
         assert isinstance(packet, ByteBuffer)
@@ -69,7 +79,7 @@ class Client(object):
         if packet.used_size != packet.cursor_position:
             self.udp_hash = packet.getString()
             if self.udp_hash not in self.udp_connection_linker.clients_by_udp_hash:
-                return False, "Hash timed out, please reconnect fresh"
+                return Client.RejectCodes.REJECT_HASH_TIMEOUT, "Hash timed out, please reconnect fresh"
 
             # This indicates that a logon ACK should be sent via TCP.
             self.udp_hash = self.udp_connection_linker.registerInterestGenerated(self, self.udp_hash)
@@ -78,22 +88,24 @@ class Client(object):
             self.udp_hash = self.udp_connection_linker.registerInterestGenerated(self)
 
         logger.info("Login processed with details, version number: [%d], login name: [%s], udp hash: [%s]", versionNum, loginName, self.udp_hash)
-        return True, self.udp_hash
+        return Client.RejectCodes.SUCCESS, self.udp_hash
 
     def handleTcpPacket(self, packet):
         assert isinstance(packet, ByteBuffer)
         if self.connection_status == Client.ConnectionStatus.WAITING_LOGON:
             response = ByteBuffer()
-            success, dataString = self.handleLogon(packet)
-            if success:
+
+            rejectCode, dataString = self.handleLogon(packet)
+            if rejectCode == Client.RejectCodes.SUCCESS:
                 self.connection_status = Client.ConnectionStatus.WAITING_UDP
                 logger.info("Logon accepted, waiting for UDP connection")
 
                 response.addUnsignedInteger(Client.UdpOperationCodes.OP_ACCEPT_LOGON)
                 response.addString(dataString) # the UDP hash code.
             else:
-                logger.warn("Logon rejected, closing connection, reason [%s]" % dataString)
+                logger.warn("Logon rejected, closing connection, reject code [%d], reject reason [%s]" % (rejectCode, dataString))
                 response.addUnsignedInteger(Client.UdpOperationCodes.OP_REJECT_LOGON)
+                response.addUnsignedInteger(rejectCode)
                 response.addString("Reject reason: %s" % dataString)
                 self.closeConnection()
 
