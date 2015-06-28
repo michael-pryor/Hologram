@@ -10,6 +10,7 @@
 #import "ConnectionGovernorProtocol.h"
 #import "NetworkOperations.h"
 #import "Timer.h"
+#import "NetworkUtility.h"
 
 @implementation ConnectionGovernorNatPunchthrough {
     ConnectionGovernorProtocol* _connectionGovernor;
@@ -26,7 +27,7 @@
         _connectionGovernor = [[ConnectionGovernorProtocol alloc] initWithRecvDelegate:self unknownRecvDelegate:self connectionStatusDelegate:connectionStatusDelegate slowNetworkDelegate:slowNetworkDelegate];
         
         [self clearNatPunchthrough];
-        _natPunchthroughDiscoveryTimer = [[Timer alloc] initWithFrequencySeconds:5 firingInitially:true];
+        _natPunchthroughDiscoveryTimer = [[Timer alloc] initWithFrequencySeconds:0.5 firingInitially:true];
         
         _natPunchthroughDiscoveryPacket = [[ByteBuffer alloc] initWithSize:sizeof(uint)];
         [_natPunchthroughDiscoveryPacket addUnsignedInteger:NAT_PUNCHTHROUGH_DISCOVERY];
@@ -85,7 +86,8 @@
         if(prefix == NAT_PUNCHTHROUGH_ADDRESS) {
             _punchthroughAddress = [packet getUnsignedInteger];
             _punchthroughPort = [packet getUnsignedInteger];
-            NSLog(@"Loaded punch through address: %d / %d", _punchthroughAddress, _punchthroughPort);
+            NSString* humanAddress = [NetworkUtility convertPreparedAddress:_punchthroughAddress port:_punchthroughPort];
+            NSLog(@"Loaded punch through address: %d / %d - this is: %@", _punchthroughAddress, _punchthroughPort, humanAddress);
         } else if(prefix == NAT_PUNCHTHROUGH_DISCONNECT) {
             NSLog(@"Request to stop using NAT punchthrough received");
             [self clearNatPunchthrough];
@@ -108,7 +110,8 @@
         _routeThroughPunchthroughAddress = true;
         unsigned int prefix = [packet getUnsignedIntegerAtPosition:0];
         if(prefix == NAT_PUNCHTHROUGH_DISCOVERY) {
-            NSLog(@"Discovery packet received");
+            NSString* addressConverted = [NetworkUtility convertPreparedAddress:address port:port];
+            NSLog(@"Discovery packet received from: %@", addressConverted);
         } else {
             [_recvDelegate onNewPacket:packet fromProtocol:protocol];
         }
