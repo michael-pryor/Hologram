@@ -8,6 +8,7 @@
 
 #import "ConnectionViewController.h"
 #import "MediaController.h"
+#import "ConnectionGovernorNatPunchthrough.h"
 
 @import AVFoundation;
 
@@ -26,7 +27,7 @@
 
 -(void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear: animated];
-    _connection = [[ConnectionGovernorProtocol alloc] initWithRecvDelegate:self connectionStatusDelegate:self slowNetworkDelegate:self];
+    _connection = [[ConnectionGovernorNatPunchthrough alloc] initWithRecvDelegate:self connectionStatusDelegate:self slowNetworkDelegate:self];
     _mediaController = [[MediaController alloc] initWithImageDelegate:self videoSpeedNotifier:self tcpNetworkOutputSession:[_connection getTcpOutputSession] udpNetworkOutputSession:[_connection getUdpOutputSession]];
 }
 

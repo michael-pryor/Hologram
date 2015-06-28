@@ -33,9 +33,11 @@
     id<SlowNetworkDelegate> _slowNetworkDelegate;
     Timer* _slowNetworkDelegateThrottle;
     struct sockaddr_in _connectAddress;
+    id<NewUnknownPacketDelegate> _newUnknownPacketDelegate;
+    uint _sockAddressSize;
 }
 
-- (id) initWithNewPacketDelegate:(id<NewPacketDelegate>)newPacketDelegate slowNetworkDelegate:(id<SlowNetworkDelegate>)slowNetworkDelegate connectionDelegate:(id<ConnectionStatusDelegateUdp>)connectionDelegate retryCount:(uint)retryCountMax {
+- (id) initWithNewPacketDelegate:(id<NewPacketDelegate>)newPacketDelegate newUnknownPacketDelegate:(id<NewUnknownPacketDelegate>)newUnknownPacketDelegate slowNetworkDelegate:(id<SlowNetworkDelegate>)slowNetworkDelegate connectionDelegate:(id<ConnectionStatusDelegateUdp>)connectionDelegate retryCount:(uint)retryCountMax {
     self = [super init];
     if(self) {
         _socket = 0;
@@ -50,6 +52,7 @@
         _sendFailureEventTracker = [[EventTracker alloc] initWithMaxEvents:retryCountMax];
         _slowNetworkDelegate = slowNetworkDelegate;
         _slowNetworkDelegateThrottle = [[Timer alloc] initWithFrequencySeconds:5 firingInitially:true];
+        _sockAddressSize = sizeof(struct sockaddr_in);
     }
     return self;
 }
@@ -101,9 +104,7 @@
         }
         
         struct sockaddr_in recvAddress;
-        uint recvAddressLen = sizeof(recvAddress);
-        
-        realAmountReceived = recvfrom(_socket, [_recvBuffer getRawDataPtr], maximumAmountReceivable, 0, (struct sockaddr*)&recvAddress, &recvAddressLen);
+        realAmountReceived = recvfrom(_socket, [_recvBuffer getRawDataPtr], maximumAmountReceivable, 0, (struct sockaddr*)&recvAddress, &_sockAddressSize);
         
         // This would cause buffer overrun and indicates a serious bug somewhere (probably not in our code though *puts on sunglasses slowly*).
         if(realAmountReceived == -1) {
@@ -123,7 +124,7 @@
         if([NetworkUtility isEqualAddress:&_connectAddress address:&recvAddress]) {
             [_newPacketDelegate onNewPacket:_recvBuffer fromProtocol:UDP];
         } else {
-            NSLog(@"Discarding packet from unknown address");
+            [_newUnknownPacketDelegate onNewPacket:_recvBuffer fromProtocol:UDP fromAddress:recvAddress.sin_addr.s_addr andPort:recvAddress.sin_port];
         }
         
         maximumAmountReceivable -= realAmountReceived;
@@ -154,7 +155,7 @@
     });
     dispatch_resume(_dispatch_source);
     
-    [self validateResult: connect(_socket, (const struct sockaddr *)&_connectAddress, sizeof(_connectAddress))];
+    //[self validateResult: connect(_socket, (const struct sockaddr *)&_connectAddress, sizeof(_connectAddress))];
     
     
     [_openingNotInProgress signalAll];
@@ -164,18 +165,40 @@
     NSLog(@"UDP - Connected socket to host %@ and port %u", host, port);
 }
 
-- (void)onNewPacket:(ByteBuffer *)buffer fromProtocol:(ProtocolType)protocol {
+- (void)onNewPacket:(ByteBuffer*)buffer fromProtocol:(ProtocolType)protocol {
     [self sendBuffer:buffer];
 }
 
+- (void)sendBuffer:(ByteBuffer*)buffer toPreparedAddress:(uint)address toPreparedPort:(ushort)port {
+    struct sockaddr_in toAddress;
+    memset(&toAddress, 0, sizeof(toAddress));
+    toAddress.sin_family = AF_INET;
+    toAddress.sin_addr.s_addr = INADDR_ANY;
+    
+    toAddress.sin_port = port;
+    toAddress.sin_addr.s_addr = address;
+    
+    [self sendBuffer:buffer toAddress:&toAddress];
+}
+
+- (void)sendBuffer:(ByteBuffer*)buffer toAddress:(NSString*)address toPort:(ushort)port {
+    [self sendBuffer:buffer toPreparedAddress:inet_addr([address UTF8String]) toPreparedPort:htons(port)];
+}
+
 - (void)sendBuffer:(ByteBuffer*)buffer {
+    if([self isConnected]) {
+        [self sendBuffer:buffer toAddress:&_connectAddress];
+    }
+}
+
+- (void)sendBuffer:(ByteBuffer*)buffer toAddress:(struct sockaddr_in*)address  {
     dispatch_sync(_gcd_queue_sending, ^{
         if(![self isConnected]) {
             return;
         }
         [_openingNotInProgress wait];
         
-        long result = send(_socket, [buffer buffer], [buffer bufferUsedSize], 0);
+        long result = sendto(_socket, [buffer buffer], [buffer bufferUsedSize], 0, (struct sockaddr*)address, _sockAddressSize);
         if(result < 0) {
             // No buffer space available, we are sending too quickly.
             if(result == ENOBUFS && [_slowNetworkDelegateThrottle getState]) {

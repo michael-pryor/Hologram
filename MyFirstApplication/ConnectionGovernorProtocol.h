@@ -13,31 +13,18 @@
 #import "InputSessionBase.h"
 #import "ConnectionGovernor.h"
 
-typedef enum {
-    P_CONNECTED,
-    P_CONNECTING,
-    P_WAITING_FOR_TCP_LOGON_ACK, // internal not reported to user.
-    P_WAITING_FOR_UDP_HASH_ACK, // internal not reported to user.
-    P_NOT_CONNECTED
-} ConnectionStatusProtocol;
-
 @protocol ConnectionStatusDelegateProtocol
 - (void)connectionStatusChange:(ConnectionStatusProtocol)status withDescription: (NSString*)description;
 @end
 
 @interface ConnectionGovernorProtocol : NSObject<ConnectionGovernor>
-- (id) initWithRecvDelegate:(id<NewPacketDelegate>)recvDelegate connectionStatusDelegate:(id<ConnectionStatusDelegateProtocol>)connectionStatusDelegate slowNetworkDelegate:(id<SlowNetworkDelegate>)slowNetworkDelegate;
+- (id) initWithRecvDelegate:(id<NewPacketDelegate>)recvDelegate unknownRecvDelegate:(id<NewUnknownPacketDelegate>)unknownRecvDelegate connectionStatusDelegate:(id<ConnectionStatusDelegateProtocol>)connectionStatusDelegate slowNetworkDelegate:(id<SlowNetworkDelegate>)slowNetworkDelegate;
 - (void)connectToTcpHost:(NSString*)tcpHost tcpPort:(ushort)tcpPort udpHost:(NSString*)udpHost udpPort:(ushort)udpPort;
 - (void)sendTcpPacket:(ByteBuffer*)packet;
 - (void)sendUdpPacket:(ByteBuffer*)packet;
+- (void)sendUdpPacket:(ByteBuffer*)packet toPreparedAddress:(uint)address toPreparedPort:(ushort)port;
+- (void)sendUdpPacket:(ByteBuffer*)packet toAddress:(NSString*)address toPort:(ushort)port;
 - (id<NewPacketDelegate>)getTcpOutputSession;
 - (id<NewPacketDelegate>)getUdpOutputSession;
-@end
-
-@interface ConnectionGovernorProtocolTcpSession : NSObject<NewPacketDelegate>
-- (id)initWithConnectionManager:(ConnectionGovernorProtocol*)connectionManager;
-@end
-
-@interface ConnectionGovernorProtocolUdpSession : NSObject<NewPacketDelegate>
-- (id)initWithConnectionManager:(ConnectionGovernorProtocol*)connectionManager;
+- (Boolean)isConnected;
 @end

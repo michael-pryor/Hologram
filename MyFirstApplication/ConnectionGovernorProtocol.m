@@ -15,43 +15,7 @@
 #import "ActivityMonitor.h"
 
 uint NUM_SOCKETS = 1;
-@implementation ConnectionGovernorProtocolTcpSession {
-    ConnectionGovernorProtocol* _connectionManager;
-}
-- (id)initWithConnectionManager: (ConnectionGovernorProtocol*)connectionManager {
-    self = [super init];
-    if(self) {
-        _connectionManager = connectionManager;
-    }
-    return self;
-}
-- (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
-    // Drop until we are connected.
-    if(![_connectionManager isConnected]) {
-        return;
-    }
-    [_connectionManager sendTcpPacket:packet];
-}
-@end
 
-@implementation ConnectionGovernorProtocolUdpSession {
-    ConnectionGovernorProtocol* _connectionManager;
-}
-- (id)initWithConnectionManager: (ConnectionGovernorProtocol*)connectionManager {
-    self = [super init];
-    if(self) {
-        _connectionManager = connectionManager;
-    }
-    return self;
-}
-- (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
-    // Drop until we are connected.
-    if(![_connectionManager isConnected]) {
-        return;
-    }
-    [_connectionManager sendUdpPacket:packet];
-}
-@end
 
 @implementation ConnectionGovernorProtocol {
     id<NewPacketDelegate> _recvDelegate;
@@ -80,7 +44,7 @@ uint NUM_SOCKETS = 1;
     #define OP_ACCEPT_UDP 3
 }
 
-- (id)initWithRecvDelegate:(id<NewPacketDelegate>)recvDelegate connectionStatusDelegate:(id<ConnectionStatusDelegateProtocol>)connectionStatusDelegate slowNetworkDelegate:(id<SlowNetworkDelegate>)slowNetworkDelegate {
+- (id)initWithRecvDelegate:(id<NewPacketDelegate>)recvDelegate unknownRecvDelegate:(id<NewUnknownPacketDelegate>)unknownRecvDelegate connectionStatusDelegate:(id<ConnectionStatusDelegateProtocol>)connectionStatusDelegate slowNetworkDelegate:(id<SlowNetworkDelegate>)slowNetworkDelegate {
     self = [super init];
     if(self) {
         _udpHash = nil;
@@ -99,7 +63,7 @@ uint NUM_SOCKETS = 1;
         _tcpOutputSession = [[OutputSessionTcp alloc] init];
         _tcpConnection = [[ConnectionManagerTcp alloc] initWithConnectionStatusDelegate:self inputSession:tcpSession outputSession:_tcpOutputSession];
         
-        _udpConnection = [[ConnectionManagerUdp alloc] initWithNewPacketDelegate:self slowNetworkDelegate:slowNetworkDelegate connectionDelegate:self retryCount:5];
+        _udpConnection = [[ConnectionManagerUdp alloc] initWithNewPacketDelegate:self newUnknownPacketDelegate:unknownRecvDelegate slowNetworkDelegate:slowNetworkDelegate connectionDelegate:self retryCount:5];
         
         [self _setupReconnectMonitor];
     }
@@ -183,7 +147,7 @@ uint NUM_SOCKETS = 1;
     [self shutdownWithDescription:@"Disconnected"];
 }
 
-- (Boolean) isConnected {
+- (Boolean)isConnected {
     return [_tcpConnection isConnected] && [_udpConnection isConnected];
 }
 
@@ -193,6 +157,14 @@ uint NUM_SOCKETS = 1;
 
 - (void) sendUdpPacket:(ByteBuffer*)packet {
     [_udpConnection onNewPacket:packet fromProtocol:UDP];
+}
+
+- (void)sendUdpPacket:(ByteBuffer*)packet toPreparedAddress:(uint)address toPreparedPort:(ushort)port {
+    [_udpConnection sendBuffer:packet toPreparedAddress:address toPreparedPort:port];
+}
+
+- (void)sendUdpPacket:(ByteBuffer*)packet toAddress:(NSString*)address toPort:(ushort)port {
+    [_udpConnection sendBuffer:packet toAddress:address toPort:port];
 }
 
 - (void) sendUdpLogonHash: (ByteBuffer*)bufferToSend {

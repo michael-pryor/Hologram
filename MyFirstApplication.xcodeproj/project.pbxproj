@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		511605F51B3EBE5D0071A183 /* NetworkUtility.m in Sources */ = {isa = PBXBuildFile; fileRef = 511605F41B3EBE5D0071A183 /* NetworkUtility.m */; };
+		511949341B3FFF8F00314436 /* ConnectionGovernor.m in Sources */ = {isa = PBXBuildFile; fileRef = 511949331B3FFF8F00314436 /* ConnectionGovernor.m */; };
 		51197AFA1B132D6F006A7AEE /* Timer.m in Sources */ = {isa = PBXBuildFile; fileRef = 51197AF91B132D6F006A7AEE /* Timer.m */; };
 		51197AFD1B134D72006A7AEE /* ThrottledPipe.m in Sources */ = {isa = PBXBuildFile; fileRef = 51197AFC1B134D72006A7AEE /* ThrottledPipe.m */; };
 		51197B001B1350B1006A7AEE /* ThrottledBlock.m in Sources */ = {isa = PBXBuildFile; fileRef = 51197AFF1B1350B1006A7AEE /* ThrottledBlock.m */; };
@@ -66,6 +67,7 @@
 		511605F31B3EBE5D0071A183 /* NetworkUtility.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NetworkUtility.h; sourceTree = "<group>"; };
 		511605F41B3EBE5D0071A183 /* NetworkUtility.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NetworkUtility.m; sourceTree = "<group>"; };
 		511605F61B3EEF8C0071A183 /* ConnectionGovernor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ConnectionGovernor.h; sourceTree = "<group>"; };
+		511949331B3FFF8F00314436 /* ConnectionGovernor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ConnectionGovernor.m; sourceTree = "<group>"; };
 		51197AF81B132D6F006A7AEE /* Timer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Timer.h; sourceTree = "<group>"; };
 		51197AF91B132D6F006A7AEE /* Timer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Timer.m; sourceTree = "<group>"; };
 		51197AFB1B134D72006A7AEE /* ThrottledPipe.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ThrottledPipe.h; sourceTree = "<group>"; };
@@ -257,6 +259,7 @@
 			isa = PBXGroup;
 			children = (
 				511605F61B3EEF8C0071A183 /* ConnectionGovernor.h */,
+				511949331B3FFF8F00314436 /* ConnectionGovernor.m */,
 				51E1BF291A5DD7A4007D8A56 /* MediaController.h */,
 				51E1BF2A1A5DD7A4007D8A56 /* MediaController.m */,
 				51BF42521A750CDB00C16F9A /* ConnectionGovernorProtocol.h */,
@@ -499,6 +502,7 @@
 				51C263881AB4545000285C6E /* SoundEncodingShared.m in Sources */,
 				51BF42541A750CDB00C16F9A /* ConnectionGovernorProtocol.m in Sources */,
 				51197AFD1B134D72006A7AEE /* ThrottledPipe.m in Sources */,
+				511949341B3FFF8F00314436 /* ConnectionGovernor.m in Sources */,
 				51197B001B1350B1006A7AEE /* ThrottledBlock.m in Sources */,
 				51DB961819A8E3D0001A63F8 /* ConnectionManagerTcp.m in Sources */,
 				51C2638B1AB45CE400285C6E /* BlockingQueue.m in Sources */,
