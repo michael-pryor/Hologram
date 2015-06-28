@@ -19,7 +19,10 @@ class Client(object):
         OP_ACCEPT_LOGON = 2
         OP_ACCEPT_UDP = 3
 
-    def __init__(self, tcp, onCloseFunc, udpConnectionLinker):
+    class TcpOperationCodes:
+        OP_NAT_PUNCHTHROUGH_ADDRESS = 2
+
+    def __init__(self, tcp, onCloseFunc, udpConnectionLinker, house):
         super(Client, self).__init__()
         assert isinstance(tcp, ClientTcp)
 
@@ -31,6 +34,7 @@ class Client(object):
         self.udp_connection_linker = udpConnectionLinker
         self.udp_hash = None
         self.udp_remote_address = None
+        self.house = house
         logger.info("New client connected, awaiting logon message")
 
     def setUdp(self, clientUdp):
@@ -106,7 +110,6 @@ class Client(object):
             self.closeConnection()
 
     def handleUdpPacket(self, packet):
-        assert isinstance(packet, ByteBuffer)
         if self.connection_status != Client.ConnectionStatus.CONNECTED:
             logger.warn("Client is not connected, discarding UDP packet")
             return
@@ -120,7 +123,7 @@ class Client(object):
         self.tcp.sendByteBuffer(packet)
 
     def onFriendlyPacketUdp(self, packet):
-        pass
+        self.house.handleUdpPacket(self, packet)
 
     def __str__(self):
         if self.tcp is not None:
@@ -134,3 +137,10 @@ class Client(object):
             udpString = "No UDP connection"
 
         return "{Client: [%s] and [%s]}" % (tcpString, udpString)
+
+    def __eq__(self, other):
+        assert isinstance(other, Client)
+        return self.udp_hash == other.udp_hash
+
+    def __hash__(self):
+        return hash(self.udp_hash)

@@ -65,6 +65,9 @@ class ClientUdp(object):
         strRepresentation = byteBuffer.convertToString()
         self.datagram_sender_func(strRepresentation, self.remote_address)
 
+    def sendRawBuffer(self, rawBuffer):
+        self.datagram_sender_func(rawBuffer, self.remote_address)
+
     def formatAddress(self, address):
         return "%s:%s" % address
 

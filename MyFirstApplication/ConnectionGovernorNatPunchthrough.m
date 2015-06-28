@@ -68,7 +68,13 @@
 
 - (void)onNewPacket:(ByteBuffer*)packet fromProtocol:(ProtocolType)protocol {
     if(protocol == UDP) {
-        [_recvDelegate onNewPacket:packet fromProtocol:protocol];
+        unsigned int prefix = [packet getUnsignedIntegerAtPosition:0];
+        if(prefix == NAT_PUNCHTHROUGH_DISCOVERY) {
+            // As a precaution.
+            NSLog(@"Discovery packet received on master connection, dropping packet");
+        } else {
+            [_recvDelegate onNewPacket:packet fromProtocol:protocol];
+        }
     } else if(protocol == TCP) {
         unsigned int prefix = [packet getUnsignedInteger];
         if(prefix == NAT_PUNCHTHROUGH_ADDRESS) {

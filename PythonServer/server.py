@@ -12,6 +12,7 @@ from utility import getRemainingTimeOnAction
 __author__ = 'pryormic'
 
 import logging
+from house import House
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +35,7 @@ class Server(ClientFactory, protocol.DatagramProtocol):
         self.clean_actions_by_udp_hash = dict()
 
         self.reactor = reactor
+        self.house = House()
 
     def startedConnecting(self, connector):
         logger.info('Started to connect.')
@@ -163,7 +165,7 @@ class Server(ClientFactory, protocol.DatagramProtocol):
         logger.info('TCP connection initiated with new client [%s]' % addr)
 
         tcpCon = ClientTcp(addr)
-        client = Client(tcpCon, self.clientDisconnected, self.udp_connection_linker)
+        client = Client(tcpCon, self.clientDisconnected, self.udp_connection_linker, self.house)
 
         self._lockClm()
         try:
@@ -191,11 +193,7 @@ class Server(ClientFactory, protocol.DatagramProtocol):
             theBuffer = ByteBuffer.buildFromIterable(data)
             self.onUnknownData(theBuffer, remoteAddress)
         else:
-            # FAST ECHO
-            self.transport.write(data,knownClient.udp.remote_address)
-            # END OF FAST ECHO
-            #assert isinstance(knownClient, Client)
-            #knownClient.handleUdpPacket(theBuffer)
+            knownClient.handleUdpPacket(data)
 
     def onUnknownData(self, data, remoteAddress):
         assert isinstance(data, ByteBuffer)

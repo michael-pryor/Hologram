@@ -53,6 +53,7 @@
         _slowNetworkDelegate = slowNetworkDelegate;
         _slowNetworkDelegateThrottle = [[Timer alloc] initWithFrequencySeconds:5 firingInitially:true];
         _sockAddressSize = sizeof(struct sockaddr_in);
+        _newUnknownPacketDelegate = newUnknownPacketDelegate;
     }
     return self;
 }
@@ -154,9 +155,6 @@
         [self onRecv];
     });
     dispatch_resume(_dispatch_source);
-    
-    //[self validateResult: connect(_socket, (const struct sockaddr *)&_connectAddress, sizeof(_connectAddress))];
-    
     
     [_openingNotInProgress signalAll];
     
