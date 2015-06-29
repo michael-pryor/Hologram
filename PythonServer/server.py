@@ -12,6 +12,7 @@ from utility import getRemainingTimeOnAction
 __author__ = 'pryormic'
 
 import logging
+import argparse
 from house import House
 
 logger = logging.getLogger(__name__)
@@ -233,6 +234,21 @@ class Server(ClientFactory, protocol.DatagramProtocol):
 
 
 if __name__ == "__main__":
+    # This is what we actually need to code:
+    # sub server connects to a central server to register its existence, it waits to be told what port it should bind to.
+    # once told, it sets up the server (thats what this particular main method currently does).
+    #
+    # central server accepts TCP connection from client (iphone app), client sends logon information with details of what it is looking to get i.e. age/gender/location.
+    # central server then looks in central server database table for a match, on the record will be the sub server which contains the match. Central server removes record from central server database to prevent duplicates.
+    #
+    # central server sends message back to client with details of sub server.
+    # app connects to sub server via TCP and UDP and does all the house stuff we see in this python server code already. Except this house stuff will use the database.
+    # Sub server removes record from sub server database table and begins session with two clients, keeping a record of that session in memory only.
+    #
+    # If central server couldn't find a match, central server will round robin (or some other criteria, but round robin is nice and simple) to a sub server.
+    # Sub server sees in its sub server database table that it has no match, so adds the record to central server and sub server database tables,
+    # waiting for a match to come along as described above.
+
     logging.basicConfig(level = logging.DEBUG)
 
     host = ""
