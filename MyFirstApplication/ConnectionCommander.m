@@ -20,7 +20,7 @@
     ConnectionManagerTcp* _commander;
     OutputSessionTcp* _commanderOutput;
     
-    ConnectionGovernorProtocol * _governor;
+    id<ConnectionGovernor> _governor;
 }
 
 - (id)initWithRecvDelegate:(id<NewPacketDelegate>)recvDelegate connectionStatusDelegate:(id<ConnectionStatusDelegateProtocol>)connectionStatusDelegate slowNetworkDelegate:(id<SlowNetworkDelegate>)slowNetworkDelegate governorSetupDelegate:(id<GovernorSetupProtocol>)governorSetupDelegate {
@@ -41,6 +41,7 @@
 
 // Commander connect.
 - (void)connectToTcpHost:(NSString*)tcpHost tcpPort:(ushort)tcpPort {
+    [self shutdown];
     [_commander connectToHost:tcpHost andPort:tcpPort];
 }
 
@@ -58,11 +59,11 @@
         NSString* governorAddressConverted = [NetworkUtility convertPreparedHostName:governorAddress];
         uint governorPortTcp = [packet getUnsignedInteger];
         uint governorPortUdp = [packet getUnsignedInteger];
-        ConnectionGovernorNatPunchthrough* governor = [[ConnectionGovernorNatPunchthrough alloc] initWithRecvDelegate:_recvDelegate connectionStatusDelegate:_connectionStatusDelegate slowNetworkDelegate:_slowNetworkDelegate];
+        _governor = [[ConnectionGovernorNatPunchthrough alloc] initWithRecvDelegate:_recvDelegate connectionStatusDelegate:_connectionStatusDelegate slowNetworkDelegate:_slowNetworkDelegate];
         [_governor connectToTcpHost:governorAddressConverted tcpPort:governorPortTcp udpHost:governorAddressConverted udpPort:governorPortUdp];
         
         // Announce governor.
-        [_governorSetupDelegate onNewGovernor:governor];
+        [_governorSetupDelegate onNewGovernor:_governor];
     } else if(commanderOperation == COMMANDER_FAILURE) {
         NSString* fault = [packet getString];
         NSLog(@"Failed to retrieve governor server: %@", fault);

@@ -9,11 +9,13 @@
 #import "ConnectionViewController.h"
 #import "MediaController.h"
 #import "ConnectionGovernorNatPunchthrough.h"
+#import "ConnectionCommander.h"
 
 @import AVFoundation;
 
 @implementation ConnectionViewController {
-    ConnectionGovernorProtocol * _connection;
+    id<ConnectionGovernor> _connection;
+    ConnectionCommander* _connectionCommander;
     IBOutlet UIImageView *_cameraView;
     AVCaptureSession *session;
     MediaController *_mediaController;
@@ -27,8 +29,7 @@
 
 -(void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear: animated];
-    _connection = [[ConnectionGovernorNatPunchthrough alloc] initWithRecvDelegate:self connectionStatusDelegate:self slowNetworkDelegate:self];
-    _mediaController = [[MediaController alloc] initWithImageDelegate:self videoSpeedNotifier:self tcpNetworkOutputSession:[_connection getTcpOutputSession] udpNetworkOutputSession:[_connection getUdpOutputSession]];
+    _connectionCommander = [[ConnectionCommander alloc] initWithRecvDelegate:self connectionStatusDelegate:self slowNetworkDelegate:self governorSetupDelegate:self];
 }
 
 - (void)onNewImage: (UIImage*)image {
@@ -42,25 +43,29 @@
 
 - (IBAction)onConnectButtonClick:(id)sender {
     static NSString *const CONNECT_IP = @"212.227.84.229"; // remote machine (paid hosting).
-    static const int CONNECT_PORT_TCP = 12340;
-    static const int CONNECT_PORT_UDP = 12341;
-    [_connection shutdown];
-    [_connection connectToTcpHost:CONNECT_IP tcpPort:CONNECT_PORT_TCP udpHost:CONNECT_IP udpPort:CONNECT_PORT_UDP];
+    static const int CONNECT_PORT_TCP = 12241;
+    [_connectionCommander connectToTcpHost:CONNECT_IP tcpPort:CONNECT_PORT_TCP];
+}
+
+- (void)onNewGovernor:(id<ConnectionGovernor>)governor {
+    _connection = governor;
+    
+    _mediaController = [[MediaController alloc] initWithImageDelegate:self videoSpeedNotifier:self tcpNetworkOutputSession:[_connection getTcpOutputSession] udpNetworkOutputSession:[_connection getUdpOutputSession]];
 }
 
 - (IBAction)onLocalConnectButtonClick:(id)sender {
     static NSString *const CONNECT_IP = @"192.168.1.92"; // local arden crescent network.
-    static const int CONNECT_PORT_TCP = 12340;
-    static const int CONNECT_PORT_UDP = 12341;
-    [_connection shutdown];
-    [_connection connectToTcpHost:CONNECT_IP tcpPort:CONNECT_PORT_TCP udpHost:CONNECT_IP udpPort:CONNECT_PORT_UDP];
+    static const int CONNECT_PORT_TCP = 12241;
+    [_connectionCommander connectToTcpHost:CONNECT_IP tcpPort:CONNECT_PORT_TCP];
 }
 
 - (void) _doConnectionStatusChange:(ConnectionStatusProtocol)status withDescription:(NSString *)description {
     NSLog(@"Received status change: %u and description: %@", status, description);
     [[self connectionStatus] setText: description];
     
-    [_mediaController connectionStatusChange:status withDescription:description];
+    if(_mediaController != nil) {
+        [_mediaController connectionStatusChange:status withDescription:description];
+    }
     
     switch(status) {
         case P_CONNECTING:
@@ -86,7 +91,7 @@
             
         default:
             NSLog(@"Bad connection state");
-            [_connection shutdown];
+            [_connectionCommander shutdown];
             _connected = false;
             break;
     }
@@ -107,7 +112,9 @@
 
 
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
-    [_mediaController onNewPacket:packet fromProtocol:protocol];
+    if(_mediaController != nil) {
+        [_mediaController onNewPacket:packet fromProtocol:protocol];
+    }
 }
 
 - (void)onNewVideoFrameFrequency:(CFAbsoluteTime)secondsFrequency {
@@ -116,6 +123,8 @@
 }
 
 - (void)slowNetworkNotification {
-    [_mediaController sendSlowdownRequest];
+    if(_mediaController != nil) {
+        [_mediaController sendSlowdownRequest];
+    }
 }
 @end

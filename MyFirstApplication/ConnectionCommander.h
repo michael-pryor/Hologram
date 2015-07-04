@@ -17,4 +17,5 @@
 @interface ConnectionCommander : NSObject<NewPacketDelegate, ConnectionStatusDelegateTcp>
 - (id)initWithRecvDelegate:(id<NewPacketDelegate>)recvDelegate connectionStatusDelegate:(id<ConnectionStatusDelegateProtocol>)connectionStatusDelegate slowNetworkDelegate:(id<SlowNetworkDelegate>)slowNetworkDelegate governorSetupDelegate:(id<GovernorSetupProtocol>)governorSetupDelegate;
 - (void)connectToTcpHost:(NSString*)tcpHost tcpPort:(ushort)tcpPort;
+- (void)shutdown;
 @end

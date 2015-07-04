@@ -109,8 +109,12 @@ class ServerRouter(ClientFactory):
 
     def buildProtocol(self, addr):
         logger.info('TCP connection initiated with new client [%s]' % addr)
-        tcp = ClientTcp(addr)
+        self.tcp = ClientTcp(addr)
+        self.tcp.parent = self
 
+        return self.tcp
+
+    def onConnectionMade(self):
         result = ByteBuffer()
 
         subServer = self.subServerCoordinator.getNextSubServer()
@@ -121,8 +125,7 @@ class ServerRouter(ClientFactory):
             result.addUnsignedInteger(ServerRouter.RouterCodes.SUCCESS)
             result.addByteBuffer(subServer.forwardPacket, includePrefix=False)
 
-        tcp.sendByteBuffer(result)
-        return tcp
+        self.tcp.sendByteBuffer(result)
 
 
 if __name__ == '__main__':
