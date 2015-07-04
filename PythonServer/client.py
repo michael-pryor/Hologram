@@ -35,7 +35,7 @@ class Client(object):
         self.tcp = tcp
         self.tcp.parent = self
         self.connection_status = Client.ConnectionStatus.WAITING_LOGON
-        self.on_close_func = onCloseFunc
+        self.onDisconnect = onCloseFunc
         self.udp_connection_linker = udpConnectionLinker
         self.udp_hash = None
         self.udp_remote_address = None

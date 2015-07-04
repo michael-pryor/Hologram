@@ -233,6 +233,35 @@ class Server(ClientFactory, protocol.DatagramProtocol):
                 logger.info("Client successfully connected, sent success ack")
 
 
+class CommanderConnection(ClientFactory):
+    class RouterCodes:
+        SUCCESS = 1
+        FAILURE = 2
+
+    def __init__(self, commanderHost, commanderPort, ourGovernorTcpPort, ourGovernorUdpPort):
+        self.governorPacket = ByteBuffer()
+        self.governorPacket.addUnsignedInteger(ourGovernorTcpPort)
+        self.governorPacket.addUnsignedInteger(ourGovernorUdpPort)
+
+    def buildProtocol(self, addr):
+        logger.info('TCP connection initiated with new client [%s]' % addr)
+        self.tcp = ClientTcp(addr)
+        self.tcp.parent = self
+
+        return self.tcp
+
+    def onConnectionMade(self):
+        self.tcp.sendByteBuffer(self.governorPacket)
+
+    def onDisconnect(self, parent):
+        logger.info("We disconnected from the commander, terminating process")
+        exit(0)
+
+    def handleTcpPacket(self, packet):
+        assert isinstance(packet, ByteBuffer)
+        logger.warn("Received a packet from the commander, size: %d" % packet.used_size)
+
+
 if __name__ == "__main__":
     # This is what we actually need to code:
     # sub server connects to a central server to register its existence, it waits to be told what port it should bind to.
@@ -250,17 +279,30 @@ if __name__ == "__main__":
     # waiting for a match to come along as described above.
 
     logging.basicConfig(level = logging.DEBUG)
+    parser = argparse.ArgumentParser(description='Chat Server', argument_default=argparse.SUPPRESS)
+    parser.add_argument('--tcp_port', help='Port to bind to via TCP')
+    parser.add_argument('--udp_port', help='Port to bind to via UDP')
+    parser.add_argument('--commander_host', help='Commander host to connect to, defaults to this host', default="")
+    parser.add_argument('--commander_port', help='Commander port to connect to, defaults to 12240', default="12240")
+    args = parser.parse_args()
 
     host = ""
-    port = 12340
-    udpPort = 12341
+    tcpPort = int(args.tcp_port)
+    udpPort = int(args.udp_port)
 
+    commanderHost = args.commander_host
+    commanderPort = int(args.commander_port)
+
+    commanderConnection = CommanderConnection(commanderHost, commanderPort, tcpPort, udpPort)
+    logger.info("Connecting to commander via TCP with address: [%s:%d]" % (commanderHost, commanderPort))
+    reactor.connectTCP(commanderHost, commanderPort, commanderConnection)
 
     server = Server(reactor)
 
     # TCP server.
-    endpoint = TCP4ServerEndpoint(reactor, 12340)
+    endpoint = TCP4ServerEndpoint(reactor, tcpPort)
     endpoint.listen(server)
 
+    # UDP server.
     reactor.listenUDP(udpPort, server)
     reactor.run()

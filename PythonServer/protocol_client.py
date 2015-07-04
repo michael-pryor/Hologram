@@ -26,17 +26,28 @@ class ClientTcp(IntNStringReceiver):
 
     def connectionMade(self):
         logger.info("New client connection [%s]" % self)
+        try:
+            if self.parent is not None:
+                self.parent.onConnectionMade()
+        except AttributeError:
+            pass
 
     def connectionLost(self, reason):
         logger.info("Client TCP connection lost [%s]", self);
-        if self.parent is not None:
-            self.parent.on_close_func(self.parent)
+        try:
+            if self.parent is not None:
+                self.parent.onDisconnect(self.parent)
+        except AttributeError:
+            pass
 
     def stringReceived(self, data):
         logger.info("Client received TCP packet, length: %d, from: [%s]" % (len(data), self))
         byteBuffer = ByteBuffer.buildFromIterable(data)
-        if self.parent is not None:
-            self.parent.handleTcpPacket(byteBuffer)
+        try:
+            if self.parent is not None:
+                self.parent.handleTcpPacket(byteBuffer)
+        except AttributeError:
+            pass
 
     def sendByteBuffer(self, byteBuffer):
         assert isinstance(byteBuffer, ByteBuffer)

@@ -3,10 +3,12 @@ from twisted.internet import reactor, defer
 from protocol_client import ClientTcp
 from byte_buffer import ByteBuffer
 from utility import inet_addr
+from twisted.internet.endpoints import TCP4ServerEndpoint
 
 __author__ = 'pryormic'
 
 import logging
+import argparse
 
 logger = logging.getLogger(__name__)
 
@@ -16,20 +18,21 @@ class SubServer(object):
         CONNECTED = 2
         DISCONNECTED = 3
 
-    def __init__(self, tcpClient, onCloseFunc):
-        assert instance(tcpClient, ClientTcp)
+    def __init__(self, tcpClient, onCloseFunc, governorHost = None):
+        assert isinstance(tcpClient, ClientTcp)
         self.tcp = tcpClient
-        self.tcp.parent
-        self.on_close_func_parent = onCloseFunc
+        self.tcp.parent = self
+        self.onDisconnect = onCloseFunc
         self.connection_status = SubServer.ConnectionStatus.WAITING_FOR_CONNECTION_DETAILS
         self.forwardIpAddress = None
         self.forwardPortTcp = None
         self.forwardPortUdp = None
         self.forwardPacket = None
+        self.governorHost = governorHost
 
-    def on_close_func(self, disconnected):
+    def onDisconnect(self, disconnected):
         self.connection_status = SubServer.ConnectionStatus.DISCONNECTED
-        self.on_close_func_parent(disconnected)
+        self.onDisconnect(disconnected)
 
     def handleTcpPacket(self, packet):
         assert isinstance(packet, ByteBuffer)
@@ -38,7 +41,12 @@ class SubServer(object):
             self.forwardPortTcp = packet.getUnsignedInteger()
             self.forwardPortUdp = packet.getUnsignedInteger()
             self.forwardIpAddress = self.tcp.remote_address.host
-            logger.info("Received address for sub server: [%s:%d]" % (self.forwardIpAddress, self.forwardPort))
+
+            # override.
+            if self.governorHost is not None and self.forwardIpAddress == "0.0.0.0" or self.forwardIpAddress == "127.0.0.1":
+                self.forwardIpAddress = self.governorHost
+
+            logger.info("Received address for sub server TCP: [%s:%d] and UDP: [%s:%d]" % (self.forwardIpAddress, self.forwardPortTcp, self.forwardIpAddress, self.forwardPortUdp))
 
             self.forwardPacket = ByteBuffer()
             self.forwardPacket.addUnsignedInteger(inet_addr(self.forwardIpAddress))
@@ -61,9 +69,10 @@ class SubServer(object):
 
 
 class SubServerCoordinator(ClientFactory):
-    def __init__(self):
+    def __init__(self, governorHost = None):
         self.sub_servers = list()
         self.round_robin = 0
+        self.governor_host = governorHost
 
     def getNextSubServer(self):
         for index, value in enumerate(self.sub_servers):
@@ -83,9 +92,9 @@ class SubServerCoordinator(ClientFactory):
         self.sub_servers.remove(client)
 
     def buildProtocol(self, addr):
-        logger.info('TCP connection initiated with new client [%s]' % addr)
+        logger.info('A new governor server has connected with details [%s]' % addr)
         tcp = ClientTcp(addr)
-        subServer = SubServer(tcp, self.clientDisconnected)
+        subServer = SubServer(tcp, self.clientDisconnected, self.governor_host)
         self.sub_servers.append(subServer)
         return tcp
 
@@ -95,7 +104,7 @@ class ServerRouter(ClientFactory):
         FAILURE = 2
 
     def __init__(self, subServerCoordinator):
-        assert instance(subServerCoordinator, SubServerCoordinator)
+        assert isinstance(subServerCoordinator, SubServerCoordinator)
         self.subServerCoordinator = subServerCoordinator
 
     def buildProtocol(self, addr):
@@ -119,10 +128,24 @@ class ServerRouter(ClientFactory):
 if __name__ == '__main__':
     logging.basicConfig(level = logging.DEBUG)
 
-    server = SubServerCoordinator()
-    router = ServerRouter()
-    endpoint = TCP4ServerEndpoint(reactor, 12240)
-    endpoint2 = TCP4ServerEndpoint(reactor, 12241)
+    parser = argparse.ArgumentParser(description='Commander Server', argument_default=argparse.SUPPRESS)
+    parser.add_argument('--governor_logon_port', help='Port to bind to via TCP; governor servers register themselves on this port. Defaults to 12240', default="12240")
+    parser.add_argument('--client_logon_port', help='Port to bind to via UDP; clients connect to this port. Defaults to 12241.', default="12241")
+    parser.add_argument('--governor_host', help='Host to use with governors in the event that the host provided is local', default="")
+    args = parser.parse_args()
+
+    governor_logon_port = int(args.governor_logon_port)
+    client_logon_port = int(args.client_logon_port)
+
+    try:
+        governor_host = args.governor_host
+    except AttributeError:
+        governor_host = None
+
+    server = SubServerCoordinator(governor_host)
+    router = ServerRouter(server)
+    endpoint = TCP4ServerEndpoint(reactor, governor_logon_port)
+    endpoint2 = TCP4ServerEndpoint(reactor, client_logon_port)
     endpoint.listen(server)
     endpoint2.listen(router)
 
