@@ -29,12 +29,14 @@ class ClientTcp(IntNStringReceiver):
 
     def connectionLost(self, reason):
         logger.info("Client TCP connection lost [%s]", self);
-        self.parent.on_close_func(self.parent)
+        if self.parent is not None:
+            self.parent.on_close_func(self.parent)
 
     def stringReceived(self, data):
         logger.info("Client received TCP packet, length: %d, from: [%s]" % (len(data), self))
         byteBuffer = ByteBuffer.buildFromIterable(data)
-        self.parent.handleTcpPacket(byteBuffer)
+        if self.parent is not None:
+            self.parent.handleTcpPacket(byteBuffer)
 
     def sendByteBuffer(self, byteBuffer):
         assert isinstance(byteBuffer, ByteBuffer)

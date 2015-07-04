@@ -18,4 +18,5 @@
 - (id<NewPacketDelegate>)getTcpOutputSession;
 - (id<NewPacketDelegate>)getUdpOutputSession;
 - (Boolean)isConnected;
+- (void)shutdown;
 @end

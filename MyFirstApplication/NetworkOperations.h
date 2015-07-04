@@ -32,4 +32,7 @@
 // as the address may be invalid (e.g. interface change) when the client reconnects.
 #define NAT_PUNCHTHROUGH_DISCONNECT 3
 
+#define COMMANDER_SUCCESS 1
+#define COMMANDER_FAILURE 2
+
 #endif

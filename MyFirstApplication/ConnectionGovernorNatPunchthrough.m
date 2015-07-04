@@ -35,6 +35,11 @@
     return self;
 }
 
+- (void)shutdown {
+    [_connectionGovernor shutdown];
+    [self clearNatPunchthrough];
+}
+
 - (Boolean)isConnected {
     return [_connectionGovernor isConnected];
 }

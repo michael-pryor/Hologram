@@ -14,6 +14,7 @@
 		51197B001B1350B1006A7AEE /* ThrottledBlock.m in Sources */ = {isa = PBXBuildFile; fileRef = 51197AFF1B1350B1006A7AEE /* ThrottledBlock.m */; };
 		51197B031B136CC3006A7AEE /* VideoOutputController.m in Sources */ = {isa = PBXBuildFile; fileRef = 51197B021B136CC3006A7AEE /* VideoOutputController.m */; };
 		51197B071B13AAAD006A7AEE /* TimedEventTracker.m in Sources */ = {isa = PBXBuildFile; fileRef = 51197B061B13AAAD006A7AEE /* TimedEventTracker.m */; };
+		51260FD41B47F60F001DE2B3 /* ConnectionCommander.m in Sources */ = {isa = PBXBuildFile; fileRef = 51260FD31B47F60F001DE2B3 /* ConnectionCommander.m */; };
 		513205E71AAE4CA600C80AD9 /* SoundMicrophone.m in Sources */ = {isa = PBXBuildFile; fileRef = 513205E61AAE4CA600C80AD9 /* SoundMicrophone.m */; };
 		519573041AEBEB26000247E1 /* EventTracker.m in Sources */ = {isa = PBXBuildFile; fileRef = 519573031AEBEB26000247E1 /* EventTracker.m */; };
 		51BF42541A750CDB00C16F9A /* ConnectionGovernorProtocol.m in Sources */ = {isa = PBXBuildFile; fileRef = 51BF42531A750CDB00C16F9A /* ConnectionGovernorProtocol.m */; };
@@ -79,6 +80,8 @@
 		51197B041B137468006A7AEE /* NetworkOperations.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NetworkOperations.h; sourceTree = "<group>"; };
 		51197B051B13AAAD006A7AEE /* TimedEventTracker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TimedEventTracker.h; sourceTree = "<group>"; };
 		51197B061B13AAAD006A7AEE /* TimedEventTracker.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TimedEventTracker.m; sourceTree = "<group>"; };
+		51260FD21B47F60F001DE2B3 /* ConnectionCommander.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConnectionCommander.h; sourceTree = "<group>"; };
+		51260FD31B47F60F001DE2B3 /* ConnectionCommander.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ConnectionCommander.m; sourceTree = "<group>"; };
 		513205E51AAE4CA600C80AD9 /* SoundMicrophone.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SoundMicrophone.h; sourceTree = "<group>"; };
 		513205E61AAE4CA600C80AD9 /* SoundMicrophone.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SoundMicrophone.m; sourceTree = "<group>"; };
 		519573021AEBEB26000247E1 /* EventTracker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EventTracker.h; sourceTree = "<group>"; };
@@ -269,6 +272,8 @@
 				51197B041B137468006A7AEE /* NetworkOperations.h */,
 				51FE7E0A1B3C85EF00FF27F3 /* ConnectionGovernorNatPunchthrough.h */,
 				51FE7E0B1B3C85EF00FF27F3 /* ConnectionGovernorNatPunchthrough.m */,
+				51260FD21B47F60F001DE2B3 /* ConnectionCommander.h */,
+				51260FD31B47F60F001DE2B3 /* ConnectionCommander.m */,
 			);
 			name = Protocol;
 			sourceTree = "<group>";
@@ -510,6 +515,7 @@
 				51FE7E0C1B3C85EF00FF27F3 /* ConnectionGovernorNatPunchthrough.m in Sources */,
 				51E5BE321936A982003E45C3 /* MJPAppDelegate.m in Sources */,
 				513205E71AAE4CA600C80AD9 /* SoundMicrophone.m in Sources */,
+				51260FD41B47F60F001DE2B3 /* ConnectionCommander.m in Sources */,
 				51197B031B136CC3006A7AEE /* VideoOutputController.m in Sources */,
 				51C3F13F1A6C4388004040BB /* ConnectionManagerUdp.m in Sources */,
 				51D584BB19AB648000BB6CE6 /* InputSessionTcp.m in Sources */,

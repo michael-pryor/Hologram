@@ -26,6 +26,7 @@ typedef enum {
 - (id<NewPacketDelegate>)getTcpOutputSession;
 - (id<NewPacketDelegate>)getUdpOutputSession;
 - (Boolean)isConnected;
+- (void)shutdown;
 @end
 
 @interface ConnectionGovernorProtocolTcpSession : NSObject<NewPacketDelegate>

@@ -19,6 +19,13 @@
     return addr1->sin_addr.s_addr == addr2->sin_addr.s_addr;
 }
 
++ (NSString*)convertPreparedHostName:(uint)address {
+    struct in_addr addr;
+    addr.s_addr = address;
+    char * convertedAddress = inet_ntoa(addr);
+    return [NSString localizedStringWithFormat:@"%s", convertedAddress];
+}
+
 + (NSString*)convertPreparedAddress:(uint)address port:(ushort)port{
     ushort convertedPort = ntohs(port);
     struct in_addr addr;
