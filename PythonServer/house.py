@@ -67,6 +67,9 @@ class House:
 
         self.house_lock.acquire()
         try:
+            # Don't want to match clients with disconnected clients, even if those clients are only temporarily disconnected.
+            self._removeFromWaitingList(client)
+
             clientB = self.room_participant.get(client)
             if clientB is not None:
                 # Possible that client reconnected before this socket disconnected, so do not clean up the new connection.
@@ -78,15 +81,22 @@ class House:
             self.adviseAbortNatPunchthrough(clientB)
             logger.info("Session pause signaled to client [%s] because of client disconnect [%s]" % (clientB, client))
 
+    def _removeFromWaitingList(self, client):
+        self.house_lock.acquire()
+        try:
+            self.waiting_for_room.remove(client)
+        except ValueError:
+            pass
+        finally:
+            self.house_lock.release()
+
+
     # The session has been completely shutdown because a client has
     # permanently disconnected and we don't think they're coming back.
     def releaseRoom(self, client):
         self.house_lock.acquire()
         try:
-            try:
-                self.waiting_for_room.remove(client)
-            except ValueError:
-                pass
+            self._removeFromWaitingList(client)
 
             clientB = self.room_participant.get(client)
             if clientB is not None:
