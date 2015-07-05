@@ -1,6 +1,6 @@
 from twisted.internet.endpoints import TCP4ServerEndpoint
 from twisted.internet import reactor, protocol
-from twisted.internet.protocol import ClientFactory
+from twisted.internet.protocol import ClientFactory, ReconnectingClientFactory
 from byte_buffer import ByteBuffer
 from client import Client
 from handshaking import UdpConnectionLinker
@@ -8,12 +8,12 @@ from protocol_client import ClientTcp, ClientUdp
 from threading import RLock;
 from twisted.internet.error import AlreadyCalled, AlreadyCancelled
 from utility import getRemainingTimeOnAction
+from house import House
+import logging
+import argparse
 
 __author__ = 'pryormic'
 
-import logging
-import argparse
-from house import House
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 # There will only be one instance of this object.
 #
 # ClientFactory encapsulates the TCP listening socket.
-class Server(ClientFactory, protocol.DatagramProtocol):
+class Governor(ClientFactory, protocol.DatagramProtocol):
     def __init__(self, reactor):
         # All connected clients.
         self.client_mappings_lock = RLock()
@@ -233,7 +233,12 @@ class Server(ClientFactory, protocol.DatagramProtocol):
                 logger.info("Client successfully connected, sent success ack")
 
 
-class CommanderConnection(ClientFactory):
+class CommanderConnection(ReconnectingClientFactory):
+    maxDelay = 10
+    initialDelay = 1
+    factor=1.25
+    jitter=0.25
+
     class RouterCodes:
         SUCCESS = 1
         FAILURE = 2
@@ -250,17 +255,25 @@ class CommanderConnection(ClientFactory):
 
         return self.tcp
 
-    def onConnectionMade(self):
-        self.tcp.sendByteBuffer(self.governorPacket)
+    def startedConnecting(self, connector):
+        logger.info("Attempting to connect to commander...")
 
-    def onDisconnect(self, parent):
-        logger.info("We disconnected from the commander, terminating process")
-        exit(0)
+    def clientConnectionFailed(self, connector, reason):
+        logger.warn("Failed to connect to commander, reason: [%s]" % reason.getErrorMessage())
+        self.retry(connector)
+
+    def onConnectionMade(self):
+        logger.info("Connection to commander made, sending governor information")
+        self.resetDelay()
+        self.tcp.sendByteBuffer(self.governorPacket)
 
     def handleTcpPacket(self, packet):
         assert isinstance(packet, ByteBuffer)
         logger.warn("Received a packet from the commander, size: %d" % packet.used_size)
 
+    def clientConnectionLost(self, connector, reason):
+        logger.warn("Connection with commander lost, reason [%s]" % reason.getErrorMessage())
+        self.retry(connector)
 
 if __name__ == "__main__":
     # This is what we actually need to code:
@@ -278,7 +291,7 @@ if __name__ == "__main__":
     # Sub server sees in its sub server database table that it has no match, so adds the record to central server and sub server database tables,
     # waiting for a match to come along as described above.
 
-    logging.basicConfig(level = logging.DEBUG)
+    logging.basicConfig(level = logging.DEBUG, format = '%(asctime)-30s %(name)-20s %(levelname)-8s %(message)s')
     parser = argparse.ArgumentParser(description='Chat Server', argument_default=argparse.SUPPRESS)
     parser.add_argument('--tcp_port', help='Port to bind to via TCP')
     parser.add_argument('--udp_port', help='Port to bind to via UDP')
@@ -297,7 +310,7 @@ if __name__ == "__main__":
     logger.info("Connecting to commander via TCP with address: [%s:%d]" % (commanderHost, commanderPort))
     reactor.connectTCP(commanderHost, commanderPort, commanderConnection)
 
-    server = Server(reactor)
+    server = Governor(reactor)
 
     # TCP server.
     endpoint = TCP4ServerEndpoint(reactor, tcpPort)

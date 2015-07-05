@@ -36,7 +36,7 @@ class ClientTcp(IntNStringReceiver):
         logger.info("Client TCP connection lost [%s]", self);
         try:
             if self.parent is not None:
-                self.parent.onDisconnect(self.parent)
+                self.parent.onDisconnect()
         except AttributeError:
             pass
 

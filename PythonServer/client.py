@@ -35,12 +35,15 @@ class Client(object):
         self.tcp = tcp
         self.tcp.parent = self
         self.connection_status = Client.ConnectionStatus.WAITING_LOGON
-        self.onDisconnect = onCloseFunc
+        self.on_close_func = onCloseFunc
         self.udp_connection_linker = udpConnectionLinker
         self.udp_hash = None
         self.udp_remote_address = None
         self.house = house
         logger.info("New client connected, awaiting logon message")
+
+    def onDisconnect(self):
+        self.on_close_func(self)
 
     def setUdp(self, clientUdp):
         assert isinstance(clientUdp, ClientUdp)

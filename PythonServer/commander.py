@@ -12,7 +12,7 @@ import argparse
 
 logger = logging.getLogger(__name__)
 
-class SubServer(object):
+class CommanderGovernor(object):
     class ConnectionStatus:
         WAITING_FOR_CONNECTION_DETAILS = 1
         CONNECTED = 2
@@ -22,22 +22,22 @@ class SubServer(object):
         assert isinstance(tcpClient, ClientTcp)
         self.tcp = tcpClient
         self.tcp.parent = self
-        self.onDisconnect = onCloseFunc
-        self.connection_status = SubServer.ConnectionStatus.WAITING_FOR_CONNECTION_DETAILS
+        self.on_close_func = onCloseFunc
+        self.connection_status = CommanderGovernor.ConnectionStatus.WAITING_FOR_CONNECTION_DETAILS
         self.forwardIpAddress = None
         self.forwardPortTcp = None
         self.forwardPortUdp = None
         self.forwardPacket = None
         self.governorHost = governorHost
 
-    def onDisconnect(self, disconnected):
-        self.connection_status = SubServer.ConnectionStatus.DISCONNECTED
-        self.onDisconnect(disconnected)
+    def onDisconnect(self):
+        self.connection_status = CommanderGovernor.ConnectionStatus.DISCONNECTED
+        self.on_close_func(self)
 
     def handleTcpPacket(self, packet):
         assert isinstance(packet, ByteBuffer)
 
-        if self.connection_status == SubServer.ConnectionStatus.WAITING_FOR_CONNECTION_DETAILS:
+        if self.connection_status == CommanderGovernor.ConnectionStatus.WAITING_FOR_CONNECTION_DETAILS:
             self.forwardPortTcp = packet.getUnsignedInteger()
             self.forwardPortUdp = packet.getUnsignedInteger()
             self.forwardIpAddress = self.tcp.remote_address.host
@@ -46,20 +46,20 @@ class SubServer(object):
             if self.governorHost is not None and self.forwardIpAddress == "0.0.0.0" or self.forwardIpAddress == "127.0.0.1":
                 self.forwardIpAddress = self.governorHost
 
-            logger.info("Received address for sub server TCP: [%s:%d] and UDP: [%s:%d]" % (self.forwardIpAddress, self.forwardPortTcp, self.forwardIpAddress, self.forwardPortUdp))
+            logger.info("Received address for governor TCP: [%s:%d] and UDP: [%s:%d]" % (self.forwardIpAddress, self.forwardPortTcp, self.forwardIpAddress, self.forwardPortUdp))
 
             self.forwardPacket = ByteBuffer()
             self.forwardPacket.addUnsignedInteger(inet_addr(self.forwardIpAddress))
             self.forwardPacket.addUnsignedInteger(self.forwardPortTcp)
             self.forwardPacket.addUnsignedInteger(self.forwardPortUdp)
 
-            self.connection_status = SubServer.ConnectionStatus.CONNECTED
-        elif self.connection_status == SubServer.ConnectionStatus.CONNECTED:
-            logger.error("Received packet from sub server while connected")
-        elif self.connection_status == SubServer.ConnectionStatus.DISCONNECTED:
-            logger.error("Received packet from sub server while disconnected")
+            self.connection_status = CommanderGovernor.ConnectionStatus.CONNECTED
+        elif self.connection_status == CommanderGovernor.ConnectionStatus.CONNECTED:
+            logger.error("Received packet from governor while connected")
+        elif self.connection_status == CommanderGovernor.ConnectionStatus.DISCONNECTED:
+            logger.error("Received packet from governor while disconnected")
         else:
-            logger.error("Received packet from sub server while in unknown connection state")
+            logger.error("Received packet from governor while in unknown connection state")
 
     def __hash__(self):
         return hash(self.tcp)
@@ -67,8 +67,11 @@ class SubServer(object):
     def __eq__(self, other):
         return self.tcp == other.tcp
 
+    def __str__(self):
+        return str(self.tcp)
 
-class SubServerCoordinator(ClientFactory):
+
+class CommanderGovernorController(ClientFactory):
     def __init__(self, governorHost = None):
         self.sub_servers = list()
         self.round_robin = 0
@@ -79,7 +82,7 @@ class SubServerCoordinator(ClientFactory):
             try:
                 result = self.sub_servers[self.round_robin % len(self.sub_servers)]
                 self.round_robin += 1
-                if result.connection_status == SubServer.ConnectionStatus.CONNECTED:
+                if result.connection_status == CommanderGovernor.ConnectionStatus.CONNECTED:
                     return result
             except KeyError:
                 pass
@@ -87,24 +90,24 @@ class SubServerCoordinator(ClientFactory):
         return None
 
     def clientDisconnected(self, client):
-        assert isinstance(client, SubServer)
-        logger.info("Client disconnected, deleting [%s]" % client)
+        assert isinstance(client, CommanderGovernor)
+        logger.info("Governor disconnected, deleting [%s]" % client)
         self.sub_servers.remove(client)
 
     def buildProtocol(self, addr):
         logger.info('A new governor server has connected with details [%s]' % addr)
         tcp = ClientTcp(addr)
-        subServer = SubServer(tcp, self.clientDisconnected, self.governor_host)
+        subServer = CommanderGovernor(tcp, self.clientDisconnected, self.governor_host)
         self.sub_servers.append(subServer)
         return tcp
 
-class ServerRouter(ClientFactory):
+class CommanderClientRouting(ClientFactory):
     class RouterCodes:
         SUCCESS = 1
         FAILURE = 2
 
     def __init__(self, subServerCoordinator):
-        assert isinstance(subServerCoordinator, SubServerCoordinator)
+        assert isinstance(subServerCoordinator, CommanderGovernorController)
         self.subServerCoordinator = subServerCoordinator
 
     def buildProtocol(self, addr):
@@ -119,17 +122,19 @@ class ServerRouter(ClientFactory):
 
         subServer = self.subServerCoordinator.getNextSubServer()
         if subServer is None:
-            result.addUnsignedInteger(ServerRouter.RouterCodes.FAILURE)
-            result.addString("No sub servers available")
+            logger.warn("Failed to retrieve governor, rejecting client")
+            result.addUnsignedInteger(CommanderClientRouting.RouterCodes.FAILURE)
+            result.addString("No governors available")
         else:
-            result.addUnsignedInteger(ServerRouter.RouterCodes.SUCCESS)
+            logger.info("Directed client to governor: [%s]" % subServer)
+            result.addUnsignedInteger(CommanderClientRouting.RouterCodes.SUCCESS)
             result.addByteBuffer(subServer.forwardPacket, includePrefix=False)
 
         self.tcp.sendByteBuffer(result)
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level = logging.DEBUG)
+    logging.basicConfig(level = logging.DEBUG, format = '%(asctime)-30s %(name)-20s %(levelname)-8s %(message)s')
 
     parser = argparse.ArgumentParser(description='Commander Server', argument_default=argparse.SUPPRESS)
     parser.add_argument('--governor_logon_port', help='Port to bind to via TCP; governor servers register themselves on this port. Defaults to 12240', default="12240")
@@ -145,8 +150,8 @@ if __name__ == '__main__':
     except AttributeError:
         governor_host = None
 
-    server = SubServerCoordinator(governor_host)
-    router = ServerRouter(server)
+    server = CommanderGovernorController(governor_host)
+    router = CommanderClientRouting(server)
     endpoint = TCP4ServerEndpoint(reactor, governor_logon_port)
     endpoint2 = TCP4ServerEndpoint(reactor, client_logon_port)
     endpoint.listen(server)
