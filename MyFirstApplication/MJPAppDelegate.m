@@ -7,11 +7,16 @@
 //
 
 #import "MJPAppDelegate.h"
+#import <FBSDKLoginKit/FBSDKLoginKit.h>
+#import <FBSDKCoreKit/FBSDKCoreKit.h>
 
 @implementation MJPAppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
+    [FBSDKLoginButton class];
+    [FBSDKProfilePictureView class];
+    
     return YES;
 }
 

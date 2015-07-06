@@ -30,13 +30,13 @@
                                     <segue destination="tQC-hy-qbI" kind="modal" id="eu1-7w-VoA"/>
                                 </connections>
                             </button>
-                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="i6w-y2-qcY">
-                                <rect key="frame" x="84" y="203" width="153" height="30"/>
-                                <state key="normal" title="NAT Punchthrough">
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Wcy-m1-vGO">
+                                <rect key="frame" x="74" y="293" width="149" height="61"/>
+                                <state key="normal" title="Facebook Login">
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
                                 <connections>
-                                    <segue destination="sHQ-Rd-TcM" kind="modal" id="T8e-KT-Kpp"/>
+                                    <segue destination="HPd-0g-j2K" kind="modal" id="jdh-j9-DeK"/>
                                 </connections>
                             </button>
                         </subviews>
@@ -46,6 +46,52 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="n1g-qi-i8s" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="379" y="-90"/>
+        </scene>
+        <!--Facebook Login View Controller-->
+        <scene sceneID="G9x-gg-bMB">
+            <objects>
+                <viewController id="HPd-0g-j2K" customClass="FacebookLoginViewController" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="fAl-Lj-SA6"/>
+                        <viewControllerLayoutGuide type="bottom" id="To4-5p-RTH"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="a3M-hh-5zc">
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Label" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="6qD-Vc-Aoi">
+                                <rect key="frame" x="16" y="43" width="42" height="21"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Label" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="cSh-QE-Wji">
+                                <rect key="frame" x="139" y="219" width="42" height="21"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Label" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="C9D-A0-2Kd">
+                                <rect key="frame" x="139" y="253" width="42" height="21"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <view contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="vn7-7t-VXi" customClass="FBSDKLoginButton">
+                                <rect key="frame" x="16" y="467" width="288" height="88"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                            </view>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                    </view>
+                    <navigationItem key="navigationItem" id="26w-at-jnP"/>
+                    <connections>
+                        <outlet property="loginButton" destination="vn7-7t-VXi" id="ddF-9e-uZo"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="cru-Hr-wOD" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="830" y="245"/>
         </scene>
         <!--Connection View Controller-->
         <scene sceneID="cXI-Mw-kVU">
@@ -108,49 +154,6 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="YdA-bz-hIi" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="830" y="-453"/>
-        </scene>
-        <!--Nat Punchthrough View Controller-->
-        <scene sceneID="tnc-J8-CRW">
-            <objects>
-                <viewController id="sHQ-Rd-TcM" customClass="NatPunchthroughViewController" sceneMemberID="viewController">
-                    <layoutGuides>
-                        <viewControllerLayoutGuide type="top" id="4cf-S7-E5J"/>
-                        <viewControllerLayoutGuide type="bottom" id="UHY-jP-znL"/>
-                    </layoutGuides>
-                    <view key="view" contentMode="scaleToFill" id="Xmp-2Q-tUr">
-                        <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
-                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <subviews>
-                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="RPl-NU-sjQ">
-                                <rect key="frame" x="22" y="28" width="282" height="30"/>
-                                <state key="normal" title="Connect via NAT punchthrough">
-                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
-                                </state>
-                                <connections>
-                                    <action selector="onConnectButtonClick:" destination="sHQ-Rd-TcM" eventType="touchUpInside" id="R11-EN-OHl"/>
-                                </connections>
-                            </button>
-                            <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" fixedFrame="YES" hidesWhenStopped="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="nQ7-OB-Kcs">
-                                <rect key="frame" x="150" y="66" width="20" height="20"/>
-                            </activityIndicatorView>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="center" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Label" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="gE1-gz-O9O">
-                                <rect key="frame" x="86" y="66" width="149" height="20"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
-                                <nil key="highlightedColor"/>
-                            </label>
-                        </subviews>
-                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                    </view>
-                    <navigationItem key="navigationItem" id="HyA-bZ-v5t"/>
-                    <connections>
-                        <outlet property="connectionProgress" destination="nQ7-OB-Kcs" id="rlQ-v5-Rra"/>
-                        <outlet property="connectionStatus" destination="gE1-gz-O9O" id="XHj-Qp-EfE"/>
-                    </connections>
-                </viewController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="zjP-TI-g3e" userLabel="First Responder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="836" y="213"/>
         </scene>
     </scenes>
     <simulatedMetricsContainer key="defaultSimulatedMetrics">

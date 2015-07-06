@@ -14,6 +14,13 @@
 		51197B001B1350B1006A7AEE /* ThrottledBlock.m in Sources */ = {isa = PBXBuildFile; fileRef = 51197AFF1B1350B1006A7AEE /* ThrottledBlock.m */; };
 		51197B031B136CC3006A7AEE /* VideoOutputController.m in Sources */ = {isa = PBXBuildFile; fileRef = 51197B021B136CC3006A7AEE /* VideoOutputController.m */; };
 		51197B071B13AAAD006A7AEE /* TimedEventTracker.m in Sources */ = {isa = PBXBuildFile; fileRef = 51197B061B13AAAD006A7AEE /* TimedEventTracker.m */; };
+		511EB65A1B4AFE0D000E287F /* FBSDKCoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 511EB6581B4AFE0D000E287F /* FBSDKCoreKit.framework */; };
+		511EB65B1B4AFE0D000E287F /* FBSDKLoginKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 511EB6591B4AFE0D000E287F /* FBSDKLoginKit.framework */; };
+		511EB6601B4B01C7000E287F /* Bolts.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 511EB65C1B4B01C7000E287F /* Bolts.framework */; };
+		511EB6611B4B01C7000E287F /* FacebookSDKStrings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 511EB65D1B4B01C7000E287F /* FacebookSDKStrings.bundle */; };
+		511EB6621B4B01C7000E287F /* FBAudienceNetwork.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 511EB65E1B4B01C7000E287F /* FBAudienceNetwork.framework */; };
+		511EB6631B4B01C7000E287F /* FBSDKShareKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 511EB65F1B4B01C7000E287F /* FBSDKShareKit.framework */; };
+		511EB6661B4B0419000E287F /* FacebookLoginViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 511EB6651B4B0419000E287F /* FacebookLoginViewController.m */; };
 		51260FD41B47F60F001DE2B3 /* ConnectionCommander.m in Sources */ = {isa = PBXBuildFile; fileRef = 51260FD31B47F60F001DE2B3 /* ConnectionCommander.m */; };
 		513205E71AAE4CA600C80AD9 /* SoundMicrophone.m in Sources */ = {isa = PBXBuildFile; fileRef = 513205E61AAE4CA600C80AD9 /* SoundMicrophone.m */; };
 		519573041AEBEB26000247E1 /* EventTracker.m in Sources */ = {isa = PBXBuildFile; fileRef = 519573031AEBEB26000247E1 /* EventTracker.m */; };
@@ -80,6 +87,14 @@
 		51197B041B137468006A7AEE /* NetworkOperations.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NetworkOperations.h; sourceTree = "<group>"; };
 		51197B051B13AAAD006A7AEE /* TimedEventTracker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TimedEventTracker.h; sourceTree = "<group>"; };
 		51197B061B13AAAD006A7AEE /* TimedEventTracker.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TimedEventTracker.m; sourceTree = "<group>"; };
+		511EB6581B4AFE0D000E287F /* FBSDKCoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FBSDKCoreKit.framework; path = ../../../Documents/FacebookSDK/FBSDKCoreKit.framework; sourceTree = "<group>"; };
+		511EB6591B4AFE0D000E287F /* FBSDKLoginKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FBSDKLoginKit.framework; path = ../../../Documents/FacebookSDK/FBSDKLoginKit.framework; sourceTree = "<group>"; };
+		511EB65C1B4B01C7000E287F /* Bolts.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Bolts.framework; path = ../../../Documents/FacebookSDK/Bolts.framework; sourceTree = "<group>"; };
+		511EB65D1B4B01C7000E287F /* FacebookSDKStrings.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; name = FacebookSDKStrings.bundle; path = ../../../Documents/FacebookSDK/FacebookSDKStrings.bundle; sourceTree = "<group>"; };
+		511EB65E1B4B01C7000E287F /* FBAudienceNetwork.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FBAudienceNetwork.framework; path = ../../../Documents/FacebookSDK/FBAudienceNetwork.framework; sourceTree = "<group>"; };
+		511EB65F1B4B01C7000E287F /* FBSDKShareKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FBSDKShareKit.framework; path = ../../../Documents/FacebookSDK/FBSDKShareKit.framework; sourceTree = "<group>"; };
+		511EB6641B4B0419000E287F /* FacebookLoginViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FacebookLoginViewController.h; sourceTree = "<group>"; };
+		511EB6651B4B0419000E287F /* FacebookLoginViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FacebookLoginViewController.m; sourceTree = "<group>"; };
 		51260FD21B47F60F001DE2B3 /* ConnectionCommander.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConnectionCommander.h; sourceTree = "<group>"; };
 		51260FD31B47F60F001DE2B3 /* ConnectionCommander.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ConnectionCommander.m; sourceTree = "<group>"; };
 		513205E51AAE4CA600C80AD9 /* SoundMicrophone.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SoundMicrophone.h; sourceTree = "<group>"; };
@@ -155,8 +170,13 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				511EB6631B4B01C7000E287F /* FBSDKShareKit.framework in Frameworks */,
 				51E5BE241936A982003E45C3 /* CoreGraphics.framework in Frameworks */,
+				511EB65A1B4AFE0D000E287F /* FBSDKCoreKit.framework in Frameworks */,
+				511EB65B1B4AFE0D000E287F /* FBSDKLoginKit.framework in Frameworks */,
+				511EB6601B4B01C7000E287F /* Bolts.framework in Frameworks */,
 				51E5BE261936A982003E45C3 /* UIKit.framework in Frameworks */,
+				511EB6621B4B01C7000E287F /* FBAudienceNetwork.framework in Frameworks */,
 				51E5BE221936A982003E45C3 /* Foundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -314,6 +334,12 @@
 				51E5BE301936A982003E45C3 /* MJPAppDelegate.h */,
 				51E5BE311936A982003E45C3 /* MJPAppDelegate.m */,
 				51E5BE331936A982003E45C3 /* Images.xcassets */,
+				511EB65C1B4B01C7000E287F /* Bolts.framework */,
+				511EB65D1B4B01C7000E287F /* FacebookSDKStrings.bundle */,
+				511EB65E1B4B01C7000E287F /* FBAudienceNetwork.framework */,
+				511EB65F1B4B01C7000E287F /* FBSDKShareKit.framework */,
+				511EB6581B4AFE0D000E287F /* FBSDKCoreKit.framework */,
+				511EB6591B4AFE0D000E287F /* FBSDKLoginKit.framework */,
 				51E5BE281936A982003E45C3 /* Supporting Files */,
 			);
 			path = MyFirstApplication;
@@ -327,6 +353,8 @@
 				51D584B819AB63FB00BB6CE6 /* Networking */,
 				51DB961919A8EE05001A63F8 /* ConnectionViewController.h */,
 				51DB961A19A8EE05001A63F8 /* ConnectionViewController.m */,
+				511EB6641B4B0419000E287F /* FacebookLoginViewController.h */,
+				511EB6651B4B0419000E287F /* FacebookLoginViewController.m */,
 				51E5BE291936A982003E45C3 /* MyFirstApplication-Info.plist */,
 				51E5BE2A1936A982003E45C3 /* InfoPlist.strings */,
 				51E5BE2D1936A982003E45C3 /* main.m */,
@@ -472,6 +500,7 @@
 				51E5BE2C1936A982003E45C3 /* InfoPlist.strings in Resources */,
 				51E5BE341936A982003E45C3 /* Images.xcassets in Resources */,
 				51E219DC193B2D190066D915 /* Storyboard.storyboard in Resources */,
+				511EB6611B4B01C7000E287F /* FacebookSDKStrings.bundle in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -496,6 +525,7 @@
 				51C263851AB450E600285C6E /* SoundPlayback.m in Sources */,
 				51E888A51A59DFB8005F8825 /* VIdeoEncoding.m in Sources */,
 				51E1BF2B1A5DD7A4007D8A56 /* MediaController.m in Sources */,
+				511EB6661B4B0419000E287F /* FacebookLoginViewController.m in Sources */,
 				51FBE0441AF66AF3009115AE /* ActivityMonitor.m in Sources */,
 				51E5BE811ABD03FD003E035C /* EncodingPipe.m in Sources */,
 				51D87CB51A8F7C3000CE919E /* BatcherOutput.m in Sources */,
@@ -642,6 +672,10 @@
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					/Users/pryormic/Documents/FacebookSDK,
+				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "MyFirstApplication/MyFirstApplication-Prefix.pch";
 				INFOPLIST_FILE = "MyFirstApplication/MyFirstApplication-Info.plist";
@@ -658,6 +692,10 @@
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					/Users/pryormic/Documents/FacebookSDK,
+				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "MyFirstApplication/MyFirstApplication-Prefix.pch";
 				INFOPLIST_FILE = "MyFirstApplication/MyFirstApplication-Info.plist";
