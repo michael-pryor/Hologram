@@ -10,6 +10,7 @@
 #import "MediaController.h"
 #import "ConnectionGovernorNatPunchthrough.h"
 #import "ConnectionCommander.h"
+#import "FacebookLoginViewController.h"
 
 @import AVFoundation;
 
@@ -21,6 +22,17 @@
     MediaController *_mediaController;
     bool _connected;
     IBOutlet UILabel *_frameRate;
+}
+- (IBAction)onFacebookButtonPress:(id)sender {
+    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Storyboard" bundle:nil];
+    FacebookLoginViewController* viewController = (FacebookLoginViewController*)[storyboard instantiateViewControllerWithIdentifier:@"FacebookView"];
+    [viewController initialize];
+    [viewController signalBackwards];
+    [self presentViewController:viewController animated:YES completion:nil];
+}
+
+- (NSUInteger)supportedInterfaceOrientations {
+    return UIInterfaceOrientationMaskPortrait;
 }
 
 -(void)viewDidLoad {

@@ -1,108 +1,75 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="7531" systemVersion="14D131" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" initialViewController="f7U-va-n9n">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="7531" systemVersion="14D131" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" initialViewController="HPd-0g-j2K">
     <dependencies>
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="7520"/>
     </dependencies>
     <scenes>
-        <!--View Controller-->
-        <scene sceneID="Lre-AR-Z2v">
-            <objects>
-                <viewController id="f7U-va-n9n" sceneMemberID="viewController">
-                    <layoutGuides>
-                        <viewControllerLayoutGuide type="top" id="WAV-GU-WXB"/>
-                        <viewControllerLayoutGuide type="bottom" id="Y0u-KP-VmK"/>
-                    </layoutGuides>
-                    <view key="view" contentMode="scaleToFill" id="BOX-OM-dHE">
-                        <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
-                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                        <subviews>
-                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Hello World!" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="voi-ou-mF6">
-                                <rect key="frame" x="102" y="99" width="93" height="21"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                <nil key="highlightedColor"/>
-                            </label>
-                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="02L-k7-JH4">
-                                <rect key="frame" x="57" y="135" width="183" height="47"/>
-                                <fontDescription key="fontDescription" name="HelveticaNeue-Bold" family="Helvetica Neue" pointSize="15"/>
-                                <state key="normal" title="Video Call"/>
-                                <connections>
-                                    <segue destination="tQC-hy-qbI" kind="modal" id="eu1-7w-VoA"/>
-                                </connections>
-                            </button>
-                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Wcy-m1-vGO">
-                                <rect key="frame" x="74" y="293" width="149" height="61"/>
-                                <state key="normal" title="Facebook Login">
-                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
-                                </state>
-                                <connections>
-                                    <segue destination="HPd-0g-j2K" kind="modal" id="jdh-j9-DeK"/>
-                                </connections>
-                            </button>
-                        </subviews>
-                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
-                    </view>
-                </viewController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="n1g-qi-i8s" userLabel="First Responder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="379" y="-90"/>
-        </scene>
         <!--Facebook Login View Controller-->
         <scene sceneID="G9x-gg-bMB">
             <objects>
-                <viewController id="HPd-0g-j2K" customClass="FacebookLoginViewController" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="FacebookView" id="HPd-0g-j2K" customClass="FacebookLoginViewController" sceneMemberID="viewController">
                     <layoutGuides>
-                        <viewControllerLayoutGuide type="top" id="fAl-Lj-SA6"/>
-                        <viewControllerLayoutGuide type="bottom" id="To4-5p-RTH"/>
+                        <viewControllerLayoutGuide type="top" id="lWr-th-MY7"/>
+                        <viewControllerLayoutGuide type="bottom" id="b6S-Yq-msf"/>
                     </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="a3M-hh-5zc">
                         <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Label" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="6qD-Vc-Aoi">
-                                <rect key="frame" x="16" y="43" width="42" height="21"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
-                                <nil key="highlightedColor"/>
-                            </label>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Label" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="cSh-QE-Wji">
-                                <rect key="frame" x="139" y="219" width="42" height="21"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
-                                <nil key="highlightedColor"/>
-                            </label>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Label" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="C9D-A0-2Kd">
-                                <rect key="frame" x="139" y="253" width="42" height="21"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
-                                <nil key="highlightedColor"/>
-                            </label>
-                            <view contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="vn7-7t-VXi" customClass="FBSDKLoginButton">
+                            <view contentMode="scaleToFill" ambiguous="YES" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="vn7-7t-VXi" customClass="FBSDKLoginButton">
                                 <rect key="frame" x="16" y="467" width="288" height="88"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <connections>
                                     <outlet property="delegate" destination="HPd-0g-j2K" id="8aN-tL-cNW"/>
                                 </connections>
                             </view>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" ambiguous="YES" misplaced="YES" text="Label" textAlignment="center" lineBreakMode="wordWrap" numberOfLines="4" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="cSh-QE-Wji">
+                                <rect key="frame" x="0.0" y="314" width="320" height="76"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <color key="textColor" red="0.5" green="0.0" blue="0.5" alpha="1" colorSpace="calibratedRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <view contentMode="scaleToFill" ambiguous="YES" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Tqe-eB-ZAO" customClass="FBSDKProfilePictureView">
+                                <rect key="frame" x="16" y="33" width="288" height="273"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                            </view>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="suW-MI-gIg">
+                                <rect key="frame" x="219" y="429" width="73" height="30"/>
+                                <state key="normal" title="Finished">
+                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                </state>
+                                <connections>
+                                    <action selector="onFinishedButtonClick:" destination="HPd-0g-j2K" eventType="touchUpInside" id="H6m-47-h07"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <constraints>
+                            <constraint firstAttribute="centerX" secondItem="cSh-QE-Wji" secondAttribute="centerX" id="2Tm-0E-GzU"/>
+                            <constraint firstAttribute="centerX" secondItem="Tqe-eB-ZAO" secondAttribute="centerX" constant="-0.5" id="P9X-U3-Gce"/>
+                            <constraint firstAttribute="centerX" secondItem="vn7-7t-VXi" secondAttribute="centerX" id="W3G-7S-MCL"/>
+                        </constraints>
                     </view>
                     <navigationItem key="navigationItem" id="26w-at-jnP"/>
                     <connections>
+                        <outlet property="buttonFinished" destination="suW-MI-gIg" id="cfR-ze-8VP"/>
+                        <outlet property="displayName" destination="cSh-QE-Wji" id="rRq-yg-MED"/>
+                        <outlet property="displayPicture" destination="Tqe-eB-ZAO" id="8Hu-Cb-xqY"/>
                         <outlet property="loginButton" destination="vn7-7t-VXi" id="ddF-9e-uZo"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="cru-Hr-wOD" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="830" y="245"/>
+            <point key="canvasLocation" x="419" y="-453"/>
         </scene>
         <!--Connection View Controller-->
         <scene sceneID="cXI-Mw-kVU">
             <objects>
-                <viewController id="tQC-hy-qbI" customClass="ConnectionViewController" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="ConnectionView" id="tQC-hy-qbI" customClass="ConnectionViewController" sceneMemberID="viewController">
                     <layoutGuides>
-                        <viewControllerLayoutGuide type="top" id="YFg-YM-pdM"/>
-                        <viewControllerLayoutGuide type="bottom" id="2OC-on-3mj"/>
+                        <viewControllerLayoutGuide type="top" id="uJU-NG-i7x"/>
+                        <viewControllerLayoutGuide type="bottom" id="SN4-gs-A3A"/>
                     </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="BlS-3L-w4D">
                         <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
@@ -111,9 +78,6 @@
                             <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" fixedFrame="YES" hidesWhenStopped="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="s1T-YC-lAs">
                                 <rect key="frame" x="147" y="58" width="20" height="20"/>
                             </activityIndicatorView>
-                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="GLg-2U-XhO">
-                                <rect key="frame" x="0.0" y="86" width="320" height="482"/>
-                            </imageView>
                             <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="BTR-5a-66g">
                                 <rect key="frame" x="182" y="20" width="106" height="30"/>
                                 <state key="normal" title="Connect Local">
@@ -133,7 +97,7 @@
                                 </connections>
                             </button>
                             <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Not connected" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="8" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" preferredMaxLayoutWidth="314" translatesAutoresizingMaskIntoConstraints="NO" id="gnb-JV-7EH">
-                                <rect key="frame" x="-3" y="22" width="314" height="92"/>
+                                <rect key="frame" x="-3" y="22" width="323" height="67"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="12"/>
                                 <nil key="highlightedColor"/>
                             </label>
@@ -143,6 +107,18 @@
                                 <color key="textColor" red="0.0" green="0.83660567434210531" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="GLg-2U-XhO">
+                                <rect key="frame" x="0.0" y="110" width="320" height="458"/>
+                            </imageView>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="mJg-9M-cwD">
+                                <rect key="frame" x="-3" y="78" width="103" height="32"/>
+                                <state key="normal" title="Facebook">
+                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                </state>
+                                <connections>
+                                    <action selector="onFacebookButtonPress:" destination="tQC-hy-qbI" eventType="touchUpInside" id="ES9-A4-mBc"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
