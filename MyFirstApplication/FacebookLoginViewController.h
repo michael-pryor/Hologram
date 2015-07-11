@@ -10,8 +10,15 @@
 #import <FBSDKLoginKit/FBSDKLoginKit.h>
 #import <FBSDKCoreKit/FBSDKCoreKit.h>
 
-@interface FacebookLoginViewController : UIViewController
+@interface FacebookLoginViewController : UIViewController<FBSDKLoginButtonDelegate>
 // In your view header file:
 @property (weak, nonatomic) IBOutlet FBSDKLoginButton *loginButton;
+@property NSString* firstName;
+@property NSString* middleName;
+@property NSString* lastName;
+@property NSURL* facebookUrl;
+
+@property NSString* humanFullName;
+@property NSString * humanShortName;
 
 @end
