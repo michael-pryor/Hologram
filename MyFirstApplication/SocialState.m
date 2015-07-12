@@ -92,13 +92,29 @@ SocialState* instance;
     }
     
     [self loadStateFromFirstName:[profile firstName] middleName:[profile middleName] lastName:[profile lastName] facebookUrl:[profile linkURL] facebookId:[profile userID]];
+    
+    [self _retrieveGraphInformation];
+}
+
+- (void)_retrieveGraphInformation {
+    if ([FBSDKAccessToken currentAccessToken]) {
+        [[[FBSDKGraphRequest alloc] initWithGraphPath:@"me" parameters:nil]
+         startWithCompletionHandler:^(FBSDKGraphRequestConnection *connection, id result, NSError *error) {
+             if (!error) {
+                // NSLog(@"Retrieved results from Facebook graph API: [%@]", result);
+                _dob = [result objectForKey:@"birthday"];
+                _gender = [result objectForKey:@"gender"];
+                 
+                 NSLog(@"Loaded DOB: [%@] and gender: [%@] from Facebook graph API", _dob, _gender);
+             }
+         }];
+    }
 }
 
 +(SocialState*)getFacebookInstance {
     if(instance == nil) {
         [FBSDKProfile enableUpdatesOnAccessTokenChange:YES];
         instance = [[SocialState alloc] init];
-        [instance loadStateFromFacebook];
     }
     return instance;
 }

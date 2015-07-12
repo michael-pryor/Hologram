@@ -17,7 +17,10 @@
 @property NSString* facebookId;
 
 @property NSString* humanFullName;
-@property NSString * humanShortName;
+@property NSString* humanShortName;
+
+@property NSString* gender;
+@property NSString* dob;
 
 +(SocialState*)getFacebookInstance;
 -(void)reset;
