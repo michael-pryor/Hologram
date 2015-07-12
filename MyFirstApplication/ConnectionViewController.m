@@ -11,6 +11,7 @@
 #import "ConnectionGovernorNatPunchthrough.h"
 #import "ConnectionCommander.h"
 #import "FacebookLoginViewController.h"
+#import "SocialState.h"
 
 @import AVFoundation;
 
@@ -23,12 +24,15 @@
     bool _connected;
     IBOutlet UILabel *_frameRate;
 }
-- (IBAction)onFacebookButtonPress:(id)sender {
+
+- (void)_switchToFacebookLogonView {
     UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Storyboard" bundle:nil];
     FacebookLoginViewController* viewController = (FacebookLoginViewController*)[storyboard instantiateViewControllerWithIdentifier:@"FacebookView"];
-    [viewController initialize];
-    [viewController signalBackwards];
     [self presentViewController:viewController animated:YES completion:nil];
+}
+
+- (IBAction)onFacebookButtonPress:(id)sender {
+    [self _switchToFacebookLogonView];
 }
 
 - (NSUInteger)supportedInterfaceOrientations {
@@ -41,6 +45,13 @@
 
 -(void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear: animated];
+    
+    [[SocialState getFacebookInstance] updateFacebook];
+    if(![[SocialState getFacebookInstance] isDataLoaded]) {
+        [self _switchToFacebookLogonView];
+        return;
+    }
+    
     _connectionCommander = [[ConnectionCommander alloc] initWithRecvDelegate:self connectionStatusDelegate:self slowNetworkDelegate:self governorSetupDelegate:self];
 }
 

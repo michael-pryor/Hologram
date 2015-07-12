@@ -59,6 +59,7 @@
 		51E888A51A59DFB8005F8825 /* VIdeoEncoding.m in Sources */ = {isa = PBXBuildFile; fileRef = 51E888A41A59DFB8005F8825 /* VIdeoEncoding.m */; };
 		51FBE0441AF66AF3009115AE /* ActivityMonitor.m in Sources */ = {isa = PBXBuildFile; fileRef = 51FBE0431AF66AF3009115AE /* ActivityMonitor.m */; };
 		51FE7E0C1B3C85EF00FF27F3 /* ConnectionGovernorNatPunchthrough.m in Sources */ = {isa = PBXBuildFile; fileRef = 51FE7E0B1B3C85EF00FF27F3 /* ConnectionGovernorNatPunchthrough.m */; };
+		51FF00531B52E54100D6AF33 /* SocialState.m in Sources */ = {isa = PBXBuildFile; fileRef = 51FF00521B52E54100D6AF33 /* SocialState.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -163,6 +164,8 @@
 		51FBE0431AF66AF3009115AE /* ActivityMonitor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ActivityMonitor.m; sourceTree = "<group>"; };
 		51FE7E0A1B3C85EF00FF27F3 /* ConnectionGovernorNatPunchthrough.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConnectionGovernorNatPunchthrough.h; sourceTree = "<group>"; };
 		51FE7E0B1B3C85EF00FF27F3 /* ConnectionGovernorNatPunchthrough.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ConnectionGovernorNatPunchthrough.m; sourceTree = "<group>"; };
+		51FF00511B52E54100D6AF33 /* SocialState.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SocialState.h; sourceTree = "<group>"; };
+		51FF00521B52E54100D6AF33 /* SocialState.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SocialState.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -348,6 +351,7 @@
 		51E5BE281936A982003E45C3 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				51FF00501B52E52000D6AF33 /* SocialMedia */,
 				51E888A21A59DF8F005F8825 /* Media */,
 				51E8889E1A59755D005F8825 /* Util */,
 				51D584B819AB63FB00BB6CE6 /* Networking */,
@@ -417,6 +421,15 @@
 				51C263871AB4545000285C6E /* SoundEncodingShared.m */,
 			);
 			name = Media;
+			sourceTree = "<group>";
+		};
+		51FF00501B52E52000D6AF33 /* SocialMedia */ = {
+			isa = PBXGroup;
+			children = (
+				51FF00511B52E54100D6AF33 /* SocialState.h */,
+				51FF00521B52E54100D6AF33 /* SocialState.m */,
+			);
+			name = SocialMedia;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -550,6 +563,7 @@
 				51C3F13F1A6C4388004040BB /* ConnectionManagerUdp.m in Sources */,
 				51D584BB19AB648000BB6CE6 /* InputSessionTcp.m in Sources */,
 				51E5BE841ABD0450003E035C /* DecodingPipe.m in Sources */,
+				51FF00531B52E54100D6AF33 /* SocialState.m in Sources */,
 				519573041AEBEB26000247E1 /* EventTracker.m in Sources */,
 				51E5BE2E1936A982003E45C3 /* main.m in Sources */,
 				51197AFA1B132D6F006A7AEE /* Timer.m in Sources */,
