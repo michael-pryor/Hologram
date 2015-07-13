@@ -25,5 +25,5 @@
 +(SocialState*)getFacebookInstance;
 -(void)reset;
 -(void)updateFacebook;
--(void)udpate;
+-(void)update;
 @end

@@ -12,6 +12,7 @@
 #import "ConnectionCommander.h"
 #import "FacebookLoginViewController.h"
 #import "SocialState.h"
+#import "GpsState.h"
 
 @import AVFoundation;
 
@@ -53,6 +54,9 @@
     }
     
     _connectionCommander = [[ConnectionCommander alloc] initWithRecvDelegate:self connectionStatusDelegate:self slowNetworkDelegate:self governorSetupDelegate:self];
+    
+    
+    [[GpsState getInstance] update];
 }
 
 - (void)onNewImage: (UIImage*)image {

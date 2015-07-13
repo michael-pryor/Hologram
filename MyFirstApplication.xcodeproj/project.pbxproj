@@ -14,6 +14,9 @@
 		51197B001B1350B1006A7AEE /* ThrottledBlock.m in Sources */ = {isa = PBXBuildFile; fileRef = 51197AFF1B1350B1006A7AEE /* ThrottledBlock.m */; };
 		51197B031B136CC3006A7AEE /* VideoOutputController.m in Sources */ = {isa = PBXBuildFile; fileRef = 51197B021B136CC3006A7AEE /* VideoOutputController.m */; };
 		51197B071B13AAAD006A7AEE /* TimedEventTracker.m in Sources */ = {isa = PBXBuildFile; fileRef = 51197B061B13AAAD006A7AEE /* TimedEventTracker.m */; };
+		511E725B1B544484006F8D9A /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 511E725A1B544484006F8D9A /* CoreLocation.framework */; };
+		511E725D1B544497006F8D9A /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 511E725C1B544497006F8D9A /* CoreLocation.framework */; };
+		511E72601B5444CA006F8D9A /* GpsState.m in Sources */ = {isa = PBXBuildFile; fileRef = 511E725F1B5444CA006F8D9A /* GpsState.m */; };
 		511EB65A1B4AFE0D000E287F /* FBSDKCoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 511EB6581B4AFE0D000E287F /* FBSDKCoreKit.framework */; };
 		511EB65B1B4AFE0D000E287F /* FBSDKLoginKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 511EB6591B4AFE0D000E287F /* FBSDKLoginKit.framework */; };
 		511EB6601B4B01C7000E287F /* Bolts.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 511EB65C1B4B01C7000E287F /* Bolts.framework */; };
@@ -88,6 +91,10 @@
 		51197B041B137468006A7AEE /* NetworkOperations.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NetworkOperations.h; sourceTree = "<group>"; };
 		51197B051B13AAAD006A7AEE /* TimedEventTracker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TimedEventTracker.h; sourceTree = "<group>"; };
 		51197B061B13AAAD006A7AEE /* TimedEventTracker.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TimedEventTracker.m; sourceTree = "<group>"; };
+		511E725A1B544484006F8D9A /* CoreLocation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreLocation.framework; path = System/Library/Frameworks/CoreLocation.framework; sourceTree = SDKROOT; };
+		511E725C1B544497006F8D9A /* CoreLocation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreLocation.framework; path = System/Library/Frameworks/CoreLocation.framework; sourceTree = SDKROOT; };
+		511E725E1B5444CA006F8D9A /* GpsState.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GpsState.h; sourceTree = "<group>"; };
+		511E725F1B5444CA006F8D9A /* GpsState.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GpsState.m; sourceTree = "<group>"; };
 		511EB6581B4AFE0D000E287F /* FBSDKCoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FBSDKCoreKit.framework; path = ../../../Documents/FacebookSDK/FBSDKCoreKit.framework; sourceTree = "<group>"; };
 		511EB6591B4AFE0D000E287F /* FBSDKLoginKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FBSDKLoginKit.framework; path = ../../../Documents/FacebookSDK/FBSDKLoginKit.framework; sourceTree = "<group>"; };
 		511EB65C1B4B01C7000E287F /* Bolts.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Bolts.framework; path = ../../../Documents/FacebookSDK/Bolts.framework; sourceTree = "<group>"; };
@@ -173,11 +180,13 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				511E725B1B544484006F8D9A /* CoreLocation.framework in Frameworks */,
 				511EB6631B4B01C7000E287F /* FBSDKShareKit.framework in Frameworks */,
 				51E5BE241936A982003E45C3 /* CoreGraphics.framework in Frameworks */,
 				511EB65A1B4AFE0D000E287F /* FBSDKCoreKit.framework in Frameworks */,
 				511EB65B1B4AFE0D000E287F /* FBSDKLoginKit.framework in Frameworks */,
 				511EB6601B4B01C7000E287F /* Bolts.framework in Frameworks */,
+				511E725D1B544497006F8D9A /* CoreLocation.framework in Frameworks */,
 				51E5BE261936A982003E45C3 /* UIKit.framework in Frameworks */,
 				511EB6621B4B01C7000E287F /* FBAudienceNetwork.framework in Frameworks */,
 				51E5BE221936A982003E45C3 /* Foundation.framework in Frameworks */,
@@ -323,6 +332,7 @@
 		51E5BE201936A982003E45C3 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				511E725A1B544484006F8D9A /* CoreLocation.framework */,
 				51E5BE211936A982003E45C3 /* Foundation.framework */,
 				51E5BE231936A982003E45C3 /* CoreGraphics.framework */,
 				51E5BE251936A982003E45C3 /* UIKit.framework */,
@@ -337,6 +347,7 @@
 				51E5BE301936A982003E45C3 /* MJPAppDelegate.h */,
 				51E5BE311936A982003E45C3 /* MJPAppDelegate.m */,
 				51E5BE331936A982003E45C3 /* Images.xcassets */,
+				511E725C1B544497006F8D9A /* CoreLocation.framework */,
 				511EB65C1B4B01C7000E287F /* Bolts.framework */,
 				511EB65D1B4B01C7000E287F /* FacebookSDKStrings.bundle */,
 				511EB65E1B4B01C7000E287F /* FBAudienceNetwork.framework */,
@@ -351,7 +362,7 @@
 		51E5BE281936A982003E45C3 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
-				51FF00501B52E52000D6AF33 /* SocialMedia */,
+				51FF00501B52E52000D6AF33 /* UserState */,
 				51E888A21A59DF8F005F8825 /* Media */,
 				51E8889E1A59755D005F8825 /* Util */,
 				51D584B819AB63FB00BB6CE6 /* Networking */,
@@ -423,13 +434,15 @@
 			name = Media;
 			sourceTree = "<group>";
 		};
-		51FF00501B52E52000D6AF33 /* SocialMedia */ = {
+		51FF00501B52E52000D6AF33 /* UserState */ = {
 			isa = PBXGroup;
 			children = (
 				51FF00511B52E54100D6AF33 /* SocialState.h */,
 				51FF00521B52E54100D6AF33 /* SocialState.m */,
+				511E725E1B5444CA006F8D9A /* GpsState.h */,
+				511E725F1B5444CA006F8D9A /* GpsState.m */,
 			);
-			name = SocialMedia;
+			name = UserState;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -540,6 +553,7 @@
 				51E1BF2B1A5DD7A4007D8A56 /* MediaController.m in Sources */,
 				511EB6661B4B0419000E287F /* FacebookLoginViewController.m in Sources */,
 				51FBE0441AF66AF3009115AE /* ActivityMonitor.m in Sources */,
+				511E72601B5444CA006F8D9A /* GpsState.m in Sources */,
 				51E5BE811ABD03FD003E035C /* EncodingPipe.m in Sources */,
 				51D87CB51A8F7C3000CE919E /* BatcherOutput.m in Sources */,
 				511605F51B3EBE5D0071A183 /* NetworkUtility.m in Sources */,
