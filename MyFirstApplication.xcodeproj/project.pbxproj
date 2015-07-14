@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		5103D2A21B55960B00B9593C /* QuarkLogin.m in Sources */ = {isa = PBXBuildFile; fileRef = 5103D2A11B55960B00B9593C /* QuarkLogin.m */; };
 		511605F51B3EBE5D0071A183 /* NetworkUtility.m in Sources */ = {isa = PBXBuildFile; fileRef = 511605F41B3EBE5D0071A183 /* NetworkUtility.m */; };
 		511949341B3FFF8F00314436 /* ConnectionGovernor.m in Sources */ = {isa = PBXBuildFile; fileRef = 511949331B3FFF8F00314436 /* ConnectionGovernor.m */; };
 		51197AFA1B132D6F006A7AEE /* Timer.m in Sources */ = {isa = PBXBuildFile; fileRef = 51197AF91B132D6F006A7AEE /* Timer.m */; };
@@ -76,6 +77,9 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		5103D29C1B5594F200B9593C /* LoginProvider.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LoginProvider.h; sourceTree = "<group>"; };
+		5103D2A01B55960B00B9593C /* QuarkLogin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = QuarkLogin.h; sourceTree = "<group>"; };
+		5103D2A11B55960B00B9593C /* QuarkLogin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = QuarkLogin.m; sourceTree = "<group>"; };
 		511605F31B3EBE5D0071A183 /* NetworkUtility.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NetworkUtility.h; sourceTree = "<group>"; };
 		511605F41B3EBE5D0071A183 /* NetworkUtility.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NetworkUtility.m; sourceTree = "<group>"; };
 		511605F61B3EEF8C0071A183 /* ConnectionGovernor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ConnectionGovernor.h; sourceTree = "<group>"; };
@@ -206,6 +210,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		5103D29F1B55958D00B9593C /* Quark */ = {
+			isa = PBXGroup;
+			children = (
+				5103D2A01B55960B00B9593C /* QuarkLogin.h */,
+				5103D2A11B55960B00B9593C /* QuarkLogin.m */,
+			);
+			name = Quark;
+			sourceTree = "<group>";
+		};
 		511605F71B3EEFAD0071A183 /* Pipeline */ = {
 			isa = PBXGroup;
 			children = (
@@ -272,6 +285,7 @@
 		51D584B819AB63FB00BB6CE6 /* Networking */ = {
 			isa = PBXGroup;
 			children = (
+				5103D29F1B55958D00B9593C /* Quark */,
 				511605F71B3EEFAD0071A183 /* Pipeline */,
 				51CE2B911A8ECD6B00B8E5B7 /* Batching */,
 				51E1BF281A5DD5C0007D8A56 /* Protocol */,
@@ -306,6 +320,7 @@
 				51FE7E0B1B3C85EF00FF27F3 /* ConnectionGovernorNatPunchthrough.m */,
 				51260FD21B47F60F001DE2B3 /* ConnectionCommander.h */,
 				51260FD31B47F60F001DE2B3 /* ConnectionCommander.m */,
+				5103D29C1B5594F200B9593C /* LoginProvider.h */,
 			);
 			name = Protocol;
 			sourceTree = "<group>";
@@ -552,6 +567,7 @@
 				51E888A51A59DFB8005F8825 /* VIdeoEncoding.m in Sources */,
 				51E1BF2B1A5DD7A4007D8A56 /* MediaController.m in Sources */,
 				511EB6661B4B0419000E287F /* FacebookLoginViewController.m in Sources */,
+				5103D2A21B55960B00B9593C /* QuarkLogin.m in Sources */,
 				51FBE0441AF66AF3009115AE /* ActivityMonitor.m in Sources */,
 				511E72601B5444CA006F8D9A /* GpsState.m in Sources */,
 				51E5BE811ABD03FD003E035C /* EncodingPipe.m in Sources */,

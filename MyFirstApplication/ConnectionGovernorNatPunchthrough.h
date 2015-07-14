@@ -11,7 +11,7 @@
 #import "InputSessionBase.h"
 
 @interface ConnectionGovernorNatPunchthrough : NSObject<ConnectionGovernor, NewPacketDelegate, NewUnknownPacketDelegate>
-- (id)initWithRecvDelegate:(id<NewPacketDelegate>)recvDelegate connectionStatusDelegate:(id<ConnectionStatusDelegateProtocol>)connectionStatusDelegate slowNetworkDelegate:(id<SlowNetworkDelegate>)slowNetworkDelegate;
+- (id)initWithRecvDelegate:(id<NewPacketDelegate>)recvDelegate connectionStatusDelegate:(id<ConnectionStatusDelegateProtocol>)connectionStatusDelegate slowNetworkDelegate:(id<SlowNetworkDelegate>)slowNetworkDelegate loginProvider:(id<LoginProvider>)loginProvider;
 - (void)connectToTcpHost:(NSString*)tcpHost tcpPort:(ushort)tcpPort udpHost:(NSString*)udpHost udpPort:(ushort)udpPort;
 - (void)sendTcpPacket:(ByteBuffer*)packet;
 - (void)sendUdpPacket:(ByteBuffer*)packet;

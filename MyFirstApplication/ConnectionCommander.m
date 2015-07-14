@@ -21,9 +21,10 @@
     OutputSessionTcp* _commanderOutput;
     
     id<ConnectionGovernor> _governor;
+    id<LoginProvider> _loginProvider;
 }
 
-- (id)initWithRecvDelegate:(id<NewPacketDelegate>)recvDelegate connectionStatusDelegate:(id<ConnectionStatusDelegateProtocol>)connectionStatusDelegate slowNetworkDelegate:(id<SlowNetworkDelegate>)slowNetworkDelegate governorSetupDelegate:(id<GovernorSetupProtocol>)governorSetupDelegate {
+- (id)initWithRecvDelegate:(id<NewPacketDelegate>)recvDelegate connectionStatusDelegate:(id<ConnectionStatusDelegateProtocol>)connectionStatusDelegate slowNetworkDelegate:(id<SlowNetworkDelegate>)slowNetworkDelegate governorSetupDelegate:(id<GovernorSetupProtocol>)governorSetupDelegate loginProvider:(id<LoginProvider>)loginProvider {
     if (self) {
         _recvDelegate = recvDelegate;
         _connectionStatusDelegate = connectionStatusDelegate;
@@ -35,6 +36,7 @@
         _commander = [[ConnectionManagerTcp alloc] initWithConnectionStatusDelegate:self inputSession:[[InputSessionTcp alloc] initWithDelegate:self] outputSession:_commanderOutput];
         
         _governor = nil;
+        _loginProvider = loginProvider;
     }
     return self;
 }
@@ -59,7 +61,7 @@
         NSString* governorAddressConverted = [NetworkUtility convertPreparedHostName:governorAddress];
         uint governorPortTcp = [packet getUnsignedInteger];
         uint governorPortUdp = [packet getUnsignedInteger];
-        _governor = [[ConnectionGovernorNatPunchthrough alloc] initWithRecvDelegate:_recvDelegate connectionStatusDelegate:_connectionStatusDelegate slowNetworkDelegate:_slowNetworkDelegate];
+        _governor = [[ConnectionGovernorNatPunchthrough alloc] initWithRecvDelegate:_recvDelegate connectionStatusDelegate:_connectionStatusDelegate slowNetworkDelegate:_slowNetworkDelegate loginProvider:_loginProvider];
         [_governor connectToTcpHost:governorAddressConverted tcpPort:governorPortTcp udpHost:governorAddressConverted udpPort:governorPortUdp];
         
         // Announce governor.

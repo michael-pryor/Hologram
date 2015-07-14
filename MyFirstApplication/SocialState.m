@@ -80,6 +80,11 @@ SocialState* instance;
     _firstName = nil;
     _lastName = nil;
     _middleName = nil;
+    _genderI = 0;
+    _gender = nil;
+    _age = 0;
+    _interestedIn = nil;
+    _interestedInI = 0;
     _isDataLoaded = false;
 }
 
@@ -96,16 +101,62 @@ SocialState* instance;
     [self _retrieveGraphInformation];
 }
 
+- (uint)_parseGender:(NSString*)gender {
+    if(gender == nil) {
+        return BOTH;
+    } else if([@"male" isEqualToString:gender]) {
+        return MALE;
+    } else if([@"female" isEqualToString:gender]) {
+        return FEMALE;
+    } else {
+        // Facebook API tells us that this can't happen.
+        NSLog(@"Unknown gender: %@", gender);
+        return BOTH;
+    }
+}
+
+- (uint)_getAgeFromDob:(NSString*)dob {
+    NSDateFormatter* dateFormatter = [[NSDateFormatter alloc] init];
+    
+    if([dob length] == 4) {
+        [dateFormatter setDateFormat:@"yyyy"];
+    } else if([dob length] == 5){
+        [dateFormatter setDateFormat:@"MM/dd"];
+    } else {
+        [dateFormatter setDateFormat:@"MM/dd/yyyy"];
+    }
+
+    NSDate *date = [dateFormatter dateFromString:dob];
+    
+    
+    NSDate* now = [NSDate date];
+    NSDateComponents* ageComponents = [[NSCalendar currentCalendar]
+                                       components:NSCalendarUnitYear
+                                       fromDate:date
+                                       toDate:now
+                                       options:0];
+    NSInteger age = [ageComponents year];
+    return (uint)age;
+}
+
 - (void)_retrieveGraphInformation {
     if ([FBSDKAccessToken currentAccessToken]) {
         [[[FBSDKGraphRequest alloc] initWithGraphPath:@"me" parameters:nil]
          startWithCompletionHandler:^(FBSDKGraphRequestConnection *connection, id result, NSError *error) {
              if (!error) {
-                // NSLog(@"Retrieved results from Facebook graph API: [%@]", result);
-                _dob = [result objectForKey:@"birthday"];
-                _gender = [result objectForKey:@"gender"];
+                 // NSLog(@"Retrieved results from Facebook graph API: [%@]", result);
+                 _dob = [result objectForKey:@"birthday"];
+                 _age = [self _getAgeFromDob:_dob];
                  
-                 NSLog(@"Loaded DOB: [%@] and gender: [%@] from Facebook graph API", _dob, _gender);
+                 _gender = [result objectForKey:@"gender"];
+                 _genderI = [self _parseGender:_gender];
+                 
+                 _interestedIn = [result objectForKey:@"interested_in"];
+                 _interestedInI = [self _parseGender:_interestedIn];
+                 
+                 NSLog(@"Loaded DOB: [%@], gender: [%@], interested in: [%@] from Facebook graph API", _dob, _gender, _interestedIn);
+             } else {
+                 NSLog(@"Error accessing graph API: %@", error);
              }
          }];
     }

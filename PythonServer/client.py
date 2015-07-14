@@ -75,11 +75,10 @@ class Client(object):
 
     def handleLogon(self, packet):
         assert isinstance(packet, ByteBuffer)
-        versionNum = packet.getUnsignedInteger()
-        loginName = packet.getString()
 
-        # Reconnection attempt, UDP hash included in logon.
-        if packet.used_size != packet.cursor_position:
+        isSessionHash = packet.getUnsignedInteger() > 0
+        if isSessionHash:
+            # Reconnection attempt, UDP hash included in logon.
             self.udp_hash = packet.getString()
             if self.udp_hash not in self.udp_connection_linker.clients_by_udp_hash:
                 return Client.RejectCodes.REJECT_HASH_TIMEOUT, "Hash timed out, please reconnect fresh"
@@ -90,7 +89,17 @@ class Client(object):
         else:
             self.udp_hash = self.udp_connection_linker.registerInterestGenerated(self)
 
-        logger.info("Login processed with details, version number: [%d], login name: [%s], udp hash: [%s]", versionNum, loginName, self.udp_hash)
+        # See quark login.
+        fullName = packet.getString()
+        shortName = packet.getString()
+        age = packet.getUnsignedInteger()
+        gender = packet.getUnsignedInteger()
+        interestedIn = packet.getUnsignedInteger()
+
+        latitude = packet.getUnsignedInteger()
+        longitude = packet.getUnsignedInteger()
+
+        logger.info("Login processed with details, udp hash: [%s], full name: [%s], short name: [%s], age: [%d], gender [%d], interested in [%d], GPS: [(%d,%d)]" % (self.udp_hash, fullName, shortName, age, gender, interestedIn, longitude, latitude))
         return Client.RejectCodes.SUCCESS, self.udp_hash
 
     def handleTcpPacket(self, packet):

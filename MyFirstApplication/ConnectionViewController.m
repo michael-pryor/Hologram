@@ -13,6 +13,7 @@
 #import "FacebookLoginViewController.h"
 #import "SocialState.h"
 #import "GpsState.h"
+#import "QuarkLogin.h"
 
 @import AVFoundation;
 
@@ -52,8 +53,10 @@
         [self _switchToFacebookLogonView];
         return;
     }
+    QuarkLogin* loginProvider = [[QuarkLogin alloc] init];
     
-    _connectionCommander = [[ConnectionCommander alloc] initWithRecvDelegate:self connectionStatusDelegate:self slowNetworkDelegate:self governorSetupDelegate:self];
+    
+    _connectionCommander = [[ConnectionCommander alloc] initWithRecvDelegate:self connectionStatusDelegate:self slowNetworkDelegate:self governorSetupDelegate:self loginProvider:loginProvider];
     
     
     [[GpsState getInstance] update];

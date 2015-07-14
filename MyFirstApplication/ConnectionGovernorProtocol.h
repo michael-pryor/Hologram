@@ -12,13 +12,14 @@
 #import "ConnectionManagerBase.h"
 #import "InputSessionBase.h"
 #import "ConnectionGovernor.h"
+#import "LoginProvider.h"
 
 @protocol ConnectionStatusDelegateProtocol
 - (void)connectionStatusChange:(ConnectionStatusProtocol)status withDescription: (NSString*)description;
 @end
 
 @interface ConnectionGovernorProtocol : NSObject<ConnectionGovernor>
-- (id) initWithRecvDelegate:(id<NewPacketDelegate>)recvDelegate unknownRecvDelegate:(id<NewUnknownPacketDelegate>)unknownRecvDelegate connectionStatusDelegate:(id<ConnectionStatusDelegateProtocol>)connectionStatusDelegate slowNetworkDelegate:(id<SlowNetworkDelegate>)slowNetworkDelegate;
+- (id) initWithRecvDelegate:(id<NewPacketDelegate>)recvDelegate unknownRecvDelegate:(id<NewUnknownPacketDelegate>)unknownRecvDelegate connectionStatusDelegate:(id<ConnectionStatusDelegateProtocol>)connectionStatusDelegate slowNetworkDelegate:(id<SlowNetworkDelegate>)slowNetworkDelegate loginProvider:(id<LoginProvider>)loginProvider;
 - (void)connectToTcpHost:(NSString*)tcpHost tcpPort:(ushort)tcpPort udpHost:(NSString*)udpHost udpPort:(ushort)udpPort;
 - (void)sendTcpPacket:(ByteBuffer*)packet;
 - (void)sendUdpPacket:(ByteBuffer*)packet;

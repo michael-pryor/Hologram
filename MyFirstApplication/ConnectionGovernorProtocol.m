@@ -39,6 +39,7 @@ uint NUM_SOCKETS = 1;
     ushort _udpPort;
     
     ActivityMonitor* _reconnectMonitor;
+    id<LoginProvider> _loginProvider;
     
     // Must be kept in sync with server.
     #define OP_REJECT_LOGON 1
@@ -46,7 +47,7 @@ uint NUM_SOCKETS = 1;
     #define OP_ACCEPT_UDP 3
 }
 
-- (id)initWithRecvDelegate:(id<NewPacketDelegate>)recvDelegate unknownRecvDelegate:(id<NewUnknownPacketDelegate>)unknownRecvDelegate connectionStatusDelegate:(id<ConnectionStatusDelegateProtocol>)connectionStatusDelegate slowNetworkDelegate:(id<SlowNetworkDelegate>)slowNetworkDelegate {
+- (id)initWithRecvDelegate:(id<NewPacketDelegate>)recvDelegate unknownRecvDelegate:(id<NewUnknownPacketDelegate>)unknownRecvDelegate connectionStatusDelegate:(id<ConnectionStatusDelegateProtocol>)connectionStatusDelegate slowNetworkDelegate:(id<SlowNetworkDelegate>)slowNetworkDelegate loginProvider:(id<LoginProvider>)loginProvider {
     self = [super init];
     if(self) {
         _udpHash = nil;
@@ -66,6 +67,8 @@ uint NUM_SOCKETS = 1;
         _tcpConnection = [[ConnectionManagerTcp alloc] initWithConnectionStatusDelegate:self inputSession:tcpSession outputSession:_tcpOutputSession];
         
         _udpConnection = [[ConnectionManagerUdp alloc] initWithNewPacketDelegate:self newUnknownPacketDelegate:unknownRecvDelegate slowNetworkDelegate:slowNetworkDelegate connectionDelegate:self retryCount:5];
+        
+        _loginProvider = loginProvider;
         
         [self _setupReconnectMonitor];
     }
@@ -252,12 +255,16 @@ uint NUM_SOCKETS = 1;
         NSLog(@"Connected, sending login request");
         _connectionStatus = P_WAITING_FOR_TCP_LOGON_ACK;
         ByteBuffer* theLogonBuffer = [[ByteBuffer alloc] init];
-        [theLogonBuffer addUnsignedInteger:100];                // version
-        [theLogonBuffer addString:@"My name is Michael"];       // login name
-        // We are reconnecting, identify our session via the UDP hash.
+        
+        // If we are reconnecting, identify our session via the UDP hash.
+        [theLogonBuffer addUnsignedInteger:(_udpHash != nil)];
         if(_udpHash != nil) {
             [theLogonBuffer addString:_udpHash];
         }
+        
+        // The login part.
+        [theLogonBuffer addByteBuffer:[_loginProvider getLoginBuffer] includingPrefix:false];
+        
         [self sendTcpPacket:theLogonBuffer];
     } else {
         [self shutdownWithDescription:@"Invalid TCP state"];

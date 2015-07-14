@@ -21,10 +21,10 @@
     Timer* _natPunchthroughDiscoveryTimer;
     ByteBuffer* _natPunchthroughDiscoveryPacket;
 }
-- (id)initWithRecvDelegate:(id<NewPacketDelegate>)recvDelegate connectionStatusDelegate:(id<ConnectionStatusDelegateProtocol>)connectionStatusDelegate slowNetworkDelegate:(id<SlowNetworkDelegate>)slowNetworkDelegate {
+- (id)initWithRecvDelegate:(id<NewPacketDelegate>)recvDelegate connectionStatusDelegate:(id<ConnectionStatusDelegateProtocol>)connectionStatusDelegate slowNetworkDelegate:(id<SlowNetworkDelegate>)slowNetworkDelegate loginProvider:(id<LoginProvider>)loginProvider{
     if(self) {
         _recvDelegate = recvDelegate;
-        _connectionGovernor = [[ConnectionGovernorProtocol alloc] initWithRecvDelegate:self unknownRecvDelegate:self connectionStatusDelegate:connectionStatusDelegate slowNetworkDelegate:slowNetworkDelegate];
+        _connectionGovernor = [[ConnectionGovernorProtocol alloc] initWithRecvDelegate:self unknownRecvDelegate:self connectionStatusDelegate:connectionStatusDelegate slowNetworkDelegate:slowNetworkDelegate loginProvider:loginProvider];
         
         [self clearNatPunchthrough];
         _natPunchthroughDiscoveryTimer = [[Timer alloc] initWithFrequencySeconds:0.5 firingInitially:true];
