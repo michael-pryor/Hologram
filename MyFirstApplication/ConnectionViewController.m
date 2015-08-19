@@ -28,9 +28,11 @@
 }
 
 - (void)_switchToFacebookLogonView {
+    // We are the entry point, so we push to the Facebook view controller.
     UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Storyboard" bundle:nil];
     FacebookLoginViewController* viewController = (FacebookLoginViewController*)[storyboard instantiateViewControllerWithIdentifier:@"FacebookView"];
-    [self presentViewController:viewController animated:YES completion:nil];
+    UINavigationController* test = self.navigationController;
+    [test pushViewController:viewController animated:YES];
 }
 
 - (IBAction)onFacebookButtonPress:(id)sender {

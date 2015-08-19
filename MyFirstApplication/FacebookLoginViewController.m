@@ -25,7 +25,7 @@
     [super viewDidLoad];
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onProfileUpdated:) name:FBSDKProfileDidChangeNotification object:nil];
-    self.loginButton.readPermissions = @[@"public_profile", @"email", @"user_friends", @"user_birthday", @"interested_in"];
+    self.loginButton.readPermissions = @[@"public_profile", @"email", @"user_birthday"];
 
     if ([FBSDKAccessToken currentAccessToken]) {
         NSLog(@"User is already logged in");
@@ -50,9 +50,8 @@
 }
 
 - (void)_switchToChatView {
-    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Storyboard" bundle:nil];
-    ConnectionViewController* viewController = (ConnectionViewController*)[storyboard instantiateViewControllerWithIdentifier:@"ConnectionView"];
-    [self presentViewController:viewController animated:YES completion:nil];
+    // Always will have got here via another view controller.
+    [self.navigationController popViewControllerAnimated:NO];
 }
 
 - (void)_updateInternals {
