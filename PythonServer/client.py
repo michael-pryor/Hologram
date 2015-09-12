@@ -27,6 +27,25 @@ class Client(object):
         SUCCESS = 0
         REJECT_HASH_TIMEOUT = 1
 
+    class LoginDetails:
+        def __init__(self, uniqueId, name, age, gender, interestedIn, longitude, latitude):
+            self.unique_id = uniqueId
+            self.name = name
+            self.age = age
+            self.gender = gender
+            self.interested_in = interestedIn
+            self.longitude = longitude
+            self.latitude = latitude
+
+        def __hash__(self):
+            return hash(self.unique_id)
+
+        def __eq__(self, other):
+            return self.unique_id == other
+
+        def __str__(self):
+            return "[Name: %s, age: %d, gender: %d, interested_in: %d, longitude: %.2f, latitude: %.2f]" % (self.name, self.age, self.gender, self.interested_in, self.longitude, self.latitude)
+
     def __init__(self, tcp, onCloseFunc, udpConnectionLinker, house):
         super(Client, self).__init__()
         assert isinstance(tcp, ClientTcp)
@@ -98,6 +117,8 @@ class Client(object):
 
         latitude = packet.getUnsignedInteger()
         longitude = packet.getUnsignedInteger()
+
+        self.login_details = Client.LoginDetails(self.udp_hash, fullName, age, gender, interestedIn, latitude, longitude)
 
         logger.info("Login processed with details, udp hash: [%s], full name: [%s], short name: [%s], age: [%d], gender [%d], interested in [%d], GPS: [(%d,%d)]" % (self.udp_hash, fullName, shortName, age, gender, interestedIn, longitude, latitude))
         return Client.RejectCodes.SUCCESS, self.udp_hash

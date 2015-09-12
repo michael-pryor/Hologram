@@ -11,6 +11,7 @@ from utility import getRemainingTimeOnAction
 from house import House
 import logging
 import argparse
+from database import Database
 
 __author__ = 'pryormic'
 
@@ -22,7 +23,7 @@ logger = logging.getLogger(__name__)
 #
 # ClientFactory encapsulates the TCP listening socket.
 class Governor(ClientFactory, protocol.DatagramProtocol):
-    def __init__(self, reactor):
+    def __init__(self, reactor, database):
         # All connected clients.
         self.client_mappings_lock = RLock()
 
@@ -36,7 +37,7 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
         self.clean_actions_by_udp_hash = dict()
 
         self.reactor = reactor
-        self.house = House()
+        self.house = House(database)
 
     def startedConnecting(self, connector):
         logger.info('Started to connect.')
@@ -297,11 +298,13 @@ if __name__ == "__main__":
     parser.add_argument('--udp_port', help='Port to bind to via UDP')
     parser.add_argument('--commander_host', help='Commander host to connect to, defaults to this host', default="")
     parser.add_argument('--commander_port', help='Commander port to connect to, defaults to 12240', default="12240")
+    parser.add_argument('--governor_name', help='Name of this instance, to uniquely identify it in the database', default="michael_governor")
     args = parser.parse_args()
 
     host = ""
     tcpPort = int(args.tcp_port)
     udpPort = int(args.udp_port)
+    governorName = args.governor_name
 
     commanderHost = args.commander_host
     commanderPort = int(args.commander_port)
@@ -310,7 +313,9 @@ if __name__ == "__main__":
     logger.info("Connecting to commander via TCP with address: [%s:%d]" % (commanderHost, commanderPort))
     reactor.connectTCP(commanderHost, commanderPort, commanderConnection)
 
-    server = Governor(reactor)
+    database = Database(governorName, "localhost", 27017)
+
+    server = Governor(reactor, database)
 
     # TCP server.
     endpoint = TCP4ServerEndpoint(reactor, tcpPort)

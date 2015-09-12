@@ -4,24 +4,32 @@ from byte_buffer import ByteBuffer
 from utility import htons, inet_addr
 from threading import RLock
 import logging
+from database import Database
 
 logger = logging.getLogger(__name__)
 
 # A house has lots of rooms in it, each room has two participants in it (the video call).
 class House:
-    def __init__(self):
+    def __init__(self, database):
         # Contains links e.g.
         # Participant A -> Participant B
         # Participant B -> Participant A
         self.room_participant = dict()
 
-        # Participants who are not in a room yet, who are waiting.
-        self.waiting_for_room = list()
+        # Map from:
+        # Unique key (stored in DB) -> Client
+        self.waiting_clients_by_key = dict()
+
+        # Client -> Unique key (stored in DB)
+        self.waiting_keys_by_client = dict()
 
         self.abort_nat_punchthrough_packet = ByteBuffer()
         self.abort_nat_punchthrough_packet.addUnsignedInteger(Client.TcpOperationCodes.OP_NAT_PUNCHTHROUGH_CLIENT_DISCONNECT)
 
         self.house_lock = RLock()
+
+        assert isinstance(database, Database)
+        self.database = database
 
     def takeRoom(self, clientA, clientB):
         if clientA is clientB:
@@ -29,6 +37,9 @@ class House:
 
         self.house_lock.acquire()
         try:
+            self._removeFromWaitingList(clientA)
+            self._removeFromWaitingList(clientB)
+
             self.room_participant[clientA] = clientB
             self.room_participant[clientB] = clientA
         finally:
@@ -84,9 +95,11 @@ class House:
     def _removeFromWaitingList(self, client):
         self.house_lock.acquire()
         try:
-            self.waiting_for_room.remove(client)
-        except ValueError:
-            pass
+            if client in self.waiting_keys_by_client:
+                del self.waiting_keys_by_client[client]
+                del self.waiting_clients_by_key[client.login_details.unique_id]
+
+                self.database.removeMatch(client)
         finally:
             self.house_lock.release()
 
@@ -109,28 +122,30 @@ class House:
             self.house_lock.release()
 
     def attemptTakeRoom(self, client):
+        def onFailure():
+            if client not in self.waiting_keys_by_client:
+                key = client.login_details.unique_id
+                self.waiting_clients_by_key[key] = client
+                self.waiting_keys_by_client[client] = key
+
+                self.database.pushWaiting(client)
 
         self.house_lock.acquire()
         try:
-            failedRooms = list()
-            while True:
-                try:
-                    clientMatch = self.waiting_for_room.pop(0)
-                except IndexError:
-                    # No more possible matches, this client needs to wait.
-                    failedRooms.append(client)
-                    clientMatch = None
-                    break
-                else:
-                    # Try to take a room with the match, the match may be the same client though,
-                    # in which case we skip.
-                    if client is clientMatch:
-                        continue
+            databaseResultMatch = self.database.findMatch(client)
+            if databaseResultMatch is None:
+                onFailure()
+                return
 
-                    self.takeRoom(client, clientMatch)
+            key = databaseResultMatch['_id']
+            clientMatch = self.waiting_clients_by_key.get(key)
+            if clientMatch is None:
+                self.database.removeMatchById(key)
+                logger.warn("Client in DB not found in waiting list, database inconsistency detected")
+                onFailure()
+                return
 
-            # Recreate the waiting list with failures.
-            self.waiting_for_room = failedRooms + self.waiting_for_room
+            self.takeRoom(client, clientMatch)
 
             # Return match if one found, or None if not.
             return clientMatch

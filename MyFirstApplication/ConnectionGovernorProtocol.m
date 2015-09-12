@@ -169,6 +169,10 @@ uint NUM_SOCKETS = 1;
 }
 
 - (void)sendUdpPacket:(ByteBuffer*)packet toAddress:(NSString*)address toPort:(ushort)port {
+    if(_connectionStatus != P_CONNECTED) {
+        NSLog(@"Skipping UDP packet");
+        return;
+    }
     [_udpConnection sendBuffer:packet toAddress:address toPort:port];
 }
 
