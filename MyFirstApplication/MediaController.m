@@ -104,7 +104,10 @@
         if(prefix == SLOW_DOWN_VIDEO) {
             NSLog(@"Slowing down video send rate");
             [_videoOutputController slowSendRate];
-        } else {
+        } else if (prefix == RESET_VIDEO_SPEED) {
+            NSLog(@"Video speed reset");
+            [_videoOutputController resetSendRate];
+        }else {
             NSLog(@"Invalid TCP packet received");
         }
     }

@@ -25,6 +25,7 @@
     MediaController *_mediaController;
     bool _connected;
     IBOutlet UILabel *_frameRate;
+    ByteBuffer* _skipPersonPacket;
 }
 
 - (void)_switchToFacebookLogonView {
@@ -45,6 +46,9 @@
 
 -(void)viewDidLoad {
     [super viewDidLoad];
+    
+    _skipPersonPacket = [[ByteBuffer alloc] init];
+    [_skipPersonPacket addUnsignedInteger:SKIP_PERSON];
 }
 
 -(void)viewDidAppear:(BOOL)animated {
@@ -77,6 +81,11 @@
     static NSString *const CONNECT_IP = @"212.227.84.229"; // remote machine (paid hosting).
     static const int CONNECT_PORT_TCP = 12241;
     [_connectionCommander connectToTcpHost:CONNECT_IP tcpPort:CONNECT_PORT_TCP];
+}
+
+- (IBAction)onSkipButtonClick:(id)sender {
+    NSLog(@"Sending skip request");
+    [_connection sendTcpPacket:_skipPersonPacket];
 }
 
 - (void)onNewGovernor:(id<ConnectionGovernor>)governor {

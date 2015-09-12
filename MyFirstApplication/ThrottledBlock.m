@@ -24,7 +24,7 @@
     [_timer resetFrequency];
 }
 - (void)slowRate {
-    //[_timer doubleFrequencyValue];
+    [_timer doubleFrequencyValue];
 }
 - (Boolean)runBlock:(void (^)(void))theBlock {
     if([_timer getState]) {

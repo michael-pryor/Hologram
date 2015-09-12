@@ -11,6 +11,8 @@ logger = logging.getLogger(__name__)
 # A house has lots of rooms in it, each room has two participants in it (the video call).
 class House:
     def __init__(self, database):
+        assert isinstance(database, Database)
+
         # Contains links e.g.
         # Participant A -> Participant B
         # Participant B -> Participant A
@@ -28,7 +30,9 @@ class House:
 
         self.house_lock = RLock()
 
-        assert isinstance(database, Database)
+        self.reset_send_speed_packet = ByteBuffer()
+        self.reset_send_speed_packet.addUnsignedInteger(Client.TcpOperationCodes.OP_RESET_SEND_RATE)
+
         self.database = database
 
     def takeRoom(self, clientA, clientB):
@@ -46,8 +50,16 @@ class House:
             self.house_lock.release()
 
         self.adviseNatPunchthrough(clientA, clientB)
+        self.resetSendFrequency(clientA)
+        self.resetSendFrequency(clientB)
+
         logger.info("New room set up between client [%s] and [%s]" % (clientA, clientB))
         return True
+
+    def resetSendFrequency(self, client):
+        assert isinstance(client, Client)
+        client.tcp.sendByteBuffer(self.reset_send_speed_packet)
+
 
     def adviseNatPunchthrough(self, clientA, clientB):
         assert isinstance(clientA, Client)

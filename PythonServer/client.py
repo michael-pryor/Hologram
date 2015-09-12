@@ -20,8 +20,11 @@ class Client(object):
         OP_ACCEPT_UDP = 3
 
     class TcpOperationCodes:
+        OP_SLOW_DOWN_SEND_RATE = 1
         OP_NAT_PUNCHTHROUGH_ADDRESS = 2
         OP_NAT_PUNCHTHROUGH_CLIENT_DISCONNECT = 3
+        OP_SKIP_PERSON = 4
+        OP_RESET_SEND_RATE = 5
 
     class RejectCodes:
         SUCCESS = 0
@@ -59,6 +62,7 @@ class Client(object):
         self.udp_hash = None
         self.udp_remote_address = None
         self.house = house
+
         logger.info("New client connected, awaiting logon message")
 
     def onDisconnect(self):
@@ -164,8 +168,19 @@ class Client(object):
     def onFriendlyPacketTcp(self, packet):
         assert isinstance(packet, ByteBuffer)
         logger.info("Received a friendly TCP packet with length: %d" % packet.used_size)
-        logger.info("Echoing back")
-        self.tcp.sendByteBuffer(packet)
+
+        opCode = packet.getUnsignedInteger()
+        if opCode == Client.TcpOperationCodes.OP_SKIP_PERSON:
+            logger.debug("Client [%s] asked to skip person, honouring request" % self)
+            self.house.releaseRoom(self)
+            self.house.attemptTakeRoom(self)
+        elif opCode == Client.TcpOperationCodes.OP_SLOW_DOWN_SEND_RATE:
+            endPoint = self.house.room_participant.get(self)
+            logger.debug("Forwarding slow down request to client [%s]" % endPoint)
+            if endPoint is not None:
+                endPoint.tcp.sendByteBuffer(packet)
+        else:
+            logger.error("Unknown TCP packet received from client [%s]" % self)
 
     def onFriendlyPacketUdp(self, packet):
         self.house.handleUdpPacket(self, packet)
