@@ -33,6 +33,15 @@ class House:
         self.reset_send_speed_packet = ByteBuffer()
         self.reset_send_speed_packet.addUnsignedInteger(Client.TcpOperationCodes.OP_RESET_SEND_RATE)
 
+        self.disconnected_temporary = ByteBuffer()
+        self.disconnected_temporary.addUnsignedInteger(Client.TcpOperationCodes.OP_TEMP_DISCONNECT)
+
+        self.disconnected_permanent = ByteBuffer()
+        self.disconnected_permanent.addUnsignedInteger(Client.TcpOperationCodes.OP_PERM_DISCONNECT)
+
+        self.disconnected_skip = ByteBuffer()
+        self.disconnected_skip.addUnsignedInteger(Client.TcpOperationCodes.OP_SKIPPED_DISCONNECT)
+
         self.database = database
 
     def takeRoom(self, clientA, clientB):
@@ -102,6 +111,7 @@ class House:
 
         if realClient is not None and client is realClient:
             self.adviseAbortNatPunchthrough(clientB)
+            clientB.tcp.sendByteBuffer(self.disconnected_temporary)
             logger.info("Session pause signaled to client [%s] because of client disconnect [%s]" % (clientB, client))
 
     def _removeFromWaitingList(self, client):
@@ -118,7 +128,7 @@ class House:
 
     # The session has been completely shutdown because a client has
     # permanently disconnected and we don't think they're coming back.
-    def releaseRoom(self, client):
+    def releaseRoom(self, client, notification = None):
         self.house_lock.acquire()
         try:
             self._removeFromWaitingList(client)
@@ -127,6 +137,10 @@ class House:
             if clientB is not None:
                 del self.room_participant[client]
                 del self.room_participant[clientB]
+
+                if notification is not None:
+                    assert isinstance(notification, ByteBuffer)
+                    clientB.tcp.sendByteBuffer(notification)
 
                 self.attemptTakeRoom(clientB)
                 logger.info("Permanent closure of session between client [%s] and [%s] due to disconnect of client [%s]" % (client, clientB, client))
@@ -185,8 +199,7 @@ class House:
             self.house_lock.release()
 
         if clientMatch is None:
-            # Echo back.
-            client.udp.sendRawBuffer(packet)
+            pass
         else:
             # Send to client that we are matched with.
             clientMatch.udp.sendRawBuffer(packet)

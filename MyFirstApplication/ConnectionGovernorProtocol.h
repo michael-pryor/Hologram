@@ -29,4 +29,5 @@
 - (id<NewPacketDelegate>)getUdpOutputSession;
 - (Boolean)isConnected;
 - (void)shutdown;
+- (void)terminate;
 @end

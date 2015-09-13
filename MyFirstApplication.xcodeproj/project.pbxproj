@@ -8,6 +8,10 @@
 
 /* Begin PBXBuildFile section */
 		5103D2A21B55960B00B9593C /* QuarkLogin.m in Sources */ = {isa = PBXBuildFile; fileRef = 5103D2A11B55960B00B9593C /* QuarkLogin.m */; };
+		5115CA0F1BA5865700F485F2 /* temp_disconnect.png in Resources */ = {isa = PBXBuildFile; fileRef = 5115CA0E1BA5865700F485F2 /* temp_disconnect.png */; };
+		5115CA131BA58F4400F485F2 /* perm_disconnect.png in Resources */ = {isa = PBXBuildFile; fileRef = 5115CA101BA58F4400F485F2 /* perm_disconnect.png */; };
+		5115CA141BA58F4400F485F2 /* skip_disconnect.png in Resources */ = {isa = PBXBuildFile; fileRef = 5115CA111BA58F4400F485F2 /* skip_disconnect.png */; };
+		5115CA151BA58F4400F485F2 /* start_pic.png in Resources */ = {isa = PBXBuildFile; fileRef = 5115CA121BA58F4400F485F2 /* start_pic.png */; };
 		511605F51B3EBE5D0071A183 /* NetworkUtility.m in Sources */ = {isa = PBXBuildFile; fileRef = 511605F41B3EBE5D0071A183 /* NetworkUtility.m */; };
 		511949341B3FFF8F00314436 /* ConnectionGovernor.m in Sources */ = {isa = PBXBuildFile; fileRef = 511949331B3FFF8F00314436 /* ConnectionGovernor.m */; };
 		51197AFA1B132D6F006A7AEE /* Timer.m in Sources */ = {isa = PBXBuildFile; fileRef = 51197AF91B132D6F006A7AEE /* Timer.m */; };
@@ -80,6 +84,10 @@
 		5103D29C1B5594F200B9593C /* LoginProvider.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LoginProvider.h; sourceTree = "<group>"; };
 		5103D2A01B55960B00B9593C /* QuarkLogin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = QuarkLogin.h; sourceTree = "<group>"; };
 		5103D2A11B55960B00B9593C /* QuarkLogin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = QuarkLogin.m; sourceTree = "<group>"; };
+		5115CA0E1BA5865700F485F2 /* temp_disconnect.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = temp_disconnect.png; sourceTree = "<group>"; };
+		5115CA101BA58F4400F485F2 /* perm_disconnect.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = perm_disconnect.png; sourceTree = "<group>"; };
+		5115CA111BA58F4400F485F2 /* skip_disconnect.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = skip_disconnect.png; sourceTree = "<group>"; };
+		5115CA121BA58F4400F485F2 /* start_pic.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = start_pic.png; sourceTree = "<group>"; };
 		511605F31B3EBE5D0071A183 /* NetworkUtility.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NetworkUtility.h; sourceTree = "<group>"; };
 		511605F41B3EBE5D0071A183 /* NetworkUtility.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NetworkUtility.m; sourceTree = "<group>"; };
 		511605F61B3EEF8C0071A183 /* ConnectionGovernor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ConnectionGovernor.h; sourceTree = "<group>"; };
@@ -217,6 +225,17 @@
 				5103D2A11B55960B00B9593C /* QuarkLogin.m */,
 			);
 			name = Quark;
+			sourceTree = "<group>";
+		};
+		5115CA0D1BA5862E00F485F2 /* media */ = {
+			isa = PBXGroup;
+			children = (
+				5115CA101BA58F4400F485F2 /* perm_disconnect.png */,
+				5115CA111BA58F4400F485F2 /* skip_disconnect.png */,
+				5115CA121BA58F4400F485F2 /* start_pic.png */,
+				5115CA0E1BA5865700F485F2 /* temp_disconnect.png */,
+			);
+			name = media;
 			sourceTree = "<group>";
 		};
 		511605F71B3EEFAD0071A183 /* Pipeline */ = {
@@ -359,6 +378,7 @@
 		51E5BE271936A982003E45C3 /* MyFirstApplication */ = {
 			isa = PBXGroup;
 			children = (
+				5115CA0D1BA5862E00F485F2 /* media */,
 				51E5BE301936A982003E45C3 /* MJPAppDelegate.h */,
 				51E5BE311936A982003E45C3 /* MJPAppDelegate.m */,
 				51E5BE331936A982003E45C3 /* Images.xcassets */,
@@ -538,8 +558,12 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5115CA0F1BA5865700F485F2 /* temp_disconnect.png in Resources */,
+				5115CA151BA58F4400F485F2 /* start_pic.png in Resources */,
+				5115CA141BA58F4400F485F2 /* skip_disconnect.png in Resources */,
 				51E5BE2C1936A982003E45C3 /* InfoPlist.strings in Resources */,
 				51E5BE341936A982003E45C3 /* Images.xcassets in Resources */,
+				5115CA131BA58F4400F485F2 /* perm_disconnect.png in Resources */,
 				51E219DC193B2D190066D915 /* Storyboard.storyboard in Resources */,
 				511EB6611B4B01C7000E287F /* FacebookSDKStrings.bundle in Resources */,
 			);

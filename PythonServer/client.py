@@ -2,6 +2,8 @@ import logging
 from multiprocessing import Lock
 from byte_buffer import ByteBuffer
 from protocol_client import ClientTcp, ClientUdp
+from utility import getEpoch
+from twisted.internet import task
 
 __author__ = 'pryormic'
 
@@ -25,6 +27,12 @@ class Client(object):
         OP_NAT_PUNCHTHROUGH_CLIENT_DISCONNECT = 3
         OP_SKIP_PERSON = 4
         OP_RESET_SEND_RATE = 5
+
+        OP_TEMP_DISCONNECT = 6
+        OP_PERM_DISCONNECT = 7
+        OP_SKIPPED_DISCONNECT = 8
+
+        OP_PING = 10
 
     class RejectCodes:
         SUCCESS = 0
@@ -63,10 +71,27 @@ class Client(object):
         self.udp_remote_address = None
         self.house = house
 
+        self.last_received_data = None
+
+        def timeoutCheck():
+            if self.last_received_data is not None:
+                timeDiff = getEpoch() - self.last_received_data
+                if timeDiff > 3.0:
+                    logger.warn("Dropping client [%s] which has been inactive for %.2f seconds" % (self, timeDiff))
+                    self.closeConnection()
+                else:
+                    logger.debug("Client [%s] last pinged %.2f seconds ago" % (self, timeDiff))
+
+        self.timeout_check = task.LoopingCall(timeoutCheck)
+        self.timeout_check.start(2.0)
+
         logger.info("New client connected, awaiting logon message")
 
+    # Just a way of passing the TCP disconnection to the governor, do not use directly.
     def onDisconnect(self):
+        self.timeout_check.stop()
         self.on_close_func(self)
+
 
     def setUdp(self, clientUdp):
         assert isinstance(clientUdp, ClientUdp)
@@ -85,6 +110,7 @@ class Client(object):
         else:
             return False
 
+    # Closes the TCP socket, triggering indirectly onDisconnect to be called.
     def closeConnection(self):
         self.tcp.transport.loseConnection()
 
@@ -170,9 +196,11 @@ class Client(object):
         logger.info("Received a friendly TCP packet with length: %d" % packet.used_size)
 
         opCode = packet.getUnsignedInteger()
-        if opCode == Client.TcpOperationCodes.OP_SKIP_PERSON:
+        if opCode == Client.TcpOperationCodes.OP_PING:
+            self.last_received_data = getEpoch()
+        elif opCode == Client.TcpOperationCodes.OP_SKIP_PERSON:
             logger.debug("Client [%s] asked to skip person, honouring request" % self)
-            self.house.releaseRoom(self)
+            self.house.releaseRoom(self, self.house.disconnected_skip)
             self.house.attemptTakeRoom(self)
         elif opCode == Client.TcpOperationCodes.OP_SLOW_DOWN_SEND_RATE:
             endPoint = self.house.room_participant.get(self)

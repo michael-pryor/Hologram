@@ -39,6 +39,10 @@
     [_connectionGovernor shutdown];
     [self clearNatPunchthrough];
 }
+- (void)terminate {
+    [_connectionGovernor terminate];
+    [self clearNatPunchthrough];
+}
 
 - (Boolean)isConnected {
     return [_connectionGovernor isConnected];

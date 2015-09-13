@@ -129,7 +129,7 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
                         self.clientDisconnected(client)
 
                         # Completely release that room.
-                        self.house.releaseRoom(client)
+                        self.house.releaseRoom(client, self.house.disconnected_permanent)
         finally:
             self._unlockClm()
 

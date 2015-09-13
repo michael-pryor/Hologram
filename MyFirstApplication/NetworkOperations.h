@@ -38,6 +38,15 @@
 // Reset video speed
 #define RESET_VIDEO_SPEED 5
 
+// End point has temporarily disconnect (end point = person we are talking to) due to network issue.
+#define DISCONNECT_TEMP 6
+
+// End point has permanently disconnected (server timed them out)
+#define DISCONNECT_PERM 7
+
+// End point clicked on 'skip' so asked to move to next person.
+#define DISCONNECT_SKIPPED 8
+
 #define COMMANDER_SUCCESS 1
 #define COMMANDER_FAILURE 2
 

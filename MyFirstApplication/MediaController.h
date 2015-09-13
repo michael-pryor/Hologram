@@ -16,4 +16,5 @@
 - (id)initWithImageDelegate:(id<NewImageDelegate>)newImageDelegate videoSpeedNotifier:(id<VideoSpeedNotifier>)videoSpeedNotifier tcpNetworkOutputSession:(id<NewPacketDelegate>)tcpNetworkOutputSession udpNetworkOutputSession:(id<NewPacketDelegate>)udpNetworkOutputSession;
 - (void)captureOutput:(AVCaptureOutput *)captureOutput didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection;
 - (void)sendSlowdownRequest;
+- (void)setNetworkOutputSessionTcp:(id<NewPacketDelegate>)tcp Udp:(id<NewPacketDelegate>)udp;
 @end

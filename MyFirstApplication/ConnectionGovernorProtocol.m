@@ -13,6 +13,7 @@
 #import "OutputSessionTcp.h"
 #import "EventTracker.h"
 #import "ActivityMonitor.h"
+#import "Timer.h"
 
 uint NUM_SOCKETS = 1;
 
@@ -41,15 +42,22 @@ uint NUM_SOCKETS = 1;
     ActivityMonitor* _reconnectMonitor;
     id<LoginProvider> _loginProvider;
     
+    NSThread* _pingThread;
+    Boolean _alive;
+
+    
     // Must be kept in sync with server.
     #define OP_REJECT_LOGON 1
     #define OP_ACCEPT_LOGON 2
     #define OP_ACCEPT_UDP 3
+    #define OP_PING 10
 }
 
 - (id)initWithRecvDelegate:(id<NewPacketDelegate>)recvDelegate unknownRecvDelegate:(id<NewUnknownPacketDelegate>)unknownRecvDelegate connectionStatusDelegate:(id<ConnectionStatusDelegateProtocol>)connectionStatusDelegate slowNetworkDelegate:(id<SlowNetworkDelegate>)slowNetworkDelegate loginProvider:(id<LoginProvider>)loginProvider {
     self = [super init];
     if(self) {
+        _alive = true;
+        
         _udpHash = nil;
         _udpHashPacket = nil;
         
@@ -71,6 +79,11 @@ uint NUM_SOCKETS = 1;
         _loginProvider = loginProvider;
         
         [self _setupReconnectMonitor];
+        
+        _pingThread = [[NSThread alloc] initWithTarget:self
+                                               selector:@selector(_pingThreadEntryPoint:)
+                                                 object:nil];
+        [_pingThread start];
     }
     return self;
 }
@@ -79,6 +92,21 @@ uint NUM_SOCKETS = 1;
     _reconnectMonitor = [[ActivityMonitor alloc] initWithAction: ^{
         [self reconnect];
     } andBackoff:1];
+}
+
+- (void)_pingThreadEntryPoint: var {
+    ByteBuffer* pingBuffer = [[ByteBuffer alloc] init];
+    [pingBuffer addUnsignedInteger:OP_PING];
+    
+    Timer* pingTimer = [[Timer alloc] initWithFrequencySeconds:2 firingInitially:false];
+    
+    while(_alive) {
+        if(_connectionStatus == P_CONNECTED) {
+            [pingTimer blockUntilNextTick];
+            NSLog(@"Sending ping to governor server");
+            [_tcpOutputSession onNewPacket:pingBuffer fromProtocol:TCP];
+        }
+    }
 }
 
 /**
@@ -146,6 +174,12 @@ uint NUM_SOCKETS = 1;
         [_tcpConnection shutdown];
         [_udpConnection shutdown];
     }
+}
+          
+- (void) terminate {
+    _alive = false;
+    [self shutdown];
+    [_reconnectMonitor terminate];
 }
 
 - (void) shutdown {

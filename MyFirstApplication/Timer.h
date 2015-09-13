@@ -17,4 +17,6 @@
 - (void) reset;
 - (void) resetFrequency;
 - (void) doubleFrequencyValue;
+- (CFAbsoluteTime) getSecondsUntilNextTick;
+- (void) blockUntilNextTick;
 @end

@@ -19,4 +19,5 @@
 - (id)initWithRecvDelegate:(id<NewPacketDelegate>)recvDelegate connectionStatusDelegate:(id<ConnectionStatusDelegateProtocol>)connectionStatusDelegate slowNetworkDelegate:(id<SlowNetworkDelegate>)slowNetworkDelegate governorSetupDelegate:(id<GovernorSetupProtocol>)governorSetupDelegate loginProvider:(id<LoginProvider>)loginProvider;
 - (void)connectToTcpHost:(NSString*)tcpHost tcpPort:(ushort)tcpPort;
 - (void)shutdown;
+- (void)terminate;
 @end

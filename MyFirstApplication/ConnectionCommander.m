@@ -81,6 +81,12 @@
     }
 }
 
+- (void)terminate {
+    if(_governor != nil) {
+        [_governor terminate];
+    }
+}
+
 - (void)shutdownWithDescription:(NSString*)description {
     [self shutdown];
     [_connectionStatusDelegate connectionStatusChange:P_NOT_CONNECTED withDescription:@"Commander failed to retrieve governor"];

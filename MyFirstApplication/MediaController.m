@@ -94,6 +94,11 @@
     return self;
 }
 
+- (void)setNetworkOutputSessionTcp:(id<NewPacketDelegate>)tcp Udp:(id<NewPacketDelegate>)udp {
+    _udpNetworkOutputSession = udp;
+    _tcpNetworkOutputSession = tcp;
+   [_videoOutputController resetSendRate];
+}
 
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
     if(protocol == UDP) {
