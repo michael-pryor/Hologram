@@ -113,6 +113,8 @@
 }
 
 - (IBAction)onConnectButtonClick:(id)sender {
+    [self setSpecialState:_imgStart withDescription:@"Welcome!"];
+    
     static NSString *const CONNECT_IP = @"212.227.84.229"; // remote machine (paid hosting).
     static const int CONNECT_PORT_TCP = 12241;
     [_connectionCommander connectToTcpHost:CONNECT_IP tcpPort:CONNECT_PORT_TCP];
@@ -137,6 +139,8 @@
 }
 
 - (IBAction)onLocalConnectButtonClick:(id)sender {
+    [self setSpecialState:_imgStart withDescription:@"Welcome!"];
+    
     static NSString *const CONNECT_IP = @"192.168.1.92"; // local arden crescent network.
     static const int CONNECT_PORT_TCP = 12241;
     [_connectionCommander connectToTcpHost:CONNECT_IP tcpPort:CONNECT_PORT_TCP];

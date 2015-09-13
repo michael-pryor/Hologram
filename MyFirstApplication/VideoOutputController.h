@@ -32,4 +32,5 @@
 - (void)slowSendRate;
 - (void)resetSendRate;
 - (void)sendSlowdownRequest;
+- (void)setNetworkOutputSessionTcp:(id<NewPacketDelegate>)tcp Udp:(id<NewPacketDelegate>)udp;
 @end

@@ -49,9 +49,6 @@
     // Both audio and video.
     DecodingPipe* _decodingPipe;
     
-    id<NewPacketDelegate> _udpNetworkOutputSession;
-    id<NewPacketDelegate> _tcpNetworkOutputSession;
-    
     bool _connected;
 }
 
@@ -60,18 +57,16 @@
     if(self) {
         _startStopTracker = [[TimedEventTracker alloc] initWithMaxEvents:8 timePeriod:5];
         
-        _tcpNetworkOutputSession = tcpNetworkOutputSession;
-        _udpNetworkOutputSession = udpNetworkOutputSession;
-        
+     
         _decodingPipe = [[DecodingPipe alloc] init];
         
-        _videoOutputController = [[VideoOutputController alloc] initWithTcpNetworkOutputSession:_tcpNetworkOutputSession udpNetworkOutputSession:_udpNetworkOutputSession imageDelegate:newImageDelegate videoSpeedNotifier:videoSpeedNotifier];
+        _videoOutputController = [[VideoOutputController alloc] initWithTcpNetworkOutputSession:tcpNetworkOutputSession udpNetworkOutputSession:udpNetworkOutputSession imageDelegate:newImageDelegate videoSpeedNotifier:videoSpeedNotifier];
 
         [_decodingPipe addPrefix:VIDEO_ID mappingToOutputSession:_videoOutputController];
         
         
         // Audio.
-        _encodingPipeAudio = [[EncodingPipe alloc] initWithOutputSession:_udpNetworkOutputSession andPrefixId:AUDIO_ID];
+        _encodingPipeAudio = [[EncodingPipe alloc] initWithOutputSession:udpNetworkOutputSession andPrefixId:AUDIO_ID];
         
         
         Float64 secondsPerBuffer = 0.1;
@@ -95,9 +90,9 @@
 }
 
 - (void)setNetworkOutputSessionTcp:(id<NewPacketDelegate>)tcp Udp:(id<NewPacketDelegate>)udp {
-    _udpNetworkOutputSession = udp;
-    _tcpNetworkOutputSession = tcp;
-   [_videoOutputController resetSendRate];
+    [_encodingPipeAudio setOutputSession:udp];
+    [_videoOutputController setNetworkOutputSessionTcp:tcp Udp:udp];
+    [_videoOutputController resetSendRate];
 }
 
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {

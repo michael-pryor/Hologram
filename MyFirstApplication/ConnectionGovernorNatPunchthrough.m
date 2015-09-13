@@ -45,7 +45,11 @@
 }
 
 - (Boolean)isConnected {
-    return [_connectionGovernor isConnected];
+    Boolean result =  [_connectionGovernor isConnected];
+    if (!result) {
+        NSLog(@"Not connected result!!!");
+    }
+    return result;
 }
 
 - (void)connectToTcpHost:(NSString*)tcpHost tcpPort:(ushort)tcpPort udpHost:(NSString*)udpHost udpPort:(ushort)udpPort {

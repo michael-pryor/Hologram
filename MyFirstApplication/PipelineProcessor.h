@@ -16,4 +16,5 @@
 }
 
 - (id) initWithOutputSession:(id<NewPacketDelegate>)outputSession;
+- (void)setOutputSession:(id<NewPacketDelegate>)session;
 @end

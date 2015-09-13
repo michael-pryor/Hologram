@@ -20,4 +20,7 @@
     }
     return self;
 }
+- (void)setOutputSession:(id<NewPacketDelegate>)session {
+    _outputSession = session;
+}
 @end

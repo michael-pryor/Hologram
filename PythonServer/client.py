@@ -76,7 +76,7 @@ class Client(object):
         def timeoutCheck():
             if self.last_received_data is not None:
                 timeDiff = getEpoch() - self.last_received_data
-                if timeDiff > 3.0:
+                if timeDiff > 5.0:
                     logger.warn("Dropping client [%s] which has been inactive for %.2f seconds" % (self, timeDiff))
                     self.closeConnection()
                 else:
@@ -88,8 +88,17 @@ class Client(object):
         logger.info("New client connected, awaiting logon message")
 
     # Just a way of passing the TCP disconnection to the governor, do not use directly.
-    def onDisconnect(self):
+    def onTcpSocketDisconnect(self):
         self.timeout_check.stop()
+
+        if self.udp_hash is not None:
+            if self.udp_connection_linker is not None:
+                self.udp_connection_linker.registerPrematureCompletion(self.udp_hash, self)
+
+            # Needs a UDP hash as that is our identifier.
+            # Client has disconnected so temporarily pause that room.
+            self.house.pauseRoom(self)
+
         self.on_close_func(self)
 
 
@@ -113,14 +122,6 @@ class Client(object):
     # Closes the TCP socket, triggering indirectly onDisconnect to be called.
     def closeConnection(self):
         self.tcp.transport.loseConnection()
-
-        if self.udp_hash is not None:
-            if self.udp_connection_linker is not None:
-                self.udp_connection_linker.registerPrematureCompletion(self.udp_hash, self)
-
-            # Needs a UDP hash as that is our identifier.
-            # Client has disconnected so temporarily pause that room.
-            self.house.pauseRoom(self)
 
     def handleLogon(self, packet):
         assert isinstance(packet, ByteBuffer)

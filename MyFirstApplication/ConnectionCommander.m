@@ -53,7 +53,7 @@
     if(commanderOperation == COMMANDER_SUCCESS) {
         // Cleanup old governor.
         if(_governor != nil) {
-            [_governor shutdown];
+            [_governor terminate];
         }
         
         // Prepare new governor.

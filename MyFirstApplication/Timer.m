@@ -32,7 +32,7 @@
 }
 
 - (Boolean) getState {
-    if ([self getSecondsUntilNextTick] > [self secondsFrequency]) {
+    if ([self getSecondsSinceLastTick] > [self secondsFrequency]) {
         _secondsEpoch = [Timer getSecondsEpoch];
         return true;
     } else {
@@ -40,12 +40,21 @@
     }
 }
 
-- (CFAbsoluteTime) getSecondsUntilNextTick {
+- (CFAbsoluteTime) getSecondsSinceLastTick {
     return [Timer getSecondsEpoch] - _secondsEpoch;
 }
 
 - (void)blockUntilNextTick {
-    [NSThread sleepForTimeInterval:[self getSecondsUntilNextTick]];
+    if(_secondsEpoch == 0) {
+        _secondsEpoch = [Timer getSecondsEpoch] - _secondsFrequency;
+    }
+    
+    CFAbsoluteTime timeSinceLastTick = [self getSecondsSinceLastTick];
+    CFAbsoluteTime timeRemaining = _secondsFrequency - timeSinceLastTick;
+    if(timeRemaining > 0) {
+        [NSThread sleepForTimeInterval:timeRemaining];
+    }
+    _secondsEpoch = [Timer getSecondsEpoch];
 }
 
 - (void) reset {

@@ -85,6 +85,12 @@
     return self;
 }
 
+- (void)setNetworkOutputSessionTcp:(id<NewPacketDelegate>)tcp Udp:(id<NewPacketDelegate>)udp {
+    NSLog(@"Updating video tcp and udp network output sessions");
+    _tcpNetworkOutputSession = tcp;
+    [_encodingPipeVideo setOutputSession:udp];
+}
+
 // Handle data from camera device and push out to network.
 - (void)captureOutput:(AVCaptureOutput *)captureOutput didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection {
     [_throttledBlock runBlock:^ {
