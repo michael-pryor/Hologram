@@ -15,6 +15,7 @@
 #import "GpsState.h"
 #import "QuarkLogin.h"
 #import "Timer.h"
+#import "AlertViewController.h"
 
 @import AVFoundation;
 
@@ -27,12 +28,7 @@
     bool _connected;
     IBOutlet UILabel *_frameRate;
     ByteBuffer* _skipPersonPacket;
-    
-    UIImage *_imgStart;
-    UIImage *_imgDisconnectTemporary;
-    UIImage *_imgDisconnectPermanent;
-    UIImage *_imgDisconnectSkip;
-    Timer * _imgTimer;
+    AlertViewController* _disconnectViewController;
 }
 
 - (void)_switchToFacebookLogonView {
@@ -51,25 +47,11 @@
     return UIInterfaceOrientationMaskPortrait;
 }
 
--(void)setSpecialState:(UIImage*)img withDescription:(NSString*)text {
-    _imgTimer = [[Timer alloc] initWithFrequencySeconds:2 firingInitially:false];
-    [self onNewImageIgnoreTimer:img];
-    [[self connectionStatus] setText:text];
-}
-
 -(void)viewDidLoad {
     [super viewDidLoad];
     
     _skipPersonPacket = [[ByteBuffer alloc] init];
     [_skipPersonPacket addUnsignedInteger:SKIP_PERSON];
-    
-    _imgTimer = nil;
-    _imgStart = [UIImage imageNamed:@"start_pic"];
-    _imgDisconnectTemporary = [UIImage imageNamed:@"temp_disconnect"];
-    _imgDisconnectPermanent = [UIImage imageNamed:@"perm_disconnect"];
-    _imgDisconnectSkip = [UIImage imageNamed:@"skip_disconnect"];
-    
-    [self setSpecialState:_imgStart withDescription:@"Welcome!"];
 }
 
 -(void)viewDidAppear:(BOOL)animated {
@@ -91,20 +73,14 @@
     [[GpsState getInstance] update];
 }
 
-- (void)onNewImageIgnoreTimer: (UIImage*)image {
-    [_cameraView performSelectorOnMainThread:@selector(setImage:) withObject: image waitUntilDone:YES];
-}
-
 - (void)onNewImage: (UIImage*)image {
-    Boolean isNil = _imgTimer == nil;
-    if(isNil || [_imgTimer getState]) {
-        if(!isNil) {
-            [[self connectionStatus] setText:@"Connected!"];
-            _imgTimer = nil;
-        }
-        
-        [self onNewImageIgnoreTimer:image];
+    if(_disconnectViewController != nil && ![_disconnectViewController hideIfVisibleAndReady]) {
+        return;
     }
+    _disconnectViewController = nil;
+    
+    [_cameraView performSelectorOnMainThread:@selector(setImage:) withObject: image waitUntilDone:YES];
+    
 }
 
 - (BOOL) textFieldShouldReturn:(UITextField *)textField {
@@ -113,8 +89,6 @@
 }
 
 - (IBAction)onConnectButtonClick:(id)sender {
-    [self setSpecialState:_imgStart withDescription:@"Welcome!"];
-    
     static NSString *const CONNECT_IP = @"212.227.84.229"; // remote machine (paid hosting).
     static const int CONNECT_PORT_TCP = 12241;
     [_connectionCommander connectToTcpHost:CONNECT_IP tcpPort:CONNECT_PORT_TCP];
@@ -123,6 +97,8 @@
 - (IBAction)onSkipButtonClick:(id)sender {
     NSLog(@"Sending skip request");
     [_connection sendTcpPacket:_skipPersonPacket];
+    
+    [self setDisconnectStateWithShortDescription:@"Short desc" longDescription:@"Long desc"];
 }
 
 - (void)onNewGovernor:(id<ConnectionGovernor>)governor {
@@ -139,8 +115,6 @@
 }
 
 - (IBAction)onLocalConnectButtonClick:(id)sender {
-    [self setSpecialState:_imgStart withDescription:@"Welcome!"];
-    
     static NSString *const CONNECT_IP = @"192.168.1.92"; // local arden crescent network.
     static const int CONNECT_PORT_TCP = 12241;
     [_connectionCommander connectToTcpHost:CONNECT_IP tcpPort:CONNECT_PORT_TCP];
@@ -198,17 +172,37 @@
 }
 
 
+-(void)setDisconnectStateWithShortDescription:(NSString*)shortDescription longDescription:(NSString*)longDescription{
+    
+    // Show the disconnect storyboard.
+    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Storyboard" bundle:nil];
+    
+    Boolean alreadyPresented = _disconnectViewController != nil;
+    if(!alreadyPresented) {
+        _disconnectViewController = (AlertViewController*)[storyboard instantiateViewControllerWithIdentifier:@"DisconnectAlertView"];
+    
+        [self addChildViewController: _disconnectViewController];
+        [self.view addSubview:_disconnectViewController.view];
+    }
+    // Set its content
+    [_disconnectViewController setAlertShortText:shortDescription longText:longDescription];
+
+    if(!alreadyPresented) {
+        [_disconnectViewController didMoveToParentViewController: self];
+    }
+}
+
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
     if(protocol == TCP) {
         uint operation = [packet getUnsignedIntegerAtPosition:0];
         if(operation == DISCONNECT_TEMP) {
             NSLog(@"End point temporarily disconnected");
-            [self setSpecialState:_imgDisconnectTemporary withDescription:@"The person you were talking with has temporarily disconnected, please wait a few seconds to see if they can rejoin!"];
+            [self setDisconnectStateWithShortDescription:@"Acquaintance disconnected temporarily" longDescription:@"The person you were talking with has temporarily disconnected, please wait a few seconds to see if they can rejoin!"];
         } else if(operation == DISCONNECT_PERM) {
-            [self setSpecialState:_imgDisconnectPermanent withDescription:@"The person you were talking with has permanently disconnected, we'll find you someone else to talk to"];
+            [self setDisconnectStateWithShortDescription:@"Acquaintance permanently disconnected"  longDescription:@"The person you were talking with has permanently disconnected, we'll find you someone else to talk to"];
             NSLog(@"End point permanently disconnected");
         } else if(operation == DISCONNECT_SKIPPED) {
-            [self setSpecialState:_imgDisconnectSkip withDescription:@"The person you were talking with skipped you, we'll find you someone else to talk to"];
+            [self setDisconnectStateWithShortDescription:@"Acquaintance skipped you" longDescription:@"The person you were talking with skipped you, we'll find you someone else to talk to"];
             NSLog(@"End point skipped us");
         } else if(_mediaController != nil) {
             [_mediaController onNewPacket:packet fromProtocol:protocol];
