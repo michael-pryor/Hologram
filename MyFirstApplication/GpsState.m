@@ -12,13 +12,17 @@ GpsState * state;
 
 @implementation GpsState {
     CLLocationManager * _locationManager;
+    id<GpsStateDataLoadNotification> _notifier;
 }
-+(GpsState*)getInstance {
-    if(state == nil) {
-        state = [[GpsState alloc] init];
+
+- (id)initWithNotifier:(id<GpsStateDataLoadNotification>)notifier {
+    self = [super init];
+    if(self) {
+        _notifier = notifier;
     }
-    return state;
+    return self;
 }
+
 - (void)update {
     // Create the location manager if this object does not
     // already have one.
@@ -31,6 +35,9 @@ GpsState * state;
     
     // Set a movement threshold for new events.
     _locationManager.distanceFilter = 500; // meters
+    
+    [_locationManager requestWhenInUseAuthorization];
+    [_locationManager requestAlwaysAuthorization];
     
     [_locationManager startUpdatingLocation];
 }
@@ -48,10 +55,15 @@ GpsState * state;
     NSLog(@"Loaded GPS location (%.2f seconds old): %.2f,%.2f / %.2f with accuracy %.2f,%.2f - description: %@", age, _longitude, _latitude, altitude, horizontalAccuracy, verticalAccuracy, description);
     
     _loaded = true;
-    
+    if(_notifier != nil) {
+        [_notifier onDataLoaded:self];
+    }
 }
 
 - (void)locationManager:(CLLocationManager*)manager didFailWithError:(NSArray*)locations {
     NSLog(@"Error retrieving GPS location");
+    if(_notifier != nil) {
+        [_notifier onFailure:self withDescription:@"Failed to load GPS position"];
+    }
 }
 @end

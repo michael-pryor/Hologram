@@ -12,8 +12,16 @@
 #define FEMALE 2
 #define BOTH 3
 
+
+@class SocialState;
+
+@protocol SocialStateDataLoadNotification<NSObject>
+-(void)onSocialDataLoaded:(SocialState*)state;
+@end
+
 @interface SocialState : NSObject
-@property (readonly) Boolean isDataLoaded;
+@property (readonly) Boolean isBasicDataLoaded;
+@property (readonly) Boolean isGraphDataLoaded;
 @property (readonly) NSString* firstName;
 @property (readonly) NSString* middleName;
 @property (readonly) NSString* lastName;
@@ -30,10 +38,15 @@
 @property (readonly) uint interestedInI;
 @property (readonly) NSString* interestedIn;
 
-+(SocialState*)getFacebookInstance;
 -(void)reset;
 -(void)updateFacebook;
 -(void)update;
 
++(SocialState*)getFacebookInstance;
 
+-(void)registerNotifier:(id<SocialStateDataLoadNotification>)notifier;
+-(void)unregisterNotifier;
+
+-(Boolean)isDataLoaded;
 @end
+

@@ -10,7 +10,17 @@
 #import "SocialState.h"
 #import "GpsState.h"
 
-@implementation QuarkLogin
+@implementation QuarkLogin {
+    GpsState* _gpsState;
+}
+- (id)initWithGpsState:(GpsState*)gpsState {
+    self = [super init];
+    if(self) {
+        _gpsState = gpsState;
+    }
+    return self;
+}
+
 - (ByteBuffer*)getLoginBuffer {
     ByteBuffer* buffer = [[ByteBuffer alloc] init];
     {
@@ -23,9 +33,8 @@
     }
     
     {
-        GpsState* state = [GpsState getInstance];
-        [buffer addUnsignedInteger:[state latitude]];
-        [buffer addUnsignedInteger:[state longitude]];
+        [buffer addUnsignedInteger:[_gpsState latitude]];
+        [buffer addUnsignedInteger:[_gpsState longitude]];
     }
     
     return buffer;

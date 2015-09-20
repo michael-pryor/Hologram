@@ -11,9 +11,9 @@
 #import "ConnectionGovernorProtocol.h"
 #import "VideoOutputController.h"
 #import "ConnectionCommander.h"
+#import "GpsState.h"
+#import "SocialState.h"
 @import AVFoundation;
 
-@interface ConnectionViewController : UIViewController<ConnectionStatusDelegateProtocol, NewPacketDelegate, UITextFieldDelegate, UIImagePickerControllerDelegate, NewImageDelegate, VideoSpeedNotifier, SlowNetworkDelegate, GovernorSetupProtocol>
-@property (weak, nonatomic) IBOutlet UIActivityIndicatorView *connectionProgress;
-@property (weak, nonatomic) IBOutlet UILabel *connectionStatus;
+@interface ConnectionViewController : UIViewController<ConnectionStatusDelegateProtocol, NewPacketDelegate, UITextFieldDelegate, UIImagePickerControllerDelegate, NewImageDelegate, VideoSpeedNotifier, SlowNetworkDelegate, GovernorSetupProtocol, GpsStateDataLoadNotification, SocialStateDataLoadNotification>
 @end

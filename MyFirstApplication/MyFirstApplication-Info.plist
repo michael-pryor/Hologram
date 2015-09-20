@@ -13,6 +13,8 @@
 			<string>Editor</string>
 		</dict>
 	</array>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string></string>
 	<key>FacebookAppID</key>
 	<string>1162526617107156</string>
 	<key>FacebookDisplayName</key>

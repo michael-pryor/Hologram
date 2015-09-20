@@ -38,7 +38,7 @@
 - (void)_updateDisplay {
     SocialState* state = [SocialState getFacebookInstance];
     
-    if([state isDataLoaded]) {
+    if([state isBasicDataLoaded]) {
         [_displayName setText:[state humanFullName]];
         [_displayPicture setProfileID:[state facebookId]];
         [_buttonFinished setEnabled:true];
@@ -56,7 +56,7 @@
 
 - (void)_updateInternals {
     [[SocialState getFacebookInstance] updateFacebook];
-    if([[SocialState getFacebookInstance] isDataLoaded]) {
+    if([[SocialState getFacebookInstance] isBasicDataLoaded]) {
         NSLog(@"Logged in");
     } else {
         NSLog(@"No profile information found; may be due to logout");

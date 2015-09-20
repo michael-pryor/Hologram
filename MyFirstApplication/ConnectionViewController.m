@@ -29,6 +29,7 @@
     IBOutlet UILabel *_frameRate;
     ByteBuffer* _skipPersonPacket;
     AlertViewController* _disconnectViewController;
+    GpsState* _gpsState;
 }
 
 - (void)_switchToFacebookLogonView {
@@ -38,6 +39,8 @@
     UINavigationController* test = self.navigationController;
     [test pushViewController:viewController animated:YES];
 }
+
+
 
 - (IBAction)onFacebookButtonPress:(id)sender {
     [self _switchToFacebookLogonView];
@@ -54,23 +57,53 @@
     [_skipPersonPacket addUnsignedInteger:SKIP_PERSON];
 }
 
+-(void)onSocialDataLoaded:(SocialState*)state {
+    [state unregisterNotifier];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        _gpsState = [[GpsState alloc] initWithNotifier:self];
+        [_gpsState update];
+        [self setDisconnectStateWithShortDescription:@"Loading GPS details" longDescription:@"Waiting for GPS information to load"];
+    });
+}
+
+-(void)onDataLoaded:(GpsState*)state {
+    QuarkLogin* loginProvider = [[QuarkLogin alloc] initWithGpsState:state];
+    
+    _connectionCommander = [[ConnectionCommander alloc] initWithRecvDelegate:self connectionStatusDelegate:self slowNetworkDelegate:self governorSetupDelegate:self loginProvider:loginProvider];
+    
+    [self onLocalConnectButtonClick:0];
+}
+-(void)onFailure:(GpsState*)state withDescription:(NSString*)description {
+    [self setDisconnectStateWithShortDescription:@"Failed to load GPS details" longDescription:description];
+    
+    // Try again in 2 seconds time.
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        [state update];
+        [self setDisconnectStateWithShortDescription:@"Loading GPS details" longDescription:@"Waiting for GPS information to load"];
+    });
+}
+
 -(void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear: animated];
-    
-    [[SocialState getFacebookInstance] updateFacebook];
-    if(![[SocialState getFacebookInstance] isDataLoaded]) {
-        [self _switchToFacebookLogonView];
-        return;
-    }
-    QuarkLogin* loginProvider = [[QuarkLogin alloc] init];
     
     if (_connectionCommander != nil) {
         [_connectionCommander terminate];
     }
-    _connectionCommander = [[ConnectionCommander alloc] initWithRecvDelegate:self connectionStatusDelegate:self slowNetworkDelegate:self governorSetupDelegate:self loginProvider:loginProvider];
     
-    
-    [[GpsState getInstance] update];
+    SocialState *socialState = [SocialState getFacebookInstance];
+    [socialState updateFacebook];
+    if(![socialState isBasicDataLoaded]) {
+        [self _switchToFacebookLogonView];
+        return;
+    }
+    if(![socialState isDataLoaded]) {
+        [socialState registerNotifier:self];
+        
+        [self setDisconnectStateWithShortDescription:@"Loading Facebook details" longDescription:@"Waiting for Facebook details to load"];
+        [socialState update];
+    } else {
+        [self onSocialDataLoaded:socialState];
+    }
 }
 
 - (void)onNewImage: (UIImage*)image {
@@ -94,11 +127,15 @@
     [_connectionCommander connectToTcpHost:CONNECT_IP tcpPort:CONNECT_PORT_TCP];
 }
 
-- (IBAction)onSkipButtonClick:(id)sender {
-    NSLog(@"Sending skip request");
-    [_connection sendTcpPacket:_skipPersonPacket];
-    
-    [self setDisconnectStateWithShortDescription:@"Short desc" longDescription:@"Long desc"];
+- (IBAction)showGestureForSwipeRecognizer:(UISwipeGestureRecognizer *)recognizer {
+    if(recognizer.direction == UISwipeGestureRecognizerDirectionLeft) {
+        NSLog(@"Sending skip request");
+        [_connection sendTcpPacket:_skipPersonPacket];
+        [self setDisconnectStateWithShortDescription:@"Skipped - finding new acquaintance" longDescription:@"Searching for somebody else suitable for you to talk with"];
+    } else {
+        [_connectionCommander terminate];
+        [self _switchToFacebookLogonView];
+    }
 }
 
 - (void)onNewGovernor:(id<ConnectionGovernor>)governor {
@@ -122,7 +159,6 @@
 
 - (void) _doConnectionStatusChange:(ConnectionStatusProtocol)status withDescription:(NSString *)description {
     NSLog(@"Received status change: %u and description: %@", status, description);
-    [[self connectionStatus] setText: description];
     
     if(_mediaController != nil) {
         [_mediaController connectionStatusChange:status withDescription:description];
@@ -130,25 +166,16 @@
     
     switch(status) {
         case P_CONNECTING:
-            [[self connectionStatus] setTextColor: [UIColor yellowColor]];
-            [[self connectionStatus] setHidden:true];
-            [[self connectionProgress] startAnimating];
             _connected = false;
             [self setDisconnectStateWithShortDescription:@"Connecting" longDescription:description];
             break;
             
         case P_CONNECTED:
-            [[self connectionStatus] setTextColor: [UIColor greenColor]];
-            [[self connectionProgress] stopAnimating];
-            [[self connectionStatus] setHidden:false];
             _connected = true;
             [self setDisconnectStateWithShortDescription:@"Finding acquaintance" longDescription:@"Searching for somebody suitable for you to talk with"];
             break;
         
         case P_NOT_CONNECTED:
-            [[self connectionStatus] setTextColor: [UIColor redColor]];
-            [[self connectionProgress] stopAnimating];
-            [[self connectionStatus] setHidden:false];
             _connected = false;
             [self setDisconnectStateWithShortDescription:@"Connection failure" longDescription:description];
             break;
@@ -162,8 +189,6 @@
 }
 
 - (void)connectionStatusChange:(ConnectionStatusProtocol)status withDescription:(NSString *)description {
-    [[self connectionStatus] setNeedsDisplay];
-    
     // So that sockets/streams are owned by main thread.
     if([NSThread isMainThread]) {
         [self _doConnectionStatusChange:status withDescription:description];

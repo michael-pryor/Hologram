@@ -13,7 +13,29 @@
 
 SocialState* instance;
 
-@implementation SocialState
+@implementation SocialState {
+    id<SocialStateDataLoadNotification> _notifier;
+}
+
+
+-(void)registerNotifier:(id<SocialStateDataLoadNotification>)notifier {
+    _notifier = notifier;
+}
+
+-(void)unregisterNotifier {
+    _notifier = nil;
+}
+
+-(Boolean)isDataLoaded {
+    return _isBasicDataLoaded && _isGraphDataLoaded;
+}
+
++(SocialState*)getFacebookInstance {
+    if(instance == nil) {
+        instance = [[SocialState alloc] init];
+    }
+    return instance;
+}
 
 -(void)loadStateFromFirstName:(NSString*)firstName middleName:(NSString*)middleName lastName:(NSString*)lastName facebookUrl:(NSURL*)facebookUrl facebookId:(NSString*)facebookId {
     _firstName = firstName;
@@ -62,9 +84,9 @@ SocialState* instance;
     }
     
     _humanFullName = aux;
-    _isDataLoaded = setShortName;
+    _isBasicDataLoaded = setShortName;
     
-    if(_isDataLoaded) {
+    if(_isBasicDataLoaded) {
         NSLog(@"Loaded social details: Full name = [%@], Short name: [%@], Facebook URL: [%@], Facebook ID: [%@]", _humanFullName, _humanShortName, _facebookUrl, _facebookId);
     } else {
         NSLog(@"Failed to load social details");
@@ -85,7 +107,8 @@ SocialState* instance;
     _age = 0;
     _interestedIn = nil;
     _interestedInI = 0;
-    _isDataLoaded = false;
+    _isBasicDataLoaded = false;
+    _isGraphDataLoaded = false;
 }
 
 - (void)loadStateFromFacebook {
@@ -141,10 +164,10 @@ SocialState* instance;
 
 - (void)_retrieveGraphInformation {
     if ([FBSDKAccessToken currentAccessToken]) {
+        NSLog(@"Retrieving Facebook graph API information");
         [[[FBSDKGraphRequest alloc] initWithGraphPath:@"me" parameters:nil]
          startWithCompletionHandler:^(FBSDKGraphRequestConnection *connection, id result, NSError *error) {
              if (!error) {
-                 // NSLog(@"Retrieved results from Facebook graph API: [%@]", result);
                  _dob = [result objectForKey:@"birthday"];
                  _age = [self _getAgeFromDob:_dob];
                  
@@ -155,19 +178,15 @@ SocialState* instance;
                  _interestedInI = [self _parseGender:_interestedIn];
                  
                  NSLog(@"Loaded DOB: [%@], gender: [%@], interested in: [%@] from Facebook graph API", _dob, _gender, _interestedIn);
+                 _isGraphDataLoaded = true;
+                 if(_notifier != nil) {
+                     [_notifier onSocialDataLoaded:self];
+                 }
              } else {
                  NSLog(@"Error accessing graph API: %@", error);
              }
          }];
     }
-}
-
-+(SocialState*)getFacebookInstance {
-    if(instance == nil) {
-        [FBSDKProfile enableUpdatesOnAccessTokenChange:YES];
-        instance = [[SocialState alloc] init];
-    }
-    return instance;
 }
 
 - (void)updateFacebook {
