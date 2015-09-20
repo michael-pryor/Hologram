@@ -45,10 +45,7 @@
 }
 
 - (Boolean)isConnected {
-    Boolean result =  [_connectionGovernor isConnected];
-    if (!result) {
-        NSLog(@"Not connected result!!!");
-    }
+    Boolean result = [_connectionGovernor isConnected];
     return result;
 }
 

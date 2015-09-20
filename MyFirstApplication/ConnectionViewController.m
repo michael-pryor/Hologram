@@ -134,6 +134,7 @@
             [[self connectionStatus] setHidden:true];
             [[self connectionProgress] startAnimating];
             _connected = false;
+            [self setDisconnectStateWithShortDescription:@"Connecting" longDescription:description];
             break;
             
         case P_CONNECTED:
@@ -141,6 +142,7 @@
             [[self connectionProgress] stopAnimating];
             [[self connectionStatus] setHidden:false];
             _connected = true;
+            [self setDisconnectStateWithShortDescription:@"Finding acquaintance" longDescription:@"Searching for somebody suitable for you to talk with"];
             break;
         
         case P_NOT_CONNECTED:
@@ -148,6 +150,7 @@
             [[self connectionProgress] stopAnimating];
             [[self connectionStatus] setHidden:false];
             _connected = false;
+            [self setDisconnectStateWithShortDescription:@"Connection failure" longDescription:description];
             break;
             
         default:

@@ -241,7 +241,7 @@ uint NUM_SOCKETS = 1;
                     [self handleRejectCode:rejectCode];
                     NSString* rejectReason = [packet getString];
                     NSString* rejectDescription = [@"Logon rejected with reason: " stringByAppendingString:rejectReason];
-                    [self shutdownWithDescription:rejectDescription];
+                    [self reconnectLimitedWithFailureDescription: rejectDescription];
                 } else if(logon == OP_ACCEPT_LOGON) {
                     _udpHash = [packet getString];
                     _udpHashPacket = [[ByteBuffer alloc] init];

@@ -22,6 +22,9 @@
     
     id<ConnectionGovernor> _governor;
     id<LoginProvider> _loginProvider;
+    
+    NSString* _tcpHost;
+    ushort _tcpPort;
 }
 
 - (id)initWithRecvDelegate:(id<NewPacketDelegate>)recvDelegate connectionStatusDelegate:(id<ConnectionStatusDelegateProtocol>)connectionStatusDelegate slowNetworkDelegate:(id<SlowNetworkDelegate>)slowNetworkDelegate governorSetupDelegate:(id<GovernorSetupProtocol>)governorSetupDelegate loginProvider:(id<LoginProvider>)loginProvider {
@@ -44,6 +47,8 @@
 // Commander connect.
 - (void)connectToTcpHost:(NSString*)tcpHost tcpPort:(ushort)tcpPort {
     [self shutdown];
+    _tcpHost = tcpHost;
+    _tcpPort = tcpPort;
     [_commander connectToHost:tcpHost andPort:tcpPort];
 }
 
@@ -96,6 +101,13 @@
 - (void)connectionStatusChangeTcp:(ConnectionStatusTcp)status withDescription:(NSString*)description {
     if(status == T_ERROR) {
         [self shutdown];
+        
+        // Reconnect after 2 seconds delay.
+        if(_tcpHost != nil) {
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                [self connectToTcpHost:_tcpHost tcpPort:_tcpPort];
+            });
+        }
         NSLog(@"Error in commander connection: %@", description);
     } else if(status == T_CONNECTING) {
         [_connectionStatusDelegate connectionStatusChange:P_CONNECTING withDescription:@"Commander is connecting"];
