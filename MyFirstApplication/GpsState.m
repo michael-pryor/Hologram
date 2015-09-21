@@ -36,9 +36,6 @@ GpsState * state;
     // Set a movement threshold for new events.
     _locationManager.distanceFilter = 500; // meters
     
-    [_locationManager requestWhenInUseAuthorization];
-    [_locationManager requestAlwaysAuthorization];
-    
     [_locationManager startUpdatingLocation];
 }
 - (void)locationManager:(CLLocationManager*)manager didUpdateLocations:(NSArray*)locations {

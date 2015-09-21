@@ -91,20 +91,23 @@
                         <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="0" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="XkH-QK-TQM">
-                                <rect key="frame" x="232" y="0.0" width="72" height="20"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                <color key="textColor" red="0.0" green="0.83660567434210531" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
-                                <nil key="highlightedColor"/>
-                            </label>
                             <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="GLg-2U-XhO">
-                                <rect key="frame" x="0.0" y="0.0" width="320" height="587"/>
+                                <rect key="frame" x="0.0" y="-5" width="320" height="587"/>
                                 <gestureRecognizers/>
                                 <connections>
                                     <outletCollection property="gestureRecognizers" destination="biO-yt-6IN" appends="YES" id="jXC-U0-HgJ"/>
                                     <outletCollection property="gestureRecognizers" destination="UJi-EB-zys" appends="YES" id="rGZ-BX-jcO"/>
                                 </connections>
                             </imageView>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="0" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="XkH-QK-TQM">
+                                <rect key="frame" x="232" y="0.0" width="72" height="20"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <color key="textColor" red="0.0" green="0.83660567434210531" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <progressView opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" fixedFrame="YES" progress="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="Fil-ep-eGy">
+                                <rect key="frame" x="232" y="28" width="82" height="2"/>
+                            </progressView>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                         <gestureRecognizers/>
@@ -116,6 +119,7 @@
                     <navigationItem key="navigationItem" id="iKF-7l-wXc"/>
                     <connections>
                         <outlet property="_cameraView" destination="GLg-2U-XhO" id="IQu-bq-HZF"/>
+                        <outlet property="_connectionStrength" destination="Fil-ep-eGy" id="kpL-ys-r2r"/>
                         <outlet property="_frameRate" destination="XkH-QK-TQM" id="iLH-bq-8YX"/>
                     </connections>
                 </viewController>

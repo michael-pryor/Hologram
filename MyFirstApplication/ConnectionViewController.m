@@ -30,6 +30,7 @@
     ByteBuffer* _skipPersonPacket;
     AlertViewController* _disconnectViewController;
     GpsState* _gpsState;
+    IBOutlet UIProgressView *_connectionStrength;
 }
 
 - (void)_switchToFacebookLogonView {
@@ -57,6 +58,18 @@
     [_skipPersonPacket addUnsignedInteger:SKIP_PERSON];
 }
 
+- (void)onNatPunchthrough:(ConnectionGovernorNatPunchthrough*)connection stateChange:(NatState)state {
+    if(state == ROUTED) {
+        NSLog(@"Regressed to routing mode");
+        _connectionStrength.progress = 0.5f;
+    } else if(state == PUNCHED_THROUGH) {
+        NSLog(@"Punched through successfully");
+        _connectionStrength.progress = 1.0f;
+    } else {
+        NSLog(@"Unsupported punchthrough state received");
+    }
+}
+
 -(void)onSocialDataLoaded:(SocialState*)state {
     [state unregisterNotifier];
     dispatch_async(dispatch_get_main_queue(), ^{
@@ -69,7 +82,7 @@
 -(void)onDataLoaded:(GpsState*)state {
     QuarkLogin* loginProvider = [[QuarkLogin alloc] initWithGpsState:state];
     
-    _connectionCommander = [[ConnectionCommander alloc] initWithRecvDelegate:self connectionStatusDelegate:self slowNetworkDelegate:self governorSetupDelegate:self loginProvider:loginProvider];
+    _connectionCommander = [[ConnectionCommander alloc] initWithRecvDelegate:self connectionStatusDelegate:self slowNetworkDelegate:self governorSetupDelegate:self loginProvider:loginProvider punchthroughNotifier:self];
     
     [self onLocalConnectButtonClick:0];
 }

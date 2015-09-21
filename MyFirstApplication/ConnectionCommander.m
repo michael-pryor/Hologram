@@ -22,13 +22,16 @@
     
     id<ConnectionGovernor> _governor;
     id<LoginProvider> _loginProvider;
+    id<NatPunchthroughNotifier> _natPunchthroughNotifier;
     
     NSString* _tcpHost;
     ushort _tcpPort;
 }
 
-- (id)initWithRecvDelegate:(id<NewPacketDelegate>)recvDelegate connectionStatusDelegate:(id<ConnectionStatusDelegateProtocol>)connectionStatusDelegate slowNetworkDelegate:(id<SlowNetworkDelegate>)slowNetworkDelegate governorSetupDelegate:(id<GovernorSetupProtocol>)governorSetupDelegate loginProvider:(id<LoginProvider>)loginProvider {
+- (id)initWithRecvDelegate:(id<NewPacketDelegate>)recvDelegate connectionStatusDelegate:(id<ConnectionStatusDelegateProtocol>)connectionStatusDelegate slowNetworkDelegate:(id<SlowNetworkDelegate>)slowNetworkDelegate governorSetupDelegate:(id<GovernorSetupProtocol>)governorSetupDelegate loginProvider:(id<LoginProvider>)loginProvider punchthroughNotifier:(id<NatPunchthroughNotifier>)notifier {
     if (self) {
+        _natPunchthroughNotifier = notifier;
+        
         _recvDelegate = recvDelegate;
         _connectionStatusDelegate = connectionStatusDelegate;
         _slowNetworkDelegate = slowNetworkDelegate;
@@ -49,7 +52,11 @@
     [self shutdown];
     _tcpHost = tcpHost;
     _tcpPort = tcpPort;
-    [_commander connectToHost:tcpHost andPort:tcpPort];
+    [self _reconnect];
+}
+
+- (void)_reconnect {
+    [_commander connectToHost:_tcpHost andPort:_tcpPort];
 }
 
 // Commander packets.
@@ -66,7 +73,7 @@
         NSString* governorAddressConverted = [NetworkUtility convertPreparedHostName:governorAddress];
         uint governorPortTcp = [packet getUnsignedInteger];
         uint governorPortUdp = [packet getUnsignedInteger];
-        _governor = [[ConnectionGovernorNatPunchthrough alloc] initWithRecvDelegate:_recvDelegate connectionStatusDelegate:_connectionStatusDelegate slowNetworkDelegate:_slowNetworkDelegate loginProvider:_loginProvider];
+        _governor = [[ConnectionGovernorNatPunchthrough alloc] initWithRecvDelegate:_recvDelegate connectionStatusDelegate:_connectionStatusDelegate slowNetworkDelegate:_slowNetworkDelegate loginProvider:_loginProvider punchthroughNotifier:_natPunchthroughNotifier];
         [_governor connectToTcpHost:governorAddressConverted tcpPort:governorPortTcp udpHost:governorAddressConverted udpPort:governorPortUdp];
         
         // Announce governor.
@@ -83,6 +90,13 @@
 - (void)shutdown {
     if(_governor != nil) {
         [_governor shutdown];
+    }
+    
+    // Reconnect after 2 seconds delay.
+    if(_tcpHost != nil) {
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            [self _reconnect];
+        });
     }
 }
 
@@ -102,12 +116,6 @@
     if(status == T_ERROR) {
         [self shutdown];
         
-        // Reconnect after 2 seconds delay.
-        if(_tcpHost != nil) {
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                [self connectToTcpHost:_tcpHost tcpPort:_tcpPort];
-            });
-        }
         NSLog(@"Error in commander connection: %@", description);
     } else if(status == T_CONNECTING) {
         [_connectionStatusDelegate connectionStatusChange:P_CONNECTING withDescription:@"Commander is connecting"];

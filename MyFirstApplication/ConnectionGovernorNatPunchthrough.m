@@ -20,9 +20,12 @@
     Boolean _routeThroughPunchthroughAddress;
     Timer* _natPunchthroughDiscoveryTimer;
     ByteBuffer* _natPunchthroughDiscoveryPacket;
+    id<NatPunchthroughNotifier> _notifier;
 }
-- (id)initWithRecvDelegate:(id<NewPacketDelegate>)recvDelegate connectionStatusDelegate:(id<ConnectionStatusDelegateProtocol>)connectionStatusDelegate slowNetworkDelegate:(id<SlowNetworkDelegate>)slowNetworkDelegate loginProvider:(id<LoginProvider>)loginProvider{
+- (id)initWithRecvDelegate:(id<NewPacketDelegate>)recvDelegate connectionStatusDelegate:(id<ConnectionStatusDelegateProtocol>)connectionStatusDelegate slowNetworkDelegate:(id<SlowNetworkDelegate>)slowNetworkDelegate loginProvider:(id<LoginProvider>)loginProvider punchthroughNotifier:(id<NatPunchthroughNotifier>)notifier{
     if(self) {
+        _notifier = notifier;
+        
         _recvDelegate = recvDelegate;
         _connectionGovernor = [[ConnectionGovernorProtocol alloc] initWithRecvDelegate:self unknownRecvDelegate:self connectionStatusDelegate:connectionStatusDelegate slowNetworkDelegate:slowNetworkDelegate loginProvider:loginProvider];
         
@@ -80,6 +83,7 @@
     _routeThroughPunchthroughAddress = false;
     _punchthroughAddress = 0;
     _punchthroughPort = 0;
+    [_notifier onNatPunchthrough:self stateChange:ROUTED];
 }
 
 - (void)onNewPacket:(ByteBuffer*)packet fromProtocol:(ProtocolType)protocol {
@@ -98,6 +102,8 @@
             _punchthroughPort = [packet getUnsignedInteger];
             NSString* humanAddress = [NetworkUtility convertPreparedAddress:_punchthroughAddress port:_punchthroughPort];
             NSLog(@"Loaded punch through address: %d / %d - this is: %@", _punchthroughAddress, _punchthroughPort, humanAddress);
+            
+           [_notifier onNatPunchthrough:self stateChange:PUNCHED_THROUGH];
         } else if(prefix == NAT_PUNCHTHROUGH_DISCONNECT) {
             NSLog(@"Request to stop using NAT punchthrough received");
             [self clearNatPunchthrough];
