@@ -28,12 +28,17 @@
     bool _connected;
     IBOutlet UILabel *_frameRate;
     ByteBuffer* _skipPersonPacket;
+    ByteBuffer* _permDisconnectPacket;
     AlertViewController* _disconnectViewController;
     GpsState* _gpsState;
     IBOutlet UIProgressView *_connectionStrength;
+    Boolean _waitingForNewEndPoint;
+    bool _isConnectionActive;
 }
 
 - (void)_switchToFacebookLogonView {
+    [self doPermDisconnect];
+    
     // We are the entry point, so we push to the Facebook view controller.
     UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Storyboard" bundle:nil];
     FacebookLoginViewController* viewController = (FacebookLoginViewController*)[storyboard instantiateViewControllerWithIdentifier:@"FacebookView"];
@@ -56,6 +61,20 @@
     
     _skipPersonPacket = [[ByteBuffer alloc] init];
     [_skipPersonPacket addUnsignedInteger:SKIP_PERSON];
+    
+    _permDisconnectPacket = [[ByteBuffer alloc] init];
+    [_permDisconnectPacket addUnsignedInteger:DISCONNECT_PERM];
+    
+    _waitingForNewEndPoint = true;
+    _isConnectionActive = false;
+}
+
+- (void)doPermDisconnect {
+    if (_connection != nil && _isConnectionActive) {
+        [_connection sendTcpPacket:_permDisconnectPacket];
+    }
+    _isConnectionActive = false;
+    
 }
 
 - (void)onNatPunchthrough:(ConnectionGovernorNatPunchthrough*)connection stateChange:(NatState)state {
@@ -65,7 +84,10 @@
     } else if(state == PUNCHED_THROUGH) {
         NSLog(@"Punched through successfully");
         _connectionStrength.progress = 1.0f;
-    } else {
+    } else if(state == ADDRESS_RECEIVED) {
+        NSLog(@"New end point received");
+        _waitingForNewEndPoint = false;
+    }else {
         NSLog(@"Unsupported punchthrough state received");
     }
 }
@@ -102,6 +124,7 @@
     if (_connectionCommander != nil) {
         [_connectionCommander terminate];
     }
+    _isConnectionActive = false;
     
     SocialState *socialState = [SocialState getFacebookInstance];
     [socialState updateFacebook];
@@ -120,24 +143,19 @@
 }
 
 - (void)onNewImage: (UIImage*)image {
-    if(_disconnectViewController != nil && ![_disconnectViewController hideIfVisibleAndReady]) {
+    if(_disconnectViewController != nil) {
         return;
     }
-    _disconnectViewController = nil;
     
     [_cameraView performSelectorOnMainThread:@selector(setImage:) withObject: image waitUntilDone:YES];
     
-}
-
-- (BOOL) textFieldShouldReturn:(UITextField *)textField {
-    [textField resignFirstResponder];
-    return YES;
 }
 
 - (IBAction)onConnectButtonClick:(id)sender {
     static NSString *const CONNECT_IP = @"212.227.84.229"; // remote machine (paid hosting).
     static const int CONNECT_PORT_TCP = 12241;
     [_connectionCommander connectToTcpHost:CONNECT_IP tcpPort:CONNECT_PORT_TCP];
+    _isConnectionActive = true;
 }
 
 - (IBAction)showGestureForSwipeRecognizer:(UISwipeGestureRecognizer *)recognizer {
@@ -146,7 +164,6 @@
         [_connection sendTcpPacket:_skipPersonPacket];
         [self setDisconnectStateWithShortDescription:@"Skipped - finding new acquaintance" longDescription:@"Searching for somebody else suitable for you to talk with"];
     } else {
-        [_connectionCommander terminate];
         [self _switchToFacebookLogonView];
     }
 }
@@ -168,6 +185,7 @@
     static NSString *const CONNECT_IP = @"192.168.1.92"; // local arden crescent network.
     static const int CONNECT_PORT_TCP = 12241;
     [_connectionCommander connectToTcpHost:CONNECT_IP tcpPort:CONNECT_PORT_TCP];
+    _isConnectionActive = true;
 }
 
 - (void) _doConnectionStatusChange:(ConnectionStatusProtocol)status withDescription:(NSString *)description {
@@ -230,10 +248,15 @@
 
     if(!alreadyPresented) {
         [_disconnectViewController didMoveToParentViewController: self];
+        _waitingForNewEndPoint = true;
     }
 }
 
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
+    if(!_isConnectionActive) {
+        return;
+    }
+    
     if(protocol == TCP) {
         uint operation = [packet getUnsignedIntegerAtPosition:0];
         if(operation == DISCONNECT_TEMP) {
@@ -249,6 +272,19 @@
             [_mediaController onNewPacket:packet fromProtocol:protocol];
         }
     } else {
+        if(_disconnectViewController != nil) {
+            // Waiting for server to match us with somebody new.
+            if(_waitingForNewEndPoint) {
+                return;
+            }
+            
+            if(![_disconnectViewController hideIfVisibleAndReady]) {
+                return;
+            } else {
+                _disconnectViewController = nil;
+            }
+        }
+        
         if(_mediaController != nil) {
             [_mediaController onNewPacket:packet fromProtocol:protocol];
         }

@@ -25,12 +25,13 @@ class Client(object):
         OP_SLOW_DOWN_SEND_RATE = 1
         OP_NAT_PUNCHTHROUGH_ADDRESS = 2
         OP_NAT_PUNCHTHROUGH_CLIENT_DISCONNECT = 3
-        OP_SKIP_PERSON = 4
+        OP_SKIP_PERSON = 4  # Client tells server that they want to skip
         OP_RESET_SEND_RATE = 5
 
         OP_TEMP_DISCONNECT = 6
-        OP_PERM_DISCONNECT = 7
-        OP_SKIPPED_DISCONNECT = 8
+        OP_PERM_DISCONNECT = 7 # Indicate to client that its end point permanently disconnected (from server to client)
+                               # Or client sends this to server to say that it has moved to another screen and won't be coming back.
+        OP_SKIPPED_DISCONNECT = 8  # Indicate to client that they were skipped
 
         OP_PING = 10
 
@@ -84,6 +85,9 @@ class Client(object):
 
         self.timeout_check = task.LoopingCall(timeoutCheck)
         self.timeout_check.start(2.0)
+
+
+        self.house_match_timer = None
 
         logger.info("New client connected, awaiting logon message")
 
@@ -208,6 +212,10 @@ class Client(object):
             logger.debug("Forwarding slow down request to client [%s]" % endPoint)
             if endPoint is not None:
                 endPoint.tcp.sendByteBuffer(packet)
+        elif opCode == Client.TcpOperationCodes.OP_PERM_DISCONNECT:
+            logger.debug("Client [%s] has permanently disconnected with immediate impact" % self)
+            self.house.releaseRoom(self, self.house.disconnected_permanent)
+            self.closeConnection()
         else:
             logger.error("Unknown TCP packet received from client [%s]" % self)
 

@@ -150,7 +150,7 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="There should be more text in this because it is a more detailed description" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="6" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="hwp-rX-7Eo">
-                                <rect key="frame" x="16" y="368" width="288" height="171"/>
+                                <rect key="frame" x="16" y="37" width="288" height="171"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                 <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                 <nil key="highlightedColor"/>
@@ -172,6 +172,9 @@
                                 <color key="backgroundColor" red="0.28947368421052633" green="0.77549342105263153" blue="0.0062705592105251938" alpha="1" colorSpace="calibratedRGB"/>
                                 <color key="tintColor" red="0.0" green="0.83660567429999999" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                             </view>
+                            <adBannerView opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="hSC-qc-XE8">
+                                <rect key="frame" x="0.0" y="518" width="320" height="50"/>
+                            </adBannerView>
                         </subviews>
                         <color key="backgroundColor" red="0.012875205592105263" green="0.82401315789473684" blue="0.69102076480263042" alpha="0.75" colorSpace="calibratedRGB"/>
                     </view>

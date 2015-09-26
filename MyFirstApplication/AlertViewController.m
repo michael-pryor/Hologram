@@ -8,11 +8,14 @@
 
 #import "AlertViewController.h"
 #import "Timer.h"
+@import iAd;
 
 @implementation AlertViewController {
     IBOutlet UILabel *_alertLongText;
     IBOutlet UILabel *_alertShortText;
     Timer *_timer;
+    ADInterstitialAd * _advertDisplay;
+    IBOutlet UIView *_advert;
 }
 
 - (void)setAlertShortText:(NSString*)shortText longText:(NSString*)longText {
@@ -28,7 +31,6 @@
 -(void)viewDidLoad {
     [super viewDidLoad];
     _timer = [[Timer alloc] initWithFrequencySeconds:2.0 firingInitially:false];
-
 }
 
 -(void)viewDidAppear:(BOOL)animated {
@@ -41,10 +43,12 @@
         return false;
     }
     
-    NSLog(@"Removing disconnect screen from parent");
-    [self willMoveToParentViewController:nil];
-    [self removeFromParentViewController];
-    [self.view removeFromSuperview];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        NSLog(@"Removing disconnect screen from parent");
+        [self willMoveToParentViewController:nil];
+        [self removeFromParentViewController];
+        [self.view removeFromSuperview];
+    });
     return true;
 }
 @end

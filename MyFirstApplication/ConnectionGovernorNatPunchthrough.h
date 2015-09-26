@@ -12,7 +12,10 @@
 
 typedef enum {
     PUNCHED_THROUGH, // Punched through, so packets are going direct to end point.
-    ROUTED // Not punched through; we are going via the central server (costing me money).
+    ROUTED, // Not punched through; we are going via the central server (costing me money).
+    ADDRESS_RECEIVED // Received the address of a client, to attempt NAT punchthrough discovery with.
+                     // Every time we interact with a new client, this will happen.
+                     // Useful to know when e.g. a skip request has completed.
 } NatState;
 
 @protocol NatPunchthroughNotifier;

@@ -6,6 +6,7 @@
 //
 //
 
+@import iAd;
 #import <Foundation/Foundation.h>
 #import <UIKit/UIViewController.h>
 

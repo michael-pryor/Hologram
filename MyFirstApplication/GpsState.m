@@ -19,6 +19,7 @@ GpsState * state;
     self = [super init];
     if(self) {
         _notifier = notifier;
+        _loaded = false;
     }
     return self;
 }
@@ -59,8 +60,9 @@ GpsState * state;
 
 - (void)locationManager:(CLLocationManager*)manager didFailWithError:(NSArray*)locations {
     NSLog(@"Error retrieving GPS location");
-    if(_notifier != nil) {
+    if(!_loaded && _notifier != nil) {
         [_notifier onFailure:self withDescription:@"Failed to load GPS position"];
     }
+    [_locationManager startUpdatingLocation];
 }
 @end

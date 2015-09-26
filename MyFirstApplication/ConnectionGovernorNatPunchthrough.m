@@ -103,7 +103,7 @@
             NSString* humanAddress = [NetworkUtility convertPreparedAddress:_punchthroughAddress port:_punchthroughPort];
             NSLog(@"Loaded punch through address: %d / %d - this is: %@", _punchthroughAddress, _punchthroughPort, humanAddress);
             
-           [_notifier onNatPunchthrough:self stateChange:PUNCHED_THROUGH];
+           [_notifier onNatPunchthrough:self stateChange:ADDRESS_RECEIVED];
         } else if(prefix == NAT_PUNCHTHROUGH_DISCONNECT) {
             NSLog(@"Request to stop using NAT punchthrough received");
             [self clearNatPunchthrough];
@@ -123,7 +123,10 @@
 
 - (void)onNewPacket:(ByteBuffer*)packet fromProtocol:(ProtocolType)protocol fromAddress:(uint)address andPort:(ushort)port {
     if([self isNatPunchthroughAddressLoaded] && address == _punchthroughAddress && port == _punchthroughPort) {
-        _routeThroughPunchthroughAddress = true;
+        if(!_routeThroughPunchthroughAddress) {
+            [_notifier onNatPunchthrough:self stateChange:PUNCHED_THROUGH];
+            _routeThroughPunchthroughAddress = true;
+        }
         unsigned int prefix = [packet getUnsignedIntegerAtPosition:0];
         if(prefix == NAT_PUNCHTHROUGH_DISCOVERY) {
             NSString* addressConverted = [NetworkUtility convertPreparedAddress:address port:port];

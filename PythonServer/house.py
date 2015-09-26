@@ -5,6 +5,7 @@ from utility import htons, inet_addr
 from threading import RLock
 import logging
 from database import Database
+from utility import getRemainingTimeOnAction, getEpoch
 
 logger = logging.getLogger(__name__)
 
@@ -158,23 +159,30 @@ class House:
 
         self.house_lock.acquire()
         try:
-            databaseResultMatch = self.database.findMatch(client)
-            if databaseResultMatch is None:
-                onFailure()
-                return
+            # Each client runs one query initially and then repeats
+            # every two seconds.
+            doQuery = client.house_match_timer is None or getEpoch() - client.house_match_timer > 2
 
-            key = databaseResultMatch['_id']
-            clientMatch = self.waiting_clients_by_key.get(key)
-            if clientMatch is None:
-                self.database.removeMatchById(key)
-                logger.warn("Client in DB not found in waiting list, database inconsistency detected")
-                onFailure()
-                return
+            if doQuery:
+                client.house_match_timer = getEpoch()
 
-            self.takeRoom(client, clientMatch)
+                databaseResultMatch = self.database.findMatch(client)
+                if databaseResultMatch is None:
+                    onFailure()
+                    return
 
-            # Return match if one found, or None if not.
-            return clientMatch
+                key = databaseResultMatch['_id']
+                clientMatch = self.waiting_clients_by_key.get(key)
+                if clientMatch is None:
+                    self.database.removeMatchById(key)
+                    logger.warn("Client in DB not found in waiting list, database inconsistency detected")
+                    onFailure()
+                    return
+
+                self.takeRoom(client, clientMatch)
+
+                # Return match if one found, or None if not.
+                return clientMatch
         finally:
             self.house_lock.release()
 
