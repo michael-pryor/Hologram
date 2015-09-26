@@ -41,7 +41,7 @@ class ClientTcp(IntNStringReceiver):
             pass
 
     def stringReceived(self, data):
-        logger.info("Client received TCP packet, length: %d, from: [%s]" % (len(data), self))
+        # logger.info("Client received TCP packet, length: %d, from: [%s]" % (len(data), self))
         byteBuffer = ByteBuffer.buildFromIterable(data)
         try:
             if self.parent is not None:

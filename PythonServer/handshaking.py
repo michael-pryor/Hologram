@@ -28,7 +28,7 @@ class UdpConnectionLink(object):
 
 
 class UdpConnectionLinker(object):
-    DELAY = 10
+    DELAY = 20
 
     def __init__(self, clientsByUdpHash):
         super(UdpConnectionLinker, self).__init__()

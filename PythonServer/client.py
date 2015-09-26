@@ -81,7 +81,8 @@ class Client(object):
                     logger.warn("Dropping client [%s] which has been inactive for %.2f seconds" % (self, timeDiff))
                     self.closeConnection()
                 else:
-                    logger.debug("Client [%s] last pinged %.2f seconds ago" % (self, timeDiff))
+                    pass
+                    # logger.debug("Client [%s] last pinged %.2f seconds ago" % (self, timeDiff))
 
         self.timeout_check = task.LoopingCall(timeoutCheck)
         self.timeout_check.start(2.0)
@@ -198,7 +199,7 @@ class Client(object):
 
     def onFriendlyPacketTcp(self, packet):
         assert isinstance(packet, ByteBuffer)
-        logger.info("Received a friendly TCP packet with length: %d" % packet.used_size)
+        # logger.info("Received a friendly TCP packet with length: %d" % packet.used_size)
 
         opCode = packet.getUnsignedInteger()
         if opCode == Client.TcpOperationCodes.OP_PING:

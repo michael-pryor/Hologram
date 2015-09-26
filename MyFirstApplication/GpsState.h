@@ -12,8 +12,8 @@
 @class GpsState;
 
 @protocol GpsStateDataLoadNotification<NSObject>
--(void)onDataLoaded:(GpsState*)state;
--(void)onFailure:(GpsState*)state withDescription:(NSString*)description;
+-(void)onGpsDataLoaded:(GpsState*)state;
+-(void)onGpsDataLoadFailure:(GpsState*)state withDescription:(NSString*)description;
 @end
 
 @interface GpsState : NSObject<CLLocationManagerDelegate>

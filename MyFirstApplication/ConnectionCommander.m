@@ -19,8 +19,7 @@
     id<GovernorSetupProtocol> _governorSetupDelegate;
     ConnectionManagerTcp* _commander;
     OutputSessionTcp* _commanderOutput;
-    
-    id<ConnectionGovernor> _governor;
+
     id<LoginProvider> _loginProvider;
     id<NatPunchthroughNotifier> _natPunchthroughNotifier;
     
@@ -41,7 +40,6 @@
         
         _commander = [[ConnectionManagerTcp alloc] initWithConnectionStatusDelegate:self inputSession:[[InputSessionTcp alloc] initWithDelegate:self] outputSession:_commanderOutput];
         
-        _governor = nil;
         _loginProvider = loginProvider;
     }
     return self;
@@ -63,21 +61,17 @@
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
     uint commanderOperation = [packet getUnsignedInteger];
     if(commanderOperation == COMMANDER_SUCCESS) {
-        // Cleanup old governor.
-        if(_governor != nil) {
-            [_governor terminate];
-        }
-        
         // Prepare new governor.
         uint governorAddress = [packet getUnsignedInteger];
         NSString* governorAddressConverted = [NetworkUtility convertPreparedHostName:governorAddress];
         uint governorPortTcp = [packet getUnsignedInteger];
         uint governorPortUdp = [packet getUnsignedInteger];
-        _governor = [[ConnectionGovernorNatPunchthrough alloc] initWithRecvDelegate:_recvDelegate connectionStatusDelegate:_connectionStatusDelegate slowNetworkDelegate:_slowNetworkDelegate loginProvider:_loginProvider punchthroughNotifier:_natPunchthroughNotifier];
-        [_governor connectToTcpHost:governorAddressConverted tcpPort:governorPortTcp udpHost:governorAddressConverted udpPort:governorPortUdp];
+        id<ConnectionGovernor> governor = [[ConnectionGovernorNatPunchthrough alloc] initWithRecvDelegate:_recvDelegate connectionStatusDelegate:_connectionStatusDelegate slowNetworkDelegate:_slowNetworkDelegate loginProvider:_loginProvider punchthroughNotifier:_natPunchthroughNotifier];
+        [governor connectToTcpHost:governorAddressConverted tcpPort:governorPortTcp udpHost:governorAddressConverted udpPort:governorPortUdp];
         
         // Announce governor.
-        [_governorSetupDelegate onNewGovernor:_governor];
+        [_governorSetupDelegate onNewGovernor:governor];
+        [self terminate];
     } else if(commanderOperation == COMMANDER_FAILURE) {
         NSString* fault = [packet getString];
         NSLog(@"Failed to retrieve governor server: %@", fault);
@@ -88,9 +82,7 @@
 }
 
 - (void)shutdown {
-    if(_governor != nil) {
-        [_governor shutdown];
-    }
+    [_commander shutdown];
     
     // Reconnect after 2 seconds delay.
     if(_tcpHost != nil) {
@@ -101,9 +93,11 @@
 }
 
 - (void)terminate {
-    if(_governor != nil) {
-        [_governor terminate];
-    }
+    [_commander shutdown];
+}
+
+- (Boolean)isTerminated {
+    return false;
 }
 
 - (void)shutdownWithDescription:(NSString*)description {

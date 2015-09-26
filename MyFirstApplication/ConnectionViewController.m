@@ -20,42 +20,33 @@
 @import AVFoundation;
 
 @implementation ConnectionViewController {
+    // Connection
     id<ConnectionGovernor> _connection;
     ConnectionCommander* _connectionCommander;
-    IBOutlet UIImageView *_cameraView;
-    AVCaptureSession *session;
+    
+    // Audio/Video
     MediaController *_mediaController;
-    bool _connected;
+    
+    // GPS
+    GpsState* _gpsState;
+    
+    // UI
+    AlertViewController* _disconnectViewController;
+    IBOutlet UIImageView *_cameraView;
     IBOutlet UILabel *_frameRate;
+    IBOutlet UIProgressView *_connectionStrength;
+    
+    // State
+    bool _waitingForNewEndPoint;
+    bool _isConnectionActive;
+    
+    // Packets
     ByteBuffer* _skipPersonPacket;
     ByteBuffer* _permDisconnectPacket;
-    AlertViewController* _disconnectViewController;
-    GpsState* _gpsState;
-    IBOutlet UIProgressView *_connectionStrength;
-    Boolean _waitingForNewEndPoint;
-    bool _isConnectionActive;
 }
 
-- (void)_switchToFacebookLogonView {
-    [self doPermDisconnect];
-    
-    // We are the entry point, so we push to the Facebook view controller.
-    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Storyboard" bundle:nil];
-    FacebookLoginViewController* viewController = (FacebookLoginViewController*)[storyboard instantiateViewControllerWithIdentifier:@"FacebookView"];
-    UINavigationController* test = self.navigationController;
-    [test pushViewController:viewController animated:YES];
-}
-
-
-
-- (IBAction)onFacebookButtonPress:(id)sender {
-    [self _switchToFacebookLogonView];
-}
-
-- (NSUInteger)supportedInterfaceOrientations {
-    return UIInterfaceOrientationMaskPortrait;
-}
-
+// View initially load; happens once per process.
+// Essentially this is the constructor.
 -(void)viewDidLoad {
     [super viewDidLoad];
     
@@ -69,16 +60,116 @@
     _isConnectionActive = false;
     
     _gpsState = [[GpsState alloc] initWithNotifier:self];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(appWillResignActive:) name:UIApplicationWillResignActiveNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(appWillRetakeActive:) name:UIApplicationDidBecomeActiveNotification object:nil];
 }
 
-- (void)doPermDisconnect {
+// View appears; happens if user switches app or moves from a different view controller.
+//
+// Update state; if facebook information not loaded, move to facebook view controller.
+// Start by loading facebook information, then do GPS and then start connection to commander.
+-(void)viewDidAppear:(BOOL)animated {
+    [super viewDidAppear: animated];
+    
+    SocialState *socialState = [SocialState getFacebookInstance];
+    [socialState updateFacebook];
+    if(![socialState isBasicDataLoaded]) {
+        [self switchToFacebookLogonView];
+        return;
+    }
+    if(![socialState isDataLoaded]) {
+        [socialState registerNotifier:self];
+        
+        [self setDisconnectStateWithShortDescription:@"Loading Facebook details" longDescription:@"Waiting for Facebook details to load"];
+        [socialState update];
+    } else {
+        [self onSocialDataLoaded:socialState];
+    }
+}
+
+// View disappears; happens if user switches app or moves from a different view controller.
+//
+// Notify server that we want to fully disconnect; server will close connection when it receives
+// notification. This prevents end point from thinking this could be a temporary disconnect.
+-(void)viewDidDisappear:(BOOL)animated {
     if (_connection != nil && _isConnectionActive) {
         [_connection sendTcpPacket:_permDisconnectPacket];
     }
     _isConnectionActive = false;
-    
 }
 
+-(void)appWillResignActive:(NSNotification*)note {
+    //[self viewDidDisappear:false];
+}
+
+-(void)appWillRetakeActive:(NSNotification*)note {
+    //[self viewDidAppear:false];
+}
+
+// Switch to the facebook logon view controller.
+- (void)switchToFacebookLogonView {
+    // We are the entry point, so we push to the Facebook view controller.
+    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Storyboard" bundle:nil];
+    FacebookLoginViewController* viewController = (FacebookLoginViewController*)[storyboard instantiateViewControllerWithIdentifier:@"FacebookView"];
+    UINavigationController* test = self.navigationController;
+    [test pushViewController:viewController animated:YES];
+}
+
+// Callback for social data (Facebook).
+// Triggers GPS loading.
+-(void)onSocialDataLoaded:(SocialState*)state {
+    [state unregisterNotifier];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [_gpsState update];
+        [self setDisconnectStateWithShortDescription:@"Loading GPS details" longDescription:@"Waiting for GPS information to load"];
+    });
+}
+
+// Callback for GPS data.
+// Starts connection.
+-(void)onGpsDataLoaded:(GpsState*)state {
+    QuarkLogin* loginProvider = [[QuarkLogin alloc] initWithGpsState:state];
+    
+    _connectionCommander = [[ConnectionCommander alloc] initWithRecvDelegate:self connectionStatusDelegate:self slowNetworkDelegate:self governorSetupDelegate:self loginProvider:loginProvider punchthroughNotifier:self];
+    
+    [self connectToCommander];
+}
+
+// Connect to the remote server.
+- (void)connectToRemoteCommander {
+    static NSString *const CONNECT_IP = @"212.227.84.229"; // remote machine (paid hosting).
+    static const int CONNECT_PORT_TCP = 12241;
+    [_connectionCommander connectToTcpHost:CONNECT_IP tcpPort:CONNECT_PORT_TCP];
+    _isConnectionActive = true;
+}
+
+// Connect to the local server (on same network).
+- (void)connectToLocalCommander {
+    static NSString *const CONNECT_IP = @"192.168.1.92"; // local arden crescent network.
+    static const int CONNECT_PORT_TCP = 12241;
+    [_connectionCommander connectToTcpHost:CONNECT_IP tcpPort:CONNECT_PORT_TCP];
+    _isConnectionActive = true;
+}
+
+-(void)connectToCommander {
+    [self connectToLocalCommander];
+}
+
+// On failure retrieving GPS failure, retry every 2 seconds.
+-(void)onGpsDataLoadFailure:(GpsState*)state withDescription:(NSString*)description {
+    [self setDisconnectStateWithShortDescription:@"Failed to load GPS details" longDescription:description];
+    
+    // Try again in 2 seconds time.
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        [state update];
+        [self setDisconnectStateWithShortDescription:@"Loading GPS details" longDescription:@"Waiting for GPS information to load"];
+    });
+}
+
+
+// Called when we receive a change in connection state regarding NAT punchthrough.
+// Important to update the display so that we know how we are connected.
 - (void)onNatPunchthrough:(ConnectionGovernorNatPunchthrough*)connection stateChange:(NatState)state {
     if(state == ROUTED) {
         NSLog(@"Regressed to routing mode");
@@ -94,55 +185,9 @@
     }
 }
 
--(void)onSocialDataLoaded:(SocialState*)state {
-    [state unregisterNotifier];
-    dispatch_async(dispatch_get_main_queue(), ^{
-        [_gpsState update];
-        [self setDisconnectStateWithShortDescription:@"Loading GPS details" longDescription:@"Waiting for GPS information to load"];
-    });
-}
 
--(void)onDataLoaded:(GpsState*)state {
-    QuarkLogin* loginProvider = [[QuarkLogin alloc] initWithGpsState:state];
-    
-    _connectionCommander = [[ConnectionCommander alloc] initWithRecvDelegate:self connectionStatusDelegate:self slowNetworkDelegate:self governorSetupDelegate:self loginProvider:loginProvider punchthroughNotifier:self];
-    
-    [self onLocalConnectButtonClick:0];
-}
--(void)onFailure:(GpsState*)state withDescription:(NSString*)description {
-    [self setDisconnectStateWithShortDescription:@"Failed to load GPS details" longDescription:description];
-    
-    // Try again in 2 seconds time.
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        [state update];
-        [self setDisconnectStateWithShortDescription:@"Loading GPS details" longDescription:@"Waiting for GPS information to load"];
-    });
-}
-
--(void)viewDidAppear:(BOOL)animated {
-    [super viewDidAppear: animated];
-    
-    if (_connectionCommander != nil) {
-        [_connectionCommander terminate];
-    }
-    _isConnectionActive = false;
-    
-    SocialState *socialState = [SocialState getFacebookInstance];
-    [socialState updateFacebook];
-    if(![socialState isBasicDataLoaded]) {
-        [self _switchToFacebookLogonView];
-        return;
-    }
-    if(![socialState isDataLoaded]) {
-        [socialState registerNotifier:self];
-        
-        [self setDisconnectStateWithShortDescription:@"Loading Facebook details" longDescription:@"Waiting for Facebook details to load"];
-        [socialState update];
-    } else {
-        [self onSocialDataLoaded:socialState];
-    }
-}
-
+// Received a new image from network.
+// Update the UI.
 - (void)onNewImage: (UIImage*)image {
     if(_disconnectViewController != nil) {
         return;
@@ -152,23 +197,19 @@
     
 }
 
-- (IBAction)onConnectButtonClick:(id)sender {
-    static NSString *const CONNECT_IP = @"212.227.84.229"; // remote machine (paid hosting).
-    static const int CONNECT_PORT_TCP = 12241;
-    [_connectionCommander connectToTcpHost:CONNECT_IP tcpPort:CONNECT_PORT_TCP];
-    _isConnectionActive = true;
-}
-
+// User swiped right -> skip person.
+// User swiped left <- goto facebook view controller.
 - (IBAction)showGestureForSwipeRecognizer:(UISwipeGestureRecognizer *)recognizer {
     if(recognizer.direction == UISwipeGestureRecognizerDirectionLeft) {
         NSLog(@"Sending skip request");
         [_connection sendTcpPacket:_skipPersonPacket];
         [self setDisconnectStateWithShortDescription:@"Skipped - finding new acquaintance" longDescription:@"Searching for somebody else suitable for you to talk with"];
     } else {
-        [self _switchToFacebookLogonView];
+        [self switchToFacebookLogonView];
     }
 }
 
+// Received server details from commander and have connected.
 - (void)onNewGovernor:(id<ConnectionGovernor>)governor {
     if(_connection != nil) {
         [_connection terminate];
@@ -182,14 +223,8 @@
     }
 }
 
-- (IBAction)onLocalConnectButtonClick:(id)sender {
-    static NSString *const CONNECT_IP = @"192.168.1.92"; // local arden crescent network.
-    static const int CONNECT_PORT_TCP = 12241;
-    [_connectionCommander connectToTcpHost:CONNECT_IP tcpPort:CONNECT_PORT_TCP];
-    _isConnectionActive = true;
-}
-
-- (void) _doConnectionStatusChange:(ConnectionStatusProtocol)status withDescription:(NSString *)description {
+// Handle change in connection state.
+- (void)connectionStatusChange:(ConnectionStatusProtocol)status withDescription:(NSString *)description {
     NSLog(@"Received status change: %u and description: %@", status, description);
     
     if(_mediaController != nil) {
@@ -198,40 +233,30 @@
     
     switch(status) {
         case P_CONNECTING:
-            _connected = false;
             [self setDisconnectStateWithShortDescription:@"Connecting" longDescription:description];
             break;
             
         case P_CONNECTED:
-            _connected = true;
             [self setDisconnectStateWithShortDescription:@"Finding acquaintance" longDescription:@"Searching for somebody suitable for you to talk with"];
             break;
         
         case P_NOT_CONNECTED:
-            _connected = false;
             [self setDisconnectStateWithShortDescription:@"Connection failure" longDescription:description];
+            break;
+            
+        case P_NOT_CONNECTED_HASH_REJECTED:
+            [self setDisconnectStateWithShortDescription:@"Connection failure - session expired" longDescription:description];
+            [self connectToCommander];
             break;
             
         default:
             NSLog(@"Bad connection state");
             [_connectionCommander shutdown];
-            _connected = false;
             break;
     }
 }
 
-- (void)connectionStatusChange:(ConnectionStatusProtocol)status withDescription:(NSString *)description {
-    // So that sockets/streams are owned by main thread.
-    if([NSThread isMainThread]) {
-        [self _doConnectionStatusChange:status withDescription:description];
-    } else {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            [self _doConnectionStatusChange:status withDescription:description];
-        });
-    }
-}
-
-
+// Display view overlay showing how connection is being recovered.
 -(void)setDisconnectStateWithShortDescription:(NSString*)shortDescription longDescription:(NSString*)longDescription{
     
     // Show the disconnect storyboard.
@@ -253,6 +278,7 @@
     }
 }
 
+// Handle data and pass to relevant parts of application.
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
     if(!_isConnectionActive) {
         return;
@@ -292,11 +318,13 @@
     }
 }
 
+// Notification that video frame rate has changed.
 - (void)onNewVideoFrameFrequency:(CFAbsoluteTime)secondsFrequency {
     CFAbsoluteTime frameRate = 1.0 / secondsFrequency;
     [_frameRate setText:[NSString stringWithFormat:@"%.2f", frameRate]];
 }
 
+// Received request to slow down video send rate.
 - (void)slowNetworkNotification {
     if(_mediaController != nil) {
         [_mediaController sendSlowdownRequest];

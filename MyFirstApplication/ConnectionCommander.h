@@ -21,4 +21,5 @@
 - (void)connectToTcpHost:(NSString*)tcpHost tcpPort:(ushort)tcpPort;
 - (void)shutdown;
 - (void)terminate;
+- (Boolean)isTerminated;
 @end

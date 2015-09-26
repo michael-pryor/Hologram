@@ -16,7 +16,8 @@ typedef enum {
     P_CONNECTING,
     P_WAITING_FOR_TCP_LOGON_ACK, // internal not reported to user.
     P_WAITING_FOR_UDP_HASH_ACK, // internal not reported to user.
-    P_NOT_CONNECTED
+    P_NOT_CONNECTED,
+    P_NOT_CONNECTED_HASH_REJECTED
 } ConnectionStatusProtocol;
 
 @protocol ConnectionGovernor<ConnectionManagerBase, NewPacketDelegate, ConnectionStatusDelegateTcp, ConnectionStatusDelegateUdp>
@@ -28,6 +29,7 @@ typedef enum {
 - (Boolean)isConnected;
 - (void)shutdown;
 - (void)terminate;
+- (Boolean)isTerminated;
 @end
 
 @interface ConnectionGovernorProtocolTcpSession : NSObject<NewPacketDelegate>

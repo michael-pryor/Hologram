@@ -41,7 +41,7 @@ GpsState * state;
     } else {
         if(_loaded) {
             if(_notifier != nil) {
-                [_notifier onDataLoaded:self];
+                [_notifier onGpsDataLoaded:self];
             }
         }
     }
@@ -62,7 +62,7 @@ GpsState * state;
     if(!_loaded) {
         _loaded = true;
         if(_notifier != nil) {
-            [_notifier onDataLoaded:self];
+            [_notifier onGpsDataLoaded:self];
         }
     }
 }
@@ -72,11 +72,11 @@ GpsState * state;
     if(_notifier != nil) {
         if(!_loaded) {
             NSLog(@"Total failure to retrieve GPS");
-            [_notifier onFailure:self withDescription:@"Failed to load GPS position"];
+            [_notifier onGpsDataLoadFailure:self withDescription:@"Failed to load GPS position"];
         } else {
             NSLog(@"Reusing old GPS location");
             // Use last retrieved location.
-            [_notifier onDataLoaded:self];
+            [_notifier onGpsDataLoaded:self];
         }
     }
 }

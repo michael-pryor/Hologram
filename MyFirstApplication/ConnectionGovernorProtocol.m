@@ -170,16 +170,28 @@ uint NUM_SOCKETS = 1;
 }
 
 - (void) shutdownWithDescription:(NSString*)description {
-    if([self updateConnectionStatus:P_NOT_CONNECTED withDescription:description]) {
+    [self shutdownWithConnectionStatus:P_NOT_CONNECTED withDescription:description];
+}
+
+- (void) shutdownWithConnectionStatus:(ConnectionStatusProtocol)connectionStatus withDescription:(NSString*)description {
+    if([self updateConnectionStatus:connectionStatus withDescription:description]) {
         [_tcpConnection shutdown];
         [_udpConnection shutdown];
     }
 }
-          
+
 - (void) terminate {
+    [self terminateWithConnectionStatus:P_NOT_CONNECTED withDescription:@"Disconnected"];
+}
+
+- (void) terminateWithConnectionStatus:(ConnectionStatusProtocol)connectionStatus withDescription:(NSString*)description {
     _alive = false;
-    [self shutdown];
+    [self shutdownWithConnectionStatus:connectionStatus withDescription:description];
     [_reconnectMonitor terminate];
+}
+
+- (Boolean)isTerminated {
+    return !_alive;
 }
 
 - (void) shutdown {
@@ -226,7 +238,7 @@ uint NUM_SOCKETS = 1;
 - (void)handleRejectCode:(uint)rejectCode {
     // Hash timed out, the next one will succeed if we clear it (server will give us a new one).
     if(rejectCode == REJECT_HASH_TIMEOUT) {
-        _udpHash = nil;
+        [self terminateWithConnectionStatus:P_NOT_CONNECTED_HASH_REJECTED withDescription:@"Session expired"];
     }
 }
 

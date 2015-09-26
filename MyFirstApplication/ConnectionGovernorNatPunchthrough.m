@@ -21,13 +21,15 @@
     Timer* _natPunchthroughDiscoveryTimer;
     ByteBuffer* _natPunchthroughDiscoveryPacket;
     id<NatPunchthroughNotifier> _notifier;
+    id<ConnectionStatusDelegateProtocol> _connectionStatusDelegate;
 }
 - (id)initWithRecvDelegate:(id<NewPacketDelegate>)recvDelegate connectionStatusDelegate:(id<ConnectionStatusDelegateProtocol>)connectionStatusDelegate slowNetworkDelegate:(id<SlowNetworkDelegate>)slowNetworkDelegate loginProvider:(id<LoginProvider>)loginProvider punchthroughNotifier:(id<NatPunchthroughNotifier>)notifier{
     if(self) {
         _notifier = notifier;
+        _connectionStatusDelegate = connectionStatusDelegate;
         
         _recvDelegate = recvDelegate;
-        _connectionGovernor = [[ConnectionGovernorProtocol alloc] initWithRecvDelegate:self unknownRecvDelegate:self connectionStatusDelegate:connectionStatusDelegate slowNetworkDelegate:slowNetworkDelegate loginProvider:loginProvider];
+        _connectionGovernor = [[ConnectionGovernorProtocol alloc] initWithRecvDelegate:self unknownRecvDelegate:self connectionStatusDelegate:self slowNetworkDelegate:slowNetworkDelegate loginProvider:loginProvider];
         
         [self clearNatPunchthrough];
         _natPunchthroughDiscoveryTimer = [[Timer alloc] initWithFrequencySeconds:0.5 firingInitially:true];
@@ -38,6 +40,14 @@
     return self;
 }
 
+- (void)connectionStatusChange:(ConnectionStatusProtocol)status withDescription: (NSString*)description {
+    if(status == P_NOT_CONNECTED || status == P_NOT_CONNECTED_HASH_REJECTED) {
+        NSLog(@"Disconnected; cleaing NAT punchthrough");
+        [self clearNatPunchthrough];
+    }
+    [_connectionStatusDelegate connectionStatusChange:status withDescription:description];
+}
+
 - (void)shutdown {
     [_connectionGovernor shutdown];
     [self clearNatPunchthrough];
@@ -45,6 +55,10 @@
 - (void)terminate {
     [_connectionGovernor terminate];
     [self clearNatPunchthrough];
+}
+
+- (Boolean)isTerminated {
+    return [_connectionGovernor isTerminated];
 }
 
 - (Boolean)isConnected {

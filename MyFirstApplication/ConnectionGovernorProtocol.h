@@ -30,4 +30,5 @@
 - (Boolean)isConnected;
 - (void)shutdown;
 - (void)terminate;
+- (Boolean)isTerminated;
 @end
