@@ -67,6 +67,8 @@
     
     _waitingForNewEndPoint = true;
     _isConnectionActive = false;
+    
+    _gpsState = [[GpsState alloc] initWithNotifier:self];
 }
 
 - (void)doPermDisconnect {
@@ -95,7 +97,6 @@
 -(void)onSocialDataLoaded:(SocialState*)state {
     [state unregisterNotifier];
     dispatch_async(dispatch_get_main_queue(), ^{
-        _gpsState = [[GpsState alloc] initWithNotifier:self];
         [_gpsState update];
         [self setDisconnectStateWithShortDescription:@"Loading GPS details" longDescription:@"Waiting for GPS information to load"];
     });

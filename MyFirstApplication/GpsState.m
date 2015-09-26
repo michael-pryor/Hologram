@@ -29,15 +29,22 @@ GpsState * state;
     // already have one.
     if (nil == _locationManager) {
         _locationManager = [[CLLocationManager alloc] init];
+        
+        _locationManager.delegate = self;
+        _locationManager.desiredAccuracy = kCLLocationAccuracyKilometer;
+    
+        // Set a movement threshold for new events.
+        _locationManager.distanceFilter = 500; // meters
+    
+        // Now we receive updates initially, and every time we change locaiton.
+        [_locationManager startUpdatingLocation];
+    } else {
+        if(_loaded) {
+            if(_notifier != nil) {
+                [_notifier onDataLoaded:self];
+            }
+        }
     }
-    
-    _locationManager.delegate = self;
-    _locationManager.desiredAccuracy = kCLLocationAccuracyKilometer;
-    
-    // Set a movement threshold for new events.
-    _locationManager.distanceFilter = 500; // meters
-    
-    [_locationManager startUpdatingLocation];
 }
 - (void)locationManager:(CLLocationManager*)manager didUpdateLocations:(NSArray*)locations {
     CLLocation* location = [locations lastObject];
@@ -52,17 +59,25 @@ GpsState * state;
     
     NSLog(@"Loaded GPS location (%.2f seconds old): %.2f,%.2f / %.2f with accuracy %.2f,%.2f - description: %@", age, _longitude, _latitude, altitude, horizontalAccuracy, verticalAccuracy, description);
     
-    _loaded = true;
-    if(_notifier != nil) {
-        [_notifier onDataLoaded:self];
+    if(!_loaded) {
+        _loaded = true;
+        if(_notifier != nil) {
+            [_notifier onDataLoaded:self];
+        }
     }
 }
 
 - (void)locationManager:(CLLocationManager*)manager didFailWithError:(NSArray*)locations {
     NSLog(@"Error retrieving GPS location");
-    if(!_loaded && _notifier != nil) {
-        [_notifier onFailure:self withDescription:@"Failed to load GPS position"];
+    if(_notifier != nil) {
+        if(!_loaded) {
+            NSLog(@"Total failure to retrieve GPS");
+            [_notifier onFailure:self withDescription:@"Failed to load GPS position"];
+        } else {
+            NSLog(@"Reusing old GPS location");
+            // Use last retrieved location.
+            [_notifier onDataLoaded:self];
+        }
     }
-    [_locationManager startUpdatingLocation];
 }
 @end
