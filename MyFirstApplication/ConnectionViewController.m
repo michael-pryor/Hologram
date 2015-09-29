@@ -239,6 +239,10 @@
         case P_CONNECTED:
             [self setDisconnectStateWithShortDescription:@"Finding acquaintance" longDescription:@"Searching for somebody suitable for you to talk with"];
             break;
+            
+        case P_CONNECTED_TO_EXISTING:
+            [self setDisconnectStateWithShortDescription:@"Reconnected to previous session" longDescription:@"Hurray!"];
+            break;
         
         case P_NOT_CONNECTED:
             [self setDisconnectStateWithShortDescription:@"Connection failure" longDescription:description];

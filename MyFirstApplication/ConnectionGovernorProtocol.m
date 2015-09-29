@@ -44,6 +44,7 @@ uint NUM_SOCKETS = 1;
     
     NSThread* _pingThread;
     Boolean _alive;
+    Boolean _isNewSession;
 
     
     // Must be kept in sync with server.
@@ -154,13 +155,20 @@ uint NUM_SOCKETS = 1;
 }
 
 - (Boolean) updateConnectionStatus:(ConnectionStatusProtocol)connectionStatus withDescription:(NSString*)description {
-    if(connectionStatus == P_CONNECTED) {
+    ConnectionStatusProtocol auxStatus;
+    if (connectionStatus == P_CONNECTED_TO_EXISTING) {
+        auxStatus = P_CONNECTED;
+    } else {
+        auxStatus = connectionStatus;
+    }
+    
+    if(auxStatus == P_CONNECTED) {
         [_failureTracker reset];
     }
     
     @synchronized(_connectionStatusLock) {
-        if(_connectionStatus != connectionStatus) {
-            _connectionStatus = connectionStatus;
+        if(_connectionStatus != auxStatus) {
+            _connectionStatus = auxStatus;
             [_connectionStatusDelegate connectionStatusChange:connectionStatus withDescription:description];
             return true;
         } else {
@@ -255,11 +263,15 @@ uint NUM_SOCKETS = 1;
                     NSString* rejectDescription = [@"Logon rejected with reason: " stringByAppendingString:rejectReason];
                     [self reconnectLimitedWithFailureDescription: rejectDescription];
                 } else if(logon == OP_ACCEPT_LOGON) {
-                    _udpHash = [packet getString];
-                    _udpHashPacket = [[ByteBuffer alloc] init];
-                
+
+                    
                     NSLog(@"Login accepted, sending UDP hash packet with hash: %@", _udpHash);
-                    [_udpHashPacket addString: _udpHash];
+                    _isNewSession = _udpHash == nil;
+                    if (_isNewSession) {
+                        _udpHash = [packet getString];
+                        _udpHashPacket = [[ByteBuffer alloc] init];
+                        [_udpHashPacket addString: _udpHash];
+                    }
 
                     _connectionStatus = P_WAITING_FOR_UDP_HASH_ACK;
                     [self sendUdpLogonHash:_udpHashPacket];
@@ -269,7 +281,11 @@ uint NUM_SOCKETS = 1;
             } else if(_connectionStatus == P_WAITING_FOR_UDP_HASH_ACK) {
                 if(logon == OP_ACCEPT_UDP) {
                     NSLog(@"UDP hash accepted, fully connected");
-                    [self updateConnectionStatus:P_CONNECTED withDescription:@"Connected!"];
+                    if(_isNewSession) {
+                        [self updateConnectionStatus:P_CONNECTED withDescription:@"Connected!"];
+                    } else {
+                        [self updateConnectionStatus:P_CONNECTED_TO_EXISTING withDescription:@"Connected!"];
+                    }
                 } else {
                     [self shutdownWithDescription:@"Invalid hash ack op code"];
                 }

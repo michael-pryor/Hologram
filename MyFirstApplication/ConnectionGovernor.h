@@ -17,7 +17,8 @@ typedef enum {
     P_WAITING_FOR_TCP_LOGON_ACK, // internal not reported to user.
     P_WAITING_FOR_UDP_HASH_ACK, // internal not reported to user.
     P_NOT_CONNECTED,
-    P_NOT_CONNECTED_HASH_REJECTED
+    P_NOT_CONNECTED_HASH_REJECTED,
+    P_CONNECTED_TO_EXISTING // Reconnected to same end point.
 } ConnectionStatusProtocol;
 
 @protocol ConnectionGovernor<ConnectionManagerBase, NewPacketDelegate, ConnectionStatusDelegateTcp, ConnectionStatusDelegateUdp>
