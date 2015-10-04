@@ -12,6 +12,7 @@
 
 @implementation FacebookLoginViewController {
     Boolean _initialized;
+    IBOutlet UISegmentedControl *_desiredGenderChooser;
 }
 
 - (NSUInteger)supportedInterfaceOrientations {
@@ -24,6 +25,7 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     
+    [FBSDKProfile enableUpdatesOnAccessTokenChange:true];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onProfileUpdated:) name:FBSDKProfileDidChangeNotification object:nil];
     self.loginButton.readPermissions = @[@"public_profile", @"email", @"user_birthday"];
 
@@ -32,6 +34,16 @@
         [self _onLogin];
     } else {
         [self _updateDisplay];
+    }
+}
+- (IBAction)onDesiredGenderChanged:(id)sender {
+    SocialState* state = [SocialState getFacebookInstance];
+    if([_desiredGenderChooser selectedSegmentIndex] == 0) {
+        [state setInterestedIn:@"male"];
+    } else if([_desiredGenderChooser selectedSegmentIndex] == 1) {
+        [state setInterestedIn:@"female"];
+    } else if([_desiredGenderChooser selectedSegmentIndex] == 2) {
+        [state setInterestedIn:nil];
     }
 }
 

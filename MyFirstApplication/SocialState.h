@@ -36,7 +36,6 @@
 @property (readonly) uint age;
 @property (readonly) uint genderI;
 @property (readonly) uint interestedInI;
-@property (readonly) NSString* interestedIn;
 
 -(void)reset;
 -(void)updateFacebook;
@@ -48,5 +47,7 @@
 -(void)unregisterNotifier;
 
 -(Boolean)isDataLoaded;
+
+-(void)setInterestedIn:(NSString*)interestedIn;
 @end
 

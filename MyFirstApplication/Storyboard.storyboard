@@ -34,20 +34,20 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view contentMode="scaleToFill" ambiguous="YES" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="vn7-7t-VXi" customClass="FBSDKLoginButton">
-                                <rect key="frame" x="16" y="467" width="288" height="88"/>
+                                <rect key="frame" x="16" y="515" width="288" height="45"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <connections>
                                     <outlet property="delegate" destination="HPd-0g-j2K" id="8aN-tL-cNW"/>
                                 </connections>
                             </view>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" ambiguous="YES" misplaced="YES" text="Label" textAlignment="center" lineBreakMode="wordWrap" numberOfLines="4" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="cSh-QE-Wji">
-                                <rect key="frame" x="0.0" y="314" width="320" height="76"/>
+                                <rect key="frame" x="-1" y="203" width="320" height="76"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                 <color key="textColor" red="0.5" green="0.0" blue="0.5" alpha="1" colorSpace="calibratedRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <view contentMode="scaleToFill" ambiguous="YES" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Tqe-eB-ZAO" customClass="FBSDKProfilePictureView">
-                                <rect key="frame" x="16" y="33" width="288" height="273"/>
+                                <rect key="frame" x="54" y="28" width="210" height="186"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                             </view>
                             <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="suW-MI-gIg">
@@ -59,6 +59,17 @@
                                     <action selector="onFinishedButtonClick:" destination="HPd-0g-j2K" eventType="touchUpInside" id="H6m-47-h07"/>
                                 </connections>
                             </button>
+                            <segmentedControl opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="OOB-gH-KCT">
+                                <rect key="frame" x="63" y="346" width="182" height="29"/>
+                                <segments>
+                                    <segment title="Men"/>
+                                    <segment title="Women"/>
+                                    <segment title="Both"/>
+                                </segments>
+                                <connections>
+                                    <action selector="onDesiredGenderChanged:" destination="HPd-0g-j2K" eventType="valueChanged" id="vpP-XO-3NL"/>
+                                </connections>
+                            </segmentedControl>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <constraints>
@@ -69,6 +80,7 @@
                     </view>
                     <navigationItem key="navigationItem" id="26w-at-jnP"/>
                     <connections>
+                        <outlet property="_desiredGenderChooser" destination="OOB-gH-KCT" id="qsG-k1-h1a"/>
                         <outlet property="buttonFinished" destination="suW-MI-gIg" id="cfR-ze-8VP"/>
                         <outlet property="displayName" destination="cSh-QE-Wji" id="rRq-yg-MED"/>
                         <outlet property="displayPicture" destination="Tqe-eB-ZAO" id="8Hu-Cb-xqY"/>

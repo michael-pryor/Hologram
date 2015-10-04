@@ -105,8 +105,6 @@ SocialState* instance;
     _genderI = 0;
     _gender = nil;
     _age = 0;
-    _interestedIn = nil;
-    _interestedInI = 0;
     _isBasicDataLoaded = false;
     _isGraphDataLoaded = false;
 }
@@ -174,10 +172,7 @@ SocialState* instance;
                  _gender = [result objectForKey:@"gender"];
                  _genderI = [self _parseGender:_gender];
                  
-                 _interestedIn = [result objectForKey:@"interested_in"];
-                 _interestedInI = [self _parseGender:_interestedIn];
-                 
-                 NSLog(@"Loaded DOB: [%@], gender: [%@], interested in: [%@] from Facebook graph API", _dob, _gender, _interestedIn);
+                 NSLog(@"Loaded DOB: [%@], gender: [%@] from Facebook graph API", _dob, _gender);
                  _isGraphDataLoaded = true;
                  if(_notifier != nil) {
                      [_notifier onSocialDataLoaded:self];
@@ -195,6 +190,10 @@ SocialState* instance;
 
 - (void)update {
     [self updateFacebook];
+}
+
+-(void)setInterestedIn:(NSString*)interestedIn {
+    _interestedInI = [self _parseGender:interestedIn];
 }
 
 @end
