@@ -21,5 +21,5 @@
 
 - (void)setOutputSession:(id <NewPacketDelegate>)output;
 
-- (void)start;
+- (void)initialize;
 @end

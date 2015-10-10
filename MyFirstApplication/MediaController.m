@@ -32,6 +32,8 @@
 
 
 @implementation MediaController {
+    Boolean _started;
+
     // Video
     VideoOutputController *_videoOutputController;
 
@@ -44,13 +46,12 @@
 
     // Both audio and video.
     DecodingPipe *_decodingPipe;
-
-    bool _connected;
 }
 
 - (id)initWithImageDelegate:(id <NewImageDelegate>)newImageDelegate videoSpeedNotifier:(id <VideoSpeedNotifier>)videoSpeedNotifier tcpNetworkOutputSession:(id <NewPacketDelegate>)tcpNetworkOutputSession udpNetworkOutputSession:(id <NewPacketDelegate>)udpNetworkOutputSession; {
     self = [super init];
     if (self) {
+        _started = false;
         _startStopTracker = [[TimedEventTracker alloc] initWithMaxEvents:8 timePeriod:5];
 
 
@@ -70,19 +71,40 @@
 
         _soundEncoder = [[SoundMicrophone alloc] initWithOutputSession:nil numBuffers:numBuffers leftPadding:sizeof(uint) secondPerBuffer:secondsPerBuffer];
         _soundPlayback = [[SoundPlayback alloc] initWithAudioDescription:[_soundEncoder getAudioDescription] secondsPerBuffer:secondsPerBuffer numBuffers:numBuffers restartPlaybackThreshold:6 maxPendingAmount:30 soundPlaybackDelegate:self];
-        _offlineAudioProcessor = [[OfflineAudioProcessor alloc] initWithOutputSession:_soundPlayback];
-
         [_decodingPipe addPrefix:AUDIO_ID mappingToOutputSession:_soundPlayback];
-        [_soundEncoder setOutputSession:_offlineAudioProcessor];
+        [_soundEncoder setOutputSession:_encodingPipeAudio];
 
-        NSLog(@"Initializing playback and recording...");
-        [_soundEncoder start];
-        [_soundPlayback start];
-        [_soundEncoder startCapturing];
-
-        _connected = false;
+        [_soundEncoder initialize];
+        [_soundPlayback initialize];
+        NSLog(@"Audio recording and playback initialized");
     }
     return self;
+}
+
+- (void)start {
+    if (_started) {
+        return;
+    }
+    _started = true;
+
+    NSLog(@"Starting video recording");
+    [_videoOutputController start];
+
+    NSLog(@"Starting audio playback and recording...");
+    [_soundEncoder startCapturing];
+}
+
+- (void)stop {
+    if (!_started) {
+        return;
+    }
+    _started = false;
+
+    NSLog(@"Stopping video recording");
+    [_videoOutputController stop];
+
+    NSLog(@"Starting audio playback and recording...");
+    [_soundEncoder stopCapturing];
 }
 
 - (void)setNetworkOutputSessionTcp:(id <NewPacketDelegate>)tcp Udp:(id <NewPacketDelegate>)udp {
@@ -109,15 +131,8 @@
     }
 }
 
-- (void)connectionStatusChange:(ConnectionStatusProtocol)status withDescription:(NSString *)description {
-    _connected = status == P_CONNECTED;
-
-    if (!_connected) {
-        [_videoOutputController resetSendRate];
-        [_soundEncoder setOutputSession:_offlineAudioProcessor];
-    } else {
-        [_soundEncoder setOutputSession:_encodingPipeAudio];
-    }
+- (void)resetSendRate {
+    [_videoOutputController resetSendRate];
 }
 
 - (void)sendSlowdownRequest {
@@ -137,5 +152,4 @@
         [self sendSlowdownRequest];
     }
 }
-
 @end

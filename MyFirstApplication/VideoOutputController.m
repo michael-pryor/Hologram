@@ -79,10 +79,18 @@
 
         _videoSpeedNotifier = videoSpeedNotifier;
 
-        NSLog(@"Starting recording...");
-        [_session startRunning];
     }
     return self;
+}
+
+- (void)start {
+    NSLog(@"Starting video recording...");
+    [_session startRunning];
+}
+
+- (void)stop {
+    NSLog(@"Stopped video recording...");
+    [_session stopRunning];
 }
 
 - (void)setNetworkOutputSessionTcp:(id <NewPacketDelegate>)tcp Udp:(id <NewPacketDelegate>)udp {

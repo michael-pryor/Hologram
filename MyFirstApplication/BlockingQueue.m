@@ -109,4 +109,10 @@
     [_queue removeAllObjects];
 }
 
+- (void)clear {
+    [_lock lock];
+    [_queue removeAllObjects];
+    [_lock unlock];
+}
+
 @end

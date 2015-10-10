@@ -58,6 +58,30 @@
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(appWillRetakeActive:) name:UIApplicationDidBecomeActiveNotification object:nil];
 }
 
+// View disappears; happens if user switches app or moves from a different view controller.
+- (void)viewDidDisappear:(BOOL)animated {
+    // Notify server that we want to fully disconnect; server will close connection when it receives
+    // notification. This prevents end point from thinking this could be a temporary disconnect.
+    if (_connection != nil && _isConnectionActive) {
+        [_connection disableReconnecting];
+        [_connection sendTcpPacket:_permDisconnectPacket];
+    }
+
+    // Don't push anything to the display, might get a few lingering packets received after this point.
+    _isConnectionActive = false;
+
+    // Terminate microphone and video.
+    [_mediaController stop];
+}
+
+- (void)appWillResignActive:(NSNotification *)note {
+    //[self viewDidDisappear:false];
+}
+
+- (void)appWillRetakeActive:(NSNotification *)note {
+    //[self viewDidAppear:false];
+}
+
 // View appears; happens if user switches app or moves from a different view controller.
 //
 // Update state; if facebook information not loaded, move to facebook view controller.
@@ -79,35 +103,6 @@
     } else {
         [self onSocialDataLoaded:socialState];
     }
-}
-
-// View disappears; happens if user switches app or moves from a different view controller.
-//
-// Notify server that we want to fully disconnect; server will close connection when it receives
-// notification. This prevents end point from thinking this could be a temporary disconnect.
-- (void)viewDidDisappear:(BOOL)animated {
-    if (_connection != nil && _isConnectionActive) {
-        [_connection disableReconnecting];
-        [_connection sendTcpPacket:_permDisconnectPacket];
-    }
-    _isConnectionActive = false;
-}
-
-- (void)appWillResignActive:(NSNotification *)note {
-    //[self viewDidDisappear:false];
-}
-
-- (void)appWillRetakeActive:(NSNotification *)note {
-    //[self viewDidAppear:false];
-}
-
-// Switch to the facebook logon view controller.
-- (void)switchToFacebookLogonView {
-    // We are the entry point, so we push to the Facebook view controller.
-    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Storyboard" bundle:nil];
-    FacebookLoginViewController *viewController = (FacebookLoginViewController *) [storyboard instantiateViewControllerWithIdentifier:@"FacebookView"];
-    UINavigationController *test = self.navigationController;
-    [test pushViewController:viewController animated:YES];
 }
 
 // Callback for social data (Facebook).
@@ -162,6 +157,15 @@
 }
 
 
+// Switch to the facebook logon view controller.
+- (void)switchToFacebookLogonView {
+    // We are the entry point, so we push to the Facebook view controller.
+    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Storyboard" bundle:nil];
+    FacebookLoginViewController *viewController = (FacebookLoginViewController *) [storyboard instantiateViewControllerWithIdentifier:@"FacebookView"];
+    UINavigationController *test = self.navigationController;
+    [test pushViewController:viewController animated:YES];
+}
+
 // Called when we receive a change in connection state regarding NAT punchthrough.
 // Important to update the display so that we know how we are connected.
 - (void)onNatPunchthrough:(ConnectionGovernorNatPunchthrough *)connection stateChange:(NatState)state {
@@ -188,7 +192,6 @@
     }
 
     [_cameraView performSelectorOnMainThread:@selector(setImage:) withObject:image waitUntilDone:YES];
-
 }
 
 // User swiped right -> skip person.
@@ -215,15 +218,12 @@
     } else {
         _mediaController = [[MediaController alloc] initWithImageDelegate:self videoSpeedNotifier:self tcpNetworkOutputSession:[_connection getTcpOutputSession] udpNetworkOutputSession:[_connection getUdpOutputSession]];
     }
+    [_mediaController start];
 }
 
 // Handle change in connection state.
 - (void)connectionStatusChange:(ConnectionStatusProtocol)status withDescription:(NSString *)description {
     NSLog(@"Received status change: %u and description: %@", status, description);
-
-    if (_mediaController != nil) {
-        [_mediaController connectionStatusChange:status withDescription:description];
-    }
 
     switch (status) {
         case P_CONNECTING:
@@ -232,6 +232,9 @@
 
         case P_CONNECTED:
             [self setDisconnectStateWithShortDescription:@"Finding acquaintance" longDescription:@"Searching for somebody suitable for you to talk with"];
+            if (_mediaController != nil) {
+                [_mediaController resetSendRate];
+            }
             break;
 
         case P_CONNECTED_TO_EXISTING:

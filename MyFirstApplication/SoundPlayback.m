@@ -23,7 +23,6 @@
     uint _numAudioBuffers;
     AudioQueueBufferRef *_audioBuffers;
     uint _bufferSizeBytes;
-    bool _readyToStart;
     uint _restartPlaybackNumBuffersThreshold;
     uint _maxQueueSize;
     Signal *_outputThreadStartupSignal;
@@ -38,7 +37,6 @@
             [NSException raise:@"Invalid input audio configuration" format:@"Restart playback threshold must be >= maximum queue size"];
         }
 
-        _readyToStart = false;
         _bufferSizeBytes = calculateBufferSize(description, seconds);
         _numAudioBuffers = numBuffers;
         _audioBuffers = malloc(sizeof(AudioQueueBufferRef) * _numAudioBuffers);
@@ -70,7 +68,7 @@
 - (void)shutdown {
     if (_queueSetup) {
         [self stopPlayback];
-        [_soundQueue shutdown];
+        [_soundQueue restartQueue];
         _queueSetup = false;
     }
 }
@@ -205,7 +203,7 @@ static void HandleOutputBuffer(void *aqData,
 }
 
 
-- (void)start {
+- (void)initialize {
     // Fill our buffers with some random data to get going!
     for (int n = 0; n < _numAudioBuffers; n++) {
         ByteBuffer *buf = [[ByteBuffer alloc] init];

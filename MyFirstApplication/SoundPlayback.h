@@ -24,5 +24,5 @@
 
 - (void)shutdown;
 
-- (void)start;
+- (void)initialize;
 @end

@@ -24,4 +24,6 @@
 - (void)shutdown;
 
 - (void)restartQueue;
+
+- (void)clear;
 @end

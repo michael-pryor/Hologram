@@ -73,6 +73,7 @@
 
     HandleResultOSStatus(result, @"Initializing audio input queue", true);
 
+    // Allocate.
     for (int i = 0; i < _numBuffers; ++i) {
         result = AudioQueueAllocateBuffer(_audioQueue,
                 _bufferSizeBytes,
@@ -81,13 +82,6 @@
 
         //ByteBuffer* byteBuffer = [[ByteBuffer alloc] initWithSize:bufferByteSize];
         //[_audioToByteBufferMap setObject:byteBuffer forKey: [NSNumber numberWithInteger:(long)mBuffers[i]]];
-
-        AudioQueueEnqueueBuffer(_audioQueue,
-                _audioBuffers[i],
-                0,
-                NULL);
-
-        HandleResultOSStatus(result, @"Enqueing initial audio input buffer", true);
     }
 
     _queueSetup = true;
@@ -98,8 +92,20 @@
     CFRunLoopRun();
 }
 
-- (void)start {
-    // Run send operations in a seperate run loop (and thread) because we wait for packets to
+- (void)enqueueBuffers {
+    // Enqueue.
+    for (int i = 0; i<_numBuffers; ++i) {
+        OSStatus osResult = AudioQueueEnqueueBuffer(_audioQueue,
+                _audioBuffers[i],
+                0,
+                NULL);
+
+        HandleResultOSStatus(osResult, @"Enqueing initial audio input buffer", true);
+    }
+}
+
+- (void)initialize {
+    // Run send operations in a separate run loop (and thread) because we wait for packets to
     // enter a queue and block indefinitely, which would block anything else in the run loop (e.g.
     // receive operations) if there were some.
     _inputThread = [[NSThread alloc] initWithTarget:self
@@ -120,16 +126,30 @@
 
 - (void)startCapturing {
     if (!_isRecording && _queueSetup) {
+        [self enqueueBuffers];
+
         OSStatus result = AudioQueueStart(_audioQueue, NULL);
         HandleResultOSStatus(result, @"Starting audio input queue", true);
         _isRecording = true;
     }
 }
 
-- (void)stopCapturing {
-    if (_isRecording && _queueSetup) {
+- (void)stopCapturingPermanently {
+    if (_queueSetup) {
         OSStatus result = AudioQueueStop(_audioQueue, TRUE);
         HandleResultOSStatus(result, @"Stopping audio input queue", true);
+        _isRecording = false;
+    }
+}
+
+- (void)stopCapturing {
+    if (_isRecording && _queueSetup) {
+        OSStatus result = AudioQueuePause(_audioQueue);
+        HandleResultOSStatus(result, @"Pausing audio input queue", true);
+
+        result = AudioQueueReset(_audioQueue);
+        HandleResultOSStatus(result, @"Resetting audio input queue", true);
+
         _isRecording = false;
     }
 }
@@ -155,6 +175,8 @@ static void HandleInputBuffer(void *aqData,
     SoundMicrophone *obj = (__bridge SoundMicrophone *) (aqData);
     uint leftPadding = [obj getLeftPadding];
     uint size = leftPadding + inBuffer->mAudioDataByteSize;
+
+    NSLog(@"AUDIO!!!");
 
     if (inBuffer->mAudioDataByteSize > 0) {
         //ByteBuffer* buff = [[obj getAudioToByteBufferMap] objectForKey:[NSNumber numberWithInteger:(long)inBuffer]];

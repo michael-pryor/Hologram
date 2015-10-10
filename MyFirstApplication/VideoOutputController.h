@@ -36,4 +36,8 @@
 - (void)sendSlowdownRequest;
 
 - (void)setNetworkOutputSessionTcp:(id <NewPacketDelegate>)tcp Udp:(id <NewPacketDelegate>)udp;
+
+- (void)start;
+
+- (void)stop;
 @end

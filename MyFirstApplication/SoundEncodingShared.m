@@ -27,7 +27,8 @@ bool HandleResultOSStatus(OSStatus errCode, NSString *performing, bool fatal) {
 
     NSLog(@"While %@ the following error occurred: %@", performing, errorMessage);
     if (fatal) {
-        exit(1);
+        return false;
+        //exit(1);
     } else {
         return true;
     }
