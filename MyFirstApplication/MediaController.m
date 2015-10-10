@@ -13,35 +13,19 @@
 #import "EncodingPipe.h"
 #import "DecodingPipe.h"
 #import "TimedEventTracker.h"
-
-@implementation OfflineAudioProcessor : PipelineProcessor
-- (id)initWithOutputSession:(id <NewPacketDelegate>)outputSession {
-    self = [super initWithOutputSession:outputSession];
-    if (self) {
-
-    }
-    return self;
-}
-
-- (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
-    // Skip the left padding, since we don't need this when not using networking.
-    [packet setCursorPosition:sizeof(uint)];
-    [_outputSession onNewPacket:packet fromProtocol:protocol];
-}
-@end
-
+#import "DelayedPipe.h"
 
 @implementation MediaController {
     Boolean _started;
 
     // Video
     VideoOutputController *_videoOutputController;
+    DelayedPipe *_delayedPipe;
 
     // Audio
     SoundMicrophone *_soundEncoder;
     SoundPlayback *_soundPlayback;
     EncodingPipe *_encodingPipeAudio;
-    OfflineAudioProcessor *_offlineAudioProcessor;
     TimedEventTracker *_startStopTracker;
 
     // Both audio and video.
@@ -54,20 +38,23 @@
         _started = false;
         _startStopTracker = [[TimedEventTracker alloc] initWithMaxEvents:8 timePeriod:5];
 
+        // Buffering estimations (introduce delay so that playback is smooth).
+        Float64 secondsPerBuffer = 0.1;
+        uint numBuffers = 6;
+
+        Float64 estimatedDelay = numBuffers * secondsPerBuffer;
 
         _decodingPipe = [[DecodingPipe alloc] init];
+        _delayedPipe = [[DelayedPipe alloc] initWithMinimumDelay:estimatedDelay outputSession:udpNetworkOutputSession];
 
-        _videoOutputController = [[VideoOutputController alloc] initWithTcpNetworkOutputSession:tcpNetworkOutputSession udpNetworkOutputSession:udpNetworkOutputSession imageDelegate:newImageDelegate videoSpeedNotifier:videoSpeedNotifier];
+        // Video.
+        _videoOutputController = [[VideoOutputController alloc] initWithTcpNetworkOutputSession:tcpNetworkOutputSession udpNetworkOutputSession:_delayedPipe imageDelegate:newImageDelegate videoSpeedNotifier:videoSpeedNotifier];
 
         [_decodingPipe addPrefix:VIDEO_ID mappingToOutputSession:_videoOutputController];
 
 
         // Audio.
         _encodingPipeAudio = [[EncodingPipe alloc] initWithOutputSession:udpNetworkOutputSession andPrefixId:AUDIO_ID];
-
-
-        Float64 secondsPerBuffer = 0.1;
-        uint numBuffers = 6;
 
         _soundEncoder = [[SoundMicrophone alloc] initWithOutputSession:nil numBuffers:numBuffers leftPadding:sizeof(uint) secondPerBuffer:secondsPerBuffer];
         _soundPlayback = [[SoundPlayback alloc] initWithAudioDescription:[_soundEncoder getAudioDescription] secondsPerBuffer:secondsPerBuffer numBuffers:numBuffers restartPlaybackThreshold:6 maxPendingAmount:30 soundPlaybackDelegate:self];
@@ -133,6 +120,9 @@
 
 - (void)resetSendRate {
     [_videoOutputController resetSendRate];
+
+    // This gets called when we move to another person, so discard any delayed video from previous person.
+    [_delayedPipe reset];
 }
 
 - (void)sendSlowdownRequest {

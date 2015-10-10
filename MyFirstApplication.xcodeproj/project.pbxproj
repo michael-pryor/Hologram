@@ -66,6 +66,7 @@
 		51FBE0441AF66AF3009115AE /* ActivityMonitor.m in Sources */ = {isa = PBXBuildFile; fileRef = 51FBE0431AF66AF3009115AE /* ActivityMonitor.m */; };
 		51FE7E0C1B3C85EF00FF27F3 /* ConnectionGovernorNatPunchthrough.m in Sources */ = {isa = PBXBuildFile; fileRef = 51FE7E0B1B3C85EF00FF27F3 /* ConnectionGovernorNatPunchthrough.m */; };
 		51FF00531B52E54100D6AF33 /* SocialState.m in Sources */ = {isa = PBXBuildFile; fileRef = 51FF00521B52E54100D6AF33 /* SocialState.m */; };
+		D5D6109C65D00FC0470BFE1E /* DelayedPipe.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61109DD409D89A9B6D01A /* DelayedPipe.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -182,6 +183,8 @@
 		51FE7E0B1B3C85EF00FF27F3 /* ConnectionGovernorNatPunchthrough.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ConnectionGovernorNatPunchthrough.m; sourceTree = "<group>"; };
 		51FF00511B52E54100D6AF33 /* SocialState.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SocialState.h; sourceTree = "<group>"; };
 		51FF00521B52E54100D6AF33 /* SocialState.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SocialState.m; sourceTree = "<group>"; };
+		D5D61109DD409D89A9B6D01A /* DelayedPipe.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DelayedPipe.m; sourceTree = "<group>"; };
+		D5D6153226E3E1A425BAF293 /* DelayedPipe.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DelayedPipe.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -236,6 +239,8 @@
 				51E5BE831ABD0450003E035C /* DecodingPipe.m */,
 				51197AFB1B134D72006A7AEE /* ThrottledPipe.h */,
 				51197AFC1B134D72006A7AEE /* ThrottledPipe.m */,
+				D5D61109DD409D89A9B6D01A /* DelayedPipe.m */,
+				D5D6153226E3E1A425BAF293 /* DelayedPipe.h */,
 			);
 			name = Pipeline;
 			sourceTree = "<group>";
@@ -615,6 +620,7 @@
 				519573041AEBEB26000247E1 /* EventTracker.m in Sources */,
 				51E5BE2E1936A982003E45C3 /* main.m in Sources */,
 				51197AFA1B132D6F006A7AEE /* Timer.m in Sources */,
+				D5D6109C65D00FC0470BFE1E /* DelayedPipe.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -176,8 +176,6 @@ static void HandleInputBuffer(void *aqData,
     uint leftPadding = [obj getLeftPadding];
     uint size = leftPadding + inBuffer->mAudioDataByteSize;
 
-    NSLog(@"AUDIO!!!");
-
     if (inBuffer->mAudioDataByteSize > 0) {
         //ByteBuffer* buff = [[obj getAudioToByteBufferMap] objectForKey:[NSNumber numberWithInteger:(long)inBuffer]];
         ByteBuffer *buff = [[ByteBuffer alloc] initWithSize:size];
