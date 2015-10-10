@@ -10,11 +10,11 @@
 #import "Timer.h"
 
 @implementation ThrottledBlock {
-    Timer* _timer;
+    Timer *_timer;
 }
 - (id)initWithDefaultOutputFrequency:(CFAbsoluteTime)defaultOutputFrequency firingInitially:(Boolean)firingInitially {
     self = [super init];
-    if(self) {
+    if (self) {
         _timer = [[Timer alloc] initWithFrequencySeconds:defaultOutputFrequency firingInitially:firingInitially];
     }
     return self;
@@ -23,11 +23,13 @@
 - (void)reset {
     [_timer resetFrequency];
 }
+
 - (void)slowRate {
     [_timer doubleFrequencyValue];
 }
+
 - (Boolean)runBlock:(void (^)(void))theBlock {
-    if([_timer getState]) {
+    if ([_timer getState]) {
         theBlock();
         return true;
     } else {

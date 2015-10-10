@@ -33,7 +33,7 @@ class Database(object):
         if loginDetails.gender == 0:
             loginDetails.gender = 1
         if loginDetails.interested_in == 0:
-            loginDetails.interested_in = 2
+            loginDetails.interested_in = 3
         genderWanted = loginDetails.interested_in
 
         if genderWanted == 3:
@@ -45,8 +45,10 @@ class Database(object):
 
         query.update({'server': self.server_name,
                       'gender_wanted' : {'$in' : [3, loginDetails.gender]},
-                      'age' : {'$gt': 0,
-                               '$lt': loginDetails.age+40},
+                      # Age over complicates things for now, because we need age selection on GUI.
+                      # If we get loads of users we can put this in.
+                      #'age' : {'$gt': 0,
+                      #         '$lt': loginDetails.age+40},
                       'location' :
                            {'$nearSphere' :
                                   {'$geometry' :

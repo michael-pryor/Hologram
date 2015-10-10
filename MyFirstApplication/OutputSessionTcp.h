@@ -9,10 +9,14 @@
 #import "ByteBuffer.h"
 #import "InputSessionBase.h"
 
-@interface OutputSessionTcp : NSObject<NewPacketDelegate>
-- (id) init;
-- (void) onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol;
-- (Boolean) doSendOperation;
-- (void) restartSession;
-- (void) loadOutputStream:(NSOutputStream*)stream;
+@interface OutputSessionTcp : NSObject <NewPacketDelegate>
+- (id)init;
+
+- (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol;
+
+- (Boolean)doSendOperation;
+
+- (void)restartSession;
+
+- (void)loadOutputStream:(NSOutputStream *)stream;
 @end

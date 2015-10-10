@@ -9,12 +9,19 @@
 #import <Foundation/Foundation.h>
 
 @interface BlockingQueue : NSObject
-- (id) init;
-- (id) initWithMaxQueueSize:(unsigned long)maxSize;
-- (void) add:(id)obj;
-- (id) get;
-- (unsigned long) getPendingAmount;
-- (id) getImmediate;
-- (void) shutdown;
-- (void) restartQueue;
+- (id)init;
+
+- (id)initWithMaxQueueSize:(unsigned long)maxSize;
+
+- (void)add:(id)obj;
+
+- (id)get;
+
+- (unsigned long)getPendingAmount;
+
+- (id)getImmediate;
+
+- (void)shutdown;
+
+- (void)restartQueue;
 @end

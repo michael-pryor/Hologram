@@ -19,15 +19,19 @@ typedef enum {
 } ConnectionStatusTcp;
 
 @protocol ConnectionStatusDelegateTcp
--(void)connectionStatusChangeTcp: (ConnectionStatusTcp) status withDescription: (NSString*) description;
+- (void)connectionStatusChangeTcp:(ConnectionStatusTcp)status withDescription:(NSString *)description;
 @end
 
-@interface ConnectionManagerTcp : NSObject<NSStreamDelegate, ConnectionManagerBase>
-@property (nonatomic, readonly) id connectionStatusDelegate;
-- (id) initWithConnectionStatusDelegate:(id<ConnectionStatusDelegateTcp>)connectionStatusDelegate inputSession:(InputSessionTcp*)inputSession outputSession:(OutputSessionTcp*)outputSession;
-- (void) connectToHost: (NSString*)host andPort: (ushort)port;
-- (void) shutdown;
-- (Boolean) isConnected;
+@interface ConnectionManagerTcp : NSObject <NSStreamDelegate, ConnectionManagerBase>
+@property(nonatomic, readonly) id connectionStatusDelegate;
+
+- (id)initWithConnectionStatusDelegate:(id <ConnectionStatusDelegateTcp>)connectionStatusDelegate inputSession:(InputSessionTcp *)inputSession outputSession:(OutputSessionTcp *)outputSession;
+
+- (void)connectToHost:(NSString *)host andPort:(ushort)port;
+
+- (void)shutdown;
+
+- (Boolean)isConnected;
 @end
 
 

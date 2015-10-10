@@ -14,13 +14,13 @@
 #import "TimedEventTracker.h"
 
 @implementation PacketToImageProcessor {
-    id<NewImageDelegate> _newImageDelegate;
-    VideoEncoding* _videoEncoder;
+    id <NewImageDelegate> _newImageDelegate;
+    VideoEncoding *_videoEncoder;
 }
 
-- (id)initWithImageDelegate:(id<NewImageDelegate>)newImageDelegate encoder:(VideoEncoding*)videoEncoder {
+- (id)initWithImageDelegate:(id <NewImageDelegate>)newImageDelegate encoder:(VideoEncoding *)videoEncoder {
     self = [super init];
-    if(self) {
+    if (self) {
         _newImageDelegate = newImageDelegate;
         _videoEncoder = videoEncoder;
     }
@@ -29,63 +29,63 @@
 
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
     UIImage *image = [_videoEncoder getImageFromByteBuffer:packet];
-    if(image == nil) {
+    if (image == nil) {
         return;
     }
-    
-    [_newImageDelegate onNewImage: image];
+
+    [_newImageDelegate onNewImage:image];
 }
 @end
 
 
 @implementation VideoOutputController {
-    AVCaptureSession* _session;                       // Link to video input hardware.
-    ThrottledBlock* _throttledBlock;                  // Control rate of video transmission over network.
-    BatcherOutput* _batcherOutput;                    // Split up image into multiple packets for network.
-    VideoEncoding* _videoEncoder;                     // Convert between network and image formats.
-    EncodingPipe* _encodingPipeVideo;                 // Add appropriate prefix for transport over network.
-    
-    BatcherInput* _batcherInput;                      // Join up networked packets into one image.
-    id<NewImageDelegate> _newImageDelegate;           // Push to users' screens.
-    
-    id<NewPacketDelegate> _tcpNetworkOutputSession;   // For requesting slow down in network usage.
-    
-    TimedEventTracker* _slowDownThreshold;            // Decides when to ask for less network traffic.
-    id<VideoSpeedNotifier> _videoSpeedNotifier;       // Notify of change in video frame rate.
-    
+    AVCaptureSession *_session;                       // Link to video input hardware.
+    ThrottledBlock *_throttledBlock;                  // Control rate of video transmission over network.
+    BatcherOutput *_batcherOutput;                    // Split up image into multiple packets for network.
+    VideoEncoding *_videoEncoder;                     // Convert between network and image formats.
+    EncodingPipe *_encodingPipeVideo;                 // Add appropriate prefix for transport over network.
+
+    BatcherInput *_batcherInput;                      // Join up networked packets into one image.
+    id <NewImageDelegate> _newImageDelegate;           // Push to users' screens.
+
+    id <NewPacketDelegate> _tcpNetworkOutputSession;   // For requesting slow down in network usage.
+
+    TimedEventTracker *_slowDownThreshold;            // Decides when to ask for less network traffic.
+    id <VideoSpeedNotifier> _videoSpeedNotifier;       // Notify of change in video frame rate.
+
 }
-- (id)initWithTcpNetworkOutputSession:(id<NewPacketDelegate>)tcpNetworkOutputSession udpNetworkOutputSession:(id<NewPacketDelegate>)udpNetworkOutputSession imageDelegate:(id<NewImageDelegate>)newImageDelegate videoSpeedNotifier:(id<VideoSpeedNotifier>)videoSpeedNotifier {
+- (id)initWithTcpNetworkOutputSession:(id <NewPacketDelegate>)tcpNetworkOutputSession udpNetworkOutputSession:(id <NewPacketDelegate>)udpNetworkOutputSession imageDelegate:(id <NewImageDelegate>)newImageDelegate videoSpeedNotifier:(id <VideoSpeedNotifier>)videoSpeedNotifier {
     self = [super init];
-    if(self) {
+    if (self) {
         _newImageDelegate = newImageDelegate;
         _tcpNetworkOutputSession = tcpNetworkOutputSession;
-        
+
         _videoEncoder = [[VideoEncoding alloc] init];
-        
+
         _throttledBlock = [[ThrottledBlock alloc] initWithDefaultOutputFrequency:0.1 firingInitially:true];
-        
-        PacketToImageProcessor * p = [[PacketToImageProcessor alloc] initWithImageDelegate:newImageDelegate encoder:_videoEncoder];
-        
+
+        PacketToImageProcessor *p = [[PacketToImageProcessor alloc] initWithImageDelegate:newImageDelegate encoder:_videoEncoder];
+
         _encodingPipeVideo = [[EncodingPipe alloc] initWithOutputSession:udpNetworkOutputSession andPrefixId:VIDEO_ID];
-        
+
         _batcherOutput = [[BatcherOutput alloc] initWithOutputSession:_encodingPipeVideo andChunkSize:[_videoEncoder suggestedBatchSize] withLeftPadding:sizeof(uint) includeTotalChunks:true];
-        
+
         _batcherInput = [[BatcherInput alloc] initWithOutputSession:p chunkSize:[_videoEncoder suggestedBatchSize] numChunks:0 andNumChunksThreshold:1 andTimeoutMs:1000 andPerformanceInformaitonDelegate:self];
-        
-        _session = [_videoEncoder setupCaptureSessionWithDelegate: self];
-        
+
+        _session = [_videoEncoder setupCaptureSessionWithDelegate:self];
+
         // 5 second of bad data.
         _slowDownThreshold = [[TimedEventTracker alloc] initWithMaxEvents:10 timePeriod:1];
-        
+
         _videoSpeedNotifier = videoSpeedNotifier;
-        
+
         NSLog(@"Starting recording...");
         [_session startRunning];
     }
     return self;
 }
 
-- (void)setNetworkOutputSessionTcp:(id<NewPacketDelegate>)tcp Udp:(id<NewPacketDelegate>)udp {
+- (void)setNetworkOutputSessionTcp:(id <NewPacketDelegate>)tcp Udp:(id <NewPacketDelegate>)udp {
     NSLog(@"Updating video tcp and udp network output sessions");
     _tcpNetworkOutputSession = tcp;
     [_encodingPipeVideo setOutputSession:udp];
@@ -93,27 +93,27 @@
 
 // Handle data from camera device and push out to network.
 - (void)captureOutput:(AVCaptureOutput *)captureOutput didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection {
-    [_throttledBlock runBlock:^ {
+    [_throttledBlock runBlock:^{
         // Send image as packet.
-        ByteBuffer* rawBuffer = [[ByteBuffer alloc] init];
-        
+        ByteBuffer *rawBuffer = [[ByteBuffer alloc] init];
+
         [_videoEncoder addImage:sampleBuffer toByteBuffer:rawBuffer];
         rawBuffer.cursorPosition = 0;
-        
+
         [_batcherOutput onNewPacket:rawBuffer fromProtocol:UDP];
     }];
 }
 
 // Handle degrading network performance.
 - (void)onNewPerformanceNotification:(float)percentageFilled {
-    if(percentageFilled < 100.0 && [_slowDownThreshold increment]) {
+    if (percentageFilled < 100.0 && [_slowDownThreshold increment]) {
         [self sendSlowdownRequest];
     }
 }
 
 - (void)sendSlowdownRequest {
     NSLog(@"Requesting slow down in video");
-    ByteBuffer* buffer = [[ByteBuffer alloc] init];
+    ByteBuffer *buffer = [[ByteBuffer alloc] init];
     [buffer addUnsignedInteger:SLOW_DOWN_VIDEO];
     [_tcpNetworkOutputSession onNewPacket:buffer fromProtocol:TCP];
 }

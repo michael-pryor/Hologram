@@ -10,16 +10,18 @@
 #import "Signal.h"
 
 @implementation ActivityMonitor {
-    NSThread* _monitorThread;
-    Signal* _actionSignal;
-    Signal * _terminationSignal;
-    Signal * _terminatedSignal;
+    NSThread *_monitorThread;
+    Signal *_actionSignal;
+    Signal *_terminationSignal;
+    Signal *_terminatedSignal;
+
     void (^_action)(void);
+
     float _backoffTimeSeconds;
 }
 - (id)initWithAction:(void (^)(void))action andBackoff:(float)backoffTimeSeconds {
     self = [super init];
-    if(self) {
+    if (self) {
         _monitorThread = [[NSThread alloc] initWithTarget:self selector:@selector(entryPoint:) object:nil];
         _actionSignal = [[Signal alloc] initWithFlag:false];
         _terminationSignal = [[Signal alloc] initWithFlag:false];
@@ -35,11 +37,11 @@
     NSLog(@"Activity monitor started");
     while (![_terminationSignal isSignaled]) {
         [_actionSignal wait];
-        
-        if([_terminationSignal isSignaled]) {
+
+        if ([_terminationSignal isSignaled]) {
             break;
         }
-        
+
         [NSThread sleepForTimeInterval:_backoffTimeSeconds];
         @try {
             _action();

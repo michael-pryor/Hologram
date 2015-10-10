@@ -7,10 +7,12 @@
 //
 
 @import iAd;
+
 #import <Foundation/Foundation.h>
 #import <UIKit/UIViewController.h>
 
 @interface AlertViewController : UIViewController
-- (void)setAlertShortText:(NSString*)shortText longText:(NSString*)longText;
--(Boolean)hideIfVisibleAndReady;
+- (void)setAlertShortText:(NSString *)shortText longText:(NSString *)longText;
+
+- (Boolean)hideIfVisibleAndReady;
 @end

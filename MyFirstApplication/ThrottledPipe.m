@@ -7,21 +7,20 @@
 //
 
 #import "ThrottledPipe.h"
-#import "ThrottledBlock.h"
 
 @implementation ThrottledPipe {
-    ThrottledBlock* _throttle;
+    ThrottledBlock *_throttle;
 }
-- (id)initWithOutputSession:(id<NewPacketDelegate>)outputSession defaultOutputFrequency:(CFAbsoluteTime)defaultOutputFrequency {
+- (id)initWithOutputSession:(id <NewPacketDelegate>)outputSession defaultOutputFrequency:(CFAbsoluteTime)defaultOutputFrequency {
     self = [super initWithOutputSession:outputSession];
-    if(self) {
+    if (self) {
         _throttle = [[ThrottledBlock alloc] initWithDefaultOutputFrequency:defaultOutputFrequency firingInitially:true];
     }
     return self;
 }
 
-- (void)onNewPacket:(ByteBuffer*)packet fromProtocol:(ProtocolType)protocol {
-    [_throttle runBlock:^ {
+- (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
+    [_throttle runBlock:^{
         [_outputSession onNewPacket:packet fromProtocol:protocol];
     }];
 }

@@ -7,46 +7,44 @@
 //
 
 #import "ConnectionCommander.h"
-#import "ConnectionManagerTcp.h"
 #import "NetworkOperations.h"
-#import "ConnectionGovernorNatPunchthrough.h"
 #import "NetworkUtility.h"
 
 @implementation ConnectionCommander {
-    id<NewPacketDelegate> _recvDelegate;
-    id<ConnectionStatusDelegateProtocol> _connectionStatusDelegate;
-    id<SlowNetworkDelegate> _slowNetworkDelegate;
-    id<GovernorSetupProtocol> _governorSetupDelegate;
-    ConnectionManagerTcp* _commander;
-    OutputSessionTcp* _commanderOutput;
+    id <NewPacketDelegate> _recvDelegate;
+    id <ConnectionStatusDelegateProtocol> _connectionStatusDelegate;
+    id <SlowNetworkDelegate> _slowNetworkDelegate;
+    id <GovernorSetupProtocol> _governorSetupDelegate;
+    ConnectionManagerTcp *_commander;
+    OutputSessionTcp *_commanderOutput;
 
-    id<LoginProvider> _loginProvider;
-    id<NatPunchthroughNotifier> _natPunchthroughNotifier;
-    
-    NSString* _tcpHost;
+    id <LoginProvider> _loginProvider;
+    id <NatPunchthroughNotifier> _natPunchthroughNotifier;
+
+    NSString *_tcpHost;
     ushort _tcpPort;
 }
 
-- (id)initWithRecvDelegate:(id<NewPacketDelegate>)recvDelegate connectionStatusDelegate:(id<ConnectionStatusDelegateProtocol>)connectionStatusDelegate slowNetworkDelegate:(id<SlowNetworkDelegate>)slowNetworkDelegate governorSetupDelegate:(id<GovernorSetupProtocol>)governorSetupDelegate loginProvider:(id<LoginProvider>)loginProvider punchthroughNotifier:(id<NatPunchthroughNotifier>)notifier {
+- (id)initWithRecvDelegate:(id <NewPacketDelegate>)recvDelegate connectionStatusDelegate:(id <ConnectionStatusDelegateProtocol>)connectionStatusDelegate slowNetworkDelegate:(id <SlowNetworkDelegate>)slowNetworkDelegate governorSetupDelegate:(id <GovernorSetupProtocol>)governorSetupDelegate loginProvider:(id <LoginProvider>)loginProvider punchthroughNotifier:(id <NatPunchthroughNotifier>)notifier {
     if (self) {
         _natPunchthroughNotifier = notifier;
-        
+
         _recvDelegate = recvDelegate;
         _connectionStatusDelegate = connectionStatusDelegate;
         _slowNetworkDelegate = slowNetworkDelegate;
         _governorSetupDelegate = governorSetupDelegate;
-        
+
         _commanderOutput = [[OutputSessionTcp alloc] init];
-        
+
         _commander = [[ConnectionManagerTcp alloc] initWithConnectionStatusDelegate:self inputSession:[[InputSessionTcp alloc] initWithDelegate:self] outputSession:_commanderOutput];
-        
+
         _loginProvider = loginProvider;
     }
     return self;
 }
 
 // Commander connect.
-- (void)connectToTcpHost:(NSString*)tcpHost tcpPort:(ushort)tcpPort {
+- (void)connectToTcpHost:(NSString *)tcpHost tcpPort:(ushort)tcpPort {
     [self shutdown];
     _tcpHost = tcpHost;
     _tcpPort = tcpPort;
@@ -60,20 +58,20 @@
 // Commander packets.
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
     uint commanderOperation = [packet getUnsignedInteger];
-    if(commanderOperation == COMMANDER_SUCCESS) {
+    if (commanderOperation == COMMANDER_SUCCESS) {
         // Prepare new governor.
         uint governorAddress = [packet getUnsignedInteger];
-        NSString* governorAddressConverted = [NetworkUtility convertPreparedHostName:governorAddress];
+        NSString *governorAddressConverted = [NetworkUtility convertPreparedHostName:governorAddress];
         uint governorPortTcp = [packet getUnsignedInteger];
         uint governorPortUdp = [packet getUnsignedInteger];
-        id<ConnectionGovernor> governor = [[ConnectionGovernorNatPunchthrough alloc] initWithRecvDelegate:_recvDelegate connectionStatusDelegate:_connectionStatusDelegate slowNetworkDelegate:_slowNetworkDelegate loginProvider:_loginProvider punchthroughNotifier:_natPunchthroughNotifier];
+        id <ConnectionGovernor> governor = [[ConnectionGovernorNatPunchthrough alloc] initWithRecvDelegate:_recvDelegate connectionStatusDelegate:_connectionStatusDelegate slowNetworkDelegate:_slowNetworkDelegate loginProvider:_loginProvider punchthroughNotifier:_natPunchthroughNotifier];
         [governor connectToTcpHost:governorAddressConverted tcpPort:governorPortTcp udpHost:governorAddressConverted udpPort:governorPortUdp];
-        
+
         // Announce governor.
         [_governorSetupDelegate onNewGovernor:governor];
         [self terminate];
-    } else if(commanderOperation == COMMANDER_FAILURE) {
-        NSString* fault = [packet getString];
+    } else if (commanderOperation == COMMANDER_FAILURE) {
+        NSString *fault = [packet getString];
         NSLog(@"Failed to retrieve governor server: %@", fault);
         [self shutdownWithDescription:fault];
     } else {
@@ -83,10 +81,10 @@
 
 - (void)shutdown {
     [_commander shutdown];
-    
+
     // Reconnect after 2 seconds delay.
-    if(_tcpHost != nil) {
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+    if (_tcpHost != nil) {
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t) (2.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
             [self _reconnect];
         });
     }
@@ -100,20 +98,20 @@
     return false;
 }
 
-- (void)shutdownWithDescription:(NSString*)description {
+- (void)shutdownWithDescription:(NSString *)description {
     [self shutdown];
     [_connectionStatusDelegate connectionStatusChange:P_NOT_CONNECTED withDescription:@"Commander failed to retrieve governor"];
 }
 
 // Commander status changes.
-- (void)connectionStatusChangeTcp:(ConnectionStatusTcp)status withDescription:(NSString*)description {
-    if(status == T_ERROR) {
+- (void)connectionStatusChangeTcp:(ConnectionStatusTcp)status withDescription:(NSString *)description {
+    if (status == T_ERROR) {
         [self shutdown];
-        
+
         NSLog(@"Error in commander connection: %@", description);
-    } else if(status == T_CONNECTING) {
+    } else if (status == T_CONNECTING) {
         [_connectionStatusDelegate connectionStatusChange:P_CONNECTING withDescription:@"Commander is connecting"];
-    } else if(status == T_CONNECTED) {
+    } else if (status == T_CONNECTED) {
         // Don't announce through protocol because governor still needs to connect.
         NSLog(@"Commander is connected");
     } else {

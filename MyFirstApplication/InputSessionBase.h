@@ -16,8 +16,9 @@
 //
 // This is relevant to streaming protocols e.g. TCP.
 @protocol NewDataDelegate
-- (void)onNewData: (uint)length;
-- (ByteBuffer*)getDestinationBuffer;
+- (void)onNewData:(uint)length;
+
+- (ByteBuffer *)getDestinationBuffer;
 @end
 
 typedef enum {
@@ -30,7 +31,7 @@ typedef enum {
 // A packet is a complete item in the same form as when it
 // it was originally sent (no bytes missing or out of order).
 @protocol NewPacketDelegate
-- (void)onNewPacket:(ByteBuffer*)packet fromProtocol:(ProtocolType)protocol;
+- (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol;
 @end
 
 // Notifies users that network is slow,

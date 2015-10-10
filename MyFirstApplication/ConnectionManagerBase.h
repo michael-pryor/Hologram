@@ -9,6 +9,7 @@
 #import <Foundation/Foundation.h>
 
 @protocol ConnectionManagerBase
-- (void) shutdown;
-- (Boolean) isConnected;
+- (void)shutdown;
+
+- (Boolean)isConnected;
 @end

@@ -15,39 +15,42 @@
 
 @class SocialState;
 
-@protocol SocialStateDataLoadNotification<NSObject>
--(void)onSocialDataLoaded:(SocialState*)state;
+@protocol SocialStateDataLoadNotification <NSObject>
+- (void)onSocialDataLoaded:(SocialState *)state;
 @end
 
 @interface SocialState : NSObject
-@property (readonly) Boolean isBasicDataLoaded;
-@property (readonly) Boolean isGraphDataLoaded;
-@property (readonly) NSString* firstName;
-@property (readonly) NSString* middleName;
-@property (readonly) NSString* lastName;
-@property (readonly) NSURL* facebookUrl;
-@property (readonly) NSString* facebookId;
+@property(readonly) Boolean isBasicDataLoaded;
+@property(readonly) Boolean isGraphDataLoaded;
+@property(readonly) NSString *firstName;
+@property(readonly) NSString *middleName;
+@property(readonly) NSString *lastName;
+@property(readonly) NSURL *facebookUrl;
+@property(readonly) NSString *facebookId;
 
-@property (readonly) NSString* humanFullName;
-@property (readonly) NSString* humanShortName;
+@property(readonly) NSString *humanFullName;
+@property(readonly) NSString *humanShortName;
 
-@property (readonly) NSString* gender;
-@property (readonly) NSString* dob;
-@property (readonly) uint age;
-@property (readonly) uint genderI;
-@property (readonly) uint interestedInI;
+@property(readonly) NSString *gender;
+@property(readonly) NSString *dob;
+@property(readonly) uint age;
+@property(readonly) uint genderI;
+@property(readonly) uint interestedInI;
 
--(void)reset;
--(void)updateFacebook;
--(void)update;
+- (void)reset;
 
-+(SocialState*)getFacebookInstance;
+- (void)updateFacebook;
 
--(void)registerNotifier:(id<SocialStateDataLoadNotification>)notifier;
--(void)unregisterNotifier;
+- (void)update;
 
--(Boolean)isDataLoaded;
++ (SocialState *)getFacebookInstance;
 
--(void)setInterestedIn:(NSString*)interestedIn;
+- (void)registerNotifier:(id <SocialStateDataLoadNotification>)notifier;
+
+- (void)unregisterNotifier;
+
+- (Boolean)isDataLoaded;
+
+- (void)setInterestedIn:(NSString *)interestedIn;
 @end
 

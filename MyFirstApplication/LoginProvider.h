@@ -10,5 +10,5 @@
 #import "ByteBuffer.h"
 
 @protocol LoginProvider
-- (ByteBuffer*)getLoginBuffer;
+- (ByteBuffer *)getLoginBuffer;
 @end

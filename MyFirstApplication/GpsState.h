@@ -11,16 +11,18 @@
 
 @class GpsState;
 
-@protocol GpsStateDataLoadNotification<NSObject>
--(void)onGpsDataLoaded:(GpsState*)state;
--(void)onGpsDataLoadFailure:(GpsState*)state withDescription:(NSString*)description;
+@protocol GpsStateDataLoadNotification <NSObject>
+- (void)onGpsDataLoaded:(GpsState *)state;
+
+- (void)onGpsDataLoadFailure:(GpsState *)state withDescription:(NSString *)description;
 @end
 
-@interface GpsState : NSObject<CLLocationManagerDelegate>
+@interface GpsState : NSObject <CLLocationManagerDelegate>
 - (void)update;
 
 @property double longitude;
 @property double latitude;
 @property Boolean loaded;
-- (id)initWithNotifier:(id<GpsStateDataLoadNotification>)notifier;
+
+- (id)initWithNotifier:(id <GpsStateDataLoadNotification>)notifier;
 @end

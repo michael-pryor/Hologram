@@ -7,18 +7,17 @@
 //
 
 #import "Signal.h"
-#import <Foundation/Foundation.h>
 
 @implementation Signal {
-    NSCondition * _condition;
+    NSCondition *_condition;
     int _counter;
 }
 
-- (id) initWithFlag: (bool)flag {
+- (id)initWithFlag:(bool)flag {
     self = [super init];
-    if(self) {
+    if (self) {
         _condition = [[NSCondition alloc] init];
-        if(flag) {
+        if (flag) {
             _counter = 1;
         } else {
             _counter = 0;
@@ -27,11 +26,11 @@
     return self;
 }
 
-- (id) init {
+- (id)init {
     return [self initWithFlag:false];
 }
 
-- (void) wait {
+- (void)wait {
     [_condition lock];
     while (_counter == 0) {
         [_condition wait];
@@ -42,7 +41,7 @@
 - (bool)signal {
     [_condition lock];
     bool ret = _counter > 0;
-    if(!ret) {
+    if (!ret) {
         _counter = 1;
         [_condition signal];
     }
@@ -53,7 +52,7 @@
 - (bool)clear {
     [_condition lock];
     bool ret = _counter > 0;
-    if(ret) {
+    if (ret) {
         _counter = 0;
     }
     [_condition unlock];
@@ -63,7 +62,7 @@
 - (bool)signalAll {
     [_condition lock];
     bool ret = _counter > 0;
-    if(!ret) {
+    if (!ret) {
         _counter = 1;
         [_condition broadcast];
     }
@@ -71,14 +70,14 @@
     return ret;
 }
 
-- (bool) isSignaled {
+- (bool)isSignaled {
     [_condition lock];
     bool result = _counter > 0;
     [_condition unlock];
     return result;
 }
 
-- (int) incrementAndSignal {
+- (int)incrementAndSignal {
     [_condition lock];
     int ret = _counter;
     _counter++;
@@ -89,17 +88,17 @@
 }
 
 
-- (int) incrementAndSignalAll {
+- (int)incrementAndSignalAll {
     [_condition lock];
     int ret = _counter;
     _counter++;
     [_condition broadcast];
-    
+
     [_condition unlock];
     return ret;
 }
 
-- (int) decrement {
+- (int)decrement {
     [_condition lock];
     int ret = _counter;
     _counter--;

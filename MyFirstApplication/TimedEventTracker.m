@@ -11,13 +11,13 @@
 #import "EventTracker.h"
 
 @implementation TimedEventTracker {
-    EventTracker* _eventTracker;
-    Timer* _timer;
+    EventTracker *_eventTracker;
+    Timer *_timer;
 }
 
 - (id)initWithMaxEvents:(uint)maxEvents timePeriod:(CFAbsoluteTime)defaultOutputFrequency {
     self = [super init];
-    if(self) {
+    if (self) {
         _timer = [[Timer alloc] initWithFrequencySeconds:defaultOutputFrequency firingInitially:false];
         _eventTracker = [[EventTracker alloc] initWithMaxEvents:maxEvents];
     }
@@ -25,12 +25,12 @@
 }
 
 - (Boolean)increment {
-    if([_timer getState]) {
+    if ([_timer getState]) {
         [_eventTracker reset];
-    } else if([_eventTracker getNumEvents] == 0) {
+    } else if ([_eventTracker getNumEvents] == 0) {
         [_timer reset];
     }
-    
+
     return [_eventTracker increment];
 }
 

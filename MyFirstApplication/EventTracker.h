@@ -7,8 +7,11 @@
 //
 
 @interface EventTracker : NSObject
-- (id) initWithMaxEvents:(uint)maxEvents;
-- (Boolean) increment;
-- (void) reset;
-- (uint) getNumEvents;
+- (id)initWithMaxEvents:(uint)maxEvents;
+
+- (Boolean)increment;
+
+- (void)reset;
+
+- (uint)getNumEvents;
 @end

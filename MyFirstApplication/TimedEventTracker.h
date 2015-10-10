@@ -10,8 +10,12 @@
 
 @interface TimedEventTracker : NSObject
 - (id)initWithMaxEvents:(uint)maxEvents timePeriod:(CFAbsoluteTime)defaultOutputFrequency;
+
 - (Boolean)increment;
+
 - (void)reset;
+
 - (void)setTimePeriod:(CFAbsoluteTime)outputFrequency;
+
 - (void)resetTimePeriod;
 @end

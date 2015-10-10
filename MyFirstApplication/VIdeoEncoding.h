@@ -7,14 +7,17 @@
 //
 
 @import AVFoundation;
+
 #import "ByteBuffer.h"
 
 @interface VideoEncoding : NSObject
-@property (readonly) uint suggestedBatchSize;
+@property(readonly) uint suggestedBatchSize;
 
-- (UIImage *) imageFromSampleBuffer:(CMSampleBufferRef) sampleBuffer;
-- (AVCaptureSession *) setupCaptureSessionWithDelegate: (id<AVCaptureVideoDataOutputSampleBufferDelegate>) delegate;
+- (UIImage *)imageFromSampleBuffer:(CMSampleBufferRef)sampleBuffer;
 
-- (void) addImage:(CMSampleBufferRef)image toByteBuffer:(ByteBuffer*)buffer;
-- (UIImage*) getImageFromByteBuffer:(ByteBuffer*)buffer;
+- (AVCaptureSession *)setupCaptureSessionWithDelegate:(id <AVCaptureVideoDataOutputSampleBufferDelegate>)delegate;
+
+- (void)addImage:(CMSampleBufferRef)image toByteBuffer:(ByteBuffer *)buffer;
+
+- (UIImage *)getImageFromByteBuffer:(ByteBuffer *)buffer;
 @end

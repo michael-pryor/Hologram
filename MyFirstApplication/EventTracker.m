@@ -12,26 +12,29 @@
     uint _numEvents;
     uint _maxEvents;
 }
-- (id) initWithMaxEvents:(uint)maxEvents {
+- (id)initWithMaxEvents:(uint)maxEvents {
     self = [super init];
-    if(self) {
+    if (self) {
         _numEvents = 0;
         _maxEvents = maxEvents;
     }
     return self;
 }
-- (Boolean) increment {
+
+- (Boolean)increment {
     _numEvents += 1;
     Boolean result = _numEvents >= _maxEvents;
-    if(result) {
+    if (result) {
         _numEvents = 0;
     }
     return result;
 }
-- (void) reset {
+
+- (void)reset {
     _numEvents = 0;
 }
-- (uint) getNumEvents {
+
+- (uint)getNumEvents {
     return _numEvents;
 }
 @end

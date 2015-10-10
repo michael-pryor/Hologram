@@ -10,8 +10,11 @@
 #import "ThrottledBlock.h"
 
 @interface ThrottledPipe : PipelineProcessor
-- (id)initWithOutputSession:(id<NewPacketDelegate>)outputSession defaultOutputFrequency:(CFAbsoluteTime)defaultOutputFrequency;
-- (void)onNewPacket:(ByteBuffer*)packet fromProtocol:(ProtocolType)protocol;
+- (id)initWithOutputSession:(id <NewPacketDelegate>)outputSession defaultOutputFrequency:(CFAbsoluteTime)defaultOutputFrequency;
+
+- (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol;
+
 - (void)reset;
+
 - (void)slowRate;
 @end

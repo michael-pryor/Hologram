@@ -21,22 +21,32 @@ typedef enum {
     P_CONNECTED_TO_EXISTING // Reconnected to same end point.
 } ConnectionStatusProtocol;
 
-@protocol ConnectionGovernor<ConnectionManagerBase, NewPacketDelegate, ConnectionStatusDelegateTcp, ConnectionStatusDelegateUdp>
-- (void)connectToTcpHost:(NSString*)tcpHost tcpPort:(ushort)tcpPort udpHost:(NSString*)udpHost udpPort:(ushort)udpPort;
-- (void)sendTcpPacket:(ByteBuffer*)packet;
-- (void)sendUdpPacket:(ByteBuffer*)packet;
-- (id<NewPacketDelegate>)getTcpOutputSession;
-- (id<NewPacketDelegate>)getUdpOutputSession;
+@protocol ConnectionGovernor <ConnectionManagerBase, NewPacketDelegate, ConnectionStatusDelegateTcp, ConnectionStatusDelegateUdp>
+- (void)connectToTcpHost:(NSString *)tcpHost tcpPort:(ushort)tcpPort udpHost:(NSString *)udpHost udpPort:(ushort)udpPort;
+
+- (void)sendTcpPacket:(ByteBuffer *)packet;
+
+- (void)sendUdpPacket:(ByteBuffer *)packet;
+
+- (id <NewPacketDelegate>)getTcpOutputSession;
+
+- (id <NewPacketDelegate>)getUdpOutputSession;
+
 - (Boolean)isConnected;
+
 - (void)shutdown;
+
 - (void)terminate;
+
 - (Boolean)isTerminated;
+
+- (void)disableReconnecting;
 @end
 
-@interface ConnectionGovernorProtocolTcpSession : NSObject<NewPacketDelegate>
-- (id)initWithConnectionManager:(id<ConnectionGovernor>)connectionGovernor;
+@interface ConnectionGovernorProtocolTcpSession : NSObject <NewPacketDelegate>
+- (id)initWithConnectionManager:(id <ConnectionGovernor>)connectionGovernor;
 @end
 
-@interface ConnectionGovernorProtocolUdpSession : NSObject<NewPacketDelegate>
-- (id)initWithConnectionManager:(id<ConnectionGovernor>)connectionGovernor;
+@interface ConnectionGovernorProtocolUdpSession : NSObject <NewPacketDelegate>
+- (id)initWithConnectionManager:(id <ConnectionGovernor>)connectionGovernor;
 @end

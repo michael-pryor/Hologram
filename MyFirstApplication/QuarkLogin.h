@@ -10,7 +10,8 @@
 #import "LoginProvider.h"
 #import "GpsState.h"
 
-@interface QuarkLogin : NSObject<LoginProvider>
-- (id)initWithGpsState:(GpsState*)gpsState;
-- (ByteBuffer*)getLoginBuffer;
+@interface QuarkLogin : NSObject <LoginProvider>
+- (id)initWithGpsState:(GpsState *)gpsState;
+
+- (ByteBuffer *)getLoginBuffer;
 @end

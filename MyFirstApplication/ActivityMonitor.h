@@ -10,6 +10,8 @@
 
 @interface ActivityMonitor : NSObject
 - (id)initWithAction:(void (^)(void))action andBackoff:(float)backoffTimeSeconds;
+
 - (void)performAction;
+
 - (void)terminate;
 @end

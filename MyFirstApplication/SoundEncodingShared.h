@@ -12,5 +12,7 @@
 #define ERR_NOT_PLAYING 561015905
 
 NSString *NSStringFromOSStatus(OSStatus errCode);
-bool HandleResultOSStatus(OSStatus errCode, NSString* performing, bool fatal);
-Float64 calculateBufferSize(AudioStreamBasicDescription* audioDescription, Float64 numSecondsPerBuffer);
+
+bool HandleResultOSStatus(OSStatus errCode, NSString *performing, bool fatal);
+
+Float64 calculateBufferSize(AudioStreamBasicDescription *audioDescription, Float64 numSecondsPerBuffer);

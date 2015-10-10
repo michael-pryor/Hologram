@@ -12,12 +12,12 @@
     CFAbsoluteTime _secondsEpoch;
 }
 
-- (id) initWithFrequencySeconds:(CFAbsoluteTime)frequency firingInitially:(Boolean)initialFire {
+- (id)initWithFrequencySeconds:(CFAbsoluteTime)frequency firingInitially:(Boolean)initialFire {
     self = [super init];
-    if(self) {
+    if (self) {
         _secondsFrequency = frequency;
         _defaultSecondsFrequency = frequency;
-        if(initialFire) {
+        if (initialFire) {
             _secondsEpoch = 0;
         } else {
             _secondsEpoch = [Timer getSecondsEpoch];
@@ -27,11 +27,11 @@
     return self;
 }
 
-+ (CFAbsoluteTime) getSecondsEpoch {
++ (CFAbsoluteTime)getSecondsEpoch {
     return CFAbsoluteTimeGetCurrent();
 }
 
-- (Boolean) getState {
+- (Boolean)getState {
     if ([self getSecondsSinceLastTick] > [self secondsFrequency]) {
         _secondsEpoch = [Timer getSecondsEpoch];
         return true;
@@ -40,33 +40,33 @@
     }
 }
 
-- (CFAbsoluteTime) getSecondsSinceLastTick {
+- (CFAbsoluteTime)getSecondsSinceLastTick {
     return [Timer getSecondsEpoch] - _secondsEpoch;
 }
 
 - (void)blockUntilNextTick {
-    if(_secondsEpoch == 0) {
+    if (_secondsEpoch == 0) {
         _secondsEpoch = [Timer getSecondsEpoch] - _secondsFrequency;
     }
-    
+
     CFAbsoluteTime timeSinceLastTick = [self getSecondsSinceLastTick];
     CFAbsoluteTime timeRemaining = _secondsFrequency - timeSinceLastTick;
-    if(timeRemaining > 0) {
+    if (timeRemaining > 0) {
         [NSThread sleepForTimeInterval:timeRemaining];
     }
     _secondsEpoch = [Timer getSecondsEpoch];
 }
 
-- (void) reset {
+- (void)reset {
     _secondsEpoch = [Timer getSecondsEpoch];
 }
 
-- (void) resetFrequency {
+- (void)resetFrequency {
     NSLog(@"Resetting frequency to default of %.2f", _defaultSecondsFrequency);
     _secondsFrequency = _defaultSecondsFrequency;
 }
 
-- (void) doubleFrequencyValue {
+- (void)doubleFrequencyValue {
     float orig = _secondsFrequency;
     _secondsFrequency *= 2;
     NSLog(@"Slowed frequency from %.2f seconds to %.2f seconds", orig, _secondsFrequency);
