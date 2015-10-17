@@ -22,4 +22,8 @@
 - (void)setOutputSession:(id <NewPacketDelegate>)output;
 
 - (void)initialize;
+
+- (Byte*)getMagicCookie;
+
+- (int)getMagicCookieSize;
 @end

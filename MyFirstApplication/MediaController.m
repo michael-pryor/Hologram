@@ -15,6 +15,24 @@
 #import "TimedEventTracker.h"
 #import "DelayedPipe.h"
 
+@implementation OfflineAudioProcessor : PipelineProcessor
+//Add a comment to this line
+- (id)initWithOutputSession:(id <NewPacketDelegate>)outputSession {
+    self = [super initWithOutputSession:outputSession];
+    if (self) {
+
+    }
+    return self;
+}
+
+- (void)
+onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
+    // Skip the left padding, since we don't need this when not using networking.
+    [packet setCursorPosition:sizeof(uint)];
+    [_outputSession onNewPacket:packet fromProtocol:protocol];
+}
+@end
+
 @implementation MediaController {
     Boolean _started;
 
@@ -32,6 +50,11 @@
     DecodingPipe *_decodingPipe;
 }
 
+- (void)echoBackForTesting {
+    OfflineAudioProcessor * offlineAudioProcessor = [[OfflineAudioProcessor alloc] initWithOutputSession:_soundPlayback];
+    [_soundEncoder setOutputSession:offlineAudioProcessor];
+}
+
 - (id)initWithImageDelegate:(id <NewImageDelegate>)newImageDelegate videoSpeedNotifier:(id <VideoSpeedNotifier>)videoSpeedNotifier tcpNetworkOutputSession:(id <NewPacketDelegate>)tcpNetworkOutputSession udpNetworkOutputSession:(id <NewPacketDelegate>)udpNetworkOutputSession; {
     self = [super init];
     if (self) {
@@ -40,7 +63,7 @@
 
         // Buffering estimations (introduce delay so that playback is smooth).
         Float64 secondsPerBuffer = 0.1;
-        uint numBuffers = 6;
+        uint numBuffers = 3;
 
         Float64 estimatedDelay = numBuffers * secondsPerBuffer;
 
@@ -57,13 +80,17 @@
         _encodingPipeAudio = [[EncodingPipe alloc] initWithOutputSession:udpNetworkOutputSession andPrefixId:AUDIO_ID];
 
         _soundEncoder = [[SoundMicrophone alloc] initWithOutputSession:nil numBuffers:numBuffers leftPadding:sizeof(uint) secondPerBuffer:secondsPerBuffer];
-        _soundPlayback = [[SoundPlayback alloc] initWithAudioDescription:[_soundEncoder getAudioDescription] secondsPerBuffer:secondsPerBuffer numBuffers:numBuffers restartPlaybackThreshold:6 maxPendingAmount:30 soundPlaybackDelegate:self];
-        [_decodingPipe addPrefix:AUDIO_ID mappingToOutputSession:_soundPlayback];
-        [_soundEncoder setOutputSession:_encodingPipeAudio];
-
         [_soundEncoder initialize];
+
+        _soundPlayback = [[SoundPlayback alloc] initWithAudioDescription:[_soundEncoder getAudioDescription] secondsPerBuffer:secondsPerBuffer numBuffers:numBuffers restartPlaybackThreshold:3 maxPendingAmount:30 soundPlaybackDelegate:self];
+        [_soundPlayback setMagicCookie:[_soundEncoder getMagicCookie] size:[_soundEncoder getMagicCookieSize]];
+        [_decodingPipe addPrefix:AUDIO_ID mappingToOutputSession:_soundPlayback];
+
+        [_soundEncoder setOutputSession:_encodingPipeAudio];
+        //[self echoBackForTesting];
+
         [_soundPlayback initialize];
-        NSLog(@"Audio recording and playback initialized");
+        NSLog(@"Audio microphone and speaker initialized");
     }
     return self;
 }
@@ -74,10 +101,8 @@
     }
     _started = true;
 
-    NSLog(@"Starting video recording");
+    NSLog(@"Starting video recording and microphone");
     [_videoOutputController start];
-
-    NSLog(@"Starting audio playback and recording...");
     [_soundEncoder startCapturing];
 }
 
@@ -87,10 +112,8 @@
     }
     _started = false;
 
-    NSLog(@"Stopping video recording");
+    NSLog(@"Stopping video recording and microphone");
     [_videoOutputController stop];
-
-    NSLog(@"Starting audio playback and recording...");
     [_soundEncoder stopCapturing];
 }
 

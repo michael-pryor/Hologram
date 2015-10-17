@@ -13,6 +13,8 @@
 
 NSString *NSStringFromOSStatus(OSStatus errCode);
 
-bool HandleResultOSStatus(OSStatus errCode, NSString *performing, bool fatal);
+bool HandleResultOSStatus(OSStatus errCode, NSString *performing, bool shouldLogSuccess);
 
-Float64 calculateBufferSize(AudioStreamBasicDescription *audioDescription, Float64 numSecondsPerBuffer);
+int calculateBufferSize(AudioStreamBasicDescription *audioDescription, Float64 numSecondsPerBuffer);
+
+//#define PCM

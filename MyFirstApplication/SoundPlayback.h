@@ -25,4 +25,6 @@
 - (void)shutdown;
 
 - (void)initialize;
+
+- (void)setMagicCookie:(Byte*)magicCookie size:(int)size;
 @end

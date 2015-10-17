@@ -18,22 +18,24 @@ NSString *NSStringFromOSStatus(OSStatus errCode) {
     return [NSString stringWithFormat:@"[%@]: %@", code, [error debugDescription]];
 }
 
-bool HandleResultOSStatus(OSStatus errCode, NSString *performing, bool fatal) {
+bool HandleResultOSStatus(OSStatus errCode, NSString *performing, bool shouldLogSuccess) {
     if (errCode == noErr) {
-        return false;
+        if (shouldLogSuccess) {
+            NSLog(performing);
+        }
+        return true;
     }
 
     NSString *errorMessage = NSStringFromOSStatus(errCode);
 
     NSLog(@"While %@ the following error occurred: %@", performing, errorMessage);
-    if (fatal) {
-        return false;
-        //exit(1);
-    } else {
-        return true;
-    }
+    return false;
 }
 
-Float64 calculateBufferSize(AudioStreamBasicDescription *audioDescription, Float64 numSecondsPerBuffer) {
+int calculateBufferSize(AudioStreamBasicDescription *audioDescription, Float64 numSecondsPerBuffer) {
+#ifdef PCM
     return audioDescription->mSampleRate / audioDescription->mFramesPerPacket * numSecondsPerBuffer;
+#else
+    return 1024; // for AAC.
+#endif
 }
