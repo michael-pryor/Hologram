@@ -178,7 +178,7 @@
 
 - (void)stopCapturingPermanently {
     if (_queueSetup) {
-        OSStatus result = AudioQueueStop(_audioQueue, TRUE);
+        OSStatus result = AudioQueueStop(_audioQueue, FALSE);
         HandleResultOSStatus(result, @"Stopping microphone queue", true);
         _isRecording = false;
     }
@@ -218,7 +218,7 @@ static void HandleInputBuffer(void *aqData,
     uint leftPadding = [obj getLeftPadding];
     uint size = leftPadding + inBuffer->mAudioDataByteSize;
 
-    NSLog(@"Microphone AUDIO!!! %d",inBuffer->mAudioDataByteSize);
+   // NSLog(@"Microphone AUDIO!!! %d",inBuffer->mAudioDataByteSize);
 
     inBuffer->mPacketDescriptions;
 

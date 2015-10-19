@@ -20,11 +20,13 @@
 @interface SoundPlayback : NSObject <NewPacketDelegate>
 - (id)initWithAudioDescription:(AudioStreamBasicDescription *)description secondsPerBuffer:(Float64)seconds numBuffers:(uint)numBuffers restartPlaybackThreshold:(uint)restartPlayback maxPendingAmount:(uint)maxAmount soundPlaybackDelegate:(id <SoundPlaybackDelegate>)soundPlaybackDelegate;
 
-- (ByteBuffer *)getSoundPacketToPlay;
-
 - (void)shutdown;
 
 - (void)initialize;
+
+- (void)startPlayback;
+
+- (void)stopPlayback;
 
 - (void)setMagicCookie:(Byte*)magicCookie size:(int)size;
 @end

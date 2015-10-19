@@ -77,7 +77,7 @@ GpsState *state;
         } else {
             NSLog(@"Reusing old GPS location");
             // Use last retrieved location.
-            [_notifier onGpsDataLoaded:self];
+            //[_notifier onGpsDataLoaded:self];
         }
     }
 }

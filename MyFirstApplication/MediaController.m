@@ -87,7 +87,7 @@ onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
         [_decodingPipe addPrefix:AUDIO_ID mappingToOutputSession:_soundPlayback];
 
         [_soundEncoder setOutputSession:_encodingPipeAudio];
-        //[self echoBackForTesting];
+       // [self echoBackForTesting];
 
         [_soundPlayback initialize];
         NSLog(@"Audio microphone and speaker initialized");
@@ -104,6 +104,7 @@ onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
     NSLog(@"Starting video recording and microphone");
     [_videoOutputController start];
     [_soundEncoder startCapturing];
+    [_soundPlayback startPlayback];
 }
 
 - (void)stop {
@@ -115,6 +116,7 @@ onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
     NSLog(@"Stopping video recording and microphone");
     [_videoOutputController stop];
     [_soundEncoder stopCapturing];
+    [_soundPlayback stopPlayback];
 }
 
 - (void)setNetworkOutputSessionTcp:(id <NewPacketDelegate>)tcp Udp:(id <NewPacketDelegate>)udp {
