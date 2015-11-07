@@ -43,13 +43,7 @@
 
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
     DelayedItem *item = [[DelayedItem alloc] initWithItem:packet minimumDelay:_delay];
-    
-    // Avoid copying buffer if we can process it immediately.
-    if ([item isItemReady]) {
-        [_outputSession onNewPacket:[item item] fromProtocol:protocol];
-        return;
-    }
-    
+
     // Make a copy because the buffer needs to be kept past this call.
     // Buffer passed in may get reused.
     [item setItem:[[ByteBuffer alloc] initFromByteBuffer:packet]];

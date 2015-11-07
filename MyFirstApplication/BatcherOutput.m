@@ -71,8 +71,7 @@ double sleep_amount = 0.02;
 
     [_sendBuffer addUnsignedInteger:batchId]; // batch ID.
     [_sendBuffer addUnsignedInteger:chunkId]; // chunk ID; ID within batch.
-    [_sendBuffer setCursorPosition:_sendBuffer.cursorPosition - 4];
-    uint test = [_sendBuffer getUnsignedInteger];
+
     if (_includeTotalChunks) {
         [_sendBuffer addUnsignedInteger:estimatedChunks]; // total number of chunks in this batch.
     }
