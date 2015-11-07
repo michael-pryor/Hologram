@@ -15,6 +15,8 @@
 
 - (void)add:(id)obj;
 
+- (void)addObject:(id)obj atPosition:(int)position;
+
 - (id)get;
 
 - (unsigned long)getPendingAmount;

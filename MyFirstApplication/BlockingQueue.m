@@ -29,7 +29,7 @@
     return [self initWithMaxQueueSize:0];
 }
 
-- (void)add:(id)obj {
+- (void)addObject:(id)obj atPosition:(int)position {
     if (_queueShutdown) {
         NSLog(@"Queue is shutdown, discarding send attempt");
         return;
@@ -51,10 +51,18 @@
     }
 
     // Add to end of array.
-    [_queue addObject:obj];
+    if (position == -1) {
+        [_queue addObject:obj];
+    } else {
+        [_queue insertObject:obj atIndex:(uint) position];
+    }
 
     [_lock signal];
     [_lock unlock];
+}
+
+- (void)add:(id)obj {
+    [self addObject:obj atPosition:-1];
 }
 
 - (id)getImmediate:(bool)immediate {

@@ -121,7 +121,9 @@ onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
 
 - (void)setNetworkOutputSessionTcp:(id <NewPacketDelegate>)tcp Udp:(id <NewPacketDelegate>)udp {
     [_encodingPipeAudio setOutputSession:udp];
-    [_videoOutputController setNetworkOutputSessionTcp:tcp Udp:udp];
+    NSLog(@"Updating video output session UDP");
+    [_delayedPipe setOutputSession: udp];
+    [_videoOutputController setNetworkOutputSessionTcp:tcp];
     [_videoOutputController resetSendRate];
 }
 

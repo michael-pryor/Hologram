@@ -12,7 +12,7 @@
 
 @interface PipelineProcessor : NSObject <NewPacketDelegate> {
 @protected
-    id <NewPacketDelegate> _outputSession;
+    id <NewPacketDelegate>  _outputSession;
 }
 
 - (id)initWithOutputSession:(id <NewPacketDelegate>)outputSession;

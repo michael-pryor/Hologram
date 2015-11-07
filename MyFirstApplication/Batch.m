@@ -39,6 +39,8 @@
                 _hasOutput = true;
             }
         }
+    } else {
+        NSLog(@"Dropping video frame, percentage %.2f", chunksReceivedPercentage);
     }
 }
 

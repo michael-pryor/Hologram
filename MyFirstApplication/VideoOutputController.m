@@ -93,10 +93,9 @@
     [_session stopRunning];
 }
 
-- (void)setNetworkOutputSessionTcp:(id <NewPacketDelegate>)tcp Udp:(id <NewPacketDelegate>)udp {
-    NSLog(@"Updating video tcp and udp network output sessions");
+- (void)setNetworkOutputSessionTcp:(id <NewPacketDelegate>)tcp{
+    NSLog(@"Updating video tcp network output sessions");
     _tcpNetworkOutputSession = tcp;
-    [_encodingPipeVideo setOutputSession:udp];
 }
 
 // Handle data from camera device and push out to network.

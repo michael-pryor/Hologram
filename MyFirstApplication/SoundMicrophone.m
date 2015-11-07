@@ -220,7 +220,6 @@ static void HandleInputBuffer(void *aqData,
 
    // NSLog(@"Microphone AUDIO!!! %d",inBuffer->mAudioDataByteSize);
 
-    inBuffer->mPacketDescriptions;
 
 #ifdef PCM
     if(!obj->done) {
@@ -228,6 +227,11 @@ static void HandleInputBuffer(void *aqData,
         obj->done = true;
     }
 #else
+    if (inNumPackets == 0) {
+        NSLog(@"0 packets received on audio input callback");
+        return;
+    }
+
     if (inPacketDesc[0].mVariableFramesInPacket > 0) {
         NSLog(@"VARIABLE FRAMES!!!");
     }

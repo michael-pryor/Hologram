@@ -27,7 +27,7 @@
 
     [FBSDKProfile enableUpdatesOnAccessTokenChange:true];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onProfileUpdated:) name:FBSDKProfileDidChangeNotification object:nil];
-    self.loginButton.readPermissions = @[@"public_profile", @"email", @"user_birthday"];
+    self.loginButton.readPermissions = @[@"public_profile", @"user_birthday"];
 
     if ([FBSDKAccessToken currentAccessToken]) {
         NSLog(@"User is already logged in");

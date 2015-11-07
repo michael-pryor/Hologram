@@ -37,6 +37,7 @@
     self = [super initWithOutputSession:outputSession];
     if (self) {
         _delay = delay;
+        _delayedItems = [[BlockingQueue alloc] init];
     }
     return self;
 }
@@ -50,6 +51,7 @@
         if ([delayedItem isItemReady]) {
             [_outputSession onNewPacket:[delayedItem item] fromProtocol:protocol];
         } else {
+            [_delayedItems addObject:delayedItem atPosition:0];
             break;
         }
     }
