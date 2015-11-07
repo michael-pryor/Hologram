@@ -32,15 +32,15 @@
     float chunksReceivedPercentage = ((double) _chunksReceived) / ((double) _totalChunks);
     [_performanceDelegate onNewPerformanceNotification:chunksReceivedPercentage];
 
-    if (_chunksReceived >= integerNumChunksThreshold) {
-        @synchronized (_partialPacket) {
+    @synchronized (_partialPacket) {
+        if (_chunksReceived >= integerNumChunksThreshold) {
             if (!_hasOutput) {
                 [_outputSession onNewPacket:_partialPacket fromProtocol:UDP];
                 _hasOutput = true;
             }
+        } else {
+            NSLog(@"Dropping video frame, percentage %.2f", chunksReceivedPercentage);
         }
-    } else {
-        NSLog(@"Dropping video frame, percentage %.2f", chunksReceivedPercentage);
     }
 }
 
@@ -70,8 +70,6 @@
 }
 
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
-    _chunksReceived += 1;
-
     uint chunkId = [packet getUnsignedInteger];
 
     // Total chunks may be unknown, in which case each chunk also contains
@@ -88,6 +86,7 @@
     Boolean fireNow = false; // optimization to avoid locking when timer fires.
     @synchronized (_partialPacket) {
         if (!_hasOutput) {
+            _chunksReceived += 1;
             [_partialPacket addByteBuffer:packet includingPrefix:false atPosition:buffPosition startingFrom:[packet cursorPosition]];
 
             if (_chunksReceived == _totalChunks) {

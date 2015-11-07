@@ -7,8 +7,7 @@
 #import "Timer.h"
 
 @interface DelayedItem : NSObject
-@property(readonly) id item;
-
+@property id item;
 - (Boolean)isItemReady;
 @end
 
@@ -44,10 +43,24 @@
 
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
     DelayedItem *item = [[DelayedItem alloc] initWithItem:packet minimumDelay:_delay];
+    
+    // Avoid copying buffer if we can process it immediately.
+    if ([item isItemReady]) {
+        [_outputSession onNewPacket:[item item] fromProtocol:protocol];
+        return;
+    }
+    
+    // Make a copy because the buffer needs to be kept past this call.
+    // Buffer passed in may get reused.
+    [item setItem:[[ByteBuffer alloc] initFromByteBuffer:packet]];
     [_delayedItems add:item];
 
     while (true) {
         DelayedItem *delayedItem = [_delayedItems getImmediate];
+        if (delayedItem == nil) {
+            break;
+        }
+        
         if ([delayedItem isItemReady]) {
             [_outputSession onNewPacket:[delayedItem item] fromProtocol:protocol];
         } else {

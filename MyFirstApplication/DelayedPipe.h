@@ -6,7 +6,6 @@
 #import "InputSessionBase.h"
 #import "PipelineProcessor.h"
 
-
 @interface DelayedPipe : PipelineProcessor
 - (id)initWithMinimumDelay:(CFAbsoluteTime)delay outputSession:(id <NewPacketDelegate>)outputSession;
 

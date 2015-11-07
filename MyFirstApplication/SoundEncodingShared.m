@@ -32,10 +32,6 @@ bool HandleResultOSStatus(OSStatus errCode, NSString *performing, bool shouldLog
     return false;
 }
 
-int calculateBufferSize(AudioStreamBasicDescription *audioDescription, Float64 numSecondsPerBuffer) {
-#ifdef PCM
-    return audioDescription->mSampleRate / audioDescription->mFramesPerPacket * numSecondsPerBuffer;
-#else
-    return 1024; // for AAC.
-#endif
+int calculateBufferSize(AudioStreamBasicDescription *audioDescription) {
+    return 1024;
 }

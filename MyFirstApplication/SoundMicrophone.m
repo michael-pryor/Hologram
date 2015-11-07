@@ -15,7 +15,6 @@
     bool _isRecording;
     AudioQueueRef _audioQueue;
     AudioQueueBufferRef *_audioBuffers;
-    //NSMutableDictionary*       _audioToByteBufferMap;
     UInt32 _bufferSizeBytes;
     bool _queueSetup;
     AudioStreamBasicDescription _audioDescription;
@@ -27,7 +26,6 @@
     Byte * _magicCookie;
     int _magicCookieSize;
     Signal *_magicCookieLoaded;
-    Boolean done;
 }
 
 - (id)initWithOutputSession:(id <NewPacketDelegate>)output numBuffers:(uint)numBuffers leftPadding:(uint)padding secondPerBuffer:(Float64)secondsPerBuffer {
@@ -38,28 +36,11 @@
         _magicCookie = nil;
         _outputSession = output;
 
-#ifndef PCM
-        int propSize = sizeof(_audioDescription);
         memset(&_audioDescription, 0, sizeof(_audioDescription));
         _audioDescription.mFormatID = kAudioFormatMPEG4AAC;
         _audioDescription.mChannelsPerFrame = 1;
         _audioDescription.mSampleRate = 8000.0;
         _audioDescription.mFramesPerPacket = 1024;
-        //OSStatus status = AudioFormatGetProperty(kAudioFormatProperty_FormatInfo, 0, NULL, &propSize, &_audioDescription);
-        //HandleResultOSStatus(status, @"Retrieving audio properties", true);
-#else
-
-        // Old school uncompressed below:
-        _audioDescription.mFormatID = kAudioFormatLinearPCM;
-        _audioDescription.mSampleRate = 8000.0;
-        _audioDescription.mChannelsPerFrame = 1; // Mono
-        _audioDescription.mBitsPerChannel = 16;
-        _audioDescription.mBytesPerPacket =
-                _audioDescription.mBytesPerFrame =
-                        _audioDescription.mChannelsPerFrame * sizeof(SInt16);
-        _audioDescription.mFramesPerPacket = 1;
-        _audioDescription.mFormatFlags = kAudioFormatFlagIsPacked | kAudioFormatFlagIsSignedInteger;
-#endif
 
         _outputThreadStartupSignal = [[Signal alloc] initWithFlag:false];
         _magicCookieLoaded = [[Signal alloc] initWithFlag:false];
@@ -67,8 +48,7 @@
         _numBuffers = numBuffers;
         _leftPadding = padding;
         _audioBuffers = malloc(sizeof(AudioQueueBufferRef) * _numBuffers);
-        _bufferSizeBytes = calculateBufferSize(&_audioDescription, secondsPerBuffer);
-        done = false;
+        _bufferSizeBytes = calculateBufferSize(&_audioDescription);
     }
     return self;
 }
@@ -99,9 +79,6 @@
                 _bufferSizeBytes,
                 &_audioBuffers[i]);
         HandleResultOSStatus(result, @"Allocating microphone buffer", true);
-
-        //ByteBuffer* byteBuffer = [[ByteBuffer alloc] initWithSize:bufferByteSize];
-        //[_audioToByteBufferMap setObject:byteBuffer forKey: [NSNumber numberWithInteger:(long)mBuffers[i]]];
     }
 
     _queueSetup = true;
@@ -109,7 +86,6 @@
 
     NSLog(@"Microphone thread initialized");
     [_outputThreadStartupSignal signal];
-
 
     CFRunLoopRun();
 }
@@ -158,10 +134,6 @@
     return &_audioDescription;
 }
 
-/*- (void)startCapturing {
-    [self performSelector:@selector(doStartCapturing) onThread:_inputThread withObject:self waitUntilDone:true];
-}*/
-
 - (void)startCapturing {
     if (!_isRecording && _queueSetup) {
         [self enqueueBuffers];
@@ -196,10 +168,6 @@
     }
 }
 
-//- (NSMutableDictionary*) getAudioToByteBufferMap {
-//return _audioToByteBufferMap;
-//}
-
 - (id <NewPacketDelegate>)getOutputSession {
     return _outputSession;
 }
@@ -218,15 +186,6 @@ static void HandleInputBuffer(void *aqData,
     uint leftPadding = [obj getLeftPadding];
     uint size = leftPadding + inBuffer->mAudioDataByteSize;
 
-   // NSLog(@"Microphone AUDIO!!! %d",inBuffer->mAudioDataByteSize);
-
-
-#ifdef PCM
-    if(!obj->done) {
-        [obj->_magicCookieLoaded signalAll];
-        obj->done = true;
-    }
-#else
     if (inNumPackets == 0) {
         NSLog(@"0 packets received on audio input callback");
         return;
@@ -260,17 +219,12 @@ static void HandleInputBuffer(void *aqData,
 
         [obj->_magicCookieLoaded signalAll];
     }
-#endif
 
     if (inBuffer->mAudioDataByteSize > 0) {
-        //ByteBuffer* buff = [[obj getAudioToByteBufferMap] objectForKey:[NSNumber numberWithInteger:(long)inBuffer]];
         ByteBuffer *buff = [[ByteBuffer alloc] initWithSize:size];
         memcpy(buff.buffer + leftPadding, inBuffer->mAudioData, inBuffer->mAudioDataByteSize);
         [buff setUsedSize:size];
 
-        //NSLog(@"Sleeping for a bit...");
-        //[NSThread sleepForTimeInterval:1];
-        //NSLog(@"Input buffer sent");
         [[obj getOutputSession] onNewPacket:buff fromProtocol:UDP];
     } else {
         NSLog(@"Microphone generated empty buffer");

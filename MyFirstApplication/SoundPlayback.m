@@ -47,7 +47,7 @@
             [NSException raise:@"Invalid input audio configuration" format:@"Restart playback threshold must be >= maximum queue size"];
         }
 
-        _bufferSizeBytes = calculateBufferSize(description, seconds);
+        _bufferSizeBytes = calculateBufferSize(description);
         _numAudioBuffers = numBuffers;
         _audioBuffers = malloc(sizeof(AudioQueueBufferRef) * _numAudioBuffers);
         _restartPlaybackNumBuffersThreshold = _numAudioBuffers + restartPlayback;
@@ -101,16 +101,11 @@
     }
 
     // Setup format and magic cookie.
-#ifndef PCM
     struct AudioStreamPacketDescription *desc = malloc(sizeof(AudioStreamPacketDescription));
     desc->mDataByteSize = unreadData;
     desc->mStartOffset = 0;
     desc->mVariableFramesInPacket = 0;
     int numDescs = 1;
-#else
-    struct AudioStreamPacketDescription *desc = nil;
-    int numDescs = 0;
-#endif
 
     inBuffer->mAudioDataByteSize = unreadData;
     OSStatus result = 0;
@@ -204,10 +199,8 @@ static void HandleOutputBuffer(void *aqData,
     OSStatus result = AudioQueueNewOutput(_audioDescription, HandleOutputBuffer, (__bridge void *) (self), CFRunLoopGetCurrent(), kCFRunLoopCommonModes, 0, &_audioQueue);
     HandleResultOSStatus(result, @"Initializing speaker queue", true);
 
-#ifndef PCM
     result = AudioQueueSetProperty(_audioQueue, kAudioQueueProperty_MagicCookie, _magicCookie, _magicCookieSize);
     HandleResultOSStatus(result, @"Setting magic cookie for output", true);
-#endif
 
     for (int i = 0; i < _numAudioBuffers; i++) {
         result = AudioQueueAllocateBuffer(_audioQueue,
