@@ -62,12 +62,12 @@ onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
         _startStopTracker = [[TimedEventTracker alloc] initWithMaxEvents:8 timePeriod:5];
 
         // Buffering estimations (introduce delay so that playback is smooth).
-        uint numMicrophoneBuffers = 3;
+        uint numMicrophoneBuffers = 10;
         uint numPlaybackAudioBuffers = 10;
-        uint maxPlaybackPendingBuffers = 10;
+        uint maxPlaybackPendingBuffers = 40;
 
         Float64 secondsPerBuffer = 0.2; // estimate.
-        Float64 estimatedDelay = numMicrophoneBuffers * secondsPerBuffer;
+        Float64 estimatedDelay = 3 * secondsPerBuffer;
 
         _decodingPipe = [[DecodingPipe alloc] init];
         _delayedPipe = [[DelayedPipe alloc] initWithMinimumDelay:estimatedDelay outputSession:udpNetworkOutputSession];

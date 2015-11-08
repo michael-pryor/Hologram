@@ -13,13 +13,17 @@
 
 - (id)initWithMaxQueueSize:(unsigned long)maxSize;
 
-- (void)add:(id)obj;
+- (id)initWithMaxQueueSize:(unsigned long)maxSize minQueueSizeLowerBound:(unsigned long)minSizeLower minQueueSizeUpperBound:(unsigned long)minSizeUpper;
 
-- (void)addObject:(id)obj atPosition:(int)position;
+- (uint)add:(id)obj;
+
+- (uint)addObject:(id)obj atPosition:(int)position;
 
 - (id)get;
 
 - (id)getImmediate;
+
+- (id)getWithTimeout:(double)timeoutSeconds;
 
 - (void)shutdown;
 

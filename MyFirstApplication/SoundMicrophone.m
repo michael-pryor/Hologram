@@ -72,7 +72,7 @@
     [_queueSetup clear];
 }
 
-- (bool)shouldRepeatAttempt {
+- (bool)shouldAttemptEnqueue {
     return [_isRecording isSignaled] && [_queueSetup isSignaled];
 }
 
@@ -112,13 +112,23 @@
 
 - (void)enqueueBuffer:(AudioQueueBufferRef)buffer {
     OSStatus result;
+    int counter = 0;
     do {
         result = AudioQueueEnqueueBuffer(_audioQueue,
                 buffer,
                 0,
                 NULL);
+        counter++;
+        if (counter == 1000) {
+            break;
+        }
     }
-    while (!HandleResultOSStatus(result, @"Enqueing initial microphone buffer", false) && [self shouldRepeatAttempt]);
+    while (!HandleResultOSStatus(result, @"Enqueing microphone buffer", false) && [self shouldAttemptEnqueue]);
+    if (counter == 1000) {
+        NSLog(@"Catestrophic failure of audio input, attempting to restart microphone");
+        [self stopCapturing];
+        [self startCapturing];
+    }
 }
 
 - (void)enqueueBuffers {
@@ -256,7 +266,9 @@ static void HandleInputBuffer(void *aqData,
         NSLog(@"Microphone generated empty buffer");
     }
 
-    [obj enqueueBuffer:inBuffer];
+    if ([obj shouldAttemptEnqueue]) {
+        [obj enqueueBuffer:inBuffer];
+    }
 }
 
 
