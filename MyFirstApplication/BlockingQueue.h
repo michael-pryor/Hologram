@@ -19,8 +19,6 @@
 
 - (id)get;
 
-- (unsigned long)getPendingAmount;
-
 - (id)getImmediate;
 
 - (void)shutdown;
@@ -28,4 +26,6 @@
 - (void)restartQueue;
 
 - (void)clear;
+
+- (int)size;
 @end

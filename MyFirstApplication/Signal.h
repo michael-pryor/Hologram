@@ -21,6 +21,8 @@
 
 - (bool)signalAll;
 
+- (void)dummySignalAll;
+
 - (bool)isSignaled;
 
 - (int)incrementAndSignal;

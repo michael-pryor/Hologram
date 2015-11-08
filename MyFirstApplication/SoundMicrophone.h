@@ -11,7 +11,7 @@
 #import "InputSessionBase.h"
 
 @interface SoundMicrophone : NSObject
-- (id)initWithOutputSession:(id <NewPacketDelegate>)output numBuffers:(uint)numBuffers leftPadding:(uint)padding secondPerBuffer:(Float64)secondsPerBuffer;
+- (id)initWithOutputSession:(id <NewPacketDelegate>)output numBuffers:(uint)numBuffers leftPadding:(uint)padding;
 
 - (void)startCapturing;
 

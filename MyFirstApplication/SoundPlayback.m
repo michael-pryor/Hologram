@@ -10,6 +10,7 @@
 #import "SoundEncodingShared.h"
 #import "BlockingQueue.h"
 #import "Signal.h"
+#import "Timer.h"
 
 @import AVFoundation;
 
@@ -35,29 +36,30 @@
     id <SoundPlaybackDelegate> _soundPlaybackDelegate;
     Byte *_magicCookie;
     int _magicCookieSize;
+
+    Timer *_lastCallbackTimer;
 }
 
 
-- (id)initWithAudioDescription:(AudioStreamBasicDescription *)description secondsPerBuffer:(Float64)seconds numBuffers:(uint)numBuffers restartPlaybackThreshold:(uint)restartPlayback maxPendingAmount:(uint)maxAmount soundPlaybackDelegate:(id <SoundPlaybackDelegate>)soundPlaybackDelegate {
+- (id)initWithAudioDescription:(AudioStreamBasicDescription *)description numBuffers:(uint)numBuffers maxPendingAmount:(uint)maxAmount soundPlaybackDelegate:(id <SoundPlaybackDelegate>)soundPlaybackDelegate {
     self = [super init];
     if (self) {
-        if (restartPlayback < _maxQueueSize) {
-            [NSException raise:@"Invalid input audio configuration" format:@"Restart playback threshold must be >= maximum queue size"];
-        }
-
         _bufferSizeBytes = calculateBufferSize(description);
         _numAudioBuffers = numBuffers;
         _audioBuffers = malloc(sizeof(AudioQueueBufferRef) * _numAudioBuffers);
         _maxQueueSize = maxAmount;
 
         _audioDescription = description;
-        _soundQueue = [[BlockingQueue alloc] initWithMaxQueueSize:_numAudioBuffers + _maxQueueSize];
+        _soundQueue = [[BlockingQueue alloc] initWithMaxQueueSize:_maxQueueSize];
         _bufferPool = [[BlockingQueue alloc] init];
 
         _queueSetup = [[Signal alloc] initWithFlag:false];
 
         _isPlaying = [[Signal alloc] initWithFlag:false];
         _soundPlaybackDelegate = soundPlaybackDelegate;
+
+
+        _lastCallbackTimer = [[Timer alloc] initWithFrequencySeconds:2 firingInitially:true];
     }
     return self;
 }
@@ -85,6 +87,12 @@
 }
 
 - (void)playSoundData:(ByteBuffer *)packet withBuffer:(AudioQueueBufferRef)inBuffer {
+
+    if([_lastCallbackTimer getState]) {
+        [self stopPlayback];
+    }
+    [_lastCallbackTimer reset];
+
     [self startPlayback];
 
     // Copy byte buffer data into audio buffer.
@@ -147,10 +155,13 @@ static void HandleOutputBuffer(void *aqData,
 
 - (void)startPlayback {
     if ([_queueSetup isSignaled] && [_isPlaying signalAll]) {
+        [_soundQueue restartQueue];
+
         OSStatus result = AudioQueueStart(_audioQueue, NULL);
         HandleResultOSStatus(result, @"Starting speaker queue", true);
 
         [_soundPlaybackDelegate playbackStarted];
+        [_lastCallbackTimer reset];
     }
 }
 

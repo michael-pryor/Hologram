@@ -18,7 +18,7 @@
 @end
 
 @interface SoundPlayback : NSObject <NewPacketDelegate>
-- (id)initWithAudioDescription:(AudioStreamBasicDescription *)description secondsPerBuffer:(Float64)seconds numBuffers:(uint)numBuffers restartPlaybackThreshold:(uint)restartPlayback maxPendingAmount:(uint)maxAmount soundPlaybackDelegate:(id <SoundPlaybackDelegate>)soundPlaybackDelegate;
+- (id)initWithAudioDescription:(AudioStreamBasicDescription *)description numBuffers:(uint)numBuffers maxPendingAmount:(uint)maxAmount soundPlaybackDelegate:(id <SoundPlaybackDelegate>)soundPlaybackDelegate;
 
 - (void)shutdown;
 

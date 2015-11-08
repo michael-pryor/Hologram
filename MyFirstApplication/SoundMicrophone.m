@@ -9,30 +9,39 @@
 #import "SoundMicrophone.h"
 #import "SoundEncodingShared.h"
 #import "Signal.h"
+
 @import AudioToolbox;
 
 @implementation SoundMicrophone {
-    bool _isRecording;
+    // Thread safe state.
+    Signal *_isRecording;
+    Signal *_queueSetup;
+    Signal *_magicCookieLoaded;
+
+    // Audio queue interactions.
     AudioQueueRef _audioQueue;
     AudioQueueBufferRef *_audioBuffers;
-    UInt32 _bufferSizeBytes;
-    bool _queueSetup;
     AudioStreamBasicDescription _audioDescription;
+
+    // Magic cookie.
+    Byte *_magicCookie;
+    int _magicCookieSize;
+
+    // Callback.
     id <NewPacketDelegate> _outputSession;
+
+    // Thread.
     NSThread *_inputThread;
-    Signal *_outputThreadStartupSignal;
+
+    // Settings.
     uint _leftPadding;
     uint _numBuffers;
-    Byte * _magicCookie;
-    int _magicCookieSize;
-    Signal *_magicCookieLoaded;
+    UInt32 _bufferSizeBytes;
 }
 
-- (id)initWithOutputSession:(id <NewPacketDelegate>)output numBuffers:(uint)numBuffers leftPadding:(uint)padding secondPerBuffer:(Float64)secondsPerBuffer {
+- (id)initWithOutputSession:(id <NewPacketDelegate>)output numBuffers:(uint)numBuffers leftPadding:(uint)padding {
     self = [super init];
     if (self) {
-        //_audioToByteBufferMap = [[NSMutableDictionary alloc] init];
-
         _magicCookie = nil;
         _outputSession = output;
 
@@ -42,7 +51,8 @@
         _audioDescription.mSampleRate = 8000.0;
         _audioDescription.mFramesPerPacket = 1024;
 
-        _outputThreadStartupSignal = [[Signal alloc] initWithFlag:false];
+        _queueSetup = [[Signal alloc] initWithFlag:false];
+        _isRecording = [[Signal alloc] initWithFlag:false];
         _magicCookieLoaded = [[Signal alloc] initWithFlag:false];
 
         _numBuffers = numBuffers;
@@ -59,7 +69,20 @@
     HandleResultOSStatus(result, @"Disposing of microphone queue", true);
 
     free(_audioBuffers);
-    _queueSetup = false;
+    [_queueSetup clear];
+}
+
+- (bool)shouldRepeatAttempt {
+    return [_isRecording isSignaled] && [_queueSetup isSignaled];
+}
+
+- (bool)handleResultOsStatus:(OSStatus)result description:(NSString *)description {
+    if (HandleResultOSStatus(result, description, true)) {
+        return true;
+    }
+
+    [self stopCapturing];
+    return false;
 }
 
 - (void)inputThreadEntryPoint:var {
@@ -81,29 +104,30 @@
         HandleResultOSStatus(result, @"Allocating microphone buffer", true);
     }
 
-    _queueSetup = true;
-    _isRecording = false;
-
     NSLog(@"Microphone thread initialized");
-    [_outputThreadStartupSignal signal];
+    [_queueSetup signalAll];
 
     CFRunLoopRun();
 }
 
-- (void)enqueueBuffers {
-    // Enqueue.
-    for (int i = 0; i<_numBuffers; ++i) {
-        OSStatus osResult = AudioQueueEnqueueBuffer(_audioQueue,
-                _audioBuffers[i],
+- (void)enqueueBuffer:(AudioQueueBufferRef)buffer {
+    OSStatus result;
+    do {
+        result = AudioQueueEnqueueBuffer(_audioQueue,
+                buffer,
                 0,
                 NULL);
-
-        HandleResultOSStatus(osResult, @"Enqueing initial microphone buffer", true);
     }
-
+    while (!HandleResultOSStatus(result, @"Enqueing initial microphone buffer", false) && [self shouldRepeatAttempt]);
 }
 
-- (Byte*)getMagicCookie {
+- (void)enqueueBuffers {
+    for (int i = 0; i < _numBuffers; ++i) {
+        [self enqueueBuffer:_audioBuffers[i]];
+    }
+}
+
+- (Byte *)getMagicCookie {
     return _magicCookie;
 }
 
@@ -119,10 +143,9 @@
                                            selector:@selector(inputThreadEntryPoint:)
                                              object:nil];
     [_inputThread start];
-    [_outputThreadStartupSignal wait];
+    [_queueSetup wait];
 
     [self startCapturing];
-    [_magicCookieLoaded wait];
     NSLog(@"Microphone thread started");
 }
 
@@ -135,37 +158,33 @@
 }
 
 - (void)startCapturing {
-    if (!_isRecording && _queueSetup) {
+    if ([_queueSetup isSignaled] && [_isRecording signalAll]) {
         [self enqueueBuffers];
 
-        OSStatus result = 0;
-        do {
-            result = AudioQueueStart(_audioQueue, NULL);
-            HandleResultOSStatus(result, @"Starting microphone queue", true);
-        } while(result != 0);
+        OSStatus result = AudioQueueStart(_audioQueue, NULL);
+        if (![self handleResultOsStatus:result description:@"Starting microphone queue"]) {
+            return;
+        }
 
-        _isRecording = true;
+        [_magicCookieLoaded wait];
     }
- }
+}
 
 - (void)stopCapturingPermanently {
-    if (_queueSetup) {
+    if ([_queueSetup clear]) {
         OSStatus result = AudioQueueStop(_audioQueue, FALSE);
         HandleResultOSStatus(result, @"Stopping microphone queue", true);
-        _isRecording = false;
-        _queueSetup = false;
+        [_isRecording clear];
     }
 }
 
 - (void)stopCapturing {
-    if (_isRecording && _queueSetup) {
+    if ([_queueSetup isSignaled] && [_isRecording clear]) {
         OSStatus result = AudioQueuePause(_audioQueue);
         HandleResultOSStatus(result, @"Pausing microphone queue", true);
 
         result = AudioQueueReset(_audioQueue);
         HandleResultOSStatus(result, @"Resetting microphone queue", true);
-
-        _isRecording = false;
     }
 }
 
@@ -193,7 +212,7 @@ static void HandleInputBuffer(void *aqData,
     }
 
     if (inPacketDesc[0].mVariableFramesInPacket > 0) {
-        NSLog(@"VARIABLE FRAMES!!!");
+        NSLog(@"Variable frames");
     }
 
     if (inNumPackets > 1) {
@@ -211,12 +230,18 @@ static void HandleInputBuffer(void *aqData,
     if (obj->_magicCookie == nil) {
         UInt32 propertySize;
         OSStatus status = AudioQueueGetPropertySize(obj->_audioQueue, kAudioConverterCompressionMagicCookie, &propertySize);
-        HandleResultOSStatus(status, @"Retrieving magic cookie size", true);
+        if (![obj handleResultOsStatus:status description:@"Retrieving magic cookie size"]) {
+            [obj->_magicCookieLoaded dummySignalAll];
+            return;
+        }
         obj->_magicCookieSize = propertySize;
 
         obj->_magicCookie = (Byte *) malloc(propertySize);
         status = AudioQueueGetProperty(obj->_audioQueue, kAudioQueueProperty_MagicCookie, obj->_magicCookie, &propertySize);
-        HandleResultOSStatus(status, @"Retrieving magic cookie", true);
+        if (![obj handleResultOsStatus:status description:@"Retrieving magic cookie"]) {
+            [obj->_magicCookieLoaded dummySignalAll];
+            return;
+        }
 
         [obj->_magicCookieLoaded signalAll];
     }
@@ -230,8 +255,8 @@ static void HandleInputBuffer(void *aqData,
     } else {
         NSLog(@"Microphone generated empty buffer");
     }
-    OSStatus result = AudioQueueEnqueueBuffer(obj->_audioQueue, inBuffer, 0, NULL);
-    HandleResultOSStatus(result, @"Enqueing microphone buffer", false);
+
+    [obj enqueueBuffer:inBuffer];
 }
 
 

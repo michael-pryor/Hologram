@@ -62,10 +62,12 @@ onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
         _startStopTracker = [[TimedEventTracker alloc] initWithMaxEvents:8 timePeriod:5];
 
         // Buffering estimations (introduce delay so that playback is smooth).
-        Float64 secondsPerBuffer = 0.1;
-        uint numBuffers = 3;
+        uint numMicrophoneBuffers = 3;
+        uint numPlaybackAudioBuffers = 10;
+        uint maxPlaybackPendingBuffers = 10;
 
-        Float64 estimatedDelay = numBuffers * secondsPerBuffer * 2;
+        Float64 secondsPerBuffer = 0.2; // estimate.
+        Float64 estimatedDelay = numMicrophoneBuffers * secondsPerBuffer;
 
         _decodingPipe = [[DecodingPipe alloc] init];
         _delayedPipe = [[DelayedPipe alloc] initWithMinimumDelay:estimatedDelay outputSession:udpNetworkOutputSession];
@@ -79,10 +81,10 @@ onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
         // Audio.
         _encodingPipeAudio = [[EncodingPipe alloc] initWithOutputSession:udpNetworkOutputSession andPrefixId:AUDIO_ID];
 
-        _soundEncoder = [[SoundMicrophone alloc] initWithOutputSession:nil numBuffers:numBuffers leftPadding:sizeof(uint) secondPerBuffer:secondsPerBuffer];
+        _soundEncoder = [[SoundMicrophone alloc] initWithOutputSession:nil numBuffers:numMicrophoneBuffers leftPadding:sizeof(uint)];
         [_soundEncoder initialize];
 
-        _soundPlayback = [[SoundPlayback alloc] initWithAudioDescription:[_soundEncoder getAudioDescription] secondsPerBuffer:secondsPerBuffer numBuffers:numBuffers restartPlaybackThreshold:3 maxPendingAmount:30 soundPlaybackDelegate:self];
+        _soundPlayback = [[SoundPlayback alloc] initWithAudioDescription:[_soundEncoder getAudioDescription] numBuffers:numPlaybackAudioBuffers maxPendingAmount:maxPlaybackPendingBuffers soundPlaybackDelegate:self];
         [_soundPlayback setMagicCookie:[_soundEncoder getMagicCookie] size:[_soundEncoder getMagicCookieSize]];
         [_decodingPipe addPrefix:AUDIO_ID mappingToOutputSession:_soundPlayback];
 

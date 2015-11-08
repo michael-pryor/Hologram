@@ -51,10 +51,15 @@
     }
 
     // Add to end of array.
-    if (position == -1) {
+    if (position < 0) {
         [_queue addObject:obj];
     } else {
-        [_queue insertObject:obj atIndex:(uint) position];
+        // Will get NSRangeException if not enough space to accommodate insertObject:atIndex:
+        if (position >= [_queue count]) {
+            [_queue addObject:obj];
+        } else {
+            [_queue insertObject:obj atIndex:(uint) position];
+        }
     }
 
     [_lock signal];
@@ -101,26 +106,28 @@
     return [self getImmediate:false];
 }
 
-- (unsigned long)getPendingAmount {
-    [_lock lock];
-    unsigned long size = _queue.count;
-    [_lock unlock];
-    return size;
-}
-
 - (void)shutdown {
     [self add:nil];
 }
 
 - (void)restartQueue {
+    [_lock lock];
     _queueShutdown = false;
     [_queue removeAllObjects];
+    [_lock unlock];
 }
 
 - (void)clear {
     [_lock lock];
     [_queue removeAllObjects];
     [_lock unlock];
+}
+
+- (int)size {
+    [_lock lock];
+    int result = [_queue count];
+    [_lock unlock];
+    return result;
 }
 
 @end

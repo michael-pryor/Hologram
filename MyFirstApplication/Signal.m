@@ -61,6 +61,13 @@
     return ret;
 }
 
+// Like signalAll but does not set the counter, so may still be cleared.
+- (void)dummySignalAll {
+    [_condition lock];
+    [_condition broadcast];
+    [_condition unlock];
+}
+
 // Return true if state has changed.
 - (bool)signalAll {
     [_condition lock];
