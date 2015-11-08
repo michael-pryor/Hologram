@@ -75,11 +75,11 @@
 }
 
 - (void)appWillResignActive:(NSNotification *)note {
-    //[self viewDidDisappear:false];
+    [_mediaController stop];
 }
 
 - (void)appWillRetakeActive:(NSNotification *)note {
-    //[self viewDidAppear:false];
+    [_mediaController start];
 }
 
 // View appears; happens if user switches app or moves from a different view controller.
@@ -178,6 +178,7 @@
     } else if (state == ADDRESS_RECEIVED) {
         NSLog(@"New end point received");
         _waitingForNewEndPoint = false;
+        [_mediaController start];
     } else {
         NSLog(@"Unsupported punchthrough state received");
     }
@@ -238,7 +239,7 @@
             break;
 
         case P_CONNECTED_TO_EXISTING:
-            [self setDisconnectStateWithShortDescription:@"Reconnected to previous session" longDescription:@"Hurray!"];
+            [self setDisconnectStateWithShortDescription:@"Reconnected to previous session" longDescription:@"Resuming previous conversation or finding a new match"];
             break;
 
         case P_NOT_CONNECTED:
@@ -276,6 +277,7 @@
     if (!alreadyPresented) {
         [_disconnectViewController didMoveToParentViewController:self];
         _waitingForNewEndPoint = true;
+        [_mediaController stop];
     }
 }
 

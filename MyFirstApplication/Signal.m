@@ -38,10 +38,11 @@
     [_condition unlock];
 }
 
+// Return true if state has changed.
 - (bool)signal {
     [_condition lock];
-    bool ret = _counter > 0;
-    if (!ret) {
+    bool ret = _counter < 1;
+    if (ret) {
         _counter = 1;
         [_condition signal];
     }
@@ -49,6 +50,7 @@
     return ret;
 }
 
+// Return true if state has changed.
 - (bool)clear {
     [_condition lock];
     bool ret = _counter > 0;
@@ -59,10 +61,11 @@
     return ret;
 }
 
+// Return true if state has changed.
 - (bool)signalAll {
     [_condition lock];
-    bool ret = _counter > 0;
-    if (!ret) {
+    bool ret = _counter < 1;
+    if (ret) {
         _counter = 1;
         [_condition broadcast];
     }

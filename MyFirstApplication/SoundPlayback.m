@@ -16,7 +16,6 @@
 @implementation SoundPlayback {
     AudioStreamBasicDescription *_audioDescription;
     AudioQueueRef _audioQueue;
-    bool _queueSetup;
     Signal *_isPlaying;
     BlockingQueue *_soundQueue;
 
@@ -31,9 +30,8 @@
     uint _numAudioBuffers;
     AudioQueueBufferRef *_audioBuffers;
     uint _bufferSizeBytes;
-    uint _restartPlaybackNumBuffersThreshold;
     uint _maxQueueSize;
-    Signal *_outputThreadStartupSignal;
+    Signal *_queueSetup;
     id <SoundPlaybackDelegate> _soundPlaybackDelegate;
     Byte *_magicCookie;
     int _magicCookieSize;
@@ -50,14 +48,13 @@
         _bufferSizeBytes = calculateBufferSize(description);
         _numAudioBuffers = numBuffers;
         _audioBuffers = malloc(sizeof(AudioQueueBufferRef) * _numAudioBuffers);
-        _restartPlaybackNumBuffersThreshold = _numAudioBuffers + restartPlayback;
         _maxQueueSize = maxAmount;
 
         _audioDescription = description;
         _soundQueue = [[BlockingQueue alloc] initWithMaxQueueSize:_numAudioBuffers + _maxQueueSize];
         _bufferPool = [[BlockingQueue alloc] init];
 
-        _outputThreadStartupSignal = [[Signal alloc] initWithFlag:false];
+        _queueSetup = [[Signal alloc] initWithFlag:false];
 
         _isPlaying = [[Signal alloc] initWithFlag:false];
         _soundPlaybackDelegate = soundPlaybackDelegate;
@@ -76,10 +73,9 @@
 }
 
 - (void)shutdown {
-    if (_queueSetup) {
+    if ([_queueSetup clear]) {
         [self stopPlayback];
         [_soundQueue restartQueue];
-        _queueSetup = false;
     }
 }
 
@@ -89,6 +85,8 @@
 }
 
 - (void)playSoundData:(ByteBuffer *)packet withBuffer:(AudioQueueBufferRef)inBuffer {
+    [self startPlayback];
+
     // Copy byte buffer data into audio buffer.
     uint unreadData = packet.getUnreadDataFromCursor;
     if (unreadData > 0) {
@@ -101,11 +99,11 @@
     }
 
     // Setup format and magic cookie.
-    struct AudioStreamPacketDescription *desc = malloc(sizeof(AudioStreamPacketDescription));
+
+    struct AudioStreamPacketDescription *desc = &inBuffer->mPacketDescriptions[0];
     desc->mDataByteSize = unreadData;
     desc->mStartOffset = 0;
     desc->mVariableFramesInPacket = 0;
-    int numDescs = 1;
 
     inBuffer->mAudioDataByteSize = unreadData;
     OSStatus result = 0;
@@ -113,31 +111,29 @@
     // Queue buffer.
     result = AudioQueueEnqueueBuffer(_audioQueue,
             inBuffer,
-            numDescs, desc
+            1,
+            desc
     );
-    if (result == ERR_NOT_PLAYING) {
-        if ([_isPlaying clear]) {
-            NSLog(@"Speaker queue paused by OS, updated flag (AudioQueueEnqueueBuffer)");
-        }
-    }
-
-    if (!HandleResultOSStatus(result, @"Enqueing speaker buffer", false)) {
+    if (![self handleResultOsStatus:result description:@"Enqueing speaker buffer"]) {
         [self returnToPool:inBuffer];
         return;
     }
 
     // Decode data.
     result = AudioQueuePrime(_audioQueue, 0, NULL);
-    if (result == ERR_NOT_PLAYING) {
-        if ([_isPlaying clear]) {
-            NSLog(@"Speaker queue paused by OS, updated flag (AudioQueuePrime)");
-        }
-    }
-
-    if (!HandleResultOSStatus(result, @"Priming speaker buffer", false)) {
-        [self returnToPool:inBuffer];
+    if (![self handleResultOsStatus:result description:@"Priming speaker buffer"]) {
+        // Don't return buffer, it has been enqueued so will hit the callback even if failure occurs here.
         return;
     }
+}
+
+- (bool)handleResultOsStatus:(OSStatus)result description:(NSString *)description {
+    if (HandleResultOSStatus(result, description, false)) {
+        return true;
+    }
+
+    [self stopPlayback];
+    return false;
 }
 
 // Callback when buffer has finished playing and is ready to be reused.
@@ -150,21 +146,16 @@ static void HandleOutputBuffer(void *aqData,
 }
 
 - (void)startPlayback {
-    if (_queueSetup) {
-        // Start the queue.
-        OSStatus result = 0;
-        do {
-            result = AudioQueueStart(_audioQueue, NULL);
-            HandleResultOSStatus(result, @"Starting speaker queue", true);
-        } while (result != 0);
+    if ([_queueSetup isSignaled] && [_isPlaying signalAll]) {
+        OSStatus result = AudioQueueStart(_audioQueue, NULL);
+        HandleResultOSStatus(result, @"Starting speaker queue", true);
 
         [_soundPlaybackDelegate playbackStarted];
     }
 }
 
 - (void)stopPlayback {
-    if (_queueSetup) {
-        NSLog(@"Pausing speaker queue");
+    if ([_queueSetup isSignaled] && [_isPlaying clear]) {
         OSStatus result = AudioQueueStop(_audioQueue, TRUE);
         HandleResultOSStatus(result, @"Stopping speaker queue", true);
         [_soundPlaybackDelegate playbackStopped];
@@ -195,7 +186,6 @@ static void HandleOutputBuffer(void *aqData,
 }
 
 - (void)outputThreadEntryPoint:var {
-    _queueSetup = true;
     OSStatus result = AudioQueueNewOutput(_audioDescription, HandleOutputBuffer, (__bridge void *) (self), CFRunLoopGetCurrent(), kCFRunLoopCommonModes, 0, &_audioQueue);
     HandleResultOSStatus(result, @"Initializing speaker queue", true);
 
@@ -203,8 +193,9 @@ static void HandleOutputBuffer(void *aqData,
     HandleResultOSStatus(result, @"Setting magic cookie for output", true);
 
     for (int i = 0; i < _numAudioBuffers; i++) {
-        result = AudioQueueAllocateBuffer(_audioQueue,
+        result = AudioQueueAllocateBufferWithPacketDescriptions(_audioQueue,
                 _bufferSizeBytes,
+                1,
                 &_audioBuffers[i]);
         HandleResultOSStatus(result, @"Initializing speaker buffer", true);
 
@@ -214,7 +205,7 @@ static void HandleOutputBuffer(void *aqData,
     [self selectSpeaker];
 
     NSLog(@"Initialized speaker thread");
-    [_outputThreadStartupSignal signal];
+    [_queueSetup signalAll];
 
     CFRunLoopRun();
 
@@ -230,7 +221,7 @@ static void HandleOutputBuffer(void *aqData,
                                             selector:@selector(outputThreadEntryPoint:)
                                               object:nil];
     [_outputThread start];
-    [_outputThreadStartupSignal wait];
+    [_queueSetup wait];
     NSLog(@"Speaker thread initialized");
 
     _soundQueueThread = [[NSThread alloc] initWithTarget:self selector:@selector(soundQueueThreadEntryPoint:) object:nil];

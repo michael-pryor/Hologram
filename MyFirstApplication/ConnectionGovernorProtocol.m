@@ -102,7 +102,7 @@ uint NUM_SOCKETS = 1;
     while (_alive) {
         if (_connectionStatus == P_CONNECTED) {
             [pingTimer blockUntilNextTick];
-            NSLog(@"Sending ping to governor server");
+           // NSLog(@"Sending ping to governor server");
             [_tcpOutputSession onNewPacket:pingBuffer fromProtocol:TCP];
         }
     }

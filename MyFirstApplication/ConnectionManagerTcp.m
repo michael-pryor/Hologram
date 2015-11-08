@@ -77,7 +77,7 @@
 }
 
 - (void)shutdown {
-    if ([_shutdownSignal signal]) {
+    if (![_shutdownSignal signal]) {
         return;
     }
 

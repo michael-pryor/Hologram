@@ -153,6 +153,7 @@
         OSStatus result = AudioQueueStop(_audioQueue, FALSE);
         HandleResultOSStatus(result, @"Stopping microphone queue", true);
         _isRecording = false;
+        _queueSetup = false;
     }
 }
 

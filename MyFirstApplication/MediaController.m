@@ -65,7 +65,7 @@ onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
         Float64 secondsPerBuffer = 0.1;
         uint numBuffers = 3;
 
-        Float64 estimatedDelay = numBuffers * secondsPerBuffer;
+        Float64 estimatedDelay = numBuffers * secondsPerBuffer * 2;
 
         _decodingPipe = [[DecodingPipe alloc] init];
         _delayedPipe = [[DelayedPipe alloc] initWithMinimumDelay:estimatedDelay outputSession:udpNetworkOutputSession];

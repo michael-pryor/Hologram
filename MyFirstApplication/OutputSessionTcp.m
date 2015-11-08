@@ -77,7 +77,7 @@
                 return false;
             }
             [_sendBuffer moveCursorForwardsPassively:(uint) bytesSent];
-            NSLog(@"%lu TCP bytes sent, %lu remaining", (unsigned long) bytesSent, (unsigned long) [_sendBuffer getUnreadDataFromCursor]);
+            //NSLog(@"%lu TCP bytes sent, %lu remaining", (unsigned long) bytesSent, (unsigned long) [_sendBuffer getUnreadDataFromCursor]);
         }
 
         _sendViaThread = true;
