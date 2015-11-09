@@ -10,8 +10,12 @@
 #import "PipelineProcessor.h"
 #import "ByteBuffer.h"
 
+@protocol BatchNumberListener
+- (void)onBatchNumberChange:(uint)newNumber;
+@end
+
 @interface BatcherOutput : PipelineProcessor
-- (id)initWithOutputSession:(id <NewPacketDelegate>)outputSession andChunkSize:(uint)chunkSize withLeftPadding:(uint)leftPadding includeTotalChunks:(Boolean)includeTotalChunks;
+- (id)initWithOutputSession:(id <NewPacketDelegate>)outputSession chunkSize:(uint)chunkSize leftPadding:(uint)leftPadding includeTotalChunks:(Boolean)includeTotalChunks batchNumberListener:(id <BatchNumberListener>)batchNumberListener;
 
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol;
 @end

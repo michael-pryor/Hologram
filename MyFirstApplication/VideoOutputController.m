@@ -9,7 +9,6 @@
 #import "VideoOutputController.h"
 #import "ThrottledBlock.h"
 #import "BatcherInput.h"
-#import "BatcherOutput.h"
 #import "EncodingPipe.h"
 #import "TimedEventTracker.h"
 
@@ -54,7 +53,7 @@
     id <VideoSpeedNotifier> _videoSpeedNotifier;       // Notify of change in video frame rate.
 
 }
-- (id)initWithTcpNetworkOutputSession:(id <NewPacketDelegate>)tcpNetworkOutputSession udpNetworkOutputSession:(id <NewPacketDelegate>)udpNetworkOutputSession imageDelegate:(id <NewImageDelegate>)newImageDelegate videoSpeedNotifier:(id <VideoSpeedNotifier>)videoSpeedNotifier {
+- (id)initWithTcpNetworkOutputSession:(id <NewPacketDelegate>)tcpNetworkOutputSession udpNetworkOutputSession:(id <NewPacketDelegate>)udpNetworkOutputSession imageDelegate:(id <NewImageDelegate>)newImageDelegate videoSpeedNotifier:(id <VideoSpeedNotifier>)videoSpeedNotifier batchNumberListener:(id <BatchNumberListener>)batchNumberListener {
     self = [super init];
     if (self) {
         _newImageDelegate = newImageDelegate;
@@ -66,9 +65,9 @@
 
         PacketToImageProcessor *p = [[PacketToImageProcessor alloc] initWithImageDelegate:newImageDelegate encoder:_videoEncoder];
 
-        _encodingPipeVideo = [[EncodingPipe alloc] initWithOutputSession:udpNetworkOutputSession andPrefixId:VIDEO_ID];
+        _encodingPipeVideo = [[EncodingPipe alloc] initWithOutputSession:udpNetworkOutputSession prefixId:VIDEO_ID];
 
-        _batcherOutput = [[BatcherOutput alloc] initWithOutputSession:_encodingPipeVideo andChunkSize:[_videoEncoder suggestedBatchSize] withLeftPadding:sizeof(uint) includeTotalChunks:true];
+        _batcherOutput = [[BatcherOutput alloc] initWithOutputSession:_encodingPipeVideo chunkSize:[_videoEncoder suggestedBatchSize] leftPadding:sizeof(uint) includeTotalChunks:true batchNumberListener:batchNumberListener];
 
         _batcherInput = [[BatcherInput alloc] initWithOutputSession:p chunkSize:[_videoEncoder suggestedBatchSize] numChunks:0 andNumChunksThreshold:1 andTimeoutMs:1000 andPerformanceInformaitonDelegate:self];
 
@@ -93,7 +92,7 @@
     [_session stopRunning];
 }
 
-- (void)setNetworkOutputSessionTcp:(id <NewPacketDelegate>)tcp{
+- (void)setNetworkOutputSessionTcp:(id <NewPacketDelegate>)tcp {
     NSLog(@"Updating video tcp network output sessions");
     _tcpNetworkOutputSession = tcp;
 }
@@ -141,5 +140,6 @@
     [_throttledBlock reset];
     [_videoSpeedNotifier onNewVideoFrameFrequency:[_throttledBlock secondsFrequency]];
 }
+
 
 @end

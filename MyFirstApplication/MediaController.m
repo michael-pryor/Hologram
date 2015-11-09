@@ -28,7 +28,7 @@
 - (void)
 onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
     // Skip the left padding, since we don't need this when not using networking.
-    [packet setCursorPosition:sizeof(uint)];
+    [packet setCursorPosition:sizeof(uint) * 2];
     [_outputSession onNewPacket:packet fromProtocol:protocol];
 }
 @end
@@ -44,6 +44,7 @@ onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
     SoundMicrophone *_soundEncoder;
     SoundPlayback *_soundPlayback;
     EncodingPipe *_encodingPipeAudio;
+    EncodingPipe *_encodingPipeAudioVideoSync;
     TimedEventTracker *_startStopTracker;
 
     // Both audio and video.
@@ -51,11 +52,11 @@ onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
 }
 
 - (void)echoBackForTesting {
-    OfflineAudioProcessor * offlineAudioProcessor = [[OfflineAudioProcessor alloc] initWithOutputSession:_soundPlayback];
+    OfflineAudioProcessor *offlineAudioProcessor = [[OfflineAudioProcessor alloc] initWithOutputSession:_soundPlayback];
     [_soundEncoder setOutputSession:offlineAudioProcessor];
 }
 
-- (id)initWithImageDelegate:(id <NewImageDelegate>)newImageDelegate videoSpeedNotifier:(id <VideoSpeedNotifier>)videoSpeedNotifier tcpNetworkOutputSession:(id <NewPacketDelegate>)tcpNetworkOutputSession udpNetworkOutputSession:(id <NewPacketDelegate>)udpNetworkOutputSession; {
+- (id)initWithImageDelegate:(id <NewImageDelegate>)newImageDelegate videoSpeedNotifier:(id <VideoSpeedNotifier>)videoSpeedNotifier tcpNetworkOutputSession:(id <NewPacketDelegate>)tcpNetworkOutputSession udpNetworkOutputSession:(id <NewPacketDelegate>)udpNetworkOutputSession {
     self = [super init];
     if (self) {
         _started = false;
@@ -73,15 +74,17 @@ onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
         _delayedPipe = [[DelayedPipe alloc] initWithMinimumDelay:estimatedDelay outputSession:udpNetworkOutputSession];
 
         // Video.
-        _videoOutputController = [[VideoOutputController alloc] initWithTcpNetworkOutputSession:tcpNetworkOutputSession udpNetworkOutputSession:_delayedPipe imageDelegate:newImageDelegate videoSpeedNotifier:videoSpeedNotifier];
+        _videoOutputController = [[VideoOutputController alloc] initWithTcpNetworkOutputSession:tcpNetworkOutputSession udpNetworkOutputSession:_delayedPipe imageDelegate:newImageDelegate videoSpeedNotifier:videoSpeedNotifier batchNumberListener:self];
 
         [_decodingPipe addPrefix:VIDEO_ID mappingToOutputSession:_videoOutputController];
 
 
         // Audio.
-        _encodingPipeAudio = [[EncodingPipe alloc] initWithOutputSession:udpNetworkOutputSession andPrefixId:AUDIO_ID];
+        _encodingPipeAudioVideoSync = [[EncodingPipe alloc] initWithOutputSession:udpNetworkOutputSession prefixId:0 position:sizeof(uint) doLogging:true];
+        _encodingPipeAudio = [[EncodingPipe alloc] initWithOutputSession:_encodingPipeAudioVideoSync prefixId:AUDIO_ID];
 
-        _soundEncoder = [[SoundMicrophone alloc] initWithOutputSession:nil numBuffers:numMicrophoneBuffers leftPadding:sizeof(uint)];
+
+        _soundEncoder = [[SoundMicrophone alloc] initWithOutputSession:nil numBuffers:numMicrophoneBuffers leftPadding:sizeof(uint) * 2];
         [_soundEncoder initialize];
 
         _soundPlayback = [[SoundPlayback alloc] initWithAudioDescription:[_soundEncoder getAudioDescription] numBuffers:numPlaybackAudioBuffers maxPendingAmount:maxPlaybackPendingBuffers soundPlaybackDelegate:self];
@@ -89,7 +92,7 @@ onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
         [_decodingPipe addPrefix:AUDIO_ID mappingToOutputSession:_soundPlayback];
 
         [_soundEncoder setOutputSession:_encodingPipeAudio];
-       // [self echoBackForTesting];
+        // [self echoBackForTesting];
 
         [_soundPlayback initialize];
         NSLog(@"Audio microphone and speaker initialized");
@@ -124,7 +127,7 @@ onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
 - (void)setNetworkOutputSessionTcp:(id <NewPacketDelegate>)tcp Udp:(id <NewPacketDelegate>)udp {
     [_encodingPipeAudio setOutputSession:udp];
     NSLog(@"Updating video output session UDP");
-    [_delayedPipe setOutputSession: udp];
+    [_delayedPipe setOutputSession:udp];
     [_videoOutputController setNetworkOutputSessionTcp:tcp];
     [_videoOutputController resetSendRate];
 }
@@ -171,4 +174,10 @@ onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
         [self sendSlowdownRequest];
     }
 }
+
+- (void)onBatchNumberChange:(uint)newNumber {
+    [_encodingPipeAudioVideoSync setPrefix:newNumber];
+}
+
+
 @end

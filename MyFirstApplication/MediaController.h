@@ -13,7 +13,7 @@
 #import "VideoOutputController.h"
 #import "SoundPlayback.h"
 
-@interface MediaController : NSObject <NewPacketDelegate, BatchPerformanceInformation, SoundPlaybackDelegate>
+@interface MediaController : NSObject <NewPacketDelegate, BatchPerformanceInformation, SoundPlaybackDelegate, BatchNumberListener>
 - (id)initWithImageDelegate:(id <NewImageDelegate>)newImageDelegate videoSpeedNotifier:(id <VideoSpeedNotifier>)videoSpeedNotifier tcpNetworkOutputSession:(id <NewPacketDelegate>)tcpNetworkOutputSession udpNetworkOutputSession:(id <NewPacketDelegate>)udpNetworkOutputSession;
 
 - (void)sendSlowdownRequest;
