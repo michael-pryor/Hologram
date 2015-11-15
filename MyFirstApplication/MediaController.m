@@ -53,7 +53,7 @@ onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
 
 - (void)echoBackForTesting {
     OfflineAudioProcessor *offlineAudioProcessor = [[OfflineAudioProcessor alloc] initWithOutputSession:_soundPlayback];
-    [_soundEncoder setOutputSession:offlineAudioProcessor];
+    [_encodingPipeAudioVideoSync setOutputSession:offlineAudioProcessor];
 }
 
 - (id)initWithImageDelegate:(id <NewImageDelegate>)newImageDelegate videoSpeedNotifier:(id <VideoSpeedNotifier>)videoSpeedNotifier tcpNetworkOutputSession:(id <NewPacketDelegate>)tcpNetworkOutputSession udpNetworkOutputSession:(id <NewPacketDelegate>)udpNetworkOutputSession {
@@ -65,7 +65,7 @@ onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
         // Buffering estimations (introduce delay so that playback is smooth).
         uint numMicrophoneBuffers = 10;
         uint numPlaybackAudioBuffers = 10;
-        uint maxPlaybackPendingBuffers = 40;
+        uint maxPlaybackPendingBuffers = 50;
 
         Float64 secondsPerBuffer = 0.2; // estimate.
         Float64 estimatedDelay = 3 * secondsPerBuffer;
@@ -92,7 +92,7 @@ onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
         [_decodingPipe addPrefix:AUDIO_ID mappingToOutputSession:_soundPlayback];
 
         [_soundEncoder setOutputSession:_encodingPipeAudio];
-        // [self echoBackForTesting];
+     //   [self echoBackForTesting];
 
         [_soundPlayback initialize];
         NSLog(@"Audio microphone and speaker initialized");

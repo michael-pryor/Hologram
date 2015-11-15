@@ -27,7 +27,7 @@
 
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
     if (_doLogging) {
-        NSLog(@"Writing prefix of %d", _prefix);
+        //NSLog(@"Writing prefix of %d", _prefix);
     }
 
     [packet addUnsignedInteger:_prefix atPosition:_position];

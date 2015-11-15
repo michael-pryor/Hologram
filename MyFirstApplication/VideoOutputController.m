@@ -65,6 +65,13 @@
 
         PacketToImageProcessor *p = [[PacketToImageProcessor alloc] initWithImageDelegate:newImageDelegate encoder:_videoEncoder];
 
+        // Put a delayed interaction between Network -> BatcherInput -> DELAYED INTERACTION -> PacketToImageProcessor
+        // This delayed interaction receives:
+        // - Batch ID of packet being passed from BatcherInput.
+        // - Batch ID of last processed audio data.
+        //
+        // And delays the video packet until its ID matches (give or take some number to line them up) the ID of the audio frame that was last played.
+
         _encodingPipeVideo = [[EncodingPipe alloc] initWithOutputSession:udpNetworkOutputSession prefixId:VIDEO_ID];
 
         _batcherOutput = [[BatcherOutput alloc] initWithOutputSession:_encodingPipeVideo chunkSize:[_videoEncoder suggestedBatchSize] leftPadding:sizeof(uint) includeTotalChunks:true batchNumberListener:batchNumberListener];

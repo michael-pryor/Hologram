@@ -10,6 +10,8 @@
 #import "SoundEncodingShared.h"
 #import "BlockingQueue.h"
 #import "Signal.h"
+#import "MediaShared.h"
+#import <mach/mach_time.h>
 
 @import AVFoundation;
 
@@ -37,7 +39,8 @@
     Byte *_magicCookie;
     int _magicCookieSize;
 
-    bool _shouldWipeDataQueue;
+    volatile bool _forceRestart;
+    volatile bool _flush;
 }
 
 
@@ -58,7 +61,8 @@
         _isPlaying = [[Signal alloc] initWithFlag:false];
         _soundPlaybackDelegate = soundPlaybackDelegate;
 
-        _shouldWipeDataQueue = true;
+        _forceRestart = false;
+        _flush = false;
     }
     return self;
 }
@@ -71,6 +75,10 @@
 
 - (void)dealloc {
     free(_audioBuffers);
+}
+
+- (bool)shouldReturnBuffer {
+    return _forceRestart || _flush;
 }
 
 - (void)shutdown {
@@ -90,6 +98,7 @@
         return;
     }
 
+    [packet setCursorPosition:8];
     // Copy byte buffer data into audio buffer.
     uint unreadData = packet.getUnreadDataFromCursor;
     if (unreadData > 0) {
@@ -108,14 +117,65 @@
     desc->mVariableFramesInPacket = 0;
     inBuffer->mAudioDataByteSize = unreadData;
 
+    uint batchId = [MediaShared getBatchIdFromByteBuffer: packet];
+    inBuffer->mUserData = (void *) batchId;
+
+    struct AudioTimeStamp audioStartTime;
+
     // Queue buffer.
-    OSStatus result = AudioQueueEnqueueBuffer(_audioQueue,
+    OSStatus result = AudioQueueEnqueueBufferWithParameters(_audioQueue,
             inBuffer,
             1,
-            desc);
+            desc,
+            0,
+            0,
+            0,
+            NULL,
+            NULL,
+            &audioStartTime);
+
     if (![self handleResultOsStatus:result description:@"Enqueing speaker buffer"]) {
         [self returnToPool:inBuffer];
         return;
+    }
+
+    // Check the current time vs time buffer will be scheduled.
+    // If it will be scheduled in the past, this is bad because it won't be played.
+    // We're out of sync, so force a restart of the audio queue.
+    //
+    // If it is scheduled too far in the future then there will be too much delay on
+    // audio playback and we should restart the audio queue to catch up again.
+    uint64_t currentMachineTime = mach_absolute_time();
+    uint64_t audioBufferStartTime = audioStartTime.mHostTime;
+    uint64_t thresholdMsFutureMax = 100; // Max acceptable latency.
+
+    // First queued buffer may have start time of 0.
+    if (audioBufferStartTime != 0) {
+        uint64_t diff;
+        bool isInFuture;
+
+        if (currentMachineTime > audioBufferStartTime) {
+            diff = currentMachineTime - audioBufferStartTime;
+            isInFuture = false;
+        } else {
+            diff = audioBufferStartTime - currentMachineTime;
+            isInFuture = true;
+        }
+
+        // Convert from nano seconds to milliseconds.
+        uint64_t diffMs = diff / 1000000;
+
+        int numBuffersInUse = [self getBuffersInUse];
+        NSLog(@"Machine time: %llu, host time %llu, diff %llu (%llums), is in future: %d, buffersInUse: %d", currentMachineTime, audioBufferStartTime, diff, diffMs, isInFuture, numBuffersInUse);
+        if (isInFuture) {
+            if (diffMs > thresholdMsFutureMax) {
+                _flush = true;
+            }
+        } else {
+            if (diffMs > 0) {
+                _forceRestart = true;
+            }
+        }
     }
 
     // Decode data.
@@ -124,6 +184,10 @@
         // Don't return buffer, it has been enqueued so will hit the callback even if failure occurs here.
         return;
     }
+}
+
+- (int)getBuffersInUse {
+    return _numAudioBuffers - [_bufferPool size];
 }
 
 - (bool)handleResultOsStatus:(OSStatus)result description:(NSString *)description {
@@ -140,6 +204,15 @@ static void HandleOutputBuffer(void *aqData,
         AudioQueueRef inAQ,
         AudioQueueBufferRef inBuffer) {
     SoundPlayback *obj = (__bridge SoundPlayback *) (aqData);
+
+    uint batchId = (uint) inBuffer->mUserData;
+    NSLog(@"Audio buffer with batch ID of %d returned", batchId);
+
+    // A thread is waiting for all buffers to be returned, make it happen.
+    if ([obj shouldReturnBuffer]) {
+        [obj returnToPool:inBuffer];
+        return;
+    }
 
     ByteBuffer *nextItem = [obj->_soundQueue getWithTimeout:0.2];
 
@@ -159,10 +232,6 @@ static void HandleOutputBuffer(void *aqData,
 
 - (void)startPlayback {
     if ([_queueSetup isSignaled] && [_isPlaying signalAll]) {
-        if (_shouldWipeDataQueue) {
-            [_soundQueue restartQueue];
-        }
-
         OSStatus result = AudioQueueStart(_audioQueue, NULL);
         HandleResultOSStatus(result, @"Starting speaker queue", true);
 
@@ -170,21 +239,25 @@ static void HandleOutputBuffer(void *aqData,
     }
 }
 
-- (void)stopPlayback:(bool)wipeDataQueue {
+- (void)stopPlayback {
     if ([_queueSetup isSignaled] && [_isPlaying clear]) {
-        _shouldWipeDataQueue = wipeDataQueue;
         OSStatus result = AudioQueueStop(_audioQueue, TRUE);
         HandleResultOSStatus(result, @"Stopping speaker queue", true);
         [_soundPlaybackDelegate playbackStopped];
     }
 }
 
-- (void)stopPlayback {
-    [self stopPlayback:true];
+- (void)waitForQueueToFill {
+    while ([_soundQueue size] < 3) {
+        NSLog(@"Waiting for playback queue to expand");
+        [NSThread sleepForTimeInterval:0.01];
+    }
 }
 
 // Thread polls on sound queue and plays data.
 - (void)soundQueueThreadEntryPoint:var {
+    [self waitForQueueToFill];
+
     bool hasPlayedYet = false;
     while (true) {
         // Wait for an available audio buffer.
@@ -201,11 +274,23 @@ static void HandleOutputBuffer(void *aqData,
 
         // If all callbacks have finished and could not immediately push new data
         // then need to reset the audio queues.
-        if ([_bufferPool size] == _numAudioBuffers - 1 && hasPlayedYet) {
+        if (_forceRestart || _flush) {
+            NSLog(@"Waiting for buffers to return");
+            while ([_bufferPool size] < _numAudioBuffers - 1) { // we have 1 buffer already.
+                [NSThread sleepForTimeInterval:0.01];
+            }
+            NSLog(@"Buffers returned");
+
             OSStatus result = AudioQueueFlush(_audioQueue);
             [self handleResultOsStatus:result description:@"Flushing the audio output queue"];
+            _flush = false;
 
-            [self stopPlayback:false];
+            [self waitForQueueToFill];
+
+            if (_forceRestart) {
+                [self stopPlayback];
+                _forceRestart = false;
+            }
         }
 
         // Ensure playback is running.
