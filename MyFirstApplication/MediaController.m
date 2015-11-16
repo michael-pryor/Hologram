@@ -64,7 +64,7 @@ onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
 
         // Buffering estimations (introduce delay so that playback is smooth).
         uint numMicrophoneBuffers = 10;
-        uint numPlaybackAudioBuffers = 10;
+        uint numPlaybackAudioBuffers = 2;
         uint maxPlaybackPendingBuffers = 50;
 
         Float64 secondsPerBuffer = 0.2; // estimate.
@@ -87,7 +87,7 @@ onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
         _soundEncoder = [[SoundMicrophone alloc] initWithOutputSession:nil numBuffers:numMicrophoneBuffers leftPadding:sizeof(uint) * 2];
         [_soundEncoder initialize];
 
-        _soundPlayback = [[SoundPlayback alloc] initWithAudioDescription:[_soundEncoder getAudioDescription] numBuffers:numPlaybackAudioBuffers maxPendingAmount:maxPlaybackPendingBuffers soundPlaybackDelegate:self];
+        _soundPlayback = [[SoundPlayback alloc] initWithAudioDescription:[_soundEncoder getAudioDescription] numBuffers:numPlaybackAudioBuffers maxPendingAmount:maxPlaybackPendingBuffers soundPlaybackDelegate:self mediaDelayDelegate:_videoOutputController];
         [_soundPlayback setMagicCookie:[_soundEncoder getMagicCookie] size:[_soundEncoder getMagicCookieSize]];
         [_decodingPipe addPrefix:AUDIO_ID mappingToOutputSession:_soundPlayback];
 

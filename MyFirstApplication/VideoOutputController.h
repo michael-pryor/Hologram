@@ -14,6 +14,7 @@
 #import "VIdeoEncoding.h"
 #import "NetworkOperations.h"
 #import "BatcherOutput.h"
+#import "MediaShared.h"
 
 @protocol NewImageDelegate
 - (void)onNewImage:(UIImage *)image;
@@ -27,7 +28,7 @@
 @end
 
 
-@interface VideoOutputController : NSObject <AVCaptureVideoDataOutputSampleBufferDelegate, BatchPerformanceInformation, NewPacketDelegate>
+@interface VideoOutputController : NSObject <AVCaptureVideoDataOutputSampleBufferDelegate, BatchPerformanceInformation, NewPacketDelegate, MediaDelayNotifier>
 - (id)initWithTcpNetworkOutputSession:(id <NewPacketDelegate>)tcpNetworkOutputSession udpNetworkOutputSession:(id <NewPacketDelegate>)udpNetworkOutputSession imageDelegate:(id <NewImageDelegate>)newImageDelegate videoSpeedNotifier:(id <VideoSpeedNotifier>)videoSpeedNotifier batchNumberListener:(id <BatchNumberListener>)batchNumberListener;
 
 - (void)slowSendRate;

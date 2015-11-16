@@ -32,4 +32,6 @@
 - (void)clear;
 
 - (int)size;
+
+- (void)setupEventTracker:(CFAbsoluteTime)frequency;
 @end

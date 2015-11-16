@@ -46,7 +46,7 @@
     @synchronized (_batches) {
         batch = [_batches objectForKey:[NSNumber numberWithInt:batchId]];
         if (batch == nil) {
-            batch = [[Batch alloc] initWithOutputSession:_outputSession chunkSize:_chunkSize numChunks:_numChunks andNumChunksThreshold:_numChunksThreshold andTimeoutSeconds:_timeoutMs andPerformanceInformaitonDelegate:_performanceDelegate];
+            batch = [[Batch alloc] initWithOutputSession:_outputSession chunkSize:_chunkSize numChunks:_numChunks andNumChunksThreshold:_numChunksThreshold andTimeoutSeconds:_timeoutMs andPerformanceInformaitonDelegate:_performanceDelegate andBatchId:batchId];
             [_batches setObject:batch forKey:[NSNumber numberWithInt:batchId]];
 
             dispatch_async(dispatch_get_main_queue(), ^(void) {

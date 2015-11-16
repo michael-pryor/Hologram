@@ -10,6 +10,7 @@
 #include <AudioToolbox/AudioQueue.h>
 #import "ByteBuffer.h"
 #import "InputSessionBase.h"
+#import "MediaShared.h"
 
 @protocol SoundPlaybackDelegate
 - (void)playbackStopped;
@@ -18,7 +19,7 @@
 @end
 
 @interface SoundPlayback : NSObject <NewPacketDelegate>
-- (id)initWithAudioDescription:(AudioStreamBasicDescription *)description numBuffers:(uint)numBuffers maxPendingAmount:(uint)maxAmount soundPlaybackDelegate:(id <SoundPlaybackDelegate>)soundPlaybackDelegate;
+- (id)initWithAudioDescription:(AudioStreamBasicDescription *)description numBuffers:(uint)numBuffers maxPendingAmount:(uint)maxAmount soundPlaybackDelegate:(id <SoundPlaybackDelegate>)soundPlaybackDelegate mediaDelayDelegate:(id <MediaDelayNotifier>)mediaDelayDelegate;
 
 - (void)shutdown;
 

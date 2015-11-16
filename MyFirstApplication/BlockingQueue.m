@@ -7,6 +7,7 @@
 //
 
 #import "BlockingQueue.h"
+#import "TimedGapEventTracker.h"
 
 @implementation BlockingQueue {
     NSCondition *_lock;
@@ -15,6 +16,8 @@
     unsigned long _maxQueueSize;
     unsigned long _minQueueSizeLower;
     unsigned long _minQueueSizeUpper;
+
+    TimedGapEventTracker* _eventTracker;
 }
 - (id)initWithMaxQueueSize:(unsigned long)maxSize {
     return [self initWithMaxQueueSize:maxSize minQueueSizeLowerBound:0 minQueueSizeUpperBound:0];
@@ -29,8 +32,13 @@
         _maxQueueSize = maxSize;
         _minQueueSizeLower = minSizeLower;
         _minQueueSizeUpper = minSizeUpper;
+        _eventTracker = nil;
     }
     return self;
+}
+
+- (void)setupEventTracker:(CFAbsoluteTime)frequency {
+    _eventTracker = [[TimedGapEventTracker alloc] initWithResetFrequency:frequency];
 }
 
 - (id)init {
@@ -73,7 +81,13 @@
     if ([_queue count] >= _minQueueSizeUpper) {
         [_lock signal];
     }
-    uint returnVal = [_queue count];
+    uint returnVal;
+    if (_eventTracker != nil) {
+        returnVal = [_eventTracker increment];
+    } else {
+        returnVal = [_queue count];
+    }
+
     [_lock unlock];
     return returnVal;
 }

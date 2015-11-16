@@ -5,7 +5,10 @@
 #import <Foundation/Foundation.h>
 #import "ByteBuffer.h"
 
+@protocol MediaDelayNotifier
+- (void)onMediaDelayNotified:(uint)batchId delayMs:(uint)delayMs;
+@end
 
 @interface MediaShared : NSObject
-+ (uint) getBatchIdFromByteBuffer:(ByteBuffer*)buffer;
++ (uint)getBatchIdFromByteBuffer:(ByteBuffer *)buffer;
 @end

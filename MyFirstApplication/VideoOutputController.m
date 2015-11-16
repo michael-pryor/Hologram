@@ -148,5 +148,9 @@
     [_videoSpeedNotifier onNewVideoFrameFrequency:[_throttledBlock secondsFrequency]];
 }
 
+- (void)onMediaDelayNotified:(uint)batchId delayMs:(uint)delayMs {
+     NSLog(@"Should delay batch: %d by %dms", batchId, delayMs);
+}
+
 
 @end

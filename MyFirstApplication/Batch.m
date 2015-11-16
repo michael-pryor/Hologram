@@ -19,6 +19,7 @@
     NSTimer *_timer;
     Boolean _hasOutput;
     id <BatchPerformanceInformation> _performanceDelegate;
+    uint _batchId;
 }
 
 - (void)onTimeout:(NSTimer *)timer {
@@ -37,6 +38,7 @@
             if (!_hasOutput) {
                 [_outputSession onNewPacket:_partialPacket fromProtocol:UDP];
                 _hasOutput = true;
+              //  NSLog(@"Output video batch ID: %d", _batchId);
             }
         } else {
             NSLog(@"Dropping video frame, percentage %.2f", chunksReceivedPercentage);
@@ -44,7 +46,7 @@
     }
 }
 
-- (id)initWithOutputSession:(id <NewPacketDelegate>)outputSession chunkSize:(uint)chunkSize numChunks:(uint)numChunks andNumChunksThreshold:(float)numChunksThreshold andTimeoutSeconds:(double)timeoutSeconds andPerformanceInformaitonDelegate:(id <BatchPerformanceInformation>)performanceInformationDelegate {
+- (id)initWithOutputSession:(id <NewPacketDelegate>)outputSession chunkSize:(uint)chunkSize numChunks:(uint)numChunks andNumChunksThreshold:(float)numChunksThreshold andTimeoutSeconds:(double)timeoutSeconds andPerformanceInformaitonDelegate:(id <BatchPerformanceInformation>)performanceInformationDelegate andBatchId:(uint)batchId {
     self = [super initWithOutputSession:outputSession];
     if (self) {
         _chunksReceived = 0;
@@ -57,6 +59,7 @@
         _timeoutSeconds = timeoutSeconds;
         _hasOutput = false;
         _performanceDelegate = performanceInformationDelegate;
+        _batchId = batchId;
 
         dispatch_async(dispatch_get_main_queue(), ^(void) {
             _timer = [NSTimer scheduledTimerWithTimeInterval:_timeoutSeconds target:self selector:@selector(onTimeout:) userInfo:nil repeats:NO];
