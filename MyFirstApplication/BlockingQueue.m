@@ -17,7 +17,7 @@
     unsigned long _minQueueSizeLower;
     unsigned long _minQueueSizeUpper;
 
-    TimedGapEventTracker* _eventTracker;
+    TimedGapEventTracker *_eventTracker;
 }
 - (id)initWithMaxQueueSize:(unsigned long)maxSize {
     return [self initWithMaxQueueSize:maxSize minQueueSizeLowerBound:0 minQueueSizeUpperBound:0];
@@ -128,6 +128,20 @@
     [_lock unlock];
 
     return retVal;
+}
+
+- (id)peek {
+    [_lock lock];
+
+    id returnVal;
+    if ([_queue count] > 0) {
+        returnVal = [_queue objectAtIndex:0];
+    } else {
+        returnVal = nil;
+    }
+
+    [_lock unlock];
+    return returnVal;
 }
 
 - (id)getImmediate {

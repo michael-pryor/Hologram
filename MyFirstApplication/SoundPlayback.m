@@ -10,8 +10,8 @@
 #import "SoundEncodingShared.h"
 #import "BlockingQueue.h"
 #import "Signal.h"
-#import "MediaShared.h"
 #import <mach/mach_time.h>
+#import "AverageTracker.h"
 
 @import AVFoundation;
 
@@ -46,6 +46,8 @@
     volatile bool _flush;
 
     volatile int _qSizeTracker;
+
+    AverageTracker *_averageTracker;
 }
 
 
@@ -72,6 +74,9 @@
 
         _currentBatchId = 0;
         _currentBatchIdEnded = 0;
+
+        // 10 second rolling average.
+        _averageTracker = [[AverageTracker alloc] initWithExpiry:60*5];
 
         _forceRestart = false;
         _flush = false;
@@ -384,8 +389,11 @@ static void HandleOutputBuffer(void *aqData,
     ByteBuffer *copy = [[ByteBuffer alloc] initFromByteBuffer:packet];
     uint qSize = [_soundQueue add:copy];
     if (qSize > 1) {
-        uint estimatedDelay = qSize * 200;
-        NSLog(@"Q rate = %d, estimated delay required for video = %d", qSize, estimatedDelay);
+        [_averageTracker addValue:qSize];
+        double qAverageSize = [_averageTracker getWeightedAverage];
+
+        uint estimatedDelay = (uint)(qAverageSize * 200.0);
+        NSLog(@"Q rate = %d, averaged = %.3f, estimated delay required for video = %d", qSize, qAverageSize, estimatedDelay);
     }
 }
 

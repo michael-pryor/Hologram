@@ -152,7 +152,7 @@
     // With compression.
     UIImage *imageObject = [self imageFromSampleBuffer:image];
     NSData *data = UIImageJPEGRepresentation(imageObject, 0.5);
-    [self addImage:(void *) [data bytes] withLength:(uint) [data length] toByteBuffer:buffer];
+    //[self addImage:(void *) [data bytes] withLength:(uint) [data length] toByteBuffer:buffer];
 }
 
 
