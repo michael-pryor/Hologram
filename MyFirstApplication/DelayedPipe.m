@@ -68,4 +68,10 @@
     [_delayedItems clear];
 }
 
+- (void)setMinimumDelay:(CFAbsoluteTime)delay {
+    _delay = delay;
+    NSLog(@"Minimum delay changed to %.2f", delay);
+}
+
+
 @end

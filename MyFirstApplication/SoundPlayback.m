@@ -40,12 +40,8 @@
     Byte *_magicCookie;
     int _magicCookieSize;
 
-    volatile uint _currentBatchId, _currentBatchIdEnded;
-
     volatile bool _forceRestart;
     volatile bool _flush;
-
-    volatile int _qSizeTracker;
 
     AverageTracker *_averageTracker;
 }
@@ -58,7 +54,6 @@
         _numAudioBuffers = numBuffers;
         _audioBuffers = malloc(sizeof(AudioQueueBufferRef) * _numAudioBuffers);
         _maxQueueSize = maxAmount;
-        _qSizeTracker = 0;
 
         _audioDescription = description;
         _soundQueue = [[BlockingQueue alloc] initWithMaxQueueSize:_maxQueueSize];
@@ -72,11 +67,8 @@
 
         _mediaDelayDelegate = mediaDelayDelegate;
 
-        _currentBatchId = 0;
-        _currentBatchIdEnded = 0;
-
-        // 10 second rolling average.
-        _averageTracker = [[AverageTracker alloc] initWithExpiry:60*5];
+        // 60 second rolling average.
+        _averageTracker = [[AverageTracker alloc] initWithExpiry:60];
 
         _forceRestart = false;
         _flush = false;
@@ -183,22 +175,10 @@
         // Convert from nano seconds to milliseconds.
         uint64_t diffMs = diff / 1000000;
 
-        int numBuffersInUse = [self getBuffersInUse];
-        int pendingSize = [_soundQueue size];
-        int additionalDelay = pendingSize * 6;
-       // NSLog(@"Machine time: %llu, host time %llu, diff %llu (%llums), is in future: %d, buffersInUse: %d, pending size: %d, additional delay: %dms", currentMachineTime, audioBufferStartTime, diff, diffMs, isInFuture, numBuffersInUse, pendingSize, additionalDelay);
-
-        //if (batchId != _currentBatchId) {
-        //    _currentBatchId = batchId;
-           // NSLog(@"Batch ID %d played", batchId);
-            //[_mediaDelayDelegate onMediaDelayNotified:batchId delayMs:diffMs + additionalDelay];
-        //}
         if (isInFuture) {
             if (diffMs > thresholdMsFutureMax) {
                 _flush = true;
             }
-
-
         } else {
             if (diffMs > 0) {
                 _forceRestart = true;
@@ -232,15 +212,6 @@ static void HandleOutputBuffer(void *aqData,
         AudioQueueRef inAQ,
         AudioQueueBufferRef inBuffer) {
     SoundPlayback *obj = (__bridge SoundPlayback *) (aqData);
-
-    uint batchId = (uint) inBuffer->mUserData;
-   // NSLog(@"Audio buffer with batch ID of %d returned", batchId);
-
-   // if (batchId != obj->_currentBatchIdEnded) {
-       // NSLog(@"Batch ID %d ENDED", batchId);
-        obj->_currentBatchIdEnded = batchId;
-        //[_mediaDelayDelegate onMediaDelayNotified:batchId delayMs:diffMs + additionalDelay];
-    //}
 
     // A thread is waiting for all buffers to be returned, make it happen.
     if ([obj shouldReturnBuffer]) {
@@ -394,6 +365,7 @@ static void HandleOutputBuffer(void *aqData,
 
         uint estimatedDelay = (uint)(qAverageSize * 200.0);
         NSLog(@"Q rate = %d, averaged = %.3f, estimated delay required for video = %d", qSize, qAverageSize, estimatedDelay);
+        [_mediaDelayDelegate onMediaDelayNotified:estimatedDelay];
     }
 }
 

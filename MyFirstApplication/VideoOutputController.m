@@ -11,6 +11,7 @@
 #import "BatcherInput.h"
 #import "EncodingPipe.h"
 #import "TimedEventTracker.h"
+#import "DelayedPipe.h"
 
 @implementation PacketToImageProcessor {
     id <NewImageDelegate> _newImageDelegate;
@@ -45,7 +46,7 @@
     EncodingPipe *_encodingPipeVideo;                 // Add appropriate prefix for transport over network.
 
     BatcherInput *_batcherInput;                      // Join up networked packets into one image.
-    id <NewImageDelegate> _newImageDelegate;           // Push to users' screens.
+    DelayedPipe *_delayedPipe;                        // Delay video output so that it syncs up with audio.
 
     id <NewPacketDelegate> _tcpNetworkOutputSession;   // For requesting slow down in network usage.
 
@@ -56,8 +57,7 @@
 - (id)initWithTcpNetworkOutputSession:(id <NewPacketDelegate>)tcpNetworkOutputSession udpNetworkOutputSession:(id <NewPacketDelegate>)udpNetworkOutputSession imageDelegate:(id <NewImageDelegate>)newImageDelegate videoSpeedNotifier:(id <VideoSpeedNotifier>)videoSpeedNotifier batchNumberListener:(id <BatchNumberListener>)batchNumberListener {
     self = [super init];
     if (self) {
-        _newImageDelegate = newImageDelegate;
-        _tcpNetworkOutputSession = tcpNetworkOutputSession;
+         _tcpNetworkOutputSession = tcpNetworkOutputSession;
 
         _videoEncoder = [[VideoEncoding alloc] init];
 
@@ -65,18 +65,14 @@
 
         PacketToImageProcessor *p = [[PacketToImageProcessor alloc] initWithImageDelegate:newImageDelegate encoder:_videoEncoder];
 
-        // Put a delayed interaction between Network -> BatcherInput -> DELAYED INTERACTION -> PacketToImageProcessor
-        // This delayed interaction receives:
-        // - Batch ID of packet being passed from BatcherInput.
-        // - Batch ID of last processed audio data.
-        //
-        // And delays the video packet until its ID matches (give or take some number to line them up) the ID of the audio frame that was last played.
+        // Delay video playback in order to sync up with audio.
+        _delayedPipe = [[DelayedPipe alloc] initWithMinimumDelay:0 outputSession:p];
 
         _encodingPipeVideo = [[EncodingPipe alloc] initWithOutputSession:udpNetworkOutputSession prefixId:VIDEO_ID];
 
         _batcherOutput = [[BatcherOutput alloc] initWithOutputSession:_encodingPipeVideo chunkSize:[_videoEncoder suggestedBatchSize] leftPadding:sizeof(uint) includeTotalChunks:true batchNumberListener:batchNumberListener];
 
-        _batcherInput = [[BatcherInput alloc] initWithOutputSession:p chunkSize:[_videoEncoder suggestedBatchSize] numChunks:0 andNumChunksThreshold:1 andTimeoutMs:1000 andPerformanceInformaitonDelegate:self];
+        _batcherInput = [[BatcherInput alloc] initWithOutputSession:_delayedPipe chunkSize:[_videoEncoder suggestedBatchSize] numChunks:0 andNumChunksThreshold:1 andTimeoutMs:1000 andPerformanceInformaitonDelegate:self];
 
         _session = [_videoEncoder setupCaptureSessionWithDelegate:self];
 
@@ -148,8 +144,9 @@
     [_videoSpeedNotifier onNewVideoFrameFrequency:[_throttledBlock secondsFrequency]];
 }
 
-- (void)onMediaDelayNotified:(uint)batchId delayMs:(uint)delayMs {
-     NSLog(@"Should delay batch: %d by %dms", batchId, delayMs);
+- (void)onMediaDelayNotified:(uint)delayMs {
+     NSLog(@"Should delay by %dms", delayMs);
+    [_delayedPipe setMinimumDelay:((float)delayMs / 1000.0)];
 }
 
 

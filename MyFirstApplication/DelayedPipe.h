@@ -12,4 +12,6 @@
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol;
 
 - (void)reset;
+
+- (void)setMinimumDelay:(CFAbsoluteTime)delay;
 @end

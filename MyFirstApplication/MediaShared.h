@@ -6,7 +6,7 @@
 #import "ByteBuffer.h"
 
 @protocol MediaDelayNotifier
-- (void)onMediaDelayNotified:(uint)batchId delayMs:(uint)delayMs;
+- (void)onMediaDelayNotified:(uint)delayMs;
 @end
 
 @interface MediaShared : NSObject
