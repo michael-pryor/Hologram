@@ -43,6 +43,8 @@
     volatile bool _forceRestart;
     volatile bool _flush;
 
+    uint _numFramesPrimed;
+
     AverageTracker *_averageTracker;
 }
 
@@ -72,6 +74,8 @@
 
         _forceRestart = false;
         _flush = false;
+
+        _numFramesPrimed = 0;
     }
     return self;
 }
@@ -188,10 +192,21 @@
     }
 
     // Decode data.
-    result = AudioQueuePrime(_audioQueue, 0, NULL);
-    if (![self handleResultOsStatus:result description:@"Priming speaker buffer"]) {
-        // Don't return buffer, it has been enqueued so will hit the callback even if failure occurs here.
-        return;
+    // Needs to be synchronized because of use of _numFramesPrimed.
+    @synchronized(self) {
+        UInt32 previousNumFramesPrimed = _numFramesPrimed;
+        result = AudioQueuePrime(_audioQueue, 0, &_numFramesPrimed);
+
+        NSLog(@"Num frames primed %d", _numFramesPrimed);
+        if (![self handleResultOsStatus:result description:@"Priming speaker buffer"]) {
+            if (previousNumFramesPrimed == _numFramesPrimed || _numFramesPrimed == 0) {
+                NSLog(@"Returning buffer to pool directly because no frames primed in last call to AudioQueuePrime");
+                [self returnToPool:inBuffer];
+                return;
+            }
+            // Don't return buffer, it has been enqueued so will hit the callback even if failure occurs here.
+            return;
+        }
     }
 }
 
@@ -365,7 +380,7 @@ static void HandleOutputBuffer(void *aqData,
         double qAverageSize = [_averageTracker getWeightedAverage];
 
         uint estimatedDelay = (uint)(qAverageSize * 200.0);
-        NSLog(@"Q rate = %d, averaged = %.3f, estimated delay required for video = %d", qSize, qAverageSize, estimatedDelay);
+        //NSLog(@"Q rate = %d, averaged = %.3f, estimated delay required for video = %d", qSize, qAverageSize, estimatedDelay);
         [_mediaDelayDelegate onMediaDelayNotified:estimatedDelay];
     }
 }

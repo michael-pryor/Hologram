@@ -186,7 +186,7 @@ class House:
         finally:
             self.house_lock.release()
 
-    def handleUdpPacket(self, client, packet):
+    def handleUdpPacket(self, client, packet = None):
         self.house_lock.acquire()
         try:
             if client not in self.room_participant:
@@ -209,6 +209,6 @@ class House:
 
         if clientMatch is None:
             pass
-        else:
+        elif packet is not None:
             # Send to client that we are matched with.
             clientMatch.udp.sendRawBuffer(packet)

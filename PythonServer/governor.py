@@ -231,7 +231,11 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
                 logger.info("Sending fully connected ACK")
                 registeredClient.tcp.sendByteBuffer(successPing)
 
-                logger.info("Client successfully connected, sent success ack")
+                # Client will not start sending UDP data until it has received a NAT punch through notification
+                # i.e. has been matched with a client. So we need to make sure the client is listed as 'waiting
+                # for a client' so that even with no data there can still be a match.
+                self.house.handleUdpPacket(registeredClient)
+                logger.info("Client successfully connected, sent success ack and registered with house")
 
 
 class CommanderConnection(ReconnectingClientFactory):

@@ -78,9 +78,8 @@ class Client(object):
             if self.last_received_data is not None:
                 timeDiff = getEpoch() - self.last_received_data
                 if timeDiff > 5.0:
-                    pass
-                    #logger.warn("Dropping client [%s] which has been inactive for %.2f seconds" % (self, timeDiff))
-                    #self.closeConnection()
+                    logger.warn("Dropping client [%s] which has been inactive for %.2f seconds" % (self, timeDiff))
+                    self.closeConnection()
                 else:
                     pass
                     # logger.debug("Client [%s] last pinged %.2f seconds ago" % (self, timeDiff))
