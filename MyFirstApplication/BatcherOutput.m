@@ -17,9 +17,8 @@ double sleep_amount = 0.02;
     uint _leftPadding;
     ByteBuffer *_sendBuffer;
     Boolean _includeTotalChunks;
-    id <BatchNumberListener> _batchNumberListener;
 }
-- (id)initWithOutputSession:(id <NewPacketDelegate>)outputSession chunkSize:(uint)chunkSize leftPadding:(uint)leftPadding includeTotalChunks:(Boolean)includeTotalChunks batchNumberListener:(id <BatchNumberListener>)batchNumberListener {
+- (id)initWithOutputSession:(id <NewPacketDelegate>)outputSession chunkSize:(uint)chunkSize leftPadding:(uint)leftPadding includeTotalChunks:(Boolean)includeTotalChunks {
     self = [super initWithOutputSession:outputSession];
     if (self) {
         _leftPadding = leftPadding;
@@ -34,7 +33,6 @@ double sleep_amount = 0.02;
         _sendBuffer = [[ByteBuffer alloc] initWithSize:chunkSize + (sizeof(uint) * numIntegers) + _leftPadding]; // space for IDs and padding too.
         [_sendBuffer setUsedSize:_sendBuffer.bufferMemorySize];
         _includeTotalChunks = includeTotalChunks;
-        _batchNumberListener = batchNumberListener;
     }
     return self;
 }
@@ -65,7 +63,6 @@ double sleep_amount = 0.02;
         [_outputSession onNewPacket:chunk fromProtocol:protocol];
     }
     _batchId++;
-    [_batchNumberListener onBatchNumberChange:_batchId];
 }
 
 - (ByteBuffer *)getChunkToSendFromBatch:(ByteBuffer *)batchPacket withBatchId:(uint)batchId withChunkId:(uint)chunkId andEstimatedChunks:(uint)estimatedChunks {
