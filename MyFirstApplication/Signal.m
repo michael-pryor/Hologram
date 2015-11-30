@@ -30,12 +30,15 @@
     return [self initWithFlag:false];
 }
 
-- (void)wait {
+// True if any wait occurred.
+- (bool)wait {
     [_condition lock];
+    bool waited = _counter == 0;
     while (_counter == 0) {
         [_condition wait];
     }
     [_condition unlock];
+    return waited;
 }
 
 // Return true if state has changed.

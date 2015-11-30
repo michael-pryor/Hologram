@@ -29,7 +29,9 @@
 
 - (void)stopPlayback;
 
-- (void)setMagicCookie:(Byte*)magicCookie size:(int)size;
+- (void)setMagicCookie:(Byte *)magicCookie size:(int)size;
 
 - (bool)shouldReturnBuffer;
+
+- (void)resetQueue;
 @end

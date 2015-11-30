@@ -145,7 +145,7 @@
 }
 
 - (void)onMediaDelayNotified:(uint)delayMs {
-     NSLog(@"Should delay by %dms", delayMs);
+    // NSLog(@"Should delay by %dms", delayMs);
     [_delayedPipe setMinimumDelay:((float)delayMs / 1000.0)];
 }
 

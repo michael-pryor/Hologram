@@ -35,5 +35,7 @@
 
 - (int)size;
 
+- (void)enableUniqueConstraint;
+
 - (void)setupEventTracker:(CFAbsoluteTime)frequency;
 @end

@@ -13,7 +13,7 @@
 
 - (id)init;
 
-- (void)wait;
+- (bool)wait;
 
 - (bool)signal;
 

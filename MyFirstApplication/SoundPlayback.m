@@ -19,6 +19,8 @@
     AudioStreamBasicDescription *_audioDescription;
     AudioQueueRef _audioQueue;
     Signal *_isPlaying;
+    Signal *_isNoExternalPause;
+
     BlockingQueue *_soundQueue;
 
     // Buffers which were returned to the pool.
@@ -43,8 +45,6 @@
     volatile bool _forceRestart;
     volatile bool _flush;
 
-    uint _numFramesPrimed;
-
     AverageTracker *_averageTracker;
 }
 
@@ -59,12 +59,20 @@
 
         _audioDescription = description;
         _soundQueue = [[BlockingQueue alloc] initWithMaxQueueSize:_maxQueueSize];
+
+        // We track the number of additions to the queue which have taken place in last 7ms.
+        // We don't track the actual queue size because this is liable to increase and decrease rapidly.
         [_soundQueue setupEventTracker:0.007];
+
         _bufferPool = [[BlockingQueue alloc] init];
 
-        _queueSetup = [[Signal alloc] initWithFlag:false];
+        // In edge cases we may end up trying to reinsert items to the queue; duplicates would be catestrophic.
+        [_bufferPool enableUniqueConstraint];
 
+        _queueSetup = [[Signal alloc] initWithFlag:false];
         _isPlaying = [[Signal alloc] initWithFlag:false];
+        _isNoExternalPause = [[Signal alloc] initWithFlag:true];
+
         _soundPlaybackDelegate = soundPlaybackDelegate;
 
         _mediaDelayDelegate = mediaDelayDelegate;
@@ -74,8 +82,6 @@
 
         _forceRestart = false;
         _flush = false;
-
-        _numFramesPrimed = 0;
     }
     return self;
 }
@@ -96,14 +102,28 @@
 
 - (void)shutdown {
     if ([_queueSetup clear]) {
-        [self stopPlayback];
+        [self stopPlayback:false];
         [_soundQueue restartQueue];
     }
+}
+
+- (void)resetQueue {
+    [_soundQueue restartQueue];
 }
 
 - (void)setMagicCookie:(Byte *)magicCookie size:(int)size {
     _magicCookie = magicCookie;
     _magicCookieSize = size;
+}
+
+// Empty the pool and repopulate from scratch.
+- (void)resetPool {
+    @synchronized (self) {
+        [_bufferPool clear];
+        for (int n = 0; n < _numAudioBuffers; n++) {
+            [self returnToPool:_audioBuffers[n]];
+        }
+    }
 }
 
 - (void)playSoundData:(ByteBuffer *)packet withBuffer:(AudioQueueBufferRef)inBuffer {
@@ -192,21 +212,11 @@
     }
 
     // Decode data.
-    // Needs to be synchronized because of use of _numFramesPrimed.
-    @synchronized(self) {
-        UInt32 previousNumFramesPrimed = _numFramesPrimed;
-        result = AudioQueuePrime(_audioQueue, 0, &_numFramesPrimed);
-
-        NSLog(@"Num frames primed %d", _numFramesPrimed);
-        if (![self handleResultOsStatus:result description:@"Priming speaker buffer"]) {
-            if (previousNumFramesPrimed == _numFramesPrimed || _numFramesPrimed == 0) {
-                NSLog(@"Returning buffer to pool directly because no frames primed in last call to AudioQueuePrime");
-                [self returnToPool:inBuffer];
-                return;
-            }
-            // Don't return buffer, it has been enqueued so will hit the callback even if failure occurs here.
-            return;
-        }
+    result = AudioQueuePrime(_audioQueue, 0, NULL);
+    if (![self handleResultOsStatus:result description:@"Priming speaker buffer"]) {
+        // No guarantee that callback will be called correctly, so
+        // reset the whole pool.
+        [self resetPool];
     }
 }
 
@@ -219,7 +229,7 @@
         return true;
     }
 
-    [self stopPlayback];
+    [self stopPlayback:false];
     return false;
 }
 
@@ -252,25 +262,62 @@ static void HandleOutputBuffer(void *aqData,
 }
 
 - (void)startPlayback {
-    if ([_queueSetup isSignaled] && [_isPlaying signalAll]) {
-        OSStatus result = AudioQueueStart(_audioQueue, NULL);
-        HandleResultOSStatus(result, @"Starting speaker queue", true);
+    [self startPlayback:true];
+}
 
-        [_soundPlaybackDelegate playbackStarted];
+- (void)startPlayback:(Boolean)external {
+    if (!external) {
+        if ([_isNoExternalPause wait]) {
+            NSLog(@"External audio playback pause wait ended");
+
+            // Do not start playback because in order to have reached this point, another thread
+            // will have had to start the audio queue.
+            return;
+        }
+    }
+
+    @synchronized (self) {
+        if (external) {
+            [self resetPool];
+        }
+
+        if ([_queueSetup isSignaled] && [_isPlaying signalAll]) {
+            OSStatus result = AudioQueueStart(_audioQueue, NULL);
+            HandleResultOSStatus(result, @"Starting speaker queue", true);
+            [_soundPlaybackDelegate playbackStarted];
+        }
+    }
+
+    if (external) {
+        if ([_isNoExternalPause signalAll]) {
+            NSLog(@"External audio playback pause ended");
+        }
     }
 }
 
 - (void)stopPlayback {
-    if ([_queueSetup isSignaled] && [_isPlaying clear]) {
-        OSStatus result = AudioQueueStop(_audioQueue, TRUE);
-        HandleResultOSStatus(result, @"Stopping speaker queue", true);
-        [_soundPlaybackDelegate playbackStopped];
+    [self stopPlayback:true];
+}
+
+- (void)stopPlayback:(Boolean)external {
+    if (external) {
+        if ([_isNoExternalPause clear]) {
+            NSLog(@"External audio playback pause started");
+        }
+    }
+    @synchronized (self) {
+        if ([_queueSetup isSignaled] && [_isPlaying clear]) {
+            OSStatus result = AudioQueueStop(_audioQueue, TRUE);
+            HandleResultOSStatus(result, @"Stopping speaker queue", true);
+
+            [_soundPlaybackDelegate playbackStopped];
+        }
     }
 }
 
 - (void)waitForQueueToFill {
     while ([_soundQueue size] < 3) {
-        NSLog(@"Waiting for playback queue to expand");
+        //NSLog(@"Waiting for playback queue to expand");
         [NSThread sleepForTimeInterval:0.01];
     }
 }
@@ -279,7 +326,6 @@ static void HandleOutputBuffer(void *aqData,
 - (void)soundQueueThreadEntryPoint:var {
     [self waitForQueueToFill];
 
-    bool hasPlayedYet = false;
     while (true) {
         // Wait for an available audio buffer.
         NSValue *_bufferVal = [_bufferPool get];
@@ -309,13 +355,13 @@ static void HandleOutputBuffer(void *aqData,
             [self waitForQueueToFill];
 
             if (_forceRestart) {
-                [self stopPlayback];
+                [self stopPlayback:false];
                 _forceRestart = false;
             }
         }
 
         // Ensure playback is running.
-        [self startPlayback];
+        [self startPlayback:false];
 
         // Extract value.
         AudioQueueBufferRef audioQueueBuffer;
@@ -323,7 +369,6 @@ static void HandleOutputBuffer(void *aqData,
 
         // Push the data into audio queues.
         [self playSoundData:nextItem withBuffer:audioQueueBuffer];
-        hasPlayedYet = true;
     }
 }
 
@@ -379,7 +424,7 @@ static void HandleOutputBuffer(void *aqData,
         [_averageTracker addValue:qSize];
         double qAverageSize = [_averageTracker getWeightedAverage];
 
-        uint estimatedDelay = (uint)(qAverageSize * 200.0);
+        uint estimatedDelay = (uint) (qAverageSize * 200.0);
         //NSLog(@"Q rate = %d, averaged = %.3f, estimated delay required for video = %d", qSize, qAverageSize, estimatedDelay);
         [_mediaDelayDelegate onMediaDelayNotified:estimatedDelay];
     }

@@ -18,6 +18,8 @@
     unsigned long _minQueueSizeUpper;
 
     TimedGapEventTracker *_eventTracker;
+
+    bool _uniqueConstraintEnabled;
 }
 - (id)initWithMaxQueueSize:(unsigned long)maxSize {
     return [self initWithMaxQueueSize:maxSize minQueueSizeLowerBound:0 minQueueSizeUpperBound:0];
@@ -33,8 +35,13 @@
         _minQueueSizeLower = minSizeLower;
         _minQueueSizeUpper = minSizeUpper;
         _eventTracker = nil;
+        _uniqueConstraintEnabled = false;
     }
     return self;
+}
+
+- (void)enableUniqueConstraint {
+    _uniqueConstraintEnabled = true;
 }
 
 - (void)setupEventTracker:(CFAbsoluteTime)frequency {
@@ -59,28 +66,33 @@
         _queueShutdown = true;
     }
 
-    if (_maxQueueSize > 0 && [_queue count] >= _maxQueueSize) {
-        NSLog(@"Removing item from queue, breached maximum queue size of: %lu", _maxQueueSize);
-
-        // Remove object from start of array.
-        [_queue removeObjectAtIndex:0];
-    }
-
-    // Add to end of array.
-    if (position < 0) {
-        [_queue addObject:obj];
+    if (_uniqueConstraintEnabled && [_queue containsObject:obj]) {
+        NSLog(@"Ignored duplicate insertion due to unique constraint being enabled");
     } else {
-        // Will get NSRangeException if not enough space to accommodate insertObject:atIndex:
-        if (position >= [_queue count]) {
+        if (_maxQueueSize > 0 && [_queue count] >= _maxQueueSize) {
+            NSLog(@"Removing item from queue, breached maximum queue size of: %lu", _maxQueueSize);
+
+            // Remove object from start of array.
+            [_queue removeObjectAtIndex:0];
+        }
+
+        // Add to end of array.
+        if (position < 0) {
             [_queue addObject:obj];
         } else {
-            [_queue insertObject:obj atIndex:(uint) position];
+            // Will get NSRangeException if not enough space to accommodate insertObject:atIndex:
+            if (position >= [_queue count]) {
+                [_queue addObject:obj];
+            } else {
+                [_queue insertObject:obj atIndex:(uint) position];
+            }
+        }
+
+        if ([_queue count] >= _minQueueSizeUpper) {
+            [_lock signal];
         }
     }
 
-    if ([_queue count] >= _minQueueSizeUpper) {
-        [_lock signal];
-    }
     uint returnVal;
     if (_eventTracker != nil) {
         returnVal = [_eventTracker increment];
