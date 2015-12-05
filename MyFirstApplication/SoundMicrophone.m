@@ -10,6 +10,10 @@
 #import "SoundEncodingShared.h"
 #import "Signal.h"
 #import "BlockingQueue.h"
+#import "Timer.h"
+
+
+#define RESET_AFTER_NO_DATA_FOR_SECONDS 5
 
 @import AudioToolbox;
 
@@ -44,6 +48,8 @@
     volatile bool _initialEnqueueCompleted;
 
     BlockingQueue *_bufferPool;
+
+    Timer *_successTracker;
 }
 
 - (id)initWithOutputSession:(id <NewPacketDelegate>)output numBuffers:(uint)numBuffers leftPadding:(uint)padding {
@@ -72,6 +78,8 @@
 
         _bufferPool = [[BlockingQueue alloc] init];
         [_bufferPool enableUniqueConstraint];
+
+        _successTracker = [[Timer alloc] initWithFrequencySeconds:RESET_AFTER_NO_DATA_FOR_SECONDS firingInitially:false];
     }
     return self;
 }
@@ -99,6 +107,23 @@
     return false;
 }
 
+- (AudioQueueBufferRef)allocateBufferWithIndex:(int)index cleanup:(bool)doCleanup {
+    if (doCleanup) {
+        OSStatus result = AudioQueueFreeBuffer(_audioQueue, _audioBuffers[index]);
+        if(!HandleResultOSStatus(result, @"Freeing bad microphone buffer", true)) {
+            return nil;
+        }
+    }
+
+    OSStatus result = AudioQueueAllocateBuffer(_audioQueue,
+            _bufferSizeBytes,
+            &_audioBuffers[index]);
+    if(!HandleResultOSStatus(result, @"Allocating microphone buffer", true)) {
+        return nil;
+    }
+    return _audioBuffers[index];
+}
+
 - (void)inputThreadEntryPoint:var {
     OSStatus result = AudioQueueNewInput(&_audioDescription,
             HandleInputBuffer,
@@ -112,10 +137,7 @@
 
     // Allocate.
     for (int i = 0; i < _numBuffers; ++i) {
-        result = AudioQueueAllocateBuffer(_audioQueue,
-                _bufferSizeBytes,
-                &_audioBuffers[i]);
-        HandleResultOSStatus(result, @"Allocating microphone buffer", true);
+        [self allocateBufferWithIndex:i cleanup:false];
     }
 
     NSLog(@"Microphone thread initialized");
@@ -173,12 +195,27 @@
     NSLog(@"Microphone thread started");
 }
 
+- (int)getAudioBufferIndex:(AudioQueueBufferRef)buffer {
+    for(int n = 0;n<_audioBuffers;n++) {
+        if (_audioBuffers[n] == buffer) {
+            return n;
+        }
+    }
+    return -1;
+}
+
 - (void)bufferControllerThreadEntryPoint:(id)obj {
-    while (true) {
+    bool running = true;
+
+    [_successTracker reset];
+    while (running) {
         // Wait for an available audio buffer.
-        NSValue *_bufferVal = [_bufferPool get];
-        if (_bufferVal == nil) {
-            break;
+        NSValue *_bufferVal = [_bufferPool getWithTimeout:RESET_AFTER_NO_DATA_FOR_SECONDS];
+        if (_bufferVal == nil || [_successTracker getState]) {
+            NSLog(@"Resetting microphone buffer pool because failed to succeed within %d seconds", RESET_AFTER_NO_DATA_FOR_SECONDS);
+            [self stopCapturing];
+            [self startCapturing];
+            continue;
         }
 
         // Extract value.
@@ -193,8 +230,6 @@
                 NSLog(@"Failed to enqueue buffer from buffer controller");
                 [self returnToPool:audioQueueBuffer];
                 errored = true;
-            } else {
-               // NSLog(@"Enqueued buffer from buffer controller");
             }
         }
 
@@ -204,6 +239,8 @@
             float timeInterval = 0.1;
             NSLog(@"Waiting %.2f seconds before resuming microphone buffer controller thread (in response to failure)", timeInterval);
             [NSThread sleepForTimeInterval:timeInterval];
+        } else {
+            [_successTracker reset];
         }
     }
 }
@@ -239,6 +276,8 @@
 
     @synchronized (self) {
         if ([_queueSetup isSignaled] && [_isRecording signalAll]) {
+            [self resetPool];
+
             OSStatus result = AudioQueueStart(_audioQueue, NULL);
             if (![self handleResultOsStatus:result description:@"Starting microphone queue"]) {
                 return;
@@ -276,8 +315,6 @@
             HandleResultOSStatus(result, @"Stopping the microphone queue", true);
         }
     }
-
-    [self resetPool];
 }
 
 - (id <NewPacketDelegate>)getOutputSession {
@@ -372,6 +409,7 @@ static void HandleInputBuffer(void *aqData,
 // Empty the pool and repopulate from scratch.
 - (void)resetPool {
     @synchronized (self) {
+        NSLog(@("Resetting the microphone pool"));
         [_bufferPool clear];
         for (int n = 0; n < _numBuffers; n++) {
             [self returnToPool:_audioBuffers[n]];

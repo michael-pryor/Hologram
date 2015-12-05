@@ -15,6 +15,15 @@
 
 @import AVFoundation;
 
+// We think that each buffer is 150ms in length.
+#define ESTIMATED_BUFFER_SIZE_MS 150
+
+// When determining what delay to impose on video, we count the number of buffers within a time period. Ideally
+// we would set this to equal ESTIMATED_BUFFER_SIZE_MS but is is essential that we do not overestimate the value
+// so we include a grace value, such that we end the count early.
+#define BUFFER_GRACE_MS 50
+
+
 @implementation SoundPlayback {
     AudioStreamBasicDescription *_audioDescription;
     AudioQueueRef _audioQueue;
@@ -60,9 +69,13 @@
         _audioDescription = description;
         _soundQueue = [[BlockingQueue alloc] initWithMaxQueueSize:_maxQueueSize];
 
-        // We track the number of additions to the queue which have taken place in last 7ms.
+        // We track the number of additions to the queue which have taken place in last x ms.
         // We don't track the actual queue size because this is liable to increase and decrease rapidly.
-        [_soundQueue setupEventTracker:0.007];
+        float estimatedBufferSizeSeconds = ((float) ESTIMATED_BUFFER_SIZE_MS) / 1000.0f;
+        float graceSeconds = ((float) BUFFER_GRACE_MS) / 1000.0f;
+        float trackingPeriod = estimatedBufferSizeSeconds - graceSeconds;
+        NSLog(@"Tracking period is: %.2f", trackingPeriod);
+        [_soundQueue setupEventTracker:trackingPeriod];
 
         _bufferPool = [[BlockingQueue alloc] init];
 
@@ -424,7 +437,7 @@ static void HandleOutputBuffer(void *aqData,
         [_averageTracker addValue:qSize];
         double qAverageSize = [_averageTracker getWeightedAverage];
 
-        uint estimatedDelay = (uint) (qAverageSize * 200.0);
+        uint estimatedDelay = (uint) (qAverageSize * ((float)ESTIMATED_BUFFER_SIZE_MS));
         //NSLog(@"Q rate = %d, averaged = %.3f, estimated delay required for video = %d", qSize, qAverageSize, estimatedDelay);
         [_mediaDelayDelegate onMediaDelayNotified:estimatedDelay];
     }
@@ -433,7 +446,7 @@ static void HandleOutputBuffer(void *aqData,
 - (void)selectSpeaker {
     AVAudioSession *session = [AVAudioSession sharedInstance];
     NSError *error;
-    //[session setMode:AVAudioSessionModeVideoChat error:&error];
+    [session setMode:AVAudioSessionModeVideoChat error:&error];
     [session setCategory:AVAudioSessionCategoryPlayAndRecord withOptions:AVAudioSessionCategoryOptionDefaultToSpeaker error:&error];
 }
 
