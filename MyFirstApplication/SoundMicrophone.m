@@ -9,6 +9,7 @@
 #import "SoundMicrophone.h"
 #import "SoundEncodingShared.h"
 #import "Signal.h"
+#import "BlockingQueue.h"
 
 @import AudioToolbox;
 
@@ -32,11 +33,17 @@
 
     // Thread.
     NSThread *_inputThread;
+    NSThread *_bufferControllerThread;
 
     // Settings.
     uint _leftPadding;
     uint _numBuffers;
     UInt32 _bufferSizeBytes;
+
+    volatile bool _stoppedExternally;
+    volatile bool _initialEnqueueCompleted;
+
+    BlockingQueue *_bufferPool;
 }
 
 - (id)initWithOutputSession:(id <NewPacketDelegate>)output numBuffers:(uint)numBuffers leftPadding:(uint)padding {
@@ -59,12 +66,18 @@
         _leftPadding = padding;
         _audioBuffers = malloc(sizeof(AudioQueueBufferRef) * _numBuffers);
         _bufferSizeBytes = calculateBufferSize(&_audioDescription);
+
+        _stoppedExternally = true;
+        _initialEnqueueCompleted = false;
+
+        _bufferPool = [[BlockingQueue alloc] init];
+        [_bufferPool enableUniqueConstraint];
     }
     return self;
 }
 
 - (void)dealloc {
-    [self stopCapturing];
+    [self stopCapturing:false];
     OSStatus result = AudioQueueDispose(_audioQueue, true);
     HandleResultOSStatus(result, @"Disposing of microphone queue", true);
 
@@ -81,7 +94,8 @@
         return true;
     }
 
-    [self stopCapturing];
+    [self stopCapturing:false];
+    [self startCapturing:false];
     return false;
 }
 
@@ -110,31 +124,27 @@
     CFRunLoopRun();
 }
 
-- (void)enqueueBuffer:(AudioQueueBufferRef)buffer {
-    OSStatus result;
-    int counter = 0;
-    do {
-        result = AudioQueueEnqueueBuffer(_audioQueue,
-                buffer,
-                0,
-                NULL);
-        counter++;
-        if (counter == 1000) {
-            break;
-        }
-    }
-    while (!HandleResultOSStatus(result, @"Enqueing microphone buffer", false) && [self shouldAttemptEnqueue]);
-    if (counter == 1000) {
-        NSLog(@"Catestrophic failure of audio input, attempting to restart microphone");
-        [self stopCapturing];
-        [self startCapturing];
-    }
+- (bool)enqueueBuffer:(AudioQueueBufferRef)buffer {
+    OSStatus result = AudioQueueEnqueueBuffer(_audioQueue,
+            buffer,
+            0,
+            NULL);
+
+    // Do not restart queues on failure.
+    return HandleResultOSStatus(result, @"Enqueing microphone buffer", false);
 }
 
-- (void)enqueueBuffers {
+- (bool)enqueueBuffers {
     for (int i = 0; i < _numBuffers; ++i) {
-        [self enqueueBuffer:_audioBuffers[i]];
+        if (![self enqueueBuffer:_audioBuffers[i]]) {
+            // Return those that were not queued back to pool.
+            for (; i < _numBuffers; i++) {
+                [self returnToPool:_audioBuffers[i]];
+            }
+            return false;
+        }
     }
+    return true;
 }
 
 - (Byte *)getMagicCookie {
@@ -156,7 +166,46 @@
     [_queueSetup wait];
 
     [self startCapturing];
+
+    _bufferControllerThread = [[NSThread alloc] initWithTarget:self selector:@selector(bufferControllerThreadEntryPoint:) object:nil];
+    [_bufferControllerThread start];
+
     NSLog(@"Microphone thread started");
+}
+
+- (void)bufferControllerThreadEntryPoint:(id)obj {
+    while (true) {
+        // Wait for an available audio buffer.
+        NSValue *_bufferVal = [_bufferPool get];
+        if (_bufferVal == nil) {
+            break;
+        }
+
+        // Extract value.
+        AudioQueueBufferRef audioQueueBuffer;
+        [_bufferVal getValue:&audioQueueBuffer];
+
+        [_isRecording wait];
+
+        bool errored = false;
+        @synchronized (self) {
+            if (![self enqueueBuffer:audioQueueBuffer]) {
+                NSLog(@"Failed to enqueue buffer from buffer controller");
+                [self returnToPool:audioQueueBuffer];
+                errored = true;
+            } else {
+               // NSLog(@"Enqueued buffer from buffer controller");
+            }
+        }
+
+        // We failed to enqueue, probably because operating system wasn't ready yet (if app was paused/resumed) or if
+        // we very recently stopped the audio queue.
+        if (errored) {
+            float timeInterval = 0.1;
+            NSLog(@"Waiting %.2f seconds before resuming microphone buffer controller thread (in response to failure)", timeInterval);
+            [NSThread sleepForTimeInterval:timeInterval];
+        }
+    }
 }
 
 - (void)setOutputSession:(id <NewPacketDelegate>)output {
@@ -168,34 +217,67 @@
 }
 
 - (void)startCapturing {
-    if ([_queueSetup isSignaled] && [_isRecording signalAll]) {
-        [self enqueueBuffers];
-
-        OSStatus result = AudioQueueStart(_audioQueue, NULL);
-        if (![self handleResultOsStatus:result description:@"Starting microphone queue"]) {
-            return;
-        }
-
-        [_magicCookieLoaded wait];
-    }
-}
-
-- (void)stopCapturingPermanently {
-    if ([_queueSetup clear]) {
-        OSStatus result = AudioQueueStop(_audioQueue, FALSE);
-        HandleResultOSStatus(result, @"Stopping microphone queue", true);
-        [_isRecording clear];
-    }
+    [self startCapturing:true];
 }
 
 - (void)stopCapturing {
-    if ([_queueSetup isSignaled] && [_isRecording clear]) {
-        OSStatus result = AudioQueuePause(_audioQueue);
-        HandleResultOSStatus(result, @"Pausing microphone queue", true);
+    [self stopCapturing:true];
+}
 
-        result = AudioQueueReset(_audioQueue);
-        HandleResultOSStatus(result, @"Resetting microphone queue", true);
+- (void)startCapturing:(bool)external {
+    if (!external) {
+        if (_stoppedExternally) {
+            NSLog(@"Ignoring start capture attempt on microphone, externally stopped");
+            return;
+        }
+    } else {
+        if (_stoppedExternally) {
+            NSLog(@"Resuming microphone audio capture externally called");
+            _stoppedExternally = false;
+        }
     }
+
+    @synchronized (self) {
+        if ([_queueSetup isSignaled] && [_isRecording signalAll]) {
+            OSStatus result = AudioQueueStart(_audioQueue, NULL);
+            if (![self handleResultOsStatus:result description:@"Starting microphone queue"]) {
+                return;
+            }
+
+            if (!_initialEnqueueCompleted) {
+                _initialEnqueueCompleted = true;
+                [self enqueueBuffers];
+            }
+
+            [_magicCookieLoaded wait];
+        }
+    }
+}
+
+- (void)stopCapturing:(bool)external {
+    if (external) {
+        if (!_stoppedExternally) {
+            NSLog(@"Stopped microphone capture externally");
+            _stoppedExternally = true;
+        }
+    } else {
+        if (_stoppedExternally) {
+            NSLog(@"Already stopped microphone capture externally");
+            return;
+        }
+    }
+
+    @synchronized (self) {
+        if ([_queueSetup isSignaled] && [_isRecording clear]) {
+            OSStatus result = AudioQueueFlush(_audioQueue);
+            HandleResultOSStatus(result, @"Flushing the microphone queue", true);
+
+            result = AudioQueueStop(_audioQueue, true);
+            HandleResultOSStatus(result, @"Stopping the microphone queue", true);
+        }
+    }
+
+    [self resetPool];
 }
 
 - (id <NewPacketDelegate>)getOutputSession {
@@ -218,6 +300,7 @@ static void HandleInputBuffer(void *aqData,
 
     if (inNumPackets == 0) {
         NSLog(@"0 packets received on audio input callback");
+        [obj returnToPool:inBuffer];
         return;
     }
 
@@ -241,6 +324,8 @@ static void HandleInputBuffer(void *aqData,
         UInt32 propertySize;
         OSStatus status = AudioQueueGetPropertySize(obj->_audioQueue, kAudioConverterCompressionMagicCookie, &propertySize);
         if (![obj handleResultOsStatus:status description:@"Retrieving magic cookie size"]) {
+            NSLog(@"Returning to pool");
+            [obj returnToPool:inBuffer];
             [obj->_magicCookieLoaded dummySignalAll];
             return;
         }
@@ -249,6 +334,8 @@ static void HandleInputBuffer(void *aqData,
         obj->_magicCookie = (Byte *) malloc(propertySize);
         status = AudioQueueGetProperty(obj->_audioQueue, kAudioQueueProperty_MagicCookie, obj->_magicCookie, &propertySize);
         if (![obj handleResultOsStatus:status description:@"Retrieving magic cookie"]) {
+            NSLog(@"Returning to pool");
+            [obj returnToPool:inBuffer];
             [obj->_magicCookieLoaded dummySignalAll];
             return;
         }
@@ -257,6 +344,7 @@ static void HandleInputBuffer(void *aqData,
     }
 
     if (inBuffer->mAudioDataByteSize > 0) {
+      //  NSLog(@"Packet has data %lu", inBuffer->mAudioDataByteSize);
         ByteBuffer *buff = [[ByteBuffer alloc] initWithSize:size];
         memcpy(buff.buffer + leftPadding, inBuffer->mAudioData, inBuffer->mAudioDataByteSize);
         [buff setUsedSize:size];
@@ -266,8 +354,28 @@ static void HandleInputBuffer(void *aqData,
         NSLog(@"Microphone generated empty buffer");
     }
 
-    if ([obj shouldAttemptEnqueue]) {
-        [obj enqueueBuffer:inBuffer];
+    if ([obj->_isRecording isSignaled]) {
+        //NSLog(@"Returning to pool");
+        [obj returnToPool:inBuffer];
+    } else {
+        NSLog(@"Dropping from pool");
+    }
+}
+
+// Return buffer to pool to be reused.
+- (void)returnToPool:(AudioQueueBufferRef)audioBuffer {
+    NSValue *nsValue = [NSValue value:&audioBuffer withObjCType:@encode(AudioQueueBufferRef)];
+    [_bufferPool add:nsValue];
+}
+
+
+// Empty the pool and repopulate from scratch.
+- (void)resetPool {
+    @synchronized (self) {
+        [_bufferPool clear];
+        for (int n = 0; n < _numBuffers; n++) {
+            [self returnToPool:_audioBuffers[n]];
+        }
     }
 }
 
