@@ -1,0 +1,1 @@
+sudo service michaelAppServiceGovernor restart
