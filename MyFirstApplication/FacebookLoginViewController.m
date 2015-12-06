@@ -59,6 +59,14 @@
         [_displayName setHidden:false];
         [_displayPicture setHidden:false];
         [_buttonFinished setHidden:false];
+
+        if ([state interestedInI] == BOTH) {
+            _desiredGenderChooser.selectedSegmentIndex = 2;
+        } else if ([state interestedInI] == FEMALE) {
+            _desiredGenderChooser.selectedSegmentIndex = 1;
+        } else if ([state interestedInI] == MALE) {
+            _desiredGenderChooser.selectedSegmentIndex = 0;
+        }
     } else {
         [_displayName setHidden:true];
         [_displayPicture setHidden:true];
@@ -68,12 +76,13 @@
         [_displayPicture setProfileID:nil];
         [_buttonFinished setEnabled:false];
 
+        _desiredGenderChooser.selectedSegmentIndex = 2; // BOTH
     }
 }
 
 - (void)_switchToChatView {
     // Always will have got here via another view controller.
-    [self.navigationController popViewControllerAnimated:NO];
+    [self.navigationController popViewControllerAnimated:YES];
 }
 
 - (void)_updateInternals {

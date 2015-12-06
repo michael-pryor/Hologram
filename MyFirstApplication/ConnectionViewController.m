@@ -164,7 +164,7 @@
 // Switch to the facebook logon view controller.
 - (void)switchToFacebookLogonView {
     // We are the entry point, so we push to the Facebook view controller.
-    if(_inFacebookLoginView) {
+    if (_inFacebookLoginView) {
         return;
     }
 
@@ -180,13 +180,13 @@
     if (state == ROUTED) {
         NSLog(@"Regressed to routing mode");
         dispatch_async(dispatch_get_main_queue(), ^{
-            [_natPunchtrhoughIndicator setBackgroundColor:[UIColor blueColor]
-             ];
+            [_natPunchtrhoughIndicator setBackgroundColor:[UIColor greenColor]
+            ];
         });
     } else if (state == PUNCHED_THROUGH) {
         NSLog(@"Punched through successfully");
         dispatch_async(dispatch_get_main_queue(), ^{
-[_natPunchtrhoughIndicator setBackgroundColor:[UIColor greenColor]];
+            [_natPunchtrhoughIndicator setBackgroundColor:[UIColor blueColor]];
         });
     } else if (state == ADDRESS_RECEIVED) {
         NSLog(@"New end point received");
