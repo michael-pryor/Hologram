@@ -40,9 +40,10 @@ class Client(object):
         REJECT_HASH_TIMEOUT = 1
 
     class LoginDetails:
-        def __init__(self, uniqueId, name, age, gender, interestedIn, longitude, latitude):
+        def __init__(self, uniqueId, name, shortName, age, gender, interestedIn, longitude, latitude):
             self.unique_id = uniqueId
             self.name = name
+            self.short_name = shortName
             self.age = age
             self.gender = gender
             self.interested_in = interestedIn
@@ -154,7 +155,7 @@ class Client(object):
         latitude = packet.getUnsignedInteger()
         longitude = packet.getUnsignedInteger()
 
-        self.login_details = Client.LoginDetails(self.udp_hash, fullName, age, gender, interestedIn, latitude, longitude)
+        self.login_details = Client.LoginDetails(self.udp_hash, fullName, shortName, age, gender, interestedIn, latitude, longitude)
 
         logger.info("Login processed with details, udp hash: [%s], full name: [%s], short name: [%s], age: [%d], gender [%d], interested in [%d], GPS: [(%d,%d)]" % (self.udp_hash, fullName, shortName, age, gender, interestedIn, longitude, latitude))
         return Client.RejectCodes.SUCCESS, self.udp_hash

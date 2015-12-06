@@ -79,11 +79,15 @@ class House:
         bufferClientA.addUnsignedInteger(Client.TcpOperationCodes.OP_NAT_PUNCHTHROUGH_ADDRESS)
         bufferClientA.addUnsignedInteger(inet_addr(clientB.udp.remote_address[0]))
         bufferClientA.addUnsignedInteger(htons(clientB.udp.remote_address[1]))
+        bufferClientA.addString(clientB.login_details.short_name)
+        bufferClientA.addUnsignedInteger(clientB.login_details.age)
 
         bufferClientB = ByteBuffer()
         bufferClientB.addUnsignedInteger(Client.TcpOperationCodes.OP_NAT_PUNCHTHROUGH_ADDRESS)
         bufferClientB.addUnsignedInteger(inet_addr(clientA.udp.remote_address[0]))
         bufferClientB.addUnsignedInteger(htons(clientA.udp.remote_address[1]))
+        bufferClientB.addString(clientA.login_details.short_name)
+        bufferClientB.addUnsignedInteger(clientA.login_details.age)
 
         clientA.tcp.sendByteBuffer(bufferClientA)
         clientB.tcp.sendByteBuffer(bufferClientB)

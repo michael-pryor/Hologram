@@ -28,7 +28,10 @@
     IBOutlet UIImageView *_cameraView;
     IBOutlet UILabel *_frameRate;
     IBOutlet UIView *_natPunchtrhoughIndicator;
-
+    IBOutlet UILabel *_ownerName;
+    IBOutlet UILabel *_ownerAge;
+    IBOutlet UILabel *_remoteName;
+    IBOutlet UILabel *_remoteAge;
     // State
     bool _waitingForNewEndPoint;
     bool _isConnectionActive;
@@ -114,6 +117,9 @@
 - (void)onSocialDataLoaded:(SocialState *)state {
     [state unregisterNotifier];
     dispatch_async(dispatch_get_main_queue(), ^{
+        [_ownerName setText:[state humanShortName]];
+        [_ownerAge setText:[NSString stringWithFormat:@"%d", [state age]]];
+
         [_gpsState update];
         [self setDisconnectStateWithShortDescription:@"Loading GPS details" longDescription:@"Waiting for GPS information to load"];
     });
@@ -197,6 +203,11 @@
     }
 }
 
+- (void)handleUserName:(NSString*)name age:(uint)age {
+    NSLog(@"Connected with user named [%@] with age [%u]", name, age);
+    [_remoteName setText:name];
+    [_remoteAge setText:[NSString stringWithFormat:@"%d", age]];
+}
 
 // Received a new image from network.
 // Update the UI.
