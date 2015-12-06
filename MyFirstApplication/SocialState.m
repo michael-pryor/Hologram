@@ -170,14 +170,24 @@ SocialState *instance;
 - (void)_retrieveGraphInformation {
     if ([FBSDKAccessToken currentAccessToken]) {
         NSLog(@"Retrieving Facebook graph API information");
-        
-        [[[FBSDKGraphRequest alloc] initWithGraphPath:@"me" parameters:nil]
+
+        NSDictionary* parameters = @{@"fields" : @"id,name,birthday,gender"};
+        [[[FBSDKGraphRequest alloc] initWithGraphPath:@"me" parameters:parameters]
                 startWithCompletionHandler:^(FBSDKGraphRequestConnection *connection, id result, NSError *error) {
                     if (!error) {
                         _dob = [result objectForKey:@"birthday"];
-                        _age = [self _getAgeFromDob:_dob];
+                        if (_dob == nil) {
+                            NSLog(@"Failed to retrieve date of birth from Facebook API, defaulting to 18");
+                            _age = 18;
+                        } else {
+                            _age = [self _getAgeFromDob:_dob];
+                        }
 
                         _gender = [result objectForKey:@"gender"];
+                        if (_gender == nil) {
+                            NSLog(@"Failed to retrieve gender from Facebook API, defaulting to male");
+                            _gender = @"male";
+                        }
                         _genderI = [self _parseGender:_gender];
 
                         NSLog(@"Loaded DOB: [%@], gender: [%@] from Facebook graph API", _dob, _gender);
