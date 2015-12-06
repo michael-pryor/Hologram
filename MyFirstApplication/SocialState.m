@@ -170,6 +170,7 @@ SocialState *instance;
 - (void)_retrieveGraphInformation {
     if ([FBSDKAccessToken currentAccessToken]) {
         NSLog(@"Retrieving Facebook graph API information");
+        
         [[[FBSDKGraphRequest alloc] initWithGraphPath:@"me" parameters:nil]
                 startWithCompletionHandler:^(FBSDKGraphRequestConnection *connection, id result, NSError *error) {
                     if (!error) {

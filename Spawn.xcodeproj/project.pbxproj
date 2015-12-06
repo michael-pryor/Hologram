@@ -18,7 +18,6 @@
 		51197B031B136CC3006A7AEE /* VideoOutputController.m in Sources */ = {isa = PBXBuildFile; fileRef = 51197B021B136CC3006A7AEE /* VideoOutputController.m */; };
 		51197B071B13AAAD006A7AEE /* TimedEventTracker.m in Sources */ = {isa = PBXBuildFile; fileRef = 51197B061B13AAAD006A7AEE /* TimedEventTracker.m */; };
 		511E725B1B544484006F8D9A /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 511E725A1B544484006F8D9A /* CoreLocation.framework */; };
-		511E725D1B544497006F8D9A /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 511E725C1B544497006F8D9A /* CoreLocation.framework */; };
 		511E72601B5444CA006F8D9A /* GpsState.m in Sources */ = {isa = PBXBuildFile; fileRef = 511E725F1B5444CA006F8D9A /* GpsState.m */; };
 		511EB65A1B4AFE0D000E287F /* FBSDKCoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 511EB6581B4AFE0D000E287F /* FBSDKCoreKit.framework */; };
 		511EB65B1B4AFE0D000E287F /* FBSDKLoginKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 511EB6591B4AFE0D000E287F /* FBSDKLoginKit.framework */; };
@@ -157,20 +156,20 @@
 		51E1BF291A5DD7A4007D8A56 /* MediaController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = MediaController.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		51E1BF2A1A5DD7A4007D8A56 /* MediaController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MediaController.m; sourceTree = "<group>"; };
 		51E219DB193B2D190066D915 /* Storyboard.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = Storyboard.storyboard; sourceTree = "<group>"; };
-		51E5BE1E1936A982003E45C3 /* MyFirstApplication.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MyFirstApplication.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		51E5BE1E1936A982003E45C3 /* Spawn.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Spawn.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		51E5BE211936A982003E45C3 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		51E5BE231936A982003E45C3 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		51E5BE251936A982003E45C3 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
-		51E5BE291936A982003E45C3 /* MyFirstApplication-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "MyFirstApplication-Info.plist"; sourceTree = "<group>"; };
+		51E5BE291936A982003E45C3 /* Spawn-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Spawn-Info.plist"; sourceTree = "<group>"; };
 		51E5BE2B1936A982003E45C3 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		51E5BE2D1936A982003E45C3 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
-		51E5BE2F1936A982003E45C3 /* MyFirstApplication-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "MyFirstApplication-Prefix.pch"; sourceTree = "<group>"; };
+		51E5BE2F1936A982003E45C3 /* Spawn-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Spawn-Prefix.pch"; sourceTree = "<group>"; };
 		51E5BE301936A982003E45C3 /* MJPAppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MJPAppDelegate.h; sourceTree = "<group>"; };
 		51E5BE311936A982003E45C3 /* MJPAppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MJPAppDelegate.m; sourceTree = "<group>"; };
 		51E5BE331936A982003E45C3 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
-		51E5BE391936A982003E45C3 /* MyFirstApplicationTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MyFirstApplicationTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		51E5BE391936A982003E45C3 /* SpawnTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SpawnTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		51E5BE3A1936A982003E45C3 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
-		51E5BE421936A982003E45C3 /* MyFirstApplicationTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "MyFirstApplicationTests-Info.plist"; sourceTree = "<group>"; };
+		51E5BE421936A982003E45C3 /* SpawnTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "SpawnTests-Info.plist"; sourceTree = "<group>"; };
 		51E5BE441936A982003E45C3 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		51E5BE461936A982003E45C3 /* MyFirstApplicationTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MyFirstApplicationTests.m; sourceTree = "<group>"; };
 		51E5BE7F1ABD03FD003E035C /* EncodingPipe.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EncodingPipe.h; sourceTree = "<group>"; };
@@ -211,7 +210,6 @@
 				511EB65A1B4AFE0D000E287F /* FBSDKCoreKit.framework in Frameworks */,
 				511EB65B1B4AFE0D000E287F /* FBSDKLoginKit.framework in Frameworks */,
 				511EB6601B4B01C7000E287F /* Bolts.framework in Frameworks */,
-				511E725D1B544497006F8D9A /* CoreLocation.framework in Frameworks */,
 				51E5BE261936A982003E45C3 /* UIKit.framework in Frameworks */,
 				511EB6621B4B01C7000E287F /* FBAudienceNetwork.framework in Frameworks */,
 				51E5BE221936A982003E45C3 /* Foundation.framework in Frameworks */,
@@ -377,8 +375,8 @@
 		51E5BE1F1936A982003E45C3 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				51E5BE1E1936A982003E45C3 /* MyFirstApplication.app */,
-				51E5BE391936A982003E45C3 /* MyFirstApplicationTests.xctest */,
+				51E5BE1E1936A982003E45C3 /* Spawn.app */,
+				51E5BE391936A982003E45C3 /* SpawnTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -422,10 +420,10 @@
 				51E888A21A59DF8F005F8825 /* Media */,
 				51E8889E1A59755D005F8825 /* Util */,
 				51D584B819AB63FB00BB6CE6 /* Networking */,
-				51E5BE291936A982003E45C3 /* MyFirstApplication-Info.plist */,
+				51E5BE291936A982003E45C3 /* Spawn-Info.plist */,
 				51E5BE2A1936A982003E45C3 /* InfoPlist.strings */,
 				51E5BE2D1936A982003E45C3 /* main.m */,
-				51E5BE2F1936A982003E45C3 /* MyFirstApplication-Prefix.pch */,
+				51E5BE2F1936A982003E45C3 /* Spawn-Prefix.pch */,
 			);
 			name = "Supporting Files";
 			sourceTree = "<group>";
@@ -442,7 +440,7 @@
 		51E5BE411936A982003E45C3 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
-				51E5BE421936A982003E45C3 /* MyFirstApplicationTests-Info.plist */,
+				51E5BE421936A982003E45C3 /* SpawnTests-Info.plist */,
 				51E5BE431936A982003E45C3 /* InfoPlist.strings */,
 				51D584C219AB8B1D00BB6CE6 /* ByteBufferTest.m */,
 			);
@@ -505,9 +503,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		51E5BE1D1936A982003E45C3 /* MyFirstApplication */ = {
+		51E5BE1D1936A982003E45C3 /* Spawn */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 51E5BE4A1936A982003E45C3 /* Build configuration list for PBXNativeTarget "MyFirstApplication" */;
+			buildConfigurationList = 51E5BE4A1936A982003E45C3 /* Build configuration list for PBXNativeTarget "Spawn" */;
 			buildPhases = (
 				51E5BE1A1936A982003E45C3 /* Sources */,
 				51E5BE1B1936A982003E45C3 /* Frameworks */,
@@ -517,14 +515,14 @@
 			);
 			dependencies = (
 			);
-			name = MyFirstApplication;
+			name = Spawn;
 			productName = MyFirstApplication;
-			productReference = 51E5BE1E1936A982003E45C3 /* MyFirstApplication.app */;
+			productReference = 51E5BE1E1936A982003E45C3 /* Spawn.app */;
 			productType = "com.apple.product-type.application";
 		};
-		51E5BE381936A982003E45C3 /* MyFirstApplicationTests */ = {
+		51E5BE381936A982003E45C3 /* SpawnTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 51E5BE4D1936A982003E45C3 /* Build configuration list for PBXNativeTarget "MyFirstApplicationTests" */;
+			buildConfigurationList = 51E5BE4D1936A982003E45C3 /* Build configuration list for PBXNativeTarget "SpawnTests" */;
 			buildPhases = (
 				51E5BE351936A982003E45C3 /* Sources */,
 				51E5BE361936A982003E45C3 /* Frameworks */,
@@ -535,9 +533,9 @@
 			dependencies = (
 				51E5BE3F1936A982003E45C3 /* PBXTargetDependency */,
 			);
-			name = MyFirstApplicationTests;
+			name = SpawnTests;
 			productName = MyFirstApplicationTests;
-			productReference = 51E5BE391936A982003E45C3 /* MyFirstApplicationTests.xctest */;
+			productReference = 51E5BE391936A982003E45C3 /* SpawnTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
@@ -547,7 +545,7 @@
 			isa = PBXProject;
 			attributes = {
 				CLASSPREFIX = MJP;
-				LastUpgradeCheck = 0510;
+				LastUpgradeCheck = 0640;
 				TargetAttributes = {
 					51E5BE1D1936A982003E45C3 = {
 						DevelopmentTeam = Q6XP93Q965;
@@ -557,7 +555,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 51E5BE191936A982003E45C3 /* Build configuration list for PBXProject "MyFirstApplication" */;
+			buildConfigurationList = 51E5BE191936A982003E45C3 /* Build configuration list for PBXProject "Spawn" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
@@ -569,8 +567,8 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				51E5BE1D1936A982003E45C3 /* MyFirstApplication */,
-				51E5BE381936A982003E45C3 /* MyFirstApplicationTests */,
+				51E5BE1D1936A982003E45C3 /* Spawn */,
+				51E5BE381936A982003E45C3 /* SpawnTests */,
 			);
 		};
 /* End PBXProject section */
@@ -662,7 +660,7 @@
 /* Begin PBXTargetDependency section */
 		51E5BE3F1936A982003E45C3 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 51E5BE1D1936A982003E45C3 /* MyFirstApplication */;
+			target = 51E5BE1D1936A982003E45C3 /* Spawn */;
 			targetProxy = 51E5BE3E1936A982003E45C3 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -769,9 +767,9 @@
 					/Users/pryormic/Documents/FacebookSDK,
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "MyFirstApplication/MyFirstApplication-Prefix.pch";
-				INFOPLIST_FILE = "MyFirstApplication/MyFirstApplication-Info.plist";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				GCC_PREFIX_HEADER = "MyFirstApplication/Spawn-Prefix.pch";
+				INFOPLIST_FILE = "MyFirstApplication/Spawn-Info.plist";
+				PRODUCT_NAME = Spawn;
 				PROVISIONING_PROFILE = "";
 				WRAPPER_EXTENSION = app;
 			};
@@ -789,9 +787,9 @@
 					/Users/pryormic/Documents/FacebookSDK,
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "MyFirstApplication/MyFirstApplication-Prefix.pch";
-				INFOPLIST_FILE = "MyFirstApplication/MyFirstApplication-Info.plist";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				GCC_PREFIX_HEADER = "MyFirstApplication/Spawn-Prefix.pch";
+				INFOPLIST_FILE = "MyFirstApplication/Spawn-Info.plist";
+				PRODUCT_NAME = Spawn;
 				PROVISIONING_PROFILE = "";
 				WRAPPER_EXTENSION = app;
 			};
@@ -812,8 +810,8 @@
 					"DEBUG=1",
 					"$(inherited)",
 				);
-				INFOPLIST_FILE = "MyFirstApplicationTests/MyFirstApplicationTests-Info.plist";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				INFOPLIST_FILE = "MyFirstApplicationTests/SpawnTests-Info.plist";
+				PRODUCT_NAME = SpawnTests;
 				TEST_HOST = "$(BUNDLE_LOADER)";
 				WRAPPER_EXTENSION = xctest;
 			};
@@ -830,8 +828,8 @@
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "MyFirstApplication/MyFirstApplication-Prefix.pch";
-				INFOPLIST_FILE = "MyFirstApplicationTests/MyFirstApplicationTests-Info.plist";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				INFOPLIST_FILE = "MyFirstApplicationTests/SpawnTests-Info.plist";
+				PRODUCT_NAME = SpawnTests;
 				TEST_HOST = "$(BUNDLE_LOADER)";
 				WRAPPER_EXTENSION = xctest;
 			};
@@ -840,7 +838,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		51E5BE191936A982003E45C3 /* Build configuration list for PBXProject "MyFirstApplication" */ = {
+		51E5BE191936A982003E45C3 /* Build configuration list for PBXProject "Spawn" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				51E5BE481936A982003E45C3 /* Debug */,
@@ -849,7 +847,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		51E5BE4A1936A982003E45C3 /* Build configuration list for PBXNativeTarget "MyFirstApplication" */ = {
+		51E5BE4A1936A982003E45C3 /* Build configuration list for PBXNativeTarget "Spawn" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				51E5BE4B1936A982003E45C3 /* Debug */,
@@ -858,7 +856,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		51E5BE4D1936A982003E45C3 /* Build configuration list for PBXNativeTarget "MyFirstApplicationTests" */ = {
+		51E5BE4D1936A982003E45C3 /* Build configuration list for PBXNativeTarget "SpawnTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				51E5BE4E1936A982003E45C3 /* Debug */,
