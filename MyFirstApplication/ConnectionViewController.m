@@ -27,7 +27,7 @@
     AlertViewController *_disconnectViewController;
     IBOutlet UIImageView *_cameraView;
     IBOutlet UILabel *_frameRate;
-    IBOutlet UIProgressView *_connectionStrength;
+    IBOutlet UIView *_natPunchtrhoughIndicator;
 
     // State
     bool _waitingForNewEndPoint;
@@ -36,6 +36,8 @@
     // Packets
     ByteBuffer *_skipPersonPacket;
     ByteBuffer *_permDisconnectPacket;
+
+    bool _inFacebookLoginView;
 }
 
 // View initially load; happens once per process.
@@ -88,6 +90,8 @@
 // Start by loading facebook information, then do GPS and then start connection to commander.
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
+
+    _inFacebookLoginView = false;
 
     SocialState *socialState = [SocialState getFacebookInstance];
     [socialState updateFacebook];
@@ -160,10 +164,14 @@
 // Switch to the facebook logon view controller.
 - (void)switchToFacebookLogonView {
     // We are the entry point, so we push to the Facebook view controller.
+    if(_inFacebookLoginView) {
+        return;
+    }
+
+    _inFacebookLoginView = true;
     UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Storyboard" bundle:nil];
     FacebookLoginViewController *viewController = (FacebookLoginViewController *) [storyboard instantiateViewControllerWithIdentifier:@"FacebookView"];
-    UINavigationController *test = self.navigationController;
-    [test pushViewController:viewController animated:YES];
+    [self.navigationController pushViewController:viewController animated:YES];
 }
 
 // Called when we receive a change in connection state regarding NAT punchthrough.
@@ -171,10 +179,15 @@
 - (void)onNatPunchthrough:(ConnectionGovernorNatPunchthrough *)connection stateChange:(NatState)state {
     if (state == ROUTED) {
         NSLog(@"Regressed to routing mode");
-        _connectionStrength.progress = 0.5f;
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [_natPunchtrhoughIndicator setBackgroundColor:[UIColor blueColor]
+             ];
+        });
     } else if (state == PUNCHED_THROUGH) {
         NSLog(@"Punched through successfully");
-        _connectionStrength.progress = 1.0f;
+        dispatch_async(dispatch_get_main_queue(), ^{
+[_natPunchtrhoughIndicator setBackgroundColor:[UIColor greenColor]];
+        });
     } else if (state == ADDRESS_RECEIVED) {
         NSLog(@"New end point received");
         _waitingForNewEndPoint = false;
@@ -201,7 +214,7 @@
     if (recognizer.direction == UISwipeGestureRecognizerDirectionLeft) {
         NSLog(@"Sending skip request");
         [_connection sendTcpPacket:_skipPersonPacket];
-        [self setDisconnectStateWithShortDescription:@"Skipped - finding new acquaintance" longDescription:@"Searching for somebody else suitable for you to talk with"];
+        [self setDisconnectStateWithShortDescription:@"Skipped, connecting to new session" longDescription:@"Searching for somebody else suitable for you to talk with"];
     } else {
         [self switchToFacebookLogonView];
     }
@@ -217,7 +230,7 @@
     if (_mediaController != nil) {
         [_mediaController setNetworkOutputSessionTcp:[_connection getTcpOutputSession] Udp:[_connection getUdpOutputSession]];
     } else {
-        _mediaController = [[MediaController alloc] initWithImageDelegate:self videoSpeedNotifier:self tcpNetworkOutputSession:[_connection getTcpOutputSession] udpNetworkOutputSession:[_connection getUdpOutputSession]];
+        _mediaController = [[MediaController alloc] initWithImageDelegate:self videoSpeedNotifier:self tcpNetworkOutputSession:[_connection getTcpOutputSession] udpNetworkOutputSession:[_connection getUdpOutputSession] mediaDelayNotifier:self];
     }
     [_mediaController start];
 }
@@ -232,22 +245,22 @@
             break;
 
         case P_CONNECTED:
-            [self setDisconnectStateWithShortDescription:@"Finding acquaintance" longDescription:@"Searching for somebody suitable for you to talk with"];
+            [self setDisconnectStateWithShortDescription:@"Connecting to new session" longDescription:@"Searching for somebody suitable for you to talk with"];
             if (_mediaController != nil) {
                 [_mediaController resetSendRate];
             }
             break;
 
         case P_CONNECTED_TO_EXISTING:
-            [self setDisconnectStateWithShortDescription:@"Reconnected to previous session" longDescription:@"Resuming previous conversation or finding a new match"];
+            [self setDisconnectStateWithShortDescription:@"Reconnected to existing session" longDescription:@"Resuming previous conversation or finding a new match"];
             break;
 
         case P_NOT_CONNECTED:
-            [self setDisconnectStateWithShortDescription:@"Connection failure" longDescription:description];
+            [self setDisconnectStateWithShortDescription:@"Disconnected" longDescription:description];
             break;
 
         case P_NOT_CONNECTED_HASH_REJECTED:
-            [self setDisconnectStateWithShortDescription:@"Connection failure - session expired" longDescription:description];
+            [self setDisconnectStateWithShortDescription:@"Disconnected" longDescription:description];
             [self connectToCommander];
             break;
 
@@ -291,12 +304,12 @@
         uint operation = [packet getUnsignedIntegerAtPosition:0];
         if (operation == DISCONNECT_TEMP) {
             NSLog(@"End point temporarily disconnected");
-            [self setDisconnectStateWithShortDescription:@"Acquaintance disconnected temporarily" longDescription:@"The person you were talking with has temporarily disconnected, please wait a few seconds to see if they can rejoin!"];
+            [self setDisconnectStateWithShortDescription:@"Reconnecting to existing session" longDescription:@"The person you were talking with has temporarily disconnected, please wait a few seconds to see if they can rejoin!"];
         } else if (operation == DISCONNECT_PERM) {
-            [self setDisconnectStateWithShortDescription:@"Acquaintance permanently disconnected" longDescription:@"The person you were talking with has permanently disconnected, we'll find you someone else to talk to"];
+            [self setDisconnectStateWithShortDescription:@"Connecting to new session" longDescription:@"The person you were talking with has permanently disconnected, we'll find you someone else to talk to"];
             NSLog(@"End point permanently disconnected");
         } else if (operation == DISCONNECT_SKIPPED) {
-            [self setDisconnectStateWithShortDescription:@"Acquaintance skipped you" longDescription:@"The person you were talking with skipped you, we'll find you someone else to talk to"];
+            [self setDisconnectStateWithShortDescription:@"Skipped, connecting to new session" longDescription:@"The person you were talking with skipped you, we'll find you someone else to talk to"];
             NSLog(@"End point skipped us");
         } else if (_mediaController != nil) {
             [_mediaController onNewPacket:packet fromProtocol:protocol];
@@ -323,8 +336,13 @@
 
 // Notification that video frame rate has changed.
 - (void)onNewVideoFrameFrequency:(CFAbsoluteTime)secondsFrequency {
-    CFAbsoluteTime frameRate = 1.0 / secondsFrequency;
-    [_frameRate setText:[NSString stringWithFormat:@"%.2f", frameRate]];
+    // Do nothing with this information.
+}
+
+- (void)onMediaDelayNotified:(uint)delayMs {
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [_frameRate setText:[NSString stringWithFormat:@"%d", delayMs]];
+    });
 }
 
 // Received request to slow down video send rate.

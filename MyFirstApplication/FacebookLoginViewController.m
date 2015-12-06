@@ -55,10 +55,19 @@
         [_displayName setText:[state humanFullName]];
         [_displayPicture setProfileID:[state facebookId]];
         [_buttonFinished setEnabled:true];
+
+        [_displayName setHidden:false];
+        [_displayPicture setHidden:false];
+        [_buttonFinished setHidden:false];
     } else {
-        [_displayName setText:@"Who are you?"];
+        [_displayName setHidden:true];
+        [_displayPicture setHidden:true];
+        [_buttonFinished setHidden:true];
+
+        [_displayName setText:@""];
         [_displayPicture setProfileID:nil];
         [_buttonFinished setEnabled:false];
+
     }
 }
 

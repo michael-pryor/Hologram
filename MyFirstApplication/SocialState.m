@@ -15,6 +15,15 @@ SocialState *instance;
     id <SocialStateDataLoadNotification> _notifier;
 }
 
+- (id)init {
+    self = [super init];
+    if (self) {
+        // Default is both. Initialize here instead of in reset because this value doesn't come from Facebook.
+        // It comes form a GUI item (direct from user).
+        _interestedInI = BOTH;
+    }
+    return self;
+}
 
 - (void)registerNotifier:(id <SocialStateDataLoadNotification>)notifier {
     _notifier = notifier;

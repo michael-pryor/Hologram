@@ -10,7 +10,6 @@
 #import "Timer.h"
 
 @implementation AlertViewController {
-    IBOutlet UILabel *_alertLongText;
     IBOutlet UILabel *_alertShortText;
     Timer *_timer;
     ADInterstitialAd *_advertDisplay;
@@ -21,10 +20,7 @@
     [_timer reset];
 
     _alertShortText.text = shortText;
-    _alertLongText.text = longText;
-
     [_alertShortText setNeedsDisplay];
-    [_alertLongText setNeedsDisplay];
 }
 
 - (void)viewDidLoad {

@@ -53,8 +53,10 @@
     TimedEventTracker *_slowDownThreshold;            // Decides when to ask for less network traffic.
     id <VideoSpeedNotifier> _videoSpeedNotifier;       // Notify of change in video frame rate.
 
+    id<MediaDelayNotifier> _mediaDelayNotifier;       // Inform upstreams (e.g. GUI) of delay for debugging purposes.
+
 }
-- (id)initWithTcpNetworkOutputSession:(id <NewPacketDelegate>)tcpNetworkOutputSession udpNetworkOutputSession:(id <NewPacketDelegate>)udpNetworkOutputSession imageDelegate:(id <NewImageDelegate>)newImageDelegate videoSpeedNotifier:(id <VideoSpeedNotifier>)videoSpeedNotifier {
+- (id)initWithTcpNetworkOutputSession:(id <NewPacketDelegate>)tcpNetworkOutputSession udpNetworkOutputSession:(id <NewPacketDelegate>)udpNetworkOutputSession imageDelegate:(id <NewImageDelegate>)newImageDelegate videoSpeedNotifier:(id <VideoSpeedNotifier>)videoSpeedNotifier mediaDelayNotifier:(id<MediaDelayNotifier>) mediaDelayNotifier {
     self = [super init];
     if (self) {
          _tcpNetworkOutputSession = tcpNetworkOutputSession;
@@ -80,6 +82,8 @@
         _slowDownThreshold = [[TimedEventTracker alloc] initWithMaxEvents:10 timePeriod:1];
 
         _videoSpeedNotifier = videoSpeedNotifier;
+
+        _mediaDelayNotifier = mediaDelayNotifier;
 
     }
     return self;
@@ -121,10 +125,11 @@
 }
 
 - (void)sendSlowdownRequest {
-    NSLog(@"Requesting slow down in video");
+    // Consider removing this; I don't think its particularly useful.
+    /*NSLog(@"Requesting slow down in video");
     ByteBuffer *buffer = [[ByteBuffer alloc] init];
     [buffer addUnsignedInteger:SLOW_DOWN_VIDEO];
-    [_tcpNetworkOutputSession onNewPacket:buffer fromProtocol:TCP];
+    [_tcpNetworkOutputSession onNewPacket:buffer fromProtocol:TCP];*/
 }
 
 // Handle new data received on network to be pushed out to the user.
@@ -133,20 +138,24 @@
 }
 
 - (void)slowSendRate {
-    NSLog(@"Slowing send rate of video");
+    /*NSLog(@"Slowing send rate of video");
     [_throttledBlock slowRate];
-    [_videoSpeedNotifier onNewVideoFrameFrequency:[_throttledBlock secondsFrequency]];
+    [_videoSpeedNotifier onNewVideoFrameFrequency:[_throttledBlock secondsFrequency]];*/
 }
 
 - (void)resetSendRate {
-    NSLog(@"Resetting video send rate");
+    /*NSLog(@"Resetting video send rate");
     [_throttledBlock reset];
-    [_videoSpeedNotifier onNewVideoFrameFrequency:[_throttledBlock secondsFrequency]];
+    [_videoSpeedNotifier onNewVideoFrameFrequency:[_throttledBlock secondsFrequency]];*/
 }
 
 - (void)onMediaDelayNotified:(uint)delayMs {
     // NSLog(@"Should delay by %dms", delayMs);
     [_delayedPipe setMinimumDelay:((float)delayMs / 1000.0)];
+
+    if (_mediaDelayNotifier != nil) {
+        [_mediaDelayNotifier onMediaDelayNotified:delayMs];
+    }
 }
 
 
