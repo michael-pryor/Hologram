@@ -98,7 +98,7 @@
 
     SocialState *socialState = [SocialState getFacebookInstance];
     [socialState updateFacebook];
-    if (![socialState isBasicDataLoaded]) {
+    if (![socialState isBasicDataLoaded] || ![[NSUserDefaults standardUserDefaults] boolForKey:@"permissionsExplanationShown"]) {
         [self switchToFacebookLogonView];
         return;
     }

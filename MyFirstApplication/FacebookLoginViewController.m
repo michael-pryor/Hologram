@@ -81,8 +81,25 @@
 }
 
 - (void)_switchToChatView {
+    if (![[NSUserDefaults standardUserDefaults] boolForKey:@"permissionsExplanationShown"]) {
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"This app requests your permission" message:
+                               @"This application connects you via audio and video to other people. This app needs permission to access your  microphone and camera to facilitate this. This app also needs permission to access your current location; this is because we try to match you with users close by.\n\nNo audio, video or location data is persisted on our servers or on your device. Matches that you connect with will not receive your location data in any form."
+                              
+                                                       delegate:self cancelButtonTitle: @"Cancel" otherButtonTitles: @"I am happy with this!", nil];
+        [alert show];
+        return;
+    }
+    
     // Always will have got here via another view controller.
     [self.navigationController popViewControllerAnimated:YES];
+}
+
+- (void)alertView:(UIAlertView *)alertView didDismissWithButtonIndex:(NSInteger)buttonIndex {
+    if ([alertView cancelButtonIndex] != buttonIndex) {
+        [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"permissionsExplanationShown"];
+        [[NSUserDefaults standardUserDefaults] synchronize];
+        [self _switchToChatView];
+    }
 }
 
 - (void)_updateInternals {

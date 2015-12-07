@@ -36,6 +36,11 @@ GpsState *state;
         // Set a movement threshold for new events.
         _locationManager.distanceFilter = 500; // meters
 
+        // Check for iOS 8. Without this guard the code will crash with "unknown selector" on iOS 7.
+        if ([_locationManager respondsToSelector:@selector(requestWhenInUseAuthorization)]) {
+            [_locationManager requestWhenInUseAuthorization];
+        }
+        
         // Now we receive updates initially, and every time we change locaiton.
         [_locationManager startUpdatingLocation];
     } else {

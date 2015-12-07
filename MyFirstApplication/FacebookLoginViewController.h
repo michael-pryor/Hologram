@@ -10,7 +10,7 @@
 #import <FBSDKLoginKit/FBSDKLoginKit.h>
 #import <FBSDKCoreKit/FBSDKCoreKit.h>
 
-@interface FacebookLoginViewController : UIViewController <FBSDKLoginButtonDelegate>
+@interface FacebookLoginViewController : UIViewController <FBSDKLoginButtonDelegate, UIAlertViewDelegate>
 @property(weak, nonatomic) IBOutlet FBSDKLoginButton *loginButton;
 @property(strong, nonatomic) IBOutlet UILabel *displayName;
 @property(strong, nonatomic) IBOutlet UIButton *buttonFinished;
