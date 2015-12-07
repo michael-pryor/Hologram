@@ -223,6 +223,11 @@
 // User swiped left <- goto facebook view controller.
 - (IBAction)showGestureForSwipeRecognizer:(UISwipeGestureRecognizer *)recognizer {
     if (recognizer.direction == UISwipeGestureRecognizerDirectionLeft) {
+        if (_connection == nil || !_isConnectionActive || [_connection isTerminated] || ![_connection isConnected]) {
+            NSLog(@"Ignoring skip request, not fully connected");
+            return;
+        }
+
         NSLog(@"Sending skip request");
         [_connection sendTcpPacket:_skipPersonPacket];
         [self setDisconnectStateWithShortDescription:@"Skipped, connecting to new session" longDescription:@"Searching for somebody else suitable for you to talk with"];
