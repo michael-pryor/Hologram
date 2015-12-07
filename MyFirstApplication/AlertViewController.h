@@ -11,7 +11,7 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIViewController.h>
 
-@interface AlertViewController : UIViewController
+@interface AlertViewController : UIViewController<ADBannerViewDelegate>
 - (void)setAlertShortText:(NSString *)shortText longText:(NSString *)longText;
 
 - (Boolean)hideIfVisibleAndReady;

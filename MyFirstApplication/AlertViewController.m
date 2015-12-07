@@ -11,13 +11,12 @@
 
 @implementation AlertViewController {
     IBOutlet UILabel *_alertShortText;
-    Timer *_timer;
-    ADInterstitialAd *_advertDisplay;
-    IBOutlet UIView *_advert;
+    Timer *_timerSinceAdvertCreated;
 }
 
 - (void)setAlertShortText:(NSString *)shortText longText:(NSString *)longText {
-    [_timer reset];
+    // Alert text has changed, wait at least two seconds more before clearing display.
+    [_timerSinceAdvertCreated reset];
 
     _alertShortText.text = shortText;
     [_alertShortText setNeedsDisplay];
@@ -25,16 +24,18 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    _timer = [[Timer alloc] initWithFrequencySeconds:2.0 firingInitially:false];
+
+    // This frequency represents the maximum amount of time a user will be waiting for the advert to load.
+    _timerSinceAdvertCreated = [[Timer alloc] initWithFrequencySeconds:5.0 firingInitially:false];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
-    [_timer reset];
+    [_timerSinceAdvertCreated reset];
 }
 
 - (Boolean)hideIfVisibleAndReady {
-    if (![_timer getState]) {
+    if (![_timerSinceAdvertCreated getState] ) {
         return false;
     }
 
@@ -45,5 +46,27 @@
         [self.view removeFromSuperview];
     });
     return true;
+}
+
+- (void)bannerViewDidLoadAd:(ADBannerView *)banner {
+    dispatch_async(dispatch_get_main_queue(), ^{
+        NSLog(@"Banner has loaded, unhiding it");
+        [banner setHidden:false];
+
+        // User must wait a minimum of 2 seconds extra while the advert is visible
+        // (giving them a chance to see it and click it).
+        [_timerSinceAdvertCreated reset];
+        [_timerSinceAdvertCreated setSecondsFrequency:2.0];
+    });
+}
+
+- (void)bannerView:(ADBannerView *)banner didFailToReceiveAdWithError:(NSError *)error {
+    dispatch_async(dispatch_get_main_queue(), ^{
+        NSLog(@"Failed to retrieve banner, hiding it; error is: %@", error);
+        [banner setHidden:true];
+
+        // Will not wait for banner to be displayed.
+        [_timerSinceAdvertCreated setSecondsFrequency:0];
+    });
 }
 @end
