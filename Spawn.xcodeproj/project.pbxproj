@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 46;
+	objectVersion = 47;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -29,6 +29,7 @@
 		511EB6661B4B0419000E287F /* FacebookLoginViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 511EB6651B4B0419000E287F /* FacebookLoginViewController.m */; };
 		51260FD41B47F60F001DE2B3 /* ConnectionCommander.m in Sources */ = {isa = PBXBuildFile; fileRef = 51260FD31B47F60F001DE2B3 /* ConnectionCommander.m */; };
 		513205E71AAE4CA600C80AD9 /* SoundMicrophone.m in Sources */ = {isa = PBXBuildFile; fileRef = 513205E61AAE4CA600C80AD9 /* SoundMicrophone.m */; };
+		51865D2D1C1C438A008836E7 /* iphone5_launchscreen.png in Resources */ = {isa = PBXBuildFile; fileRef = 51865D2C1C1C438A008836E7 /* iphone5_launchscreen.png */; };
 		519573041AEBEB26000247E1 /* EventTracker.m in Sources */ = {isa = PBXBuildFile; fileRef = 519573031AEBEB26000247E1 /* EventTracker.m */; };
 		51BF42541A750CDB00C16F9A /* ConnectionGovernorProtocol.m in Sources */ = {isa = PBXBuildFile; fileRef = 51BF42531A750CDB00C16F9A /* ConnectionGovernorProtocol.m */; };
 		51C18D2B1A9A3882000C42A8 /* Batch.m in Sources */ = {isa = PBXBuildFile; fileRef = 51C18D2A1A9A3882000C42A8 /* Batch.m */; };
@@ -122,6 +123,7 @@
 		51260FD31B47F60F001DE2B3 /* ConnectionCommander.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ConnectionCommander.m; sourceTree = "<group>"; };
 		513205E51AAE4CA600C80AD9 /* SoundMicrophone.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SoundMicrophone.h; sourceTree = "<group>"; };
 		513205E61AAE4CA600C80AD9 /* SoundMicrophone.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SoundMicrophone.m; sourceTree = "<group>"; };
+		51865D2C1C1C438A008836E7 /* iphone5_launchscreen.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = iphone5_launchscreen.png; sourceTree = "<group>"; };
 		519573021AEBEB26000247E1 /* EventTracker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EventTracker.h; sourceTree = "<group>"; };
 		519573031AEBEB26000247E1 /* EventTracker.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EventTracker.m; sourceTree = "<group>"; };
 		51BDB1491A6F0E7E00E0DA49 /* InputSessionBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InputSessionBase.h; sourceTree = "<group>"; };
@@ -427,6 +429,7 @@
 				51E5BE2D1936A982003E45C3 /* main.m */,
 				51E5BE2F1936A982003E45C3 /* Spawn-Prefix.pch */,
 				5109D3A71C1606FE003EAA33 /* icon_120.png */,
+				51865D2C1C1C438A008836E7 /* iphone5_launchscreen.png */,
 			);
 			name = "Supporting Files";
 			sourceTree = "<group>";
@@ -548,7 +551,7 @@
 			isa = PBXProject;
 			attributes = {
 				CLASSPREFIX = MJP;
-				LastUpgradeCheck = 0640;
+				LastUpgradeCheck = 0720;
 				TargetAttributes = {
 					51E5BE1D1936A982003E45C3 = {
 						DevelopmentTeam = Q6XP93Q965;
@@ -559,7 +562,7 @@
 				};
 			};
 			buildConfigurationList = 51E5BE191936A982003E45C3 /* Build configuration list for PBXProject "Spawn" */;
-			compatibilityVersion = "Xcode 3.2";
+			compatibilityVersion = "Xcode 6.3";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -586,6 +589,7 @@
 				51E5BE341936A982003E45C3 /* Images.xcassets in Resources */,
 				51E219DC193B2D190066D915 /* Storyboard.storyboard in Resources */,
 				511EB6611B4B01C7000E287F /* FacebookSDKStrings.bundle in Resources */,
+				51865D2D1C1C438A008836E7 /* iphone5_launchscreen.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -707,6 +711,8 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
+				DEPLOYMENT_POSTPROCESSING = YES;
+				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -724,6 +730,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 7.1;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				STRIP_INSTALLED_PRODUCT = NO;
 			};
 			name = Debug;
 		};
@@ -744,7 +751,8 @@
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				COPY_PHASE_STRIP = YES;
+				COPY_PHASE_STRIP = NO;
+				DEPLOYMENT_POSTPROCESSING = YES;
 				ENABLE_NS_ASSERTIONS = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -755,6 +763,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 7.1;
 				SDKROOT = iphoneos;
+				STRIP_INSTALLED_PRODUCT = NO;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
@@ -766,15 +775,23 @@
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = YES;
+				DEPLOYMENT_LOCATION = YES;
+				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					/Users/pryormic/Documents/FacebookSDK,
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "MyFirstApplication/Spawn-Prefix.pch";
+				GENERATE_PROFILING_CODE = YES;
 				INFOPLIST_FILE = "MyFirstApplication/Spawn-Info.plist";
+				KEEP_PRIVATE_EXTERNS = NO;
+				ONLY_ACTIVE_ARCH = NO;
+				PRODUCT_BUNDLE_IDENTIFIER = "mike.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = Spawn;
 				PROVISIONING_PROFILE = "";
+				STRIP_STYLE = debugging;
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -786,15 +803,23 @@
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = YES;
+				DEPLOYMENT_LOCATION = YES;
+				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					/Users/pryormic/Documents/FacebookSDK,
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "MyFirstApplication/Spawn-Prefix.pch";
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GENERATE_PROFILING_CODE = YES;
 				INFOPLIST_FILE = "MyFirstApplication/Spawn-Info.plist";
+				KEEP_PRIVATE_EXTERNS = NO;
+				PRODUCT_BUNDLE_IDENTIFIER = "mike.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = Spawn;
 				PROVISIONING_PROFILE = "";
+				STRIP_STYLE = debugging;
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;
@@ -815,6 +840,7 @@
 					"$(inherited)",
 				);
 				INFOPLIST_FILE = "MyFirstApplicationTests/SpawnTests-Info.plist";
+				PRODUCT_BUNDLE_IDENTIFIER = "mike.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = SpawnTests;
 				TEST_HOST = "$(BUNDLE_LOADER)";
 				WRAPPER_EXTENSION = xctest;
@@ -833,6 +859,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "MyFirstApplication/MyFirstApplication-Prefix.pch";
 				INFOPLIST_FILE = "MyFirstApplicationTests/SpawnTests-Info.plist";
+				PRODUCT_BUNDLE_IDENTIFIER = "mike.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = SpawnTests;
 				TEST_HOST = "$(BUNDLE_LOADER)";
 				WRAPPER_EXTENSION = xctest;
