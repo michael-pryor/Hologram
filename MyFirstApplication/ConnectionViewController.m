@@ -152,7 +152,7 @@
 }
 
 - (void)connectToCommander {
-    [self connectToRemoteCommander];
+    [self connectToLocalCommander];
 }
 
 // On failure retrieving GPS failure, retry every 2 seconds.

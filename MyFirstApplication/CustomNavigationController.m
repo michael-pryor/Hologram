@@ -8,13 +8,49 @@
 @implementation CustomNavigationController {
 
 }
+
+- (NSString*)getTransitionSubType:(bool)push {
+    bool isUpright;
+    UIDeviceOrientation orientation = [[UIDevice currentDevice] orientation];
+    switch(orientation) {
+        case UIDeviceOrientationUnknown:
+        case UIDeviceOrientationPortrait:           // Device oriented vertically, home button on the bottom
+        case UIDeviceOrientationPortraitUpsideDown:  // Device oriented vertically, home button on the top
+        case UIDeviceOrientationFaceUp:              // Device oriented flat, face up
+        case UIDeviceOrientationFaceDown:
+            isUpright = true;
+            break;
+            
+        case UIDeviceOrientationLandscapeLeft:       // Device oriented horizontally, home button on the right
+        case UIDeviceOrientationLandscapeRight:      // Device oriented horizontally, home button on the left
+        default:
+            isUpright = false;
+            break;
+            
+    }
+    
+    if(isUpright) {
+        if (push) {
+            return kCATransitionFromLeft;
+        } else {
+            return kCATransitionFromRight;
+        }
+    } else {
+        if (push) {
+            return kCATransitionFromBottom;
+        } else {
+            return kCATransitionFromTop;
+        }
+    }
+}
+
 - (void)pushViewController:(UIViewController *)viewController animated:(BOOL)animated{
     UIView *theWindow = self.view ;
     if( animated ) {
         CATransition *animation = [CATransition animation];
         [animation setDuration:0.35f];
         [animation setType:kCATransitionPush];
-        [animation setSubtype:kCATransitionFromLeft];
+        [animation setSubtype:[self getTransitionSubType:true]];
         [animation setTimingFunction:[CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseOut]];
         [[theWindow layer] addAnimation:animation forKey:@""];
     }
@@ -30,7 +66,7 @@
         CATransition *animation = [CATransition animation];
         [animation setDuration:0.35f];
         [animation setType:kCATransitionPush];
-        [animation setSubtype:kCATransitionFromRight];
+        [animation setSubtype:[self getTransitionSubType:false]];
         [animation setTimingFunction:[CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseOut]];
         [[theWindow layer] addAnimation:animation forKey:@""];
     }

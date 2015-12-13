@@ -11,6 +11,8 @@ logger = logging.getLogger(__name__)
 
 # Representation of client from server's perspective.
 class Client(object):
+    MINIMUM_VERSION = 1
+
     class ConnectionStatus:
         WAITING_LOGON = 1
         WAITING_UDP = 2
@@ -38,6 +40,7 @@ class Client(object):
     class RejectCodes:
         SUCCESS = 0
         REJECT_HASH_TIMEOUT = 1
+        REJECT_VERSION = 2
 
     class LoginDetails:
         def __init__(self, uniqueId, name, shortName, age, gender, interestedIn, longitude, latitude):
@@ -144,6 +147,12 @@ class Client(object):
             logger.info("Reconnect accepted, hash: %s", self.udp_hash)
         else:
             self.udp_hash = self.udp_connection_linker.registerInterestGenerated(self)
+
+        # Versioning.
+        version = packet.getUnsignedInteger()
+        if version < Client.MINIMUM_VERSION:
+            rejectText = "Invalid version %d vs required %d" % (version, Client.MINIMUM_VERSION)
+            return Client.RejectCodes.REJECT_VERSION, rejectText
 
         # See quark login.
         fullName = packet.getString()

@@ -16,6 +16,13 @@ uint NUM_SOCKETS = 1;
 // Session hash has timed out, you need a fresh session.
 #define REJECT_HASH_TIMEOUT 1
 
+// Server wants a newer version.
+#define REJECT_BAD_VERSION 2
+
+// Version to include in connection attempts.
+// Must be >= to server's expectation, otherwise we'l be rejected.
+#define VERSION 1
+
 @implementation ConnectionGovernorProtocol {
     id <NewPacketDelegate> _recvDelegate;
     ConnectionManagerUdp *_udpConnection;
@@ -42,6 +49,8 @@ uint NUM_SOCKETS = 1;
     NSThread *_pingThread;
     Boolean _alive;
     Boolean _isNewSession;
+
+    Boolean _badVersionNotified;
 
 
     // Must be kept in sync with server.
@@ -76,6 +85,7 @@ uint NUM_SOCKETS = 1;
         _udpConnection = [[ConnectionManagerUdp alloc] initWithNewPacketDelegate:self newUnknownPacketDelegate:unknownRecvDelegate slowNetworkDelegate:slowNetworkDelegate connectionDelegate:self retryCount:5];
 
         _loginProvider = loginProvider;
+        _badVersionNotified = false;
 
         [self _setupReconnectMonitor];
 
@@ -131,6 +141,7 @@ uint NUM_SOCKETS = 1;
 }
 
 - (void)disableReconnecting {
+    NSLog(@"Governor reconnect attempts disabled");
     _reconnectEnabled = false;
 }
 
@@ -245,10 +256,30 @@ uint NUM_SOCKETS = 1;
     [self performSelector:@selector(sendUdpLogonHash:) withObject:bufferToSend afterDelay:0.5];
 }
 
-- (void)handleRejectCode:(uint)rejectCode {
+- (void)handleRejectCode:(uint)rejectCode description:(NSString*)rejectDescription{
     // Hash timed out, the next one will succeed if we clear it (server will give us a new one).
     if (rejectCode == REJECT_HASH_TIMEOUT) {
         [self terminateWithConnectionStatus:P_NOT_CONNECTED_HASH_REJECTED withDescription:@"Session expired"];
+    } else if(rejectCode == REJECT_BAD_VERSION) {
+        [self disableReconnecting];
+        if (!_badVersionNotified) {
+            _badVersionNotified = true;
+
+            NSString *alertText = [NSString stringWithFormat:@"The version of the application you are running is too old; please update it in the Apple app store.\n\nThe server rejected our connection request with details: [%@]", rejectDescription];
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Please update the application"
+                                                            message:alertText
+                                                           delegate:self
+                                                  cancelButtonTitle:@"Exit"
+                                                  otherButtonTitles:nil];
+            [alert show];
+        }
+    }
+}
+
+- (void)alertView:(UIAlertView *)alertView didDismissWithButtonIndex:(NSInteger)buttonIndex {
+    if ([alertView cancelButtonIndex] == buttonIndex) {
+        NSLog(@"Exiting the application because rejected by server (bad version)");
+        exit(0);
     }
 }
 
@@ -260,9 +291,9 @@ uint NUM_SOCKETS = 1;
             if (_connectionStatus == P_WAITING_FOR_TCP_LOGON_ACK) {
                 if (logon == OP_REJECT_LOGON) {
                     uint rejectCode = [packet getUnsignedInteger];
-                    [self handleRejectCode:rejectCode];
                     NSString *rejectReason = [packet getString];
                     NSString *rejectDescription = [@"Logon rejected with reason: " stringByAppendingString:rejectReason];
+                    [self handleRejectCode:rejectCode description:rejectDescription];
                     [self reconnectLimitedWithFailureDescription:rejectDescription];
                 } else if (logon == OP_ACCEPT_LOGON) {
 
@@ -329,6 +360,9 @@ uint NUM_SOCKETS = 1;
         if (_udpHash != nil) {
             [theLogonBuffer addString:_udpHash];
         }
+
+        // Version.
+        [theLogonBuffer addUnsignedInteger:VERSION];
 
         // The login part.
         [theLogonBuffer addByteBuffer:[_loginProvider getLoginBuffer] includingPrefix:false];
