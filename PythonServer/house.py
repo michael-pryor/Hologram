@@ -171,18 +171,23 @@ class House:
             if doQuery:
                 client.house_match_timer = getEpoch()
 
-                databaseResultMatch = self.database.findMatch(client)
-                if databaseResultMatch is None:
-                    onFailure()
-                    return
+                # This loop allows us to clean up the database quickly if there are alot of inconsistencies.
+                while True:
+                    databaseResultMatch = self.database.findMatch(client)
 
-                key = databaseResultMatch['_id']
-                clientMatch = self.waiting_clients_by_key.get(key)
-                if clientMatch is None:
-                    self.database.removeMatchById(key)
-                    logger.warn("Client in DB not found in waiting list, database inconsistency detected")
-                    onFailure()
-                    return
+                    # If we can't immediately find a match then add it to the waiting list.
+                    if databaseResultMatch is None:
+                        onFailure()
+                        return
+
+                    key = databaseResultMatch['_id']
+                    clientMatch = self.waiting_clients_by_key.get(key)
+                    if clientMatch is None:
+                        self.database.removeMatchById(key)
+                        logger.error("Client in DB not found in waiting list, database inconsistency detected, removing key from database: " + key + ", and retrying")
+                        continue # Retry repeatedly.
+
+                    break # exit the loop because we succeeded
 
                 self.takeRoom(client, clientMatch)
 

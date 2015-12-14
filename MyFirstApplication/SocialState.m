@@ -82,7 +82,7 @@ SocialState *instance;
             _humanShortName = _middleName;
             setShortName = true;
         } else {
-            _humanShortName = @"";
+            _humanShortName = @"?";
         }
     } else {
         // Delete the last character.
@@ -177,16 +177,15 @@ SocialState *instance;
                     if (!error) {
                         _dob = [result objectForKey:@"birthday"];
                         if (_dob == nil) {
-                            NSLog(@"Failed to retrieve date of birth from Facebook API, defaulting to 18");
-                            _age = 18;
+                            NSLog(@"Failed to retrieve date of birth from Facebook API, defaulting to 0 - server will handle this");
+                            _age = 0;
                         } else {
                             _age = [self _getAgeFromDob:_dob];
                         }
 
                         _gender = [result objectForKey:@"gender"];
                         if (_gender == nil) {
-                            NSLog(@"Failed to retrieve gender from Facebook API, defaulting to male");
-                            _gender = @"male";
+                            NSLog(@"Failed to retrieve gender from Facebook API, defaulting to nil which will equate to BOTH - server will handle this");
                         }
                         _genderI = [self _parseGender:_gender];
 

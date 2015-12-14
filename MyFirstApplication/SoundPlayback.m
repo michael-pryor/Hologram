@@ -446,8 +446,19 @@ static void HandleOutputBuffer(void *aqData,
 - (void)selectSpeaker {
     AVAudioSession *session = [AVAudioSession sharedInstance];
     NSError *error;
-    [session setMode:AVAudioSessionModeVideoChat error:&error];
-    [session setCategory:AVAudioSessionCategoryPlayAndRecord withOptions:AVAudioSessionCategoryOptionDefaultToSpeaker error:&error];
+
+    // Prevent echo so audio played from speaker should be filtered out.
+    bool result = [session setMode:AVAudioSessionModeVideoChat error:&error];
+    if (!result) {
+        NSLog(@"Failed to enable AVAudioSessionModeVideoChat mode: %@", [error localizedDescription]);
+    }
+
+    // Use the device's loud speaker if no headphones are plugged in.
+    // Without this, will use the quiet speaker if available, e.g. on iphone this is for taking calls privately.
+    result = [session setCategory:AVAudioSessionCategoryPlayAndRecord withOptions:AVAudioSessionCategoryOptionDefaultToSpeaker error:&error];
+    if (!result) {
+        NSLog(@"Failed to enable AVAudioSessionCategoryOptionDefaultToSpeaker mode: %@", [error localizedDescription]);
+    }
 }
 
 @end

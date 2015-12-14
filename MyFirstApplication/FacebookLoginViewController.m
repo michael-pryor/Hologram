@@ -10,12 +10,7 @@
 #import "ConnectionViewController.h"
 
 @implementation FacebookLoginViewController {
-    Boolean _initialized;
     IBOutlet UISegmentedControl *_desiredGenderChooser;
-}
-
-- (NSUInteger)supportedInterfaceOrientations {
-    return UIInterfaceOrientationMaskPortrait;
 }
 
 - (IBAction)onFinishedButtonClick:(id)sender {
@@ -83,7 +78,7 @@
 - (void)_switchToChatView {
     if (![[NSUserDefaults standardUserDefaults] boolForKey:@"permissionsExplanationShown"]) {
         UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"This app requests your permission" message:
-                               @"This application connects you via audio and video to other people. This app needs permission to access your  microphone and camera to facilitate this. This app also needs permission to access your current location; this is because we try to match you with users close by.\n\nNo audio, video or location data is persisted on our servers or on your device. Matches that you connect with will not receive your location data in any form."
+                               @"This application connects you via audio and video to other people. This app needs permission to access your  microphone and camera to facilitate this. This app also needs permission to access your current location; this is because we try to match you with users close by.\n\nNo audio, video or location data is stored on our servers or on your device. Matches that you connect with will not receive your location data in any form."
                               
                                                        delegate:self cancelButtonTitle: @"Cancel" otherButtonTitles: @"I am happy with this!", nil];
         [alert show];
@@ -91,7 +86,9 @@
     }
     
     // Always will have got here via another view controller.
-    [self.navigationController popViewControllerAnimated:YES];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self.navigationController popViewControllerAnimated:YES];
+    });
 }
 
 - (void)alertView:(UIAlertView *)alertView didDismissWithButtonIndex:(NSInteger)buttonIndex {

@@ -181,9 +181,11 @@
     }
 
     _inFacebookLoginView = true;
-    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Storyboard" bundle:nil];
-    FacebookLoginViewController *viewController = (FacebookLoginViewController *) [storyboard instantiateViewControllerWithIdentifier:@"FacebookView"];
-    [self.navigationController pushViewController:viewController animated:YES];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Storyboard" bundle:nil];
+        FacebookLoginViewController *viewController = (FacebookLoginViewController *) [storyboard instantiateViewControllerWithIdentifier:@"FacebookView"];
+        [self.navigationController pushViewController:viewController animated:YES];
+    });
 }
 
 // Called when we receive a change in connection state regarding NAT punchthrough.
@@ -211,8 +213,16 @@
 
 - (void)handleUserName:(NSString*)name age:(uint)age {
     NSLog(@"Connected with user named [%@] with age [%u]", name, age);
-    [_remoteName setText:name];
-    [_remoteAge setText:[NSString stringWithFormat:@"%d", age]];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [_remoteName setText:name];
+
+        if (age > 0) {
+            [_remoteAge setText:[NSString stringWithFormat:@"%d", age]];
+            [_remoteAge setHidden:false];
+        } else {
+            [_remoteAge setHidden:true];
+        }
+    });
 }
 
 // Received a new image from network.
@@ -297,25 +307,27 @@
 
 // Display view overlay showing how connection is being recovered.
 - (void)setDisconnectStateWithShortDescription:(NSString *)shortDescription longDescription:(NSString *)longDescription {
-    // Show the disconnect storyboard.
-    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Storyboard" bundle:nil];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        // Show the disconnect storyboard.
+        UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Storyboard" bundle:nil];
 
-    Boolean alreadyPresented = _disconnectViewController != nil;
-    if (!alreadyPresented) {
-        _disconnectViewController = (AlertViewController *) [storyboard instantiateViewControllerWithIdentifier:@"DisconnectAlertView"];
+        Boolean alreadyPresented = _disconnectViewController != nil;
+        if (!alreadyPresented) {
+            _disconnectViewController = (AlertViewController *) [storyboard instantiateViewControllerWithIdentifier:@"DisconnectAlertView"];
 
-        [self addChildViewController:_disconnectViewController];
-        [self.view addSubview:_disconnectViewController.view];
-    }
-    // Set its content
-    NSLog(@"Disconnect screen presented, long description: %@", longDescription);
-    [_disconnectViewController setAlertShortText:shortDescription longText:longDescription];
+            [self addChildViewController:_disconnectViewController];
+            [self.view addSubview:_disconnectViewController.view];
+        }
+        // Set its content
+        NSLog(@"Disconnect screen presented, long description: %@", longDescription);
+        [_disconnectViewController setAlertShortText:shortDescription longText:longDescription];
 
-    if (!alreadyPresented) {
-        [_disconnectViewController didMoveToParentViewController:self];
-        _waitingForNewEndPoint = true;
-        [_mediaController stop];
-    }
+        if (!alreadyPresented) {
+            [_disconnectViewController didMoveToParentViewController:self];
+            _waitingForNewEndPoint = true;
+            [_mediaController stop];
+        }
+    });
 }
 
 // Handle data and pass to relevant parts of application.

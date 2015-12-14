@@ -28,23 +28,31 @@ class Database(object):
     def findMatch(self, client):
         assert isinstance(client, Client)
         loginDetails = client.login_details
-        if loginDetails.age == 0:
-            loginDetails.age = 18
+
+        # Note that age can be 0 here if user does not want to disclose via facebook. We should handle this case.
+
+        # Gender can be 0 here if user does not want to disclose via facebook. We handle this by saying that users
+        # not specifying gender can match people looking for either male, female or who do not care. We do not
+        # specify a specific gender.
+        matchWithGenderWanted = [3]
         if loginDetails.gender == 0:
-            loginDetails.gender = 1
+            matchWithGenderWanted += [1, 2]
+        else:
+            matchWithGenderWanted.append(loginDetails.gender)
+
+        # If a user has not specified what gender htey are interested in, then they can match anything.
         if loginDetails.interested_in == 0:
             loginDetails.interested_in = 3
         genderWanted = loginDetails.interested_in
 
+        # If they don't care what gender they want, then don't include gender as part of the query.
         if genderWanted == 3:
             query = {}
         else:
             query = {'gender' : genderWanted}
 
-
-
         query.update({'server': self.server_name,
-                      'gender_wanted' : {'$in' : [3, loginDetails.gender]},
+                      'gender_wanted' : {'$in' : matchWithGenderWanted},
                       # Age over complicates things for now, because we need age selection on GUI.
                       # If we get loads of users we can put this in.
                       #'age' : {'$gt': 0,
