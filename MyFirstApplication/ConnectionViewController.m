@@ -124,7 +124,14 @@
     [state unregisterNotifier];
     dispatch_async(dispatch_get_main_queue(), ^{
         [_ownerName setText:[state humanShortName]];
-        [_ownerAge setText:[NSString stringWithFormat:@"%d", [state age]]];
+
+        uint age = [state age];
+        if (age > 0) {
+            [_ownerAge setText:[NSString stringWithFormat:@"%d", age]];
+            [_ownerAge setHidden:false];
+        } else {
+            [_ownerAge setHidden:true];
+        }
 
         [_gpsState update];
         [self setDisconnectStateWithShortDescription:@"Loading GPS details" longDescription:@"Waiting for GPS information to load"];

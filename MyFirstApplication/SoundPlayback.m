@@ -447,10 +447,11 @@ static void HandleOutputBuffer(void *aqData,
     AVAudioSession *session = [AVAudioSession sharedInstance];
     NSError *error;
 
-    // Prevent echo so audio played from speaker should be filtered out.
-    bool result = [session setMode:AVAudioSessionModeVideoChat error:&error];
+    bool result = [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayAndRecord
+                                     withOptions:AVAudioSessionCategoryOptionDefaultToSpeaker
+                                           error:&error];
     if (!result) {
-        NSLog(@"Failed to enable AVAudioSessionModeVideoChat mode: %@", [error localizedDescription]);
+        NSLog(@"Failed to enable AVAudioSessionCategoryOptionDefaultToSpeaker mode on shared instance: %@", [error localizedDescription]);
     }
 
     // Use the device's loud speaker if no headphones are plugged in.
@@ -459,6 +460,12 @@ static void HandleOutputBuffer(void *aqData,
     if (!result) {
         NSLog(@"Failed to enable AVAudioSessionCategoryOptionDefaultToSpeaker mode: %@", [error localizedDescription]);
     }
+    // Prevent echo so audio played from speaker should be filtered out.
+    result = [session setMode:AVAudioSessionModeVideoChat error:&error];
+    if (!result) {
+        NSLog(@"Failed to enable AVAudioSessionModeVideoChat mode: %@", [error localizedDescription]);
+    }
+
 }
 
 @end
