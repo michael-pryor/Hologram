@@ -33,7 +33,7 @@
     IBOutlet UILabel *_remoteName;
     IBOutlet UILabel *_remoteAge;
     // State
-    bool _waitingForNewEndPoint;
+    volatile bool _waitingForNewEndPoint;
     bool _isConnectionActive;
 
     // Packets
@@ -41,6 +41,11 @@
     ByteBuffer *_permDisconnectPacket;
 
     bool _inFacebookLoginView;
+
+    // Special case where we want user to be able to skip, even if not currently talking
+    // with somebody. Current special cases include:
+    // - When user has temporarily disconnected; if user doesn't want to wait and wants to get a new match.
+    volatile bool _isSkippableDespiteNoMatch;
 }
 
 // View initially load; happens once per process.
@@ -95,6 +100,7 @@
     [super viewDidAppear:animated];
 
     _inFacebookLoginView = false;
+    _isSkippableDespiteNoMatch = false;
 
     SocialState *socialState = [SocialState getFacebookInstance];
     [socialState updateFacebook];
@@ -157,7 +163,7 @@
 
 // On failure retrieving GPS failure, retry every 2 seconds.
 - (void)onGpsDataLoadFailure:(GpsState *)state withDescription:(NSString *)description {
-    [self setDisconnectStateWithShortDescription:@"Failed to load GPS details" longDescription:description];
+    [self setDisconnectStateWithShortDescription:@"Failed to load GPS details, retrying" longDescription:description];
 
     // Try again in 2 seconds time.
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t) (2.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
@@ -223,14 +229,16 @@
 // User swiped left <- goto facebook view controller.
 - (IBAction)showGestureForSwipeRecognizer:(UISwipeGestureRecognizer *)recognizer {
     if (recognizer.direction == UISwipeGestureRecognizerDirectionLeft) {
-        if (_connection == nil || !_isConnectionActive || [_connection isTerminated] || ![_connection isConnected]) {
-            NSLog(@"Ignoring skip request, not fully connected");
+        if (_waitingForNewEndPoint && !_isSkippableDespiteNoMatch) {
+            NSLog(@"Ignoring skip request, nobody to skip");
             return;
         }
 
+        _isSkippableDespiteNoMatch = false;
+
         NSLog(@"Sending skip request");
         [_connection sendTcpPacket:_skipPersonPacket];
-        [self setDisconnectStateWithShortDescription:@"Skipped, connecting to new session" longDescription:@"Searching for somebody else suitable for you to talk with"];
+        [self setDisconnectStateWithShortDescription:@"Connecting to new session\nYou skipped the other person" longDescription:@"Searching for somebody else suitable for you to talk with"];
     } else {
         [self switchToFacebookLogonView];
     }
@@ -276,7 +284,7 @@
             break;
 
         case P_NOT_CONNECTED_HASH_REJECTED:
-            [self setDisconnectStateWithShortDescription:@"Disconnected" longDescription:description];
+            [self setDisconnectStateWithShortDescription:@"Disconnected\nPrevious session timed out" longDescription:description];
             [self connectToCommander];
             break;
 
@@ -289,7 +297,6 @@
 
 // Display view overlay showing how connection is being recovered.
 - (void)setDisconnectStateWithShortDescription:(NSString *)shortDescription longDescription:(NSString *)longDescription {
-
     // Show the disconnect storyboard.
     UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Storyboard" bundle:nil];
 
@@ -301,6 +308,7 @@
         [self.view addSubview:_disconnectViewController.view];
     }
     // Set its content
+    NSLog(@"Disconnect screen presented, long description: %@", longDescription);
     [_disconnectViewController setAlertShortText:shortDescription longText:longDescription];
 
     if (!alreadyPresented) {
@@ -319,13 +327,16 @@
     if (protocol == TCP) {
         uint operation = [packet getUnsignedIntegerAtPosition:0];
         if (operation == DISCONNECT_TEMP) {
+            // Allow user to skip if doesn't want to wait for previous user to reconnect.
+            _isSkippableDespiteNoMatch = true;
+
             NSLog(@"End point temporarily disconnected");
-            [self setDisconnectStateWithShortDescription:@"Reconnecting to existing session" longDescription:@"The person you were talking with has temporarily disconnected, please wait a few seconds to see if they can rejoin!"];
+            [self setDisconnectStateWithShortDescription:@"Reconnecting to existing session\nThe other person disconnected temporarily" longDescription:@"The person you were talking with has temporarily disconnected, please wait a few seconds to see if they can rejoin!"];
         } else if (operation == DISCONNECT_PERM) {
-            [self setDisconnectStateWithShortDescription:@"Connecting to new session" longDescription:@"The person you were talking with has permanently disconnected, we'll find you someone else to talk to"];
+            [self setDisconnectStateWithShortDescription:@"Connecting to new session\nThe other person left" longDescription:@"The person you were talking with has permanently disconnected, we'll find you someone else to talk to"];
             NSLog(@"End point permanently disconnected");
         } else if (operation == DISCONNECT_SKIPPED) {
-            [self setDisconnectStateWithShortDescription:@"Skipped, connecting to new session" longDescription:@"The person you were talking with skipped you, we'll find you someone else to talk to"];
+            [self setDisconnectStateWithShortDescription:@"Connecting to new session\nThe other person skipped you" longDescription:@"The person you were talking with skipped you, we'll find you someone else to talk to"];
             NSLog(@"End point skipped us");
         } else if (_mediaController != nil) {
             [_mediaController onNewPacket:packet fromProtocol:protocol];
@@ -341,6 +352,7 @@
                 return;
             } else {
                 _disconnectViewController = nil;
+                _isSkippableDespiteNoMatch = false;
             }
         }
 

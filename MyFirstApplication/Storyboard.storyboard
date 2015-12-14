@@ -272,19 +272,19 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <adBannerView hidden="YES" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" translatesAutoresizingMaskIntoConstraints="NO" id="hSC-qc-XE8">
-                                <rect key="frame" x="0.0" y="534" width="600" height="66"/>
+                                <rect key="frame" x="0.0" y="534" width="480" height="66"/>
                                 <connections>
                                     <outlet property="delegate" destination="szN-uc-xgc" id="SUi-9i-F4C"/>
                                 </connections>
                             </adBannerView>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Here is some sample text to talk about stuff" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="MuE-y5-gsJ">
-                                <rect key="frame" x="0.0" y="282" width="600" height="17"/>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Here is some sample text to talk about stuff" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="3" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="MuE-y5-gsJ">
+                                <rect key="frame" x="0.0" y="272" width="600" height="17"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                 <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" animating="YES" style="white" translatesAutoresizingMaskIntoConstraints="NO" id="dvT-tN-vmd">
-                                <rect key="frame" x="290" y="309" width="20" height="20"/>
+                                <rect key="frame" x="290" y="299" width="20" height="20"/>
                                 <color key="color" white="1" alpha="1" colorSpace="calibratedWhite"/>
                             </activityIndicatorView>
                         </subviews>
@@ -293,7 +293,7 @@
                             <constraint firstItem="MuE-y5-gsJ" firstAttribute="width" secondItem="qfn-EI-xYg" secondAttribute="width" id="Gal-Ed-jDD" userLabel="AlertText width"/>
                             <constraint firstItem="MuE-y5-gsJ" firstAttribute="bottom" secondItem="dvT-tN-vmd" secondAttribute="top" constant="-10" id="MyL-tp-jFG" userLabel="Activity Indicator Top"/>
                             <constraint firstItem="MuE-y5-gsJ" firstAttribute="centerX" secondItem="qfn-EI-xYg" secondAttribute="centerX" id="Pr5-8e-bO0" userLabel="AlertText center X"/>
-                            <constraint firstItem="MuE-y5-gsJ" firstAttribute="centerY" secondItem="qfn-EI-xYg" secondAttribute="centerY" constant="-10" id="YcE-pP-zIb" userLabel="AlertText center Y"/>
+                            <constraint firstItem="MuE-y5-gsJ" firstAttribute="centerY" secondItem="qfn-EI-xYg" secondAttribute="centerY" constant="-20" id="YcE-pP-zIb" userLabel="AlertText center Y"/>
                             <constraint firstItem="hSC-qc-XE8" firstAttribute="leading" secondItem="MuE-y5-gsJ" secondAttribute="leading" id="eUI-Uh-V1J"/>
                             <constraint firstItem="dvT-tN-vmd" firstAttribute="centerX" secondItem="qfn-EI-xYg" secondAttribute="centerX" id="fkv-nQ-Nhv" userLabel="Activity Indicator center"/>
                             <constraint firstItem="hSC-qc-XE8" firstAttribute="bottom" secondItem="dBu-An-5ob" secondAttribute="top" id="tZs-aK-ygS"/>

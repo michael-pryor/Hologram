@@ -143,6 +143,7 @@ class House:
                 del self.room_participant[client]
                 del self.room_participant[clientB]
 
+                self.adviseAbortNatPunchthrough(clientB)
                 if notification is not None:
                     assert isinstance(notification, ByteBuffer)
                     clientB.tcp.sendByteBuffer(notification)
