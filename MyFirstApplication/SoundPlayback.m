@@ -447,16 +447,9 @@ static void HandleOutputBuffer(void *aqData,
     AVAudioSession *session = [AVAudioSession sharedInstance];
     NSError *error;
 
-    bool result = [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayAndRecord
-                                     withOptions:AVAudioSessionCategoryOptionDefaultToSpeaker
-                                           error:&error];
-    if (!result) {
-        NSLog(@"Failed to enable AVAudioSessionCategoryOptionDefaultToSpeaker mode on shared instance: %@", [error localizedDescription]);
-    }
-
     // Use the device's loud speaker if no headphones are plugged in.
     // Without this, will use the quiet speaker if available, e.g. on iphone this is for taking calls privately.
-    result = [session setCategory:AVAudioSessionCategoryPlayAndRecord withOptions:AVAudioSessionCategoryOptionDefaultToSpeaker error:&error];
+    bool result = [session setCategory:AVAudioSessionCategoryPlayAndRecord withOptions:AVAudioSessionCategoryOptionDefaultToSpeaker error:&error];
     if (!result) {
         NSLog(@"Failed to enable AVAudioSessionCategoryOptionDefaultToSpeaker mode: %@", [error localizedDescription]);
     }

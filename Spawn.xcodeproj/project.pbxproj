@@ -71,6 +71,7 @@
 		D5D6106701B2CF963A8085AA /* MediaShared.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61F6FC82188C4EC56BEA1 /* MediaShared.m */; };
 		D5D6109C65D00FC0470BFE1E /* DelayedPipe.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61109DD409D89A9B6D01A /* DelayedPipe.m */; };
 		D5D61138250F5B15745691AF /* AverageTracker.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D615F63C69FA0011332EF8 /* AverageTracker.m */; };
+		D5D614CA16CE4BB1DA691742 /* Threading.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D610546CB5BFA2EC52AFD5 /* Threading.m */; };
 		D5D61CBB3513E39935B73FDC /* CustomNavigationController.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61A72597479299B065AE4 /* CustomNavigationController.m */; };
 /* End PBXBuildFile section */
 
@@ -190,6 +191,7 @@
 		51FE7E0B1B3C85EF00FF27F3 /* ConnectionGovernorNatPunchthrough.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ConnectionGovernorNatPunchthrough.m; sourceTree = "<group>"; };
 		51FF00511B52E54100D6AF33 /* SocialState.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SocialState.h; sourceTree = "<group>"; };
 		51FF00521B52E54100D6AF33 /* SocialState.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SocialState.m; sourceTree = "<group>"; };
+		D5D610546CB5BFA2EC52AFD5 /* Threading.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Threading.m; sourceTree = "<group>"; };
 		D5D610A89DF4541DD9D12B97 /* CustomNavigationController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CustomNavigationController.h; sourceTree = "<group>"; };
 		D5D61109DD409D89A9B6D01A /* DelayedPipe.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DelayedPipe.m; sourceTree = "<group>"; };
 		D5D613E4FBE39B0477D98486 /* TimedGapEventTracker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TimedGapEventTracker.h; sourceTree = "<group>"; };
@@ -199,6 +201,7 @@
 		D5D619B9B74C7F1DF1AAC7AB /* TimedGapEventTracker.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TimedGapEventTracker.m; sourceTree = "<group>"; };
 		D5D61A72597479299B065AE4 /* CustomNavigationController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CustomNavigationController.m; sourceTree = "<group>"; };
 		D5D61A9D2F7039076A85F3A0 /* AverageTracker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AverageTracker.h; sourceTree = "<group>"; };
+		D5D61DCE61D1A8B9C8957FE1 /* Threading.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Threading.h; sourceTree = "<group>"; };
 		D5D61F6FC82188C4EC56BEA1 /* MediaShared.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MediaShared.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -474,6 +477,8 @@
 				D5D613E4FBE39B0477D98486 /* TimedGapEventTracker.h */,
 				D5D615F63C69FA0011332EF8 /* AverageTracker.m */,
 				D5D61A9D2F7039076A85F3A0 /* AverageTracker.h */,
+				D5D610546CB5BFA2EC52AFD5 /* Threading.m */,
+				D5D61DCE61D1A8B9C8957FE1 /* Threading.h */,
 			);
 			name = Util;
 			sourceTree = "<group>";
@@ -651,6 +656,7 @@
 				D5D61065DF0FE43CD8139FEE /* TimedGapEventTracker.m in Sources */,
 				D5D61138250F5B15745691AF /* AverageTracker.m in Sources */,
 				D5D61CBB3513E39935B73FDC /* CustomNavigationController.m in Sources */,
+				D5D614CA16CE4BB1DA691742 /* Threading.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

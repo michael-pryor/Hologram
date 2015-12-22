@@ -11,6 +11,7 @@
 #import "FacebookLoginViewController.h"
 #import "QuarkLogin.h"
 #import "AlertViewController.h"
+#import "Threading.h"
 
 @implementation ConnectionViewController {
     // Connection
@@ -24,10 +25,10 @@
     GpsState *_gpsState;
 
     // UI
-    AlertViewController *_disconnectViewController;
+    volatile AlertViewController *_disconnectViewController;
     IBOutlet UIImageView *_cameraView;
     IBOutlet UILabel *_frameRate;
-    IBOutlet UIView *_natPunchtrhoughIndicator;
+    IBOutlet UIView *_natPunchthroughIndicator;
     IBOutlet UILabel *_ownerName;
     IBOutlet UILabel *_ownerAge;
     IBOutlet UILabel *_remoteName;
@@ -122,7 +123,7 @@
 // Triggers GPS loading.
 - (void)onSocialDataLoaded:(SocialState *)state {
     [state unregisterNotifier];
-    dispatch_async(dispatch_get_main_queue(), ^{
+    dispatch_sync_main(^{
         [_ownerName setText:[state humanShortName]];
 
         uint age = [state age];
@@ -158,7 +159,8 @@
 
 // Connect to the local server (on same network).
 - (void)connectToLocalCommander {
-    static NSString *const CONNECT_IP = @"192.168.1.92"; // local arden crescent network.
+    //static NSString *const CONNECT_IP = @"192.168.1.92"; // local arden crescent network.
+    static NSString *const CONNECT_IP = @"192.168.1.67"; // norfolk
     static const int CONNECT_PORT_TCP = 12241;
     [_connectionCommander connectToTcpHost:CONNECT_IP tcpPort:CONNECT_PORT_TCP];
     _isConnectionActive = true;
@@ -187,8 +189,9 @@
         return;
     }
 
-    _inFacebookLoginView = true;
-    dispatch_async(dispatch_get_main_queue(), ^{
+    dispatch_sync_main(^{
+        _inFacebookLoginView = true;
+
         UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Storyboard" bundle:nil];
         FacebookLoginViewController *viewController = (FacebookLoginViewController *) [storyboard instantiateViewControllerWithIdentifier:@"FacebookView"];
         [self.navigationController pushViewController:viewController animated:YES];
@@ -198,29 +201,26 @@
 // Called when we receive a change in connection state regarding NAT punchthrough.
 // Important to update the display so that we know how we are connected.
 - (void)onNatPunchthrough:(ConnectionGovernorNatPunchthrough *)connection stateChange:(NatState)state {
-    if (state == ROUTED) {
-        NSLog(@"Regressed to routing mode");
-        dispatch_async(dispatch_get_main_queue(), ^{
-            [_natPunchtrhoughIndicator setBackgroundColor:[UIColor greenColor]
-            ];
-        });
-    } else if (state == PUNCHED_THROUGH) {
-        NSLog(@"Punched through successfully");
-        dispatch_async(dispatch_get_main_queue(), ^{
-            [_natPunchtrhoughIndicator setBackgroundColor:[UIColor blueColor]];
-        });
-    } else if (state == ADDRESS_RECEIVED) {
-        NSLog(@"New end point received");
-        _waitingForNewEndPoint = false;
-        [_mediaController start];
-    } else {
-        NSLog(@"Unsupported punchthrough state received");
-    }
+    dispatch_sync_main(^{
+        if (state == ROUTED) {
+            NSLog(@"Regressed to routing mode");
+            [_natPunchthroughIndicator setBackgroundColor:[UIColor greenColor]];
+        } else if (state == PUNCHED_THROUGH) {
+            NSLog(@"Punched through successfully");
+            [_natPunchthroughIndicator setBackgroundColor:[UIColor blueColor]];
+        } else if (state == ADDRESS_RECEIVED) {
+            NSLog(@"New end point received");
+            _waitingForNewEndPoint = false;
+            [_mediaController start];
+        } else {
+            NSLog(@"Unsupported punchthrough state received");
+        }
+    });
 }
 
-- (void)handleUserName:(NSString*)name age:(uint)age {
-    NSLog(@"Connected with user named [%@] with age [%u]", name, age);
-    dispatch_async(dispatch_get_main_queue(), ^{
+- (void)handleUserName:(NSString *)name age:(uint)age {
+    dispatch_sync_main(^{
+        NSLog(@"Connected with user named [%@] with age [%u]", name, age);
         [_remoteName setText:name];
 
         if (age > 0) {
@@ -314,7 +314,7 @@
 
 // Display view overlay showing how connection is being recovered.
 - (void)setDisconnectStateWithShortDescription:(NSString *)shortDescription longDescription:(NSString *)longDescription {
-    dispatch_async(dispatch_get_main_queue(), ^{
+    dispatch_sync_main(^{
         // Show the disconnect storyboard.
         UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Storyboard" bundle:nil];
 
@@ -387,7 +387,7 @@
 }
 
 - (void)onMediaDelayNotified:(uint)delayMs {
-    dispatch_async(dispatch_get_main_queue(), ^{
+    dispatch_sync_main(^{
         [_frameRate setText:[NSString stringWithFormat:@"%d", delayMs]];
     });
 }

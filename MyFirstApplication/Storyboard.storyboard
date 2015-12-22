@@ -238,7 +238,7 @@
                     <connections>
                         <outlet property="_cameraView" destination="GLg-2U-XhO" id="IQu-bq-HZF"/>
                         <outlet property="_frameRate" destination="XkH-QK-TQM" id="iLH-bq-8YX"/>
-                        <outlet property="_natPunchtrhoughIndicator" destination="Wt1-7M-iep" id="QkT-gO-Zx1"/>
+                        <outlet property="_natPunchthroughIndicator" destination="Wt1-7M-iep" id="QkT-gO-Zx1"/>
                         <outlet property="_ownerAge" destination="cbc-sf-j5j" id="cmb-cr-zqc"/>
                         <outlet property="_ownerName" destination="UGl-Rn-eIt" id="tP2-31-106"/>
                         <outlet property="_remoteAge" destination="EFB-GX-YTW" id="Pdx-dp-id0"/>

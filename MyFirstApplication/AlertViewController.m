@@ -8,6 +8,7 @@
 
 #import "AlertViewController.h"
 #import "Timer.h"
+#import "Threading.h"
 
 @implementation AlertViewController {
     IBOutlet UILabel *_alertShortText;
@@ -35,21 +36,19 @@
 }
 
 - (Boolean)hideIfVisibleAndReady {
-    if (![_timerSinceAdvertCreated getState] ) {
+    if (![_timerSinceAdvertCreated getState]) {
         return false;
     }
 
-    dispatch_async(dispatch_get_main_queue(), ^{
-        NSLog(@"Removing disconnect screen from parent");
-        [self willMoveToParentViewController:nil];
-        [self removeFromParentViewController];
-        [self.view removeFromSuperview];
-    });
+    NSLog(@"Removing disconnect screen from parent");
+    [self willMoveToParentViewController:nil];
+    [self removeFromParentViewController];
+    [self.view removeFromSuperview];
     return true;
 }
 
 - (void)bannerViewDidLoadAd:(ADBannerView *)banner {
-    dispatch_async(dispatch_get_main_queue(), ^{
+    dispatch_sync_main(^{
         NSLog(@"Banner has loaded, unhiding it");
         [banner setHidden:false];
 
@@ -61,7 +60,7 @@
 }
 
 - (void)bannerView:(ADBannerView *)banner didFailToReceiveAdWithError:(NSError *)error {
-    dispatch_async(dispatch_get_main_queue(), ^{
+    dispatch_sync_main(^{
         NSLog(@"Failed to retrieve banner, hiding it; error is: %@", error);
         [banner setHidden:true];
 

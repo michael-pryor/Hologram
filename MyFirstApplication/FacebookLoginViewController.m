@@ -8,6 +8,7 @@
 
 #import "FacebookLoginViewController.h"
 #import "ConnectionViewController.h"
+#import "Threading.h"
 
 @implementation FacebookLoginViewController {
     IBOutlet UISegmentedControl *_desiredGenderChooser;
@@ -86,7 +87,7 @@
     }
     
     // Always will have got here via another view controller.
-    dispatch_async(dispatch_get_main_queue(), ^{
+    dispatch_sync_main(^{
         [self.navigationController popViewControllerAnimated:YES];
     });
 }
