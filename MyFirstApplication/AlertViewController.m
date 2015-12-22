@@ -40,10 +40,12 @@
         return false;
     }
 
-    NSLog(@"Removing disconnect screen from parent");
-    [self willMoveToParentViewController:nil];
-    [self removeFromParentViewController];
-    [self.view removeFromSuperview];
+    dispatch_sync_main(^{
+        NSLog(@"Removing disconnect screen from parent");
+        [self willMoveToParentViewController:nil];
+        [self removeFromParentViewController];
+        [self.view removeFromSuperview];
+    });
     return true;
 }
 
