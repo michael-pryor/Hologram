@@ -12,6 +12,7 @@
 #import "QuarkLogin.h"
 #import "AlertViewController.h"
 #import "Threading.h"
+#import "AccessDialog.h"
 
 @implementation ConnectionViewController {
     // Connection
@@ -47,12 +48,26 @@
     // with somebody. Current special cases include:
     // - When user has temporarily disconnected; if user doesn't want to wait and wants to get a new match.
     volatile bool _isSkippableDespiteNoMatch;
+
+    AccessDialog *_accessDialog;
 }
 
 // View initially load; happens once per process.
 // Essentially this is the constructor.
 - (void)viewDidLoad {
     [super viewDidLoad];
+
+    // If failure action is triggered, application is guarenteed to be terminated by
+    // _accessDialog (we may just be waiting for a user to acknowledge a dialog box).
+    //
+    // This is important, because we can't recover from terminateCurrentSession without
+    // moving out of this view controller and back in (triggering viewDidAppear).
+    //
+    // But because we know the application is going to be terminated, we don't care
+    // about recovering.
+    _accessDialog = [[AccessDialog alloc] initWithFailureAction:^{
+        [self terminateCurrentSession];
+    }];
 
     _skipPersonPacket = [[ByteBuffer alloc] init];
     [_skipPersonPacket addUnsignedInteger:SKIP_PERSON];
@@ -69,8 +84,9 @@
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(appWillRetakeActive:) name:UIApplicationDidBecomeActiveNotification object:nil];
 }
 
-// View disappears; happens if user switches app or moves from a different view controller.
-- (void)viewDidDisappear:(BOOL)animated {
+// Permanently close our session on the server, disconnect and stop media input/output.
+// In order to resume, we need to reconnect to commander and get a brand new session.
+- (void)terminateCurrentSession {
     // Notify server that we want to fully disconnect; server will close connection when it receives
     // notification. This prevents end point from thinking this could be a temporary disconnect.
     if (_connection != nil && _isConnectionActive) {
@@ -85,6 +101,14 @@
     [_mediaController stop];
 }
 
+// View disappears; happens if user switches app or moves from a different view controller.
+- (void)viewDidDisappear:(BOOL)animated {
+    [self terminateCurrentSession];
+}
+
+// Doesn't terminate the session, remains connected but pauses media input/output
+// Once reconnecting, this resumes and hopefully we're still connected (if not we recover
+// down the usual disconnection logic).
 - (void)appWillResignActive:(NSNotification *)note {
     [_mediaController stop];
 }
@@ -103,20 +127,25 @@
     _inFacebookLoginView = false;
     _isSkippableDespiteNoMatch = false;
 
+    // Important that we don't validate access to video/microphone before Facebook
+    // login is complete, because its in that view controller that the dialog box about
+    // how we use the video/microphone is displayed.
     SocialState *socialState = [SocialState getFacebookInstance];
     [socialState updateFacebook];
     if (![socialState isBasicDataLoaded] || ![[NSUserDefaults standardUserDefaults] boolForKey:@"permissionsExplanationShown"]) {
         [self switchToFacebookLogonView];
         return;
     }
-    if (![socialState isDataLoaded]) {
-        [socialState registerNotifier:self];
 
-        [self setDisconnectStateWithShortDescription:@"Loading Facebook details" longDescription:@"Waiting for Facebook details to load"];
-        [socialState update];
-    } else {
-        [self onSocialDataLoaded:socialState];
-    }
+    [_accessDialog validateAuthorization:^{
+        if (![socialState isDataLoaded]) {
+            [socialState registerNotifier:self];
+            [self setDisconnectStateWithShortDescription:@"Loading Facebook details" longDescription:@"Waiting for Facebook details to load"];
+            [socialState update];
+        } else {
+            [self onSocialDataLoaded:socialState];
+        }
+    }];
 }
 
 // Callback for social data (Facebook).
@@ -159,8 +188,7 @@
 
 // Connect to the local server (on same network).
 - (void)connectToLocalCommander {
-    //static NSString *const CONNECT_IP = @"192.168.1.92"; // local arden crescent network.
-    static NSString *const CONNECT_IP = @"192.168.1.67"; // norfolk
+    static NSString *const CONNECT_IP = @"192.168.1.92"; // local arden crescent network.
     static const int CONNECT_PORT_TCP = 12241;
     [_connectionCommander connectToTcpHost:CONNECT_IP tcpPort:CONNECT_PORT_TCP];
     _isConnectionActive = true;
@@ -314,27 +342,29 @@
 
 // Display view overlay showing how connection is being recovered.
 - (void)setDisconnectStateWithShortDescription:(NSString *)shortDescription longDescription:(NSString *)longDescription {
-    dispatch_sync_main(^{
-        // Show the disconnect storyboard.
-        UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Storyboard" bundle:nil];
+    [_accessDialog validateAuthorization:^{
+        dispatch_sync_main(^{
+            // Show the disconnect storyboard.
+            UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Storyboard" bundle:nil];
 
-        Boolean alreadyPresented = _disconnectViewController != nil;
-        if (!alreadyPresented) {
-            _disconnectViewController = (AlertViewController *) [storyboard instantiateViewControllerWithIdentifier:@"DisconnectAlertView"];
+            Boolean alreadyPresented = _disconnectViewController != nil;
+            if (!alreadyPresented) {
+                _disconnectViewController = (AlertViewController *) [storyboard instantiateViewControllerWithIdentifier:@"DisconnectAlertView"];
 
-            [self addChildViewController:_disconnectViewController];
-            [self.view addSubview:_disconnectViewController.view];
-        }
-        // Set its content
-        NSLog(@"Disconnect screen presented, long description: %@", longDescription);
-        [_disconnectViewController setAlertShortText:shortDescription longText:longDescription];
+                [self addChildViewController:_disconnectViewController];
+                [self.view addSubview:_disconnectViewController.view];
+            }
+            // Set its content
+            NSLog(@"Disconnect screen presented, long description: %@", longDescription);
+            [_disconnectViewController setAlertShortText:shortDescription longText:longDescription];
 
-        if (!alreadyPresented) {
-            [_disconnectViewController didMoveToParentViewController:self];
-            _waitingForNewEndPoint = true;
-            [_mediaController stop];
-        }
-    });
+            if (!alreadyPresented) {
+                [_disconnectViewController didMoveToParentViewController:self];
+                _waitingForNewEndPoint = true;
+                [_mediaController stop];
+            }
+        });
+    }];
 }
 
 // Handle data and pass to relevant parts of application.
