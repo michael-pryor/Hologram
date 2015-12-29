@@ -12,6 +12,7 @@
 
 @implementation FacebookLoginViewController {
     IBOutlet UISegmentedControl *_desiredGenderChooser;
+    __weak IBOutlet UILabel *_facebookAskLabel;
 }
 
 - (IBAction)onFinishedButtonClick:(id)sender {
@@ -21,6 +22,9 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
 
+    [_facebookAskLabel setText:@"Please allow this application to access your name and age (date of birth) from your Facebook account. This application uses only this information, and absolutely nothing else."];
+    [_facebookAskLabel setHidden:true];
+    
     [FBSDKProfile enableUpdatesOnAccessTokenChange:true];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onProfileUpdated:) name:FBSDKProfileDidChangeNotification object:nil];
     self.loginButton.readPermissions = @[@"public_profile", @"user_birthday"];
@@ -51,6 +55,7 @@
         [_displayName setText:[state humanFullName]];
         [_displayPicture setProfileID:[state facebookId]];
         [_buttonFinished setEnabled:true];
+        [_facebookAskLabel setHidden:true];
 
         [_displayName setHidden:false];
         [_displayPicture setHidden:false];
@@ -67,6 +72,7 @@
         [_displayName setHidden:true];
         [_displayPicture setHidden:true];
         [_buttonFinished setHidden:true];
+        [_facebookAskLabel setHidden:false];
 
         [_displayName setText:@""];
         [_displayPicture setProfileID:nil];
