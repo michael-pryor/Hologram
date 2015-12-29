@@ -41,7 +41,7 @@ GpsState *state;
             [_locationManager requestWhenInUseAuthorization];
         }
         
-        // Now we receive updates initially, and every time we change locaiton.
+        // Now we receive updates initially, and every time we change location.
         [_locationManager startUpdatingLocation];
     } else {
         if (_loaded) {
