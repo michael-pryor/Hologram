@@ -350,7 +350,7 @@
             Boolean alreadyPresented = _disconnectViewController != nil;
             if (!alreadyPresented) {
                 _disconnectViewController = (AlertViewController *) [storyboard instantiateViewControllerWithIdentifier:@"DisconnectAlertView"];
-
+                _disconnectViewController.view.frame = self.view.bounds;
                 [self addChildViewController:_disconnectViewController];
                 [self.view addSubview:_disconnectViewController.view];
             }
