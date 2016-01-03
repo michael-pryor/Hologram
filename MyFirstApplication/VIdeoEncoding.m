@@ -7,10 +7,13 @@
 //
 
 #import "VideoEncoding.h"
+#import "VideoCompression.h"
 
 @implementation VideoEncoding {
     NSString *_sessionPreset;
     dispatch_queue_t _videoOutputQueue;
+
+    VideoCompression *_compression;
 }
 - (id)init {
     self = [super init];
@@ -22,6 +25,8 @@
         } else {
             [NSException raise:@"Invalid session preset" format:@"Session preset must be preconfigured in code"];
         }
+
+        _compression = [[VideoCompression alloc] init];
 
         _videoOutputQueue = dispatch_queue_create("CameraOutputQueue", NULL);
     }
