@@ -18,9 +18,9 @@
 - (id)init {
     self = [super init];
     if (self) {
-        _sessionPreset = AVCaptureSessionPresetLow;
+        _sessionPreset = AVCaptureSessionPreset640x480;
 
-        if (_sessionPreset == AVCaptureSessionPresetLow) {
+        if (_sessionPreset == AVCaptureSessionPreset640x480) {
             _suggestedBatchSize = 128;
         } else {
             [NSException raise:@"Invalid session preset" format:@"Session preset must be preconfigured in code"];
@@ -141,7 +141,7 @@
     }
 
     // Set video encoding settings.
-    output.videoSettings = @{(NSString *) kCVPixelBufferPixelFormatTypeKey : @(kCVPixelFormatType_32BGRA)};
+    output.videoSettings = @{(NSString *) kCVPixelBufferPixelFormatTypeKey : @(kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange)};
 
     // Pass video output to delegate function (parameter of this method).
     [output setSampleBufferDelegate:delegate queue:_videoOutputQueue];
@@ -154,10 +154,12 @@
 }
 
 - (void)addImage:(CMSampleBufferRef)image toByteBuffer:(ByteBuffer *)buffer {
+    [_compression captureOutput:nil didOutputSampleBuffer:image fromConnection:nil];
+
     // With compression.
-    UIImage *imageObject = [self imageFromSampleBuffer:image];
-    NSData *data = UIImageJPEGRepresentation(imageObject, 0.5);
-    [self addImage:(void *) [data bytes] withLength:(uint) [data length] toByteBuffer:buffer];
+   // UIImage *imageObject = [self imageFromSampleBuffer:image];
+    //NSData *data = UIImageJPEGRepresentation(imageObject, 0.5);
+    //[self addImage:(void *) [data bytes] withLength:(uint) [data length] toByteBuffer:buffer];
 }
 
 

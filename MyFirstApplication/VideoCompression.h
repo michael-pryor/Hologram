@@ -6,8 +6,10 @@
 //
 //
 
+@import AVFoundation;
 #import <Foundation/Foundation.h>
 
-@interface VideoCompression : NSObject
+@interface VideoCompression : NSObject<AVCaptureVideoDataOutputSampleBufferDelegate>
 - (id)init;
+- (void)captureOutput:(AVCaptureOutput *)captureOutput didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection;
 @end
