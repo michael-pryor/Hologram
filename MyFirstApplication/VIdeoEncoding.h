@@ -10,8 +10,11 @@
 
 #import "ByteBuffer.h"
 
+@class VideoCompression;
+
 @interface VideoEncoding : NSObject
 @property(readonly) uint suggestedBatchSize;
+- (id)initWithVideoCompression:(VideoCompression*)videoCompression;
 
 - (UIImage *)imageFromSampleBuffer:(CMSampleBufferRef)sampleBuffer;
 

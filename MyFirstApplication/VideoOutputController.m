@@ -12,6 +12,7 @@
 #import "EncodingPipe.h"
 #import "TimedEventTracker.h"
 #import "DelayedPipe.h"
+#import "VideoCompression.h"
 
 @implementation PacketToImageProcessor {
     id <NewImageDelegate> _newImageDelegate;
@@ -61,7 +62,7 @@
     if (self) {
          _tcpNetworkOutputSession = tcpNetworkOutputSession;
 
-        _videoEncoder = [[VideoEncoding alloc] init];
+        _videoEncoder = [[VideoEncoding alloc] initWithVideoCompression:[[VideoCompression alloc] initWithNewImageDelegate:newImageDelegate]];
 
         _throttledBlock = [[ThrottledBlock alloc] initWithDefaultOutputFrequency:0.1 firingInitially:true];
 

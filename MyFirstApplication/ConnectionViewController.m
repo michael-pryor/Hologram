@@ -342,29 +342,29 @@
 
 // Display view overlay showing how connection is being recovered.
 - (void)setDisconnectStateWithShortDescription:(NSString *)shortDescription longDescription:(NSString *)longDescription {
-    [_accessDialog validateAuthorization:^{
-        dispatch_sync_main(^{
-            // Show the disconnect storyboard.
-            UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Storyboard" bundle:nil];
+    /* [_accessDialog validateAuthorization:^{
+         dispatch_sync_main(^{
+             // Show the disconnect storyboard.
+             UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Storyboard" bundle:nil];
 
-            Boolean alreadyPresented = _disconnectViewController != nil;
-            if (!alreadyPresented) {
-                _disconnectViewController = (AlertViewController *) [storyboard instantiateViewControllerWithIdentifier:@"DisconnectAlertView"];
-                _disconnectViewController.view.frame = self.view.bounds;
-                [self addChildViewController:_disconnectViewController];
-                [self.view addSubview:_disconnectViewController.view];
-            }
-            // Set its content
-            NSLog(@"Disconnect screen presented, long description: %@", longDescription);
-            [_disconnectViewController setAlertShortText:shortDescription longText:longDescription];
+             Boolean alreadyPresented = _disconnectViewController != nil;
+             if (!alreadyPresented) {
+                 _disconnectViewController = (AlertViewController *) [storyboard instantiateViewControllerWithIdentifier:@"DisconnectAlertView"];
+                 _disconnectViewController.view.frame = self.view.bounds;
+                 [self addChildViewController:_disconnectViewController];
+                 [self.view addSubview:_disconnectViewController.view];
+             }
+             // Set its content
+             NSLog(@"Disconnect screen presented, long description: %@", longDescription);
+             [_disconnectViewController setAlertShortText:shortDescription longText:longDescription];
 
-            if (!alreadyPresented) {
-                [_disconnectViewController didMoveToParentViewController:self];
-                _waitingForNewEndPoint = true;
-                [_mediaController stop];
-            }
-        });
-    }];
+             if (!alreadyPresented) {
+                 [_disconnectViewController didMoveToParentViewController:self];
+                 _waitingForNewEndPoint = true;
+                 [_mediaController stop];
+             }
+         });
+     }];*/
 }
 
 // Handle data and pass to relevant parts of application.

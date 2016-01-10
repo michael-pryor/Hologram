@@ -15,7 +15,7 @@
 
     VideoCompression *_compression;
 }
-- (id)init {
+- (id)initWithVideoCompression:(VideoCompression*)videoCompression {
     self = [super init];
     if (self) {
         _sessionPreset = AVCaptureSessionPreset640x480;
@@ -26,7 +26,7 @@
             [NSException raise:@"Invalid session preset" format:@"Session preset must be preconfigured in code"];
         }
 
-        _compression = [[VideoCompression alloc] init];
+        _compression = videoCompression;
 
         _videoOutputQueue = dispatch_queue_create("CameraOutputQueue", NULL);
     }
