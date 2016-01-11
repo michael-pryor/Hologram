@@ -293,48 +293,29 @@
     memcpy(picture->data[0], yBuffer, yComponentTotalBytes);
 
     // Copy Cr and Cb component into ffmpeg structure.
-    for (int y = 0; y < numRows; y++) {
-        // so if y is 1 then use index 0
-        // y = 2, use 1
-        // y = 3, use 1
-        // y = 4, use 2
-        // y = 5, use 2
-        // y = 6, use 3
+    // Divide by 2 on y because half as many rows in cbCr as Y.
+    for (int y = 0; y < numRows / 2; y++) {
+        uint8_t *cbCrBufferLine = &cbCrBuffer[y * cbCrComponentBytesPerRow];
 
-        if (y % 2 != 0) {
-            continue;
-        }
-
-        uint8_t *cbCrBufferLine = &cbCrBuffer[(y/2) * cbCrComponentBytesPerRow];
-
-        for (int x = 0; x < cbCrComponentBytesPerRow; x++) {
-            if (x % 2 != 0) {
-                continue;
-            }
-
-            // when x is 0, cbIndex is 0, crIndex is 1
-            // when x is 1, cbIndex is 0, crIndex is 1
-            // when x is 2, cbIndex is 2, crIndex is 3
-            // when x is 3, cbIndex is 2, crIndex is 3
-            // when x is 4, cbIndex is 4, crIndex is 5
+        // Divide by 2 on x because width is half in cbCr vs Y.
+        for (int x = 0; x < cbCrComponentBytesPerRow / 2; x++) {
+            // when xMultTwo is 0, cbIndex is 0, crIndex is 1
+            // when xMultTwo is 1, cbIndex is 0, crIndex is 1
+            // when xMultTwo is 2, cbIndex is 2, crIndex is 3
+            // when xMultTwo is 3, cbIndex is 2, crIndex is 3
+            // when xMultTwo is 4, cbIndex is 4, crIndex is 5
             // ...
-            int cbIndex = x & ~1;
-            int crIndex = x | 1;
-
-           // int cbIndex = y;
-           // int crIndex = (picture->height / 2) + y;
+            int xMultTwo=x * 2;
+            int cbIndex = xMultTwo & ~1;
+            int crIndex = xMultTwo | 1;
 
             uint8_t cb = cbCrBufferLine[cbIndex];
             uint8_t cr = cbCrBufferLine[crIndex];
 
             // Divide by 2 because each buffer takes half of the contents (one for cb, one for cr).
-            // Divide by 2 again because half rows of images (1 cb/cr for 2x2 y).
-            // Divide by 2 on x because of iterating pattern of x.
-            size_t theIndex = (y * (cbCrComponentBytesPerRow / 4)) + (x / 2);
+            size_t theIndex = (y * (cbCrComponentBytesPerRow / 2)) + x;
             picture->data[1][theIndex] = cb;
             picture->data[2][theIndex] = cr;
-
-            //NSLog(@"The index is: %lu", theIndex);
         }
     }
 
@@ -360,7 +341,7 @@
         AVFrame *decodedYuv = [self decodeToYuvFromData:packet.data andSize:packet.size];
 
         if (decodedYuv != nil) {
-            uint8_t *decodedRgb = [self convertYuvToRgb:picture]; // picture = not gone through encoder, decodedYuv = gone through encoder.
+            uint8_t *decodedRgb = [self convertYuvToRgb:decodedYuv]; // picture = not gone through encoder, decodedYuv = gone through encoder.
             UIImage * image = [self buildImageFromRgbBytes:decodedRgb];
             if (image != nil) {
                 NSLog(@"NEW IMAGE LOADED");
