@@ -269,42 +269,72 @@
     uint8_t *yBuffer = CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 0);
     uint8_t *cbCrBuffer = CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 1);
 
-    size_t yPitch = CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, 0);
-    size_t cbCrPitch = CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, 1);
+    // 640
+    size_t yComponentBytesPerRow = CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, 0);
 
-    int numRows = picture->width;
+    // 320 cb, 320 cr (total 640).
+    // Row = width.
+    size_t cbCrComponentBytesPerRow = CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, 1);
 
-    size_t yComponentBytes = numRows * yPitch;
+    // 480
+    int numRows = picture->height;
+
+    size_t yComponentTotalBytes = numRows * yComponentBytesPerRow;
 
     // 1 Cr & Cb sample per 2x2 Y samples.
     // half the number of rows, half the pitch (width).
-    size_t cbCrBytes = (numRows * cbCrPitch) / 2;
+    size_t cbCrTotalBytes = (numRows * cbCrComponentBytesPerRow) / 2;
 
+    size_t totalBytes = yComponentTotalBytes + cbCrTotalBytes;
 
-    size_t totalBytes = yComponentBytes + cbCrBytes;
+    size_t cbBytesPerRow = cbCrComponentBytesPerRow / 2;
 
     // Copy Y component into ffmpeg structure.
-    memcpy(picture->data[0], yBuffer, yComponentBytes);
+    memcpy(picture->data[0], yBuffer, yComponentTotalBytes);
 
     // Copy Cr and Cb component into ffmpeg structure.
-    for (int x = 0; x < picture->width; x++) {
-        uint8_t *cbCrBufferLine = &cbCrBuffer[(x >> 1) * cbCrPitch];
+    for (int y = 0; y < numRows; y++) {
+        // so if y is 1 then use index 0
+        // y = 2, use 1
+        // y = 3, use 1
+        // y = 4, use 2
+        // y = 5, use 2
+        // y = 6, use 3
 
-        for (int y = 0; y < picture->height; y++) {
-            // when y is 0, cbIndex is 0, crIndex is 1
-            // when y is 1, cbIndex is 0, crIndex is 1
-            // when y is 2, cbIndex is 2, crIndex is 3
-            // when y is 3, cbIndex is 2, crIndex is 3
-            // when y is 4, cbIndex is 4, crIndex is 5
+        if (y % 2 != 0) {
+            continue;
+        }
+
+        uint8_t *cbCrBufferLine = &cbCrBuffer[(y/2) * cbCrComponentBytesPerRow];
+
+        for (int x = 0; x < cbCrComponentBytesPerRow; x++) {
+            if (x % 2 != 0) {
+                continue;
+            }
+
+            // when x is 0, cbIndex is 0, crIndex is 1
+            // when x is 1, cbIndex is 0, crIndex is 1
+            // when x is 2, cbIndex is 2, crIndex is 3
+            // when x is 3, cbIndex is 2, crIndex is 3
+            // when x is 4, cbIndex is 4, crIndex is 5
             // ...
-            int cbIndex = y & ~1;
-            int crIndex = y | 1;
+            int cbIndex = x & ~1;
+            int crIndex = x | 1;
+
+           // int cbIndex = y;
+           // int crIndex = (picture->height / 2) + y;
 
             uint8_t cb = cbCrBufferLine[cbIndex];
             uint8_t cr = cbCrBufferLine[crIndex];
 
-            picture->data[1][(x * (cbCrPitch / 4)) + y] = cb;
-            picture->data[2][(x * (cbCrPitch / 4)) + y] = cr;
+            // Divide by 2 because each buffer takes half of the contents (one for cb, one for cr).
+            // Divide by 2 again because half rows of images (1 cb/cr for 2x2 y).
+            // Divide by 2 on x because of iterating pattern of x.
+            size_t theIndex = (y * (cbCrComponentBytesPerRow / 4)) + (x / 2);
+            picture->data[1][theIndex] = cb;
+            picture->data[2][theIndex] = cr;
+
+            //NSLog(@"The index is: %lu", theIndex);
         }
     }
 
@@ -330,7 +360,7 @@
         AVFrame *decodedYuv = [self decodeToYuvFromData:packet.data andSize:packet.size];
 
         if (decodedYuv != nil) {
-            uint8_t *decodedRgb = [self convertYuvToRgb:decodedYuv];
+            uint8_t *decodedRgb = [self convertYuvToRgb:picture]; // picture = not gone through encoder, decodedYuv = gone through encoder.
             UIImage * image = [self buildImageFromRgbBytes:decodedRgb];
             if (image != nil) {
                 NSLog(@"NEW IMAGE LOADED");

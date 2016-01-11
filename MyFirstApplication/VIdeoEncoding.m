@@ -133,7 +133,7 @@
 
     // Set video orientation and frame rate.
     AVCaptureConnection *conn = [output connectionWithMediaType:AVMediaTypeVideo];
-    [conn setVideoOrientation:AVCaptureVideoOrientationPortrait];
+    [conn setVideoOrientation:AVCaptureVideoOrientationLandscapeLeft];
 
     NSArray *availableVideoCodecs = [output availableVideoCVPixelFormatTypes];
     for (NSString *codec in availableVideoCodecs) {
