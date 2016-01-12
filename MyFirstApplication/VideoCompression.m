@@ -216,19 +216,20 @@
     int result = avcodec_decode_video2(codecDecoderContext, picture, &gotOutput, &packet);
     if (result <= 0) {
         NSLog(@"Failed avcodec_decode_video2: %d", result);
+        av_frame_free(&picture);
         return nil;
     }
 
     if (gotOutput) {
         int resultImageSizeBytes = av_image_get_buffer_size(codecDecoderContext->pix_fmt, codecDecoderContext->width, codecDecoderContext->height, ALIGN_TO_BITS);
-
-        NSLog(@"Retrieved RGB image of size: %d, bytes written: %d", resultImageSizeBytes, result);
+        NSLog(@"Retrieved YUV image of size: %d, bytes written: %d", resultImageSizeBytes, result);
 
         av_packet_unref(&packet);
         return picture;
     } else {
         NSLog(@"We didn't get any data from the decoder");
         av_packet_unref(&packet);
+        av_frame_free(&picture);
     }
     return nil;
 }
@@ -273,32 +274,18 @@
     uint8_t *yBuffer = CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 0);
     uint8_t *cbCrBuffer = CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 1);
 
-    // 640
     size_t yComponentBytesPerRow = CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, 0);
+    size_t yComponentHeight = CVPixelBufferGetHeightOfPlane(pixelBuffer, 0);
 
-    // 320 cb, 320 cr (total 640).
-    // Row = width.
     size_t cbCrComponentBytesPerRow = CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, 1);
-
-    // 480
-    int numRows = picture->height;
-
-    size_t yComponentTotalBytes = numRows * yComponentBytesPerRow;
-
-    // 1 Cr & Cb sample per 2x2 Y samples.
-    // half the number of rows, half the pitch (width).
-    size_t cbCrTotalBytes = (numRows * cbCrComponentBytesPerRow) / 2;
-
-    size_t totalBytes = yComponentTotalBytes + cbCrTotalBytes;
-
-    size_t cbBytesPerRow = cbCrComponentBytesPerRow / 2;
+    size_t cbCrComponentHeight = CVPixelBufferGetHeightOfPlane(pixelBuffer, 1);
 
     // Copy Y component into ffmpeg structure.
+    size_t yComponentTotalBytes = yComponentHeight * yComponentBytesPerRow;
     memcpy(picture->data[0], yBuffer, yComponentTotalBytes);
 
     // Copy Cr and Cb component into ffmpeg structure.
-    // Divide by 2 on y because half as many rows in cbCr as Y.
-    for (int y = 0; y < numRows / 2; y++) {
+    for (int y = 0; y < cbCrComponentHeight; y++) {
         uint8_t *cbCrBufferLine = &cbCrBuffer[y * cbCrComponentBytesPerRow];
 
         // Divide by 2 on x because width is half in cbCr vs Y.
@@ -335,29 +322,35 @@
     // Do the encoding.
     int gotOutput;
     result = avcodec_encode_video2(codecEncoderContext, &packet, picture, &gotOutput);
+
+    av_frame_free(&picture);
+
     if (result != 0) {
         NSLog(@"Failed avcodec_encode_video: %d", result);
+        return;
     }
 
     if (gotOutput) {
         NSLog(@"We got some data from the encoder, be proud, with size: %d", packet.size);
 
         AVFrame *decodedYuv = [self decodeToYuvFromData:packet.data andSize:packet.size];
+        av_free_packet(&packet);
 
         if (decodedYuv != nil) {
             UIImage * image = [self convertYuvFrameToImage:decodedYuv];
+            av_frame_free(&decodedYuv);
             if (image != nil) {
                 NSLog(@"NEW IMAGE LOADED");
                 [_newImageDelegate onNewImage:image];
             }
-            av_free(decodedYuv);
         }
     } else {
         NSLog(@"We didn't get any data from the encoder");
+        // packet is freed automatically by avcodec_encode_video2 if no data returned.
     }
 
     av_packet_unref(&packet);
-    av_frame_unref(picture);
+
 
 }
 
