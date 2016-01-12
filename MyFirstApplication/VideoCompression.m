@@ -117,37 +117,76 @@
     return self;
 }
 
-- (uint8_t *)convertYuvToRgb:(AVFrame *)frame {
-    int width = frame->width;
-    int height = frame->height;
 
-    uint8_t *rgbBuffer = malloc(sizeof(uint8_t) * width * height * 4);
+- (UIImage*)convertYuvFrameToImage:(AVFrame*)frame {
+    size_t width = (size_t) frame->width;
+    size_t height = (size_t) frame->height;
 
-    for (int yOrig = 0; yOrig < frame->height; yOrig++) {
-        for (int xOrig = 0; xOrig < frame->width; xOrig++) {
-            // Y component
-            const unsigned char yComponent = frame->data[0][frame->linesize[0] * yOrig + xOrig];
+    NSDictionary *pixelAttributes = @{(id)kCVPixelBufferIOSurfacePropertiesKey : @{}};
+    CVPixelBufferRef pixelBuffer = NULL;
 
-            // U, V components
-            int x = xOrig / 2;
-            int y = yOrig / 2;
-            const unsigned char cb = frame->data[1][frame->linesize[1] * y + x];  // Cb
-            const unsigned char cr = frame->data[2][frame->linesize[2] * y + x];  // Cr
+    CVReturn result = CVPixelBufferCreate(kCFAllocatorDefault,
+            width,
+            height,
+            kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange,
+            (__bridge CFDictionaryRef)(pixelAttributes),
+            &pixelBuffer);
 
-            // RGB conversion
-            const unsigned char r = yComponent + 1.402 * (cr - 128);
-            const unsigned char g = yComponent - 0.344 * (cb - 128) - 0.714 * (cr - 128);
-            const unsigned char b = yComponent + 1.772 * (cb - 128);
+    if (result != kCVReturnSuccess) {
+        NSLog(@"CVPixelBufferCreate failed, error code: %d", result);
+        return nil;
+    }
 
-            int offset = (xOrig * 4) + (yOrig * width * 4);
-            rgbBuffer[offset] = r;
-            rgbBuffer[offset + 1] = g;
-            rgbBuffer[offset + 2] = b;
-            rgbBuffer[offset + 3] = UINT8_MAX; // alpha
+    size_t yComponentSizeBytes = width * height;
+
+    CVPixelBufferLockBaseAddress(pixelBuffer,0);
+
+    // y plane.
+    unsigned char *yDestPlane = CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 0);
+    memcpy(yDestPlane, frame->data[0], yComponentSizeBytes);
+
+    // uv (cb cr) plane.
+    unsigned char *uvDestPlane = CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 1);
+
+    // Copy Cr and Cb component into ffmpeg structure.
+    // Divide by 2 on y because half as many rows in cbCr as Y.
+    for (int y = 0; y < height / 2; y++) {
+        uint8_t *cbCrBufferLine = &uvDestPlane[y * width];
+
+        // Divide by 2 on x because width is half in cbCr vs Y.
+        for (int x = 0; x < width / 2; x++) {
+            // when xMultTwo is 0, cbIndex is 0, crIndex is 1
+            // when xMultTwo is 1, cbIndex is 0, crIndex is 1
+            // when xMultTwo is 2, cbIndex is 2, crIndex is 3
+            // when xMultTwo is 3, cbIndex is 2, crIndex is 3
+            // when xMultTwo is 4, cbIndex is 4, crIndex is 5
+            // ...
+            int xMultTwo=x * 2;
+            int cbIndex = xMultTwo & ~1;
+            int crIndex = xMultTwo | 1;
+
+            // Divide by 2 because each buffer takes half of the contents (one for cb, one for cr).
+            size_t theIndex = (y * (width / 2)) + x;
+            uint8_t cb = frame->data[1][theIndex];
+            uint8_t cr = frame->data[2][theIndex];
+
+            cbCrBufferLine[cbIndex] = cb;
+            cbCrBufferLine[crIndex] = cr;
         }
     }
 
-    return rgbBuffer;
+    CVPixelBufferUnlockBaseAddress(pixelBuffer, 0);
+
+    CIImage *coreImage = [CIImage imageWithCVPixelBuffer:pixelBuffer];
+
+    CIContext *MytemporaryContext = [CIContext contextWithOptions:nil];
+    CGImageRef MyvideoImage = [MytemporaryContext
+            createCGImage:coreImage
+                 fromRect:CGRectMake(0, 0,
+                         width,
+                         height)];
+
+    return [[UIImage alloc] initWithCGImage:MyvideoImage scale:1.0 orientation:UIImageOrientationUp];
 }
 
 // This takes h264 packets and produces:
@@ -192,41 +231,6 @@
         av_packet_unref(&packet);
     }
     return nil;
-}
-
-- (UIImage *)buildImageFromRgbBytes:(uint8_t *)bytes {
-    // Get the number of bytes per row for the pixel buffer
-    void *baseAddress;
-
-    // Get the number of bytes per row for the pixel buffer
-    size_t bytesPerRow = codecDecoderContext->width * 4; // includes alpha.
-    // Get the pixel buffer width and height
-    size_t width = codecDecoderContext->width;
-    size_t height = codecDecoderContext->height;
-
-    // Create a device-dependent RGB color space
-    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
-
-    // Create a bitmap graphics context with the sample buffer data
-    CGContextRef context = CGBitmapContextCreate(NULL, width, height, 8,
-            bytesPerRow, colorSpace, kCGBitmapByteOrderDefault | kCGImageAlphaPremultipliedLast);
-    baseAddress = CGBitmapContextGetData(context);
-
-    memcpy(baseAddress, bytes, bytesPerRow * height);
-
-    // Create a Quartz image from the pixel data in the bitmap graphics context
-    CGImageRef quartzImage = CGBitmapContextCreateImage(context);
-    // Free up the context and color space
-    CGContextRelease(context);
-    CGColorSpaceRelease(colorSpace);
-
-    // Create an image object from the Quartz image
-    UIImage *image = [UIImage imageWithCGImage:quartzImage];
-
-
-    // Release the Quartz image
-    CGImageRelease(quartzImage);
-    return image;
 }
 
 // Encodes the packet
@@ -341,8 +345,7 @@
         AVFrame *decodedYuv = [self decodeToYuvFromData:packet.data andSize:packet.size];
 
         if (decodedYuv != nil) {
-            uint8_t *decodedRgb = [self convertYuvToRgb:decodedYuv]; // picture = not gone through encoder, decodedYuv = gone through encoder.
-            UIImage * image = [self buildImageFromRgbBytes:decodedRgb];
+            UIImage * image = [self convertYuvFrameToImage:decodedYuv];
             if (image != nil) {
                 NSLog(@"NEW IMAGE LOADED");
                 [_newImageDelegate onNewImage:image];
