@@ -7,12 +7,15 @@
 //
 
 @import AVFoundation;
-#import <Foundation/Foundation.h>
 
 @protocol NewImageDelegate;
+@protocol NewPacketDelegate;
+@class ByteBuffer;
 
-@interface VideoCompression : NSObject<AVCaptureVideoDataOutputSampleBufferDelegate>
+@interface VideoCompression : NSObject
 - (id)init;
-- (void)captureOutput:(AVCaptureOutput *)captureOutput didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection;
-- (id) initWithNewImageDelegate:(id <NewImageDelegate>)newImageDelegate;
+
+- (bool)encodeSampleBuffer:(CMSampleBufferRef)sampleBuffer toByteBuffer:(ByteBuffer *)buffer;
+
+- (UIImage *)decodeByteBuffer:(ByteBuffer *)buffer;
 @end

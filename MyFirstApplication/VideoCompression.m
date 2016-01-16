@@ -19,32 +19,44 @@
 // For cleanup:
 // Use av_frame_free
 // Use av_packet_unref
-
 @implementation VideoCompression {
-    AVCodec *codecEncoder;
+    AVCodec *_codecEncoder;
     struct AVCodecContext *codecEncoderContext;
 
-    AVCodec *codecDecoder;
+    AVCodec *_codecDecoder;
     struct AVCodecContext *codecDecoderContext;
 
-    id <NewImageDelegate> _newImageDelegate;
+    CVPixelBufferPoolRef _pixelBufferPool;
 }
-- (id)initWithNewImageDelegate:(id <NewImageDelegate>)newImageDelegate {
+- (id)init {
     self = [super init];
     if (self) {
         int result;
 
         av_register_all();
 
-        _newImageDelegate = newImageDelegate;
+        {
+            CVReturn cvResult = CVPixelBufferPoolCreate(nil,
+                    (__bridge CFDictionaryRef _Nullable) (@{(id) kCVPixelBufferPoolMinimumBufferCountKey : @5}),
+                    (__bridge CFDictionaryRef _Nullable) (@{(id) kCVPixelBufferPixelFormatTypeKey : [NSNumber numberWithUnsignedInt:kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange],
+                            (id) kCVPixelBufferWidthKey : [NSNumber numberWithUnsignedInt:(uint) 640],
+                            (id) kCVPixelBufferHeightKey : [NSNumber numberWithUnsignedInt:(uint) 480],
+                            (id) kCVPixelBufferIOSurfacePropertiesKey : @{}}),
+                    &_pixelBufferPool);
+
+
+            if (cvResult != kCVReturnSuccess) {
+                NSLog(@"CVPixelBufferPoolCreate failed, error code: %d", cvResult);
+            }
+        }
 
         {
-            codecEncoder = avcodec_find_encoder(AV_CODEC_ID_H264);
-            if (codecEncoder == nil) {
+            _codecEncoder = avcodec_find_encoder(AV_CODEC_ID_H264);
+            if (_codecEncoder == nil) {
                 NSLog(@"Failed to find encoder");
             }
 
-            codecEncoderContext = avcodec_alloc_context3(codecEncoder);
+            codecEncoderContext = avcodec_alloc_context3(_codecEncoder);
             if (codecEncoderContext == nil) {
                 NSLog(@"Failed to create context");
             }
@@ -70,7 +82,7 @@
             codecEncoderContext->pix_fmt = AV_PIX_FMT_YUV420P;
 
 
-            result = avcodec_open2(codecEncoderContext, codecEncoder, &codecOptions);
+            result = avcodec_open2(codecEncoderContext, _codecEncoder, &codecOptions);
             if (result != 0) {
                 NSLog(@"Failed to open av codec: %d", result);
             }
@@ -79,12 +91,12 @@
         {
             // DECODING BELOW
 
-            codecDecoder = avcodec_find_decoder(AV_CODEC_ID_H264);
-            if (codecDecoder == nil) {
+            _codecDecoder = avcodec_find_decoder(AV_CODEC_ID_H264);
+            if (_codecDecoder == nil) {
                 NSLog(@"Cannot find decoder");
             }
 
-            codecDecoderContext = avcodec_alloc_context3(codecDecoder);
+            codecDecoderContext = avcodec_alloc_context3(_codecDecoder);
             if (codecDecoderContext == nil) {
                 NSLog(@"Failed to create context");
             }
@@ -110,7 +122,7 @@
             codecDecoderContext->pix_fmt = AV_PIX_FMT_YUV420P;
 
 
-            result = avcodec_open2(codecDecoderContext, codecDecoder, &codecOptions);
+            result = avcodec_open2(codecDecoderContext, _codecDecoder, &codecOptions);
             if (result != 0) {
                 NSLog(@"Failed to open av codec: %d", result);
             }
@@ -122,28 +134,23 @@
 }
 
 
-- (UIImage*)convertYuvFrameToImage:(AVFrame*)frame {
+- (UIImage *)convertYuvFrameToImage:(AVFrame *)frame {
     size_t width = (size_t) frame->width;
     size_t height = (size_t) frame->height;
 
-    NSDictionary *pixelAttributes = @{(id)kCVPixelBufferIOSurfacePropertiesKey : @{}};
     CVPixelBufferRef pixelBuffer = NULL;
 
-    CVReturn result = CVPixelBufferCreate(kCFAllocatorDefault,
-            width,
-            height,
-            kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange,
-            (__bridge CFDictionaryRef)(pixelAttributes),
+    CVReturn result = CVPixelBufferPoolCreatePixelBuffer(kCFAllocatorDefault,
+            _pixelBufferPool,
             &pixelBuffer);
-
     if (result != kCVReturnSuccess) {
-        NSLog(@"CVPixelBufferCreate failed, error code: %d", result);
+        NSLog(@"CVPixelBufferPoolCreatePixelBuffer failed, error code: %d", result);
         return nil;
     }
 
     size_t yComponentSizeBytes = width * height;
 
-    CVPixelBufferLockBaseAddress(pixelBuffer,0);
+    CVPixelBufferLockBaseAddress(pixelBuffer, 0);
 
     // y plane.
     unsigned char *yDestPlane = CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 0);
@@ -165,7 +172,7 @@
             // when xMultTwo is 3, cbIndex is 2, crIndex is 3
             // when xMultTwo is 4, cbIndex is 4, crIndex is 5
             // ...
-            int xMultTwo=x * 2;
+            int xMultTwo = x * 2;
             int cbIndex = xMultTwo & ~1;
             int crIndex = xMultTwo | 1;
 
@@ -180,7 +187,7 @@
     }
 
     CVPixelBufferUnlockBaseAddress(pixelBuffer, 0);
-    
+
     CIImage *coreImage = [CIImage imageWithCVPixelBuffer:pixelBuffer];
 
     CIContext *context = [CIContext contextWithOptions:nil];
@@ -190,11 +197,11 @@
                          width,
                          height)];
 
-    UIImage* imageResult = [[UIImage alloc] initWithCGImage:videoImage scale:1.0 orientation:UIImageOrientationUp];
-    
+    UIImage *imageResult = [[UIImage alloc] initWithCGImage:videoImage scale:1.0 orientation:UIImageOrientationUp];
+
     CGImageRelease(videoImage);
     CVPixelBufferRelease(pixelBuffer);
-    
+
     return imageResult;
 }
 
@@ -247,7 +254,7 @@
     }
 }
 
-- (void) freeYuvFrame:(AVFrame*)picture {
+- (void)freeYuvFrame:(AVFrame *)picture {
     // Only one buffer is allocated but elements 1 and 2 reference parts of that buffer,
     // so only free once.
     av_freep(&picture->data[0]);
@@ -257,9 +264,8 @@
 }
 
 // Encodes the packet
-- (void)captureOutput:(AVCaptureOutput *)captureOutput didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection {
+- (bool)encodeSampleBuffer:(CMSampleBufferRef)sampleBuffer toByteBuffer:(ByteBuffer *)buffer {
     int result;
-
 
     // SO basically.
     // iOS gives us CMSampleBuffer, in this there are two planar:
@@ -276,13 +282,13 @@
     AVFrame *picture = av_frame_alloc();
     if (picture == nil) {
         NSLog(@"Failed av_frame_alloc");
-        return;
+        return false;
     }
 
     int pictureByteSize = av_image_alloc(picture->data, picture->linesize, codecEncoderContext->width, codecEncoderContext->height, codecEncoderContext->pix_fmt, ALIGN_TO_BITS);
     if (pictureByteSize < 0) {
         NSLog(@"Failed av_image_alloc: %d", pictureByteSize);
-        return;
+        return false;
     }
 
     picture->format = codecEncoderContext->pix_fmt;
@@ -318,7 +324,7 @@
             // when xMultTwo is 3, cbIndex is 2, crIndex is 3
             // when xMultTwo is 4, cbIndex is 4, crIndex is 5
             // ...
-            int xMultTwo=x * 2;
+            int xMultTwo = x * 2;
             int cbIndex = xMultTwo & ~1;
             int crIndex = xMultTwo | 1;
 
@@ -344,33 +350,40 @@
     // Do the encoding.
     int gotOutput;
     result = avcodec_encode_video2(codecEncoderContext, &packet, picture, &gotOutput);
-    
+
     [self freeYuvFrame:picture];
-    
+
     if (result != 0) {
         NSLog(@"Failed avcodec_encode_video: %d", result);
-        return;
+        return false;
     }
 
     if (gotOutput) {
         NSLog(@"We got some data from the encoder, be proud, with size: %d", packet.size);
-
-        AVFrame *decodedYuv = [self decodeToYuvFromData:packet.data andSize:packet.size];
+        [buffer addVariableLengthData:packet.data withLength:(uint) packet.size includingPrefix:false];
         av_packet_unref(&packet);
 
-        if (decodedYuv != nil) {
-            UIImage * image = [self convertYuvFrameToImage:decodedYuv];
-            av_frame_free(&decodedYuv);
-
-            if (image != nil) {
-                NSLog(@"NEW IMAGE LOADED");
-                [_newImageDelegate onNewImage:image];
-            }
-        }
+        return true;
     } else {
         NSLog(@"We didn't get any data from the encoder");
         // packet is freed automatically by avcodec_encode_video2 if no data returned.
+
+        return false;
     }
+}
+
+- (UIImage *)decodeByteBuffer:(ByteBuffer *)buffer {
+    AVFrame *decodedYuv = [self decodeToYuvFromData:buffer.buffer + buffer.cursorPosition andSize:buffer.bufferUsedSize];
+
+    if (decodedYuv == nil) {
+        return nil;
+    }
+
+    UIImage *image = [self convertYuvFrameToImage:decodedYuv];
+    av_frame_free(&decodedYuv);
+
+    // May be null.
+    return image;
 }
 
 

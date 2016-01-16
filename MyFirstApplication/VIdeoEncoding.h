@@ -13,14 +13,11 @@
 @class VideoCompression;
 
 @interface VideoEncoding : NSObject
-@property(readonly) uint suggestedBatchSize;
 - (id)initWithVideoCompression:(VideoCompression*)videoCompression;
-
-- (UIImage *)imageFromSampleBuffer:(CMSampleBufferRef)sampleBuffer;
 
 - (AVCaptureSession *)setupCaptureSessionWithDelegate:(id <AVCaptureVideoDataOutputSampleBufferDelegate>)delegate;
 
-- (void)addImage:(CMSampleBufferRef)image toByteBuffer:(ByteBuffer *)buffer;
+- (bool)addImage:(CMSampleBufferRef)image toByteBuffer:(ByteBuffer *)buffer;
 
 - (UIImage *)getImageFromByteBuffer:(ByteBuffer *)buffer;
 @end
