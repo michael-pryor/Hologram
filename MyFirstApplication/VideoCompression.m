@@ -16,6 +16,10 @@
 
 #define ALIGN_TO_BITS 32
 
+// For cleanup:
+// Use av_frame_free
+// Use av_packet_unref
+
 @implementation VideoCompression {
     AVCodec *codecEncoder;
     struct AVCodecContext *codecEncoderContext;
@@ -176,17 +180,22 @@
     }
 
     CVPixelBufferUnlockBaseAddress(pixelBuffer, 0);
-
+    
     CIImage *coreImage = [CIImage imageWithCVPixelBuffer:pixelBuffer];
 
-    CIContext *MytemporaryContext = [CIContext contextWithOptions:nil];
-    CGImageRef MyvideoImage = [MytemporaryContext
+    CIContext *context = [CIContext contextWithOptions:nil];
+    CGImageRef videoImage = [context
             createCGImage:coreImage
                  fromRect:CGRectMake(0, 0,
                          width,
                          height)];
 
-    return [[UIImage alloc] initWithCGImage:MyvideoImage scale:1.0 orientation:UIImageOrientationUp];
+    UIImage* imageResult = [[UIImage alloc] initWithCGImage:videoImage scale:1.0 orientation:UIImageOrientationUp];
+    
+    CGImageRelease(videoImage);
+    CVPixelBufferRelease(pixelBuffer);
+    
+    return imageResult;
 }
 
 // This takes h264 packets and produces:
@@ -232,6 +241,15 @@
         av_frame_free(&picture);
     }
     return nil;
+}
+
+- (void) freeYuvFrame:(AVFrame*)picture {
+    // Only one buffer is allocated but elements 1 and 2 reference parts of that buffer,
+    // so only free once.
+    av_freep(&picture->data[0]);
+    picture->data[1] = nil;
+    picture->data[2] = nil;
+    av_frame_free(&picture);
 }
 
 // Encodes the packet
@@ -322,9 +340,9 @@
     // Do the encoding.
     int gotOutput;
     result = avcodec_encode_video2(codecEncoderContext, &packet, picture, &gotOutput);
-
-    av_frame_free(&picture);
-
+    
+    [self freeYuvFrame:picture];
+    
     if (result != 0) {
         NSLog(@"Failed avcodec_encode_video: %d", result);
         return;
@@ -334,11 +352,11 @@
         NSLog(@"We got some data from the encoder, be proud, with size: %d", packet.size);
 
         AVFrame *decodedYuv = [self decodeToYuvFromData:packet.data andSize:packet.size];
-        av_free_packet(&packet);
+        av_packet_unref(&packet);
 
         if (decodedYuv != nil) {
             UIImage * image = [self convertYuvFrameToImage:decodedYuv];
-            av_frame_free(&decodedYuv);
+
             if (image != nil) {
                 NSLog(@"NEW IMAGE LOADED");
                 [_newImageDelegate onNewImage:image];
@@ -348,10 +366,6 @@
         NSLog(@"We didn't get any data from the encoder");
         // packet is freed automatically by avcodec_encode_video2 if no data returned.
     }
-
-    av_packet_unref(&packet);
-
-
 }
 
 
