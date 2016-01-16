@@ -90,13 +90,19 @@
 
         _mediaDelayDelegate = mediaDelayDelegate;
 
-        // 60 second rolling average.
-        _averageTracker = [[AverageTracker alloc] initWithExpiry:60];
+        [self resetAverageTracker];
 
         _forceRestart = false;
         _flush = false;
     }
     return self;
+}
+
+// Create a new tracker, so old values are lost. Important because
+// when we switch between people, they may send at different rates.
+- (void)resetAverageTracker {
+    // 60 second rolling average.
+    _averageTracker = [[AverageTracker alloc] initWithExpiry:60];
 }
 
 // Return buffer to pool to be reused.
@@ -316,6 +322,7 @@ static void HandleOutputBuffer(void *aqData,
     if (external) {
         if ([_isNoExternalPause clear]) {
             NSLog(@"External audio playback pause started");
+            [self resetAverageTracker];
         }
     }
     @synchronized (self) {
