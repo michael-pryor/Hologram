@@ -217,14 +217,18 @@
     AVFrame *picture = av_frame_alloc();
     if (picture == nil) {
         NSLog(@"Failed av_frame_alloc");
+        av_packet_unref(&packet);
         return nil;
     }
 
     int gotOutput;
 
+    // Allocates memory to 'picture', memory is owned by codec so we simply unref it to say that
+    // we are done with it. Do not free the actual allocated memory.
     int result = avcodec_decode_video2(codecDecoderContext, picture, &gotOutput, &packet);
     if (result <= 0) {
         NSLog(@"Failed avcodec_decode_video2: %d", result);
+        av_packet_unref(&packet);
         av_frame_free(&picture);
         return nil;
     }
@@ -239,8 +243,8 @@
         NSLog(@"We didn't get any data from the decoder");
         av_packet_unref(&packet);
         av_frame_free(&picture);
+        return nil;
     }
-    return nil;
 }
 
 - (void) freeYuvFrame:(AVFrame*)picture {
@@ -356,6 +360,7 @@
 
         if (decodedYuv != nil) {
             UIImage * image = [self convertYuvFrameToImage:decodedYuv];
+            av_frame_free(&decodedYuv);
 
             if (image != nil) {
                 NSLog(@"NEW IMAGE LOADED");
