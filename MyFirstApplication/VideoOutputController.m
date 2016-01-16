@@ -12,6 +12,7 @@
 #import "EncodingPipe.h"
 #import "TimedEventTracker.h"
 #import "DelayedPipe.h"
+#import "VideoCompression.h"
 
 @implementation PacketToImageProcessor {
     id <NewImageDelegate> _newImageDelegate;
@@ -61,20 +62,24 @@
     if (self) {
          _tcpNetworkOutputSession = tcpNetworkOutputSession;
 
-        _videoEncoder = [[VideoEncoding alloc] init];
 
         _throttledBlock = [[ThrottledBlock alloc] initWithDefaultOutputFrequency:0.1 firingInitially:true];
+
+        _encodingPipeVideo = [[EncodingPipe alloc] initWithOutputSession:udpNetworkOutputSession prefixId:VIDEO_ID];
+
+        const uint chunkSize = 128;
+        _batcherOutput = [[BatcherOutput alloc] initWithOutputSession:_encodingPipeVideo chunkSize:chunkSize leftPadding:sizeof(uint) includeTotalChunks:true];
+
+        _videoEncoder = [[VideoEncoding alloc] initWithVideoCompression:[[VideoCompression alloc] init]];
 
         PacketToImageProcessor *p = [[PacketToImageProcessor alloc] initWithImageDelegate:newImageDelegate encoder:_videoEncoder];
 
         // Delay video playback in order to sync up with audio.
         _delayedPipe = [[DelayedPipe alloc] initWithMinimumDelay:0 outputSession:p];
 
-        _encodingPipeVideo = [[EncodingPipe alloc] initWithOutputSession:udpNetworkOutputSession prefixId:VIDEO_ID];
+        _batcherInput = [[BatcherInput alloc] initWithOutputSession:_delayedPipe chunkSize:chunkSize numChunks:0 andNumChunksThreshold:1 andTimeoutMs:1000 andPerformanceInformaitonDelegate:self];
 
-        _batcherOutput = [[BatcherOutput alloc] initWithOutputSession:_encodingPipeVideo chunkSize:[_videoEncoder suggestedBatchSize] leftPadding:sizeof(uint) includeTotalChunks:true];
 
-        _batcherInput = [[BatcherInput alloc] initWithOutputSession:_delayedPipe chunkSize:[_videoEncoder suggestedBatchSize] numChunks:0 andNumChunksThreshold:1 andTimeoutMs:1000 andPerformanceInformaitonDelegate:self];
 
         _session = [_videoEncoder setupCaptureSessionWithDelegate:self];
 
@@ -110,7 +115,9 @@
         // Send image as packet.
         ByteBuffer *rawBuffer = [[ByteBuffer alloc] init];
 
-        [_videoEncoder addImage:sampleBuffer toByteBuffer:rawBuffer];
+        if(![_videoEncoder addImage:sampleBuffer toByteBuffer:rawBuffer]) {
+            return;
+        }
         rawBuffer.cursorPosition = 0;
 
         [_batcherOutput onNewPacket:rawBuffer fromProtocol:UDP];

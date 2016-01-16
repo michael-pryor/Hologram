@@ -7,65 +7,24 @@
 //
 
 #import "VideoEncoding.h"
+#import "VideoCompression.h"
 
 @implementation VideoEncoding {
     NSString *_sessionPreset;
     dispatch_queue_t _videoOutputQueue;
+
+    VideoCompression *_compression;
 }
-- (id)init {
+- (id)initWithVideoCompression:(VideoCompression *)videoCompression {
     self = [super init];
     if (self) {
-        _sessionPreset = AVCaptureSessionPresetLow;
+        _sessionPreset = AVCaptureSessionPreset640x480;
 
-        if (_sessionPreset == AVCaptureSessionPresetLow) {
-            _suggestedBatchSize = 128;
-        } else {
-            [NSException raise:@"Invalid session preset" format:@"Session preset must be preconfigured in code"];
-        }
+        _compression = videoCompression;
 
         _videoOutputQueue = dispatch_queue_create("CameraOutputQueue", NULL);
     }
     return self;
-}
-
-// Create a UIImage from sample buffer data
-- (UIImage *)imageFromSampleBuffer:(CMSampleBufferRef)sampleBuffer {
-    // Get a CMSampleBuffer's Core Video image buffer for the media data
-    CVImageBufferRef imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer);
-    // Lock the base address of the pixel buffer
-    CVPixelBufferLockBaseAddress(imageBuffer, 0);
-
-    // Get the number of bytes per row for the pixel buffer
-    void *baseAddress = CVPixelBufferGetBaseAddress(imageBuffer);
-
-    // Get the number of bytes per row for the pixel buffer
-    size_t bytesPerRow = CVPixelBufferGetBytesPerRow(imageBuffer);
-    // Get the pixel buffer width and height
-    size_t width = CVPixelBufferGetWidth(imageBuffer);
-    size_t height = CVPixelBufferGetHeight(imageBuffer);
-
-    // Create a device-dependent RGB color space
-    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
-
-    // Create a bitmap graphics context with the sample buffer data
-    CGContextRef context = CGBitmapContextCreate(baseAddress, width, height, 8,
-            bytesPerRow, colorSpace, kCGBitmapByteOrder32Little | kCGImageAlphaPremultipliedFirst);
-    // Create a Quartz image from the pixel data in the bitmap graphics context
-    CGImageRef quartzImage = CGBitmapContextCreateImage(context);
-    // Unlock the pixel buffer
-    CVPixelBufferUnlockBaseAddress(imageBuffer, 0);
-
-    // Free up the context and color space
-    CGContextRelease(context);
-    CGColorSpaceRelease(colorSpace);
-
-    // Create an image object from the Quartz image
-    UIImage *image = [UIImage imageWithCGImage:quartzImage];
-
-    // Release the Quartz image
-    CGImageRelease(quartzImage);
-
-    return (image);
 }
 
 - (AVCaptureSession *)setupCaptureSessionWithDelegate:(id <AVCaptureVideoDataOutputSampleBufferDelegate>)delegate {
@@ -100,12 +59,6 @@
                 return nil;
             }
 
-            // Set frame rate.
-            /*if([device lockForConfiguration:NULL] == YES) {
-                device.activeVideoMaxFrameDuration = CMTimeMake(1, 20);
-                [device unlockForConfiguration];
-            }*/
-
             // From the device, create an AVCaptureDeviceInput.
             // This initializes the device, the camera is now active.
             NSError *error = nil;
@@ -128,7 +81,7 @@
 
     // Set video orientation and frame rate.
     AVCaptureConnection *conn = [output connectionWithMediaType:AVMediaTypeVideo];
-    [conn setVideoOrientation:AVCaptureVideoOrientationPortrait];
+    [conn setVideoOrientation:AVCaptureVideoOrientationLandscapeLeft];
 
     NSArray *availableVideoCodecs = [output availableVideoCVPixelFormatTypes];
     for (NSString *codec in availableVideoCodecs) {
@@ -136,7 +89,7 @@
     }
 
     // Set video encoding settings.
-    output.videoSettings = @{(NSString *) kCVPixelBufferPixelFormatTypeKey : @(kCVPixelFormatType_32BGRA)};
+    output.videoSettings = @{(NSString *) kCVPixelBufferPixelFormatTypeKey : @(kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange)};
 
     // Pass video output to delegate function (parameter of this method).
     [output setSampleBufferDelegate:delegate queue:_videoOutputQueue];
@@ -144,21 +97,12 @@
     return session;
 }
 
-- (void)addImage:(void *)data withLength:(uint)length toByteBuffer:(ByteBuffer *)buffer {
-    [buffer addVariableLengthData:data withLength:length includingPrefix:false];
-}
-
-- (void)addImage:(CMSampleBufferRef)image toByteBuffer:(ByteBuffer *)buffer {
-    // With compression.
-    UIImage *imageObject = [self imageFromSampleBuffer:image];
-    NSData *data = UIImageJPEGRepresentation(imageObject, 0.5);
-    [self addImage:(void *) [data bytes] withLength:(uint) [data length] toByteBuffer:buffer];
+- (bool)addImage:(CMSampleBufferRef)image toByteBuffer:(ByteBuffer *)buffer {
+    return [_compression encodeSampleBuffer:(CMSampleBufferRef) image toByteBuffer:buffer];
 }
 
 
 - (UIImage *)getImageFromByteBuffer:(ByteBuffer *)byteBuffer {
-    uint8_t *buffer = [byteBuffer buffer] + [byteBuffer cursorPosition];
-    NSData *nsData = [NSData dataWithBytes:buffer length:[byteBuffer getUnreadDataFromCursor]];
-    return [UIImage imageWithData:nsData];
+    return [_compression decodeByteBuffer:byteBuffer];
 }
 @end

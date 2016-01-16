@@ -10,14 +10,14 @@
 
 #import "ByteBuffer.h"
 
-@interface VideoEncoding : NSObject
-@property(readonly) uint suggestedBatchSize;
+@class VideoCompression;
 
-- (UIImage *)imageFromSampleBuffer:(CMSampleBufferRef)sampleBuffer;
+@interface VideoEncoding : NSObject
+- (id)initWithVideoCompression:(VideoCompression*)videoCompression;
 
 - (AVCaptureSession *)setupCaptureSessionWithDelegate:(id <AVCaptureVideoDataOutputSampleBufferDelegate>)delegate;
 
-- (void)addImage:(CMSampleBufferRef)image toByteBuffer:(ByteBuffer *)buffer;
+- (bool)addImage:(CMSampleBufferRef)image toByteBuffer:(ByteBuffer *)buffer;
 
 - (UIImage *)getImageFromByteBuffer:(ByteBuffer *)buffer;
 @end
