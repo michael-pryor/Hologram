@@ -11,4 +11,6 @@
 + (UISwipeGestureRecognizerDirection)normalizeGestureWithRealDirection:(UISwipeGestureRecognizerDirection)direction;
 
 + (NSString *)parseToTransitionFromGesture:(UISwipeGestureRecognizerDirection)direction;
+
++ (void)registerForOrientationChangeNotificationsWithObject:(id)object selector:(SEL)theSelector;
 @end

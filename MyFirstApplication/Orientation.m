@@ -13,6 +13,15 @@
     return [[UIApplication sharedApplication] statusBarOrientation];
 }
 
++ (void)registerForOrientationChangeNotificationsWithObject:(id)object selector:(SEL)theSelector {
+    [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
+
+    [[NSNotificationCenter defaultCenter] addObserver:object
+                                             selector:theSelector
+                                                 name:UIDeviceOrientationDidChangeNotification
+                                               object:nil];
+}
+
 + (NSString *)parseToTransitionFromGesture:(UISwipeGestureRecognizerDirection)direction {
     switch (direction) {
         case (UISwipeGestureRecognizerDirectionRight):
