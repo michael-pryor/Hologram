@@ -16,8 +16,6 @@
 
     VideoCompression *_compression;
     AVCaptureConnection *_connection;
-
-    bool _needsClipping;
 }
 - (id)initWithVideoCompression:(VideoCompression *)videoCompression {
     self = [super init];
@@ -108,49 +106,25 @@
 - (void)onOrientationChange:(NSNotification *)notification {
     UIInterfaceOrientation orientation = [Orientation getDeviceOrientation];
     AVCaptureVideoOrientation videoOrientation;
+
     switch(orientation) {
-        case UIInterfaceOrientationLandscapeLeft:
-            videoOrientation = AVCaptureVideoOrientationLandscapeLeft;
-            _needsClipping = false;
-            break;
-
         case UIInterfaceOrientationLandscapeRight:
-            videoOrientation = AVCaptureVideoOrientationLandscapeRight;
-            _needsClipping = false;
-            break;
-
         case UIInterfaceOrientationPortraitUpsideDown:
-            videoOrientation = AVCaptureVideoOrientationPortraitUpsideDown;
-            _needsClipping = true;
+            videoOrientation = AVCaptureVideoOrientationLandscapeLeft;
             break;
 
+        case UIInterfaceOrientationLandscapeLeft:
         case UIInterfaceOrientationPortrait:
         case UIInterfaceOrientationUnknown:
         default:
-            videoOrientation = AVCaptureVideoOrientationPortrait;
-            _needsClipping = true;
+            videoOrientation = AVCaptureVideoOrientationLandscapeRight;
             break;
     }
 
     [_connection setVideoOrientation:videoOrientation];
 }
 
-- (UIImage *)imageWithImage:(UIImage *)image convertToSize:(CGSize)size {
-    UIGraphicsBeginImageContext(size);
-    [image drawInRect:CGRectMake(0, 0, size.width, size.height)];
-    UIImage *destImage = UIGraphicsGetImageFromCurrentImageContext();
-    UIGraphicsEndImageContext();
-    return destImage;
-}
-
 - (bool)addImage:(CMSampleBufferRef)image toByteBuffer:(ByteBuffer *)buffer {
-    if (_needsClipping) {
-        CGSize size;
-        size.width = 640;
-        size.height = 480;
-        //image = [self imageWithImage:image convertToSize:size];
-    }
-
     return [_compression encodeSampleBuffer:(CMSampleBufferRef) image toByteBuffer:buffer];
 }
 

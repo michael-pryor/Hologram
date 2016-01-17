@@ -10,6 +10,7 @@
 #import "libavformat/avformat.h"
 #import "libavutil/imgutils.h"
 #import "VideoOutputController.h"
+#import "Orientation.h"
 
 // Handle endianness
 #define clamp(a) (a>255?255:(a<0?0:a))
@@ -27,6 +28,7 @@
     struct AVCodecContext *codecDecoderContext;
 
     CVPixelBufferPoolRef _pixelBufferPool;
+    UIImageOrientation _imageOrientation;
 }
 - (id)init {
     self = [super init];
@@ -128,11 +130,31 @@
             }
         }
 
-
+        [Orientation registerForOrientationChangeNotificationsWithObject:self selector:@selector(onOrientationChange:)];
+        [self onOrientationChange:nil];
     }
     return self;
 }
 
+
+- (void)onOrientationChange:(NSNotification *)notification {
+    UIInterfaceOrientation orientation = [Orientation getDeviceOrientation];
+
+    _imageOrientation = UIImageOrientationLeft;
+    switch(orientation) {
+        case UIInterfaceOrientationLandscapeRight:
+        case UIInterfaceOrientationLandscapeLeft:
+            _imageOrientation = UIImageOrientationDown;
+            break;
+
+        case UIInterfaceOrientationPortrait:
+        case UIInterfaceOrientationPortraitUpsideDown:
+        case UIInterfaceOrientationUnknown:
+        default:
+            _imageOrientation = UIImageOrientationLeft;
+            break;
+    }
+}
 
 - (UIImage *)convertYuvFrameToImage:(AVFrame *)frame {
     size_t width = (size_t) frame->width;
@@ -197,7 +219,7 @@
                          width,
                          height)];
 
-    UIImage *imageResult = [[UIImage alloc] initWithCGImage:videoImage scale:1.0 orientation:UIImageOrientationUp];
+    UIImage *imageResult = [[UIImage alloc] initWithCGImage:videoImage scale:1.0 orientation:_imageOrientation];
 
     CGImageRelease(videoImage);
     CVPixelBufferRelease(pixelBuffer);
