@@ -17,6 +17,7 @@ class Client(object):
         WAITING_LOGON = 1
         WAITING_UDP = 2
         CONNECTED = 3
+        NOT_CONNECTED = 4
 
     class UdpOperationCodes:
         OP_REJECT_LOGON = 1
@@ -130,6 +131,7 @@ class Client(object):
 
     # Closes the TCP socket, triggering indirectly onDisconnect to be called.
     def closeConnection(self):
+        self.connection_status = Client.ConnectionStatus.NOT_CONNECTED
         self.tcp.transport.loseConnection()
 
     def handleLogon(self, packet):
