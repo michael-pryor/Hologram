@@ -7,22 +7,20 @@
 //
 
 #import "BatcherOutput.h"
-
-uint sleep_threshold = 8;
-double sleep_amount = 0.02;
+#import "BatchSizeGenerator.h"
 
 @implementation BatcherOutput {
-    uint _chunkSize;
     uint _batchId;
     uint _leftPadding;
     ByteBuffer *_sendBuffer;
     Boolean _includeTotalChunks;
+
+    BatchSizeGenerator *_batchSizeGenerator;
 }
 - (id)initWithOutputSession:(id <NewPacketDelegate>)outputSession chunkSize:(uint)chunkSize leftPadding:(uint)leftPadding includeTotalChunks:(Boolean)includeTotalChunks {
     self = [super initWithOutputSession:outputSession];
     if (self) {
         _leftPadding = leftPadding;
-        _chunkSize = chunkSize;
         _batchId = 0;
 
         uint numIntegers = 2;
@@ -30,9 +28,12 @@ double sleep_amount = 0.02;
             numIntegers++;
         }
 
-        _sendBuffer = [[ByteBuffer alloc] initWithSize:chunkSize + (sizeof(uint) * numIntegers) + _leftPadding]; // space for IDs and padding too.
+        uint maximumChunkSize = 256;
+        _sendBuffer = [[ByteBuffer alloc] initWithSize:maximumChunkSize + (sizeof(uint) * numIntegers) + _leftPadding]; // space for IDs and padding too.
         [_sendBuffer setUsedSize:_sendBuffer.bufferMemorySize];
         _includeTotalChunks = includeTotalChunks;
+
+        _batchSizeGenerator = [[BatchSizeGenerator alloc] initWithDesiredBatchSize:128 minimum:90 maximum:maximumChunkSize maximumPacketSize:15000];
     }
     return self;
 }
@@ -40,24 +41,29 @@ double sleep_amount = 0.02;
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
     uint chunkId = 0;
 
+    uint bufferSize = [packet getUnreadDataFromCursor];
+
+    uint chunkSize = [_batchSizeGenerator getBatchSize:bufferSize];
+
     // Calculate total number of chunks in this batch.
-    uint estimatedChunks;
+    uint numChunks;
     if (_includeTotalChunks) {
-        uint bufferSize = [packet getUnreadDataFromCursor];
         uint extraChunks;
-        if (bufferSize % _chunkSize > 0) {
+
+        // If there is a remainder, there will be an extra packet.
+        if (![_batchSizeGenerator isPerfect:bufferSize]) {
             extraChunks = 1;
         } else {
             extraChunks = 0;
         }
-        estimatedChunks = (bufferSize / _chunkSize) + extraChunks;
+        numChunks = (bufferSize / chunkSize) + extraChunks;
     } else {
-        estimatedChunks = 0; // we don't care, since we don't need to send this value.
+        numChunks = 0; // we don't care, since we don't need to send this value.
     }
 
     // Send chunks.
     while ([packet getUnreadDataFromCursor] > 0) {
-        ByteBuffer *chunk = [self getChunkToSendFromBatch:packet withBatchId:_batchId withChunkId:chunkId andEstimatedChunks:estimatedChunks];
+        ByteBuffer *chunk = [self getChunkToSendFromBatch:packet batchId:_batchId chunkId:chunkId numChunks:numChunks chunkSizeBytes:chunkSize];
         chunkId++;
 
         [_outputSession onNewPacket:chunk fromProtocol:protocol];
@@ -65,7 +71,11 @@ double sleep_amount = 0.02;
     _batchId++;
 }
 
-- (ByteBuffer *)getChunkToSendFromBatch:(ByteBuffer *)batchPacket withBatchId:(uint)batchId withChunkId:(uint)chunkId andEstimatedChunks:(uint)estimatedChunks {
+- (ByteBuffer *)getChunkToSendFromBatch:(ByteBuffer *)batchPacket batchId:(uint)batchId chunkId:(uint)chunkId numChunks:(uint)numChunks chunkSizeBytes:(uint)chunkSizeBytes {
+    if (chunkId >= numChunks) {
+        NSLog(@"Chunk ID >= num chunks %d vs %d", chunkId, numChunks);
+    }
+
     // Enough space to do something meaningful.
     _sendBuffer.cursorPosition = _leftPadding;
 
@@ -73,16 +83,16 @@ double sleep_amount = 0.02;
     [_sendBuffer addUnsignedInteger:chunkId]; // chunk ID; ID within batch.
 
     if (_includeTotalChunks) {
-        [_sendBuffer addUnsignedInteger:estimatedChunks]; // total number of chunks in this batch.
+        [_sendBuffer addUnsignedInteger:numChunks]; // total number of chunks in this batch.
     }
 
     // Last chunk may be smaller.
     uint auxChunkSize;
-    uint unreadData = [_sendBuffer getUnreadDataFromCursor];
-    if (_chunkSize > unreadData) {
+    uint unreadData = [batchPacket getUnreadDataFromCursor];
+    if (chunkSizeBytes > unreadData) {
         auxChunkSize = unreadData;
     } else {
-        auxChunkSize = _chunkSize;
+        auxChunkSize = chunkSizeBytes;
     }
 
     // TODO: inefficiencies here copying buffers around and allocating memory.
@@ -90,6 +100,7 @@ double sleep_amount = 0.02;
     batchPacket.cursorPosition += auxChunkSize;
     _sendBuffer.cursorPosition += auxChunkSize;
 
+    [_sendBuffer setUsedSize:_sendBuffer.cursorPosition];
     return _sendBuffer;
 }
 @end

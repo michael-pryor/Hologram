@@ -54,7 +54,7 @@
         _chunkSize = chunkSize;
         _totalChunks = numChunks;
         _totalChunksIsPreset = _totalChunks != 0;
-        _partialPacket = [[ByteBuffer alloc] initWithSize:numChunks * chunkSize];
+        _partialPacket = [[ByteBuffer alloc] initWithSize:numChunks * 256];
         [_partialPacket setUsedSize:[_partialPacket bufferMemorySize]];
         _timeoutSeconds = timeoutSeconds;
         _hasOutput = false;
@@ -68,10 +68,6 @@
     return self;
 }
 
-- (uint)getBufferPositionFromChunkId:(uint)chunkId {
-    return chunkId * _chunkSize;
-}
-
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
     uint chunkId = [packet getUnsignedInteger];
 
@@ -83,7 +79,9 @@
         [packet getUnsignedInteger]; // discard total chunks field.
     }
 
-    uint buffPosition = [self getBufferPositionFromChunkId:chunkId];
+    uint chunkSize = [packet getUnreadDataFromCursor];
+
+    uint buffPosition = chunkId * chunkSize;
 
     // Copy contents of chunk packet into partial packet.
     Boolean fireNow = false; // optimization to avoid locking when timer fires.
