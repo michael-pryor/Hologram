@@ -10,10 +10,12 @@
 
 @implementation Batch {
     uint _chunksReceived;
-    uint _chunkSize;
     float _numChunksThreshold;
+
     uint _totalChunks;
-    Boolean _totalChunksIsPreset;
+    uint _lastChunkSize;
+    bool _partialPacketUsedSizeFinalized;
+
     double _timeoutSeconds;
     ByteBuffer *_partialPacket;
     NSTimer *_timer;
@@ -24,18 +26,19 @@
 
 - (void)onTimeout:(NSTimer *)timer {
     //NSLog(@"Timed out with chunks received: %ul and threshold: %ul", _chunksReceived, _numChunksThreshold);
-    if (_totalChunks == 0) { // value not loaded yet.
+    if (_totalChunks == 0 || !_partialPacketUsedSizeFinalized) { // value not loaded yet.
         return;
     }
 
-    uint integerNumChunksThreshold = _numChunksThreshold * (float) _totalChunks;
+    uint integerNumChunksThreshold = (uint)(_numChunksThreshold * (float) _totalChunks);
 
-    float chunksReceivedPercentage = ((double) _chunksReceived) / ((double) _totalChunks);
+    float chunksReceivedPercentage = ((float) _chunksReceived) / ((float) _totalChunks);
     [_performanceDelegate onNewPerformanceNotification:chunksReceivedPercentage];
 
     @synchronized (_partialPacket) {
         if (_chunksReceived >= integerNumChunksThreshold) {
             if (!_hasOutput) {
+                [_partialPacket setCursorPosition:0];
                 [_outputSession onNewPacket:_partialPacket fromProtocol:UDP];
                 _hasOutput = true;
               //  NSLog(@"Output video batch ID: %d", _batchId);
@@ -46,16 +49,16 @@
     }
 }
 
-- (id)initWithOutputSession:(id <NewPacketDelegate>)outputSession chunkSize:(uint)chunkSize numChunks:(uint)numChunks andNumChunksThreshold:(float)numChunksThreshold andTimeoutSeconds:(double)timeoutSeconds andPerformanceInformaitonDelegate:(id <BatchPerformanceInformation>)performanceInformationDelegate andBatchId:(uint)batchId {
+- (id)initWithOutputSession:(id <NewPacketDelegate>)outputSession numChunksThreshold:(float)numChunksThreshold timeoutSeconds:(double)timeoutSeconds performanceInformationDelegate:(id <BatchPerformanceInformation>)performanceInformationDelegate batchId:(uint)batchId {
     self = [super initWithOutputSession:outputSession];
     if (self) {
         _chunksReceived = 0;
         _numChunksThreshold = numChunksThreshold;
-        _chunkSize = chunkSize;
-        _totalChunks = numChunks;
-        _totalChunksIsPreset = _totalChunks != 0;
-        _partialPacket = [[ByteBuffer alloc] initWithSize:numChunks * 256];
-        [_partialPacket setUsedSize:[_partialPacket bufferMemorySize]];
+
+        // Allocate some memory to prevent lots of resizing.
+        _partialPacket = [[ByteBuffer alloc] initWithSize:1024 * 20];
+        _partialPacketUsedSizeFinalized = false;
+
         _timeoutSeconds = timeoutSeconds;
         _hasOutput = false;
         _performanceDelegate = performanceInformationDelegate;
@@ -75,13 +78,28 @@
     // a total chunks field.
     if (_totalChunks == 0) {
         _totalChunks = [packet getUnsignedInteger]; // use total chunks field.
-    } else if (!_totalChunksIsPreset) {
+    } else {
         [packet getUnsignedInteger]; // discard total chunks field.
     }
 
     uint chunkSize = [packet getUnreadDataFromCursor];
-
     uint buffPosition = chunkId * chunkSize;
+
+    if (_lastChunkSize == 0) {
+        _lastChunkSize = [packet getUnsignedInteger];
+    } else {
+        [packet getUnsignedInteger];
+    }
+
+    if (!_partialPacketUsedSizeFinalized && _lastChunkSize != 0 && _totalChunks != 0) {
+        // Last chunk can be smaller, invalidating chunkSize.
+        bool isLastChunkId = (_totalChunks - 1) == chunkId;
+        if (!isLastChunkId) {
+            uint partialPacketSize = ((_totalChunks - 1) * chunkSize) + _lastChunkSize;
+            [_partialPacket setUsedSize:partialPacketSize];
+            _partialPacketUsedSizeFinalized = true;
+        }
+    }
 
     // Copy contents of chunk packet into partial packet.
     Boolean fireNow = false; // optimization to avoid locking when timer fires.

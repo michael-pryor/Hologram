@@ -11,7 +11,7 @@
 #import "ByteBuffer.h"
 
 @interface BatcherOutput : PipelineProcessor
-- (id)initWithOutputSession:(id <NewPacketDelegate>)outputSession chunkSize:(uint)chunkSize leftPadding:(uint)leftPadding includeTotalChunks:(Boolean)includeTotalChunks;
+- (id)initWithOutputSession:(id <NewPacketDelegate>)outputSession leftPadding:(uint)leftPadding;
 
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol;
 @end

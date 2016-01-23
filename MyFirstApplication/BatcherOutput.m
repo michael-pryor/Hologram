@@ -13,26 +13,20 @@
     uint _batchId;
     uint _leftPadding;
     ByteBuffer *_sendBuffer;
-    Boolean _includeTotalChunks;
 
     BatchSizeGenerator *_batchSizeGenerator;
 }
-- (id)initWithOutputSession:(id <NewPacketDelegate>)outputSession chunkSize:(uint)chunkSize leftPadding:(uint)leftPadding includeTotalChunks:(Boolean)includeTotalChunks {
+- (id)initWithOutputSession:(id <NewPacketDelegate>)outputSession leftPadding:(uint)leftPadding {
     self = [super initWithOutputSession:outputSession];
     if (self) {
         _leftPadding = leftPadding;
         _batchId = 0;
 
-        uint numIntegers = 2;
-        if (includeTotalChunks) {
-            numIntegers++;
-        }
+        // Batch ID, Chunk ID, Total number of chunks in batch, size in bytes of last chunk.
+        uint numIntegers = 4;
 
         uint maximumChunkSize = 256;
         _sendBuffer = [[ByteBuffer alloc] initWithSize:maximumChunkSize + (sizeof(uint) * numIntegers) + _leftPadding]; // space for IDs and padding too.
-        [_sendBuffer setUsedSize:_sendBuffer.bufferMemorySize];
-        _includeTotalChunks = includeTotalChunks;
-
         _batchSizeGenerator = [[BatchSizeGenerator alloc] initWithDesiredBatchSize:128 minimum:90 maximum:maximumChunkSize maximumPacketSize:15000];
     }
     return self;
@@ -46,24 +40,27 @@
     uint chunkSize = [_batchSizeGenerator getBatchSize:bufferSize];
 
     // Calculate total number of chunks in this batch.
-    uint numChunks;
-    if (_includeTotalChunks) {
-        uint extraChunks;
+    uint extraChunks;
 
-        // If there is a remainder, there will be an extra packet.
-        if (![_batchSizeGenerator isPerfect:bufferSize]) {
-            extraChunks = 1;
-        } else {
-            extraChunks = 0;
-        }
-        numChunks = (bufferSize / chunkSize) + extraChunks;
+    // Division cuts off the remainder, so need to add one if there is a remainder.
+    uint remainder = [_batchSizeGenerator getLastBatchSize:bufferSize];
+    if (remainder > 0) {
+        extraChunks = 1;
     } else {
-        numChunks = 0; // we don't care, since we don't need to send this value.
+        extraChunks = 0;
+    }
+    uint numChunks = (bufferSize / chunkSize) + extraChunks;
+
+    uint lastChunkSize;
+    if (remainder == 0) {
+        lastChunkSize = chunkSize;
+    } else {
+        lastChunkSize = remainder;
     }
 
     // Send chunks.
     while ([packet getUnreadDataFromCursor] > 0) {
-        ByteBuffer *chunk = [self getChunkToSendFromBatch:packet batchId:_batchId chunkId:chunkId numChunks:numChunks chunkSizeBytes:chunkSize];
+        ByteBuffer *chunk = [self getChunkToSendFromBatch:packet batchId:_batchId chunkId:chunkId numChunks:numChunks chunkSizeBytes:chunkSize lastChunkSize:lastChunkSize];
         chunkId++;
 
         [_outputSession onNewPacket:chunk fromProtocol:protocol];
@@ -71,7 +68,7 @@
     _batchId++;
 }
 
-- (ByteBuffer *)getChunkToSendFromBatch:(ByteBuffer *)batchPacket batchId:(uint)batchId chunkId:(uint)chunkId numChunks:(uint)numChunks chunkSizeBytes:(uint)chunkSizeBytes {
+- (ByteBuffer *)getChunkToSendFromBatch:(ByteBuffer *)batchPacket batchId:(uint)batchId chunkId:(uint)chunkId numChunks:(uint)numChunks chunkSizeBytes:(uint)chunkSizeBytes lastChunkSize:(uint)lastChunkSize {
     if (chunkId >= numChunks) {
         NSLog(@"Chunk ID >= num chunks %d vs %d", chunkId, numChunks);
     }
@@ -81,10 +78,8 @@
 
     [_sendBuffer addUnsignedInteger:batchId]; // batch ID.
     [_sendBuffer addUnsignedInteger:chunkId]; // chunk ID; ID within batch.
-
-    if (_includeTotalChunks) {
-        [_sendBuffer addUnsignedInteger:numChunks]; // total number of chunks in this batch.
-    }
+    [_sendBuffer addUnsignedInteger:numChunks]; // total number of chunks in this batch.
+    [_sendBuffer addUnsignedInteger:lastChunkSize]; // size of last chunk in batch.
 
     // Last chunk may be smaller.
     uint auxChunkSize;

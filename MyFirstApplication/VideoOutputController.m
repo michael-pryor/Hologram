@@ -67,19 +67,13 @@
 
         _encodingPipeVideo = [[EncodingPipe alloc] initWithOutputSession:udpNetworkOutputSession prefixId:VIDEO_ID];
 
-        const uint chunkSize = 128;
-        _batcherOutput = [[BatcherOutput alloc] initWithOutputSession:_encodingPipeVideo chunkSize:chunkSize leftPadding:sizeof(uint) includeTotalChunks:true];
+        _batcherOutput = [[BatcherOutput alloc] initWithOutputSession:_encodingPipeVideo leftPadding:sizeof(uint)];
 
         _videoEncoder = [[VideoEncoding alloc] initWithVideoCompression:[[VideoCompression alloc] init]];
 
         PacketToImageProcessor *p = [[PacketToImageProcessor alloc] initWithImageDelegate:newImageDelegate encoder:_videoEncoder];
 
-        // Delay video playback in order to sync up with audio.
-        _delayedPipe = [[DelayedPipe alloc] initWithMinimumDelay:0 outputSession:p];
-
-        _batcherInput = [[BatcherInput alloc] initWithOutputSession:_delayedPipe chunkSize:chunkSize numChunks:0 andNumChunksThreshold:1 andTimeoutMs:1000 andPerformanceInformaitonDelegate:self];
-
-
+        _batcherInput = [[BatcherInput alloc] initWithOutputSession:p numChunksThreshold:1 timeoutMs:1000 performanceInformationDelegate:self];
 
         _session = [_videoEncoder setupCaptureSessionWithDelegate:self];
 
