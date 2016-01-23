@@ -27,7 +27,7 @@
 
         uint maximumChunkSize = 256;
         _sendBuffer = [[ByteBuffer alloc] initWithSize:maximumChunkSize + (sizeof(uint) * numIntegers) + _leftPadding]; // space for IDs and padding too.
-        _batchSizeGenerator = [[BatchSizeGenerator alloc] initWithDesiredBatchSize:128 minimum:90 maximum:maximumChunkSize maximumPacketSize:15000];
+        _batchSizeGenerator = [[BatchSizeGenerator alloc] initWithDesiredBatchSize:128 minimum:90 maximum:maximumChunkSize maximumPacketSize:2049];
     }
     return self;
 }
@@ -96,6 +96,7 @@
     _sendBuffer.cursorPosition += auxChunkSize;
 
     [_sendBuffer setUsedSize:_sendBuffer.cursorPosition];
+    [_sendBuffer setCursorPosition:0];
     return _sendBuffer;
 }
 @end

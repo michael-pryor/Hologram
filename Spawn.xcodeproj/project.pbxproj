@@ -45,6 +45,51 @@
 		513205E71AAE4CA600C80AD9 /* SoundMicrophone.m in Sources */ = {isa = PBXBuildFile; fileRef = 513205E61AAE4CA600C80AD9 /* SoundMicrophone.m */; };
 		51865D2D1C1C438A008836E7 /* iphone5_launchscreen.png in Resources */ = {isa = PBXBuildFile; fileRef = 51865D2C1C1C438A008836E7 /* iphone5_launchscreen.png */; };
 		519573041AEBEB26000247E1 /* EventTracker.m in Sources */ = {isa = PBXBuildFile; fileRef = 519573031AEBEB26000247E1 /* EventTracker.m */; };
+		51BE77721C53EEF100492336 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 51BE77711C53EEF100492336 /* XCTest.framework */; };
+		51BE77871C5401C400492336 /* ByteBuffer.h in Sources */ = {isa = PBXBuildFile; fileRef = 51D584BF19AB7A9400BB6CE6 /* ByteBuffer.h */; };
+		51BE77881C5401C400492336 /* ByteBuffer.m in Sources */ = {isa = PBXBuildFile; fileRef = 51D584C019AB7A9400BB6CE6 /* ByteBuffer.m */; };
+		51BE778D1C54030300492336 /* BatchingTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 51BE778B1C5402C900492336 /* BatchingTest.m */; };
+		51BE77ED1C54060E00492336 /* ActivityMonitor.h in Sources */ = {isa = PBXBuildFile; fileRef = 51FBE0421AF66AF3009115AE /* ActivityMonitor.h */; };
+		51BE77EE1C54060E00492336 /* ActivityMonitor.m in Sources */ = {isa = PBXBuildFile; fileRef = 51FBE0431AF66AF3009115AE /* ActivityMonitor.m */; };
+		51BE77EF1C54060E00492336 /* Signal.h in Sources */ = {isa = PBXBuildFile; fileRef = 51E8889F1A597585005F8825 /* Signal.h */; };
+		51BE77F01C54060E00492336 /* Signal.m in Sources */ = {isa = PBXBuildFile; fileRef = 51E888A01A597585005F8825 /* Signal.m */; };
+		51BE77F11C54060E00492336 /* BlockingQueue.h in Sources */ = {isa = PBXBuildFile; fileRef = 51C263891AB45CE400285C6E /* BlockingQueue.h */; };
+		51BE77F21C54060E00492336 /* BlockingQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = 51C2638A1AB45CE400285C6E /* BlockingQueue.m */; };
+		51BE77F31C54060E00492336 /* EventTracker.h in Sources */ = {isa = PBXBuildFile; fileRef = 519573021AEBEB26000247E1 /* EventTracker.h */; };
+		51BE77F41C54060E00492336 /* EventTracker.m in Sources */ = {isa = PBXBuildFile; fileRef = 519573031AEBEB26000247E1 /* EventTracker.m */; };
+		51BE77F51C54060E00492336 /* Timer.h in Sources */ = {isa = PBXBuildFile; fileRef = 51197AF81B132D6F006A7AEE /* Timer.h */; };
+		51BE77F61C54060E00492336 /* Timer.m in Sources */ = {isa = PBXBuildFile; fileRef = 51197AF91B132D6F006A7AEE /* Timer.m */; };
+		51BE77F71C54060E00492336 /* ThrottledBlock.h in Sources */ = {isa = PBXBuildFile; fileRef = 51197AFE1B1350B1006A7AEE /* ThrottledBlock.h */; };
+		51BE77F81C54060E00492336 /* ThrottledBlock.m in Sources */ = {isa = PBXBuildFile; fileRef = 51197AFF1B1350B1006A7AEE /* ThrottledBlock.m */; };
+		51BE77F91C54060E00492336 /* TimedEventTracker.h in Sources */ = {isa = PBXBuildFile; fileRef = 51197B051B13AAAD006A7AEE /* TimedEventTracker.h */; };
+		51BE77FA1C54060E00492336 /* TimedEventTracker.m in Sources */ = {isa = PBXBuildFile; fileRef = 51197B061B13AAAD006A7AEE /* TimedEventTracker.m */; };
+		51BE77FB1C54060E00492336 /* TimedGapEventTracker.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D619B9B74C7F1DF1AAC7AB /* TimedGapEventTracker.m */; };
+		51BE77FC1C54060E00492336 /* TimedGapEventTracker.h in Sources */ = {isa = PBXBuildFile; fileRef = D5D613E4FBE39B0477D98486 /* TimedGapEventTracker.h */; };
+		51BE77FD1C54060E00492336 /* AverageTracker.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D615F63C69FA0011332EF8 /* AverageTracker.m */; };
+		51BE77FE1C54060E00492336 /* AverageTracker.h in Sources */ = {isa = PBXBuildFile; fileRef = D5D61A9D2F7039076A85F3A0 /* AverageTracker.h */; };
+		51BE77FF1C54060E00492336 /* Threading.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D610546CB5BFA2EC52AFD5 /* Threading.m */; };
+		51BE78001C54060E00492336 /* Threading.h in Sources */ = {isa = PBXBuildFile; fileRef = D5D61DCE61D1A8B9C8957FE1 /* Threading.h */; };
+		51BE78011C54060E00492336 /* AccessDialog.h in Sources */ = {isa = PBXBuildFile; fileRef = D5D612CDFF7D57CACE8B1BE6 /* AccessDialog.h */; };
+		51BE78021C54060E00492336 /* AccessDialog.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61D7435CE35550C2AB293 /* AccessDialog.m */; };
+		51BE78031C54061700492336 /* BatcherInput.h in Sources */ = {isa = PBXBuildFile; fileRef = 51D87CB01A8F7C1A00CE919E /* BatcherInput.h */; };
+		51BE78041C54061700492336 /* BatcherInput.m in Sources */ = {isa = PBXBuildFile; fileRef = 51D87CB11A8F7C1B00CE919E /* BatcherInput.m */; };
+		51BE78051C54061700492336 /* BatcherOutput.h in Sources */ = {isa = PBXBuildFile; fileRef = 51D87CB31A8F7C3000CE919E /* BatcherOutput.h */; };
+		51BE78061C54061700492336 /* BatcherOutput.m in Sources */ = {isa = PBXBuildFile; fileRef = 51D87CB41A8F7C3000CE919E /* BatcherOutput.m */; };
+		51BE78071C54061700492336 /* Batch.h in Sources */ = {isa = PBXBuildFile; fileRef = 51C18D291A9A3882000C42A8 /* Batch.h */; };
+		51BE78081C54061700492336 /* Batch.m in Sources */ = {isa = PBXBuildFile; fileRef = 51C18D2A1A9A3882000C42A8 /* Batch.m */; };
+		51BE78091C54061700492336 /* BatchSizeGenerator.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61FA523774C1B712EA210 /* BatchSizeGenerator.m */; };
+		51BE780A1C54061700492336 /* BatchSizeGenerator.h in Sources */ = {isa = PBXBuildFile; fileRef = D5D615E2A5F1E15DC186FC94 /* BatchSizeGenerator.h */; };
+		51BE780B1C54067900492336 /* InputSessionBase.h in Sources */ = {isa = PBXBuildFile; fileRef = 51BDB1491A6F0E7E00E0DA49 /* InputSessionBase.h */; };
+		51BE780C1C54068100492336 /* PipelineProcessor.h in Sources */ = {isa = PBXBuildFile; fileRef = 51CE2B921A8ECD9000B8E5B7 /* PipelineProcessor.h */; };
+		51BE780D1C54068100492336 /* PipelineProcessor.m in Sources */ = {isa = PBXBuildFile; fileRef = 51CE2B931A8ECD9000B8E5B7 /* PipelineProcessor.m */; };
+		51BE780E1C54068100492336 /* EncodingPipe.h in Sources */ = {isa = PBXBuildFile; fileRef = 51E5BE7F1ABD03FD003E035C /* EncodingPipe.h */; };
+		51BE780F1C54068100492336 /* EncodingPipe.m in Sources */ = {isa = PBXBuildFile; fileRef = 51E5BE801ABD03FD003E035C /* EncodingPipe.m */; };
+		51BE78101C54068100492336 /* DecodingPipe.h in Sources */ = {isa = PBXBuildFile; fileRef = 51E5BE821ABD0450003E035C /* DecodingPipe.h */; };
+		51BE78111C54068100492336 /* DecodingPipe.m in Sources */ = {isa = PBXBuildFile; fileRef = 51E5BE831ABD0450003E035C /* DecodingPipe.m */; };
+		51BE78121C54068100492336 /* ThrottledPipe.h in Sources */ = {isa = PBXBuildFile; fileRef = 51197AFB1B134D72006A7AEE /* ThrottledPipe.h */; };
+		51BE78131C54068100492336 /* ThrottledPipe.m in Sources */ = {isa = PBXBuildFile; fileRef = 51197AFC1B134D72006A7AEE /* ThrottledPipe.m */; };
+		51BE78141C54068100492336 /* DelayedPipe.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61109DD409D89A9B6D01A /* DelayedPipe.m */; };
+		51BE78151C54068100492336 /* DelayedPipe.h in Sources */ = {isa = PBXBuildFile; fileRef = D5D6153226E3E1A425BAF293 /* DelayedPipe.h */; };
 		51BF42541A750CDB00C16F9A /* ConnectionGovernorProtocol.m in Sources */ = {isa = PBXBuildFile; fileRef = 51BF42531A750CDB00C16F9A /* ConnectionGovernorProtocol.m */; };
 		51C18D2B1A9A3882000C42A8 /* Batch.m in Sources */ = {isa = PBXBuildFile; fileRef = 51C18D2A1A9A3882000C42A8 /* Batch.m */; };
 		51C263851AB450E600285C6E /* SoundPlayback.m in Sources */ = {isa = PBXBuildFile; fileRef = 51C263841AB450E600285C6E /* SoundPlayback.m */; };
@@ -70,7 +115,6 @@
 		51E5BE321936A982003E45C3 /* MJPAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 51E5BE311936A982003E45C3 /* MJPAppDelegate.m */; };
 		51E5BE341936A982003E45C3 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 51E5BE331936A982003E45C3 /* Images.xcassets */; };
 		51E5BE3C1936A982003E45C3 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 51E5BE211936A982003E45C3 /* Foundation.framework */; };
-		51E5BE3D1936A982003E45C3 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 51E5BE251936A982003E45C3 /* UIKit.framework */; };
 		51E5BE451936A982003E45C3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 51E5BE431936A982003E45C3 /* InfoPlist.strings */; };
 		51E5BE471936A982003E45C3 /* MyFirstApplicationTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 51E5BE461936A982003E45C3 /* MyFirstApplicationTests.m */; };
 		51E5BE811ABD03FD003E035C /* EncodingPipe.m in Sources */ = {isa = PBXBuildFile; fileRef = 51E5BE801ABD03FD003E035C /* EncodingPipe.m */; };
@@ -92,12 +136,12 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		51E5BE3E1936A982003E45C3 /* PBXContainerItemProxy */ = {
+		51BE77891C54020C00492336 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 51E5BE161936A982003E45C3 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 51E5BE1D1936A982003E45C3;
-			remoteInfo = MyFirstApplication;
+			remoteInfo = Spawn;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -167,6 +211,8 @@
 		519573031AEBEB26000247E1 /* EventTracker.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EventTracker.m; sourceTree = "<group>"; };
 		51BDB1491A6F0E7E00E0DA49 /* InputSessionBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InputSessionBase.h; sourceTree = "<group>"; };
 		51BDB14D1A6F121400E0DA49 /* ConnectionManagerBase.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ConnectionManagerBase.h; sourceTree = "<group>"; };
+		51BE77711C53EEF100492336 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = XCTest.framework; sourceTree = "<group>"; };
+		51BE778B1C5402C900492336 /* BatchingTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BatchingTest.m; sourceTree = "<group>"; };
 		51BF42521A750CDB00C16F9A /* ConnectionGovernorProtocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = ConnectionGovernorProtocol.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		51BF42531A750CDB00C16F9A /* ConnectionGovernorProtocol.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = ConnectionGovernorProtocol.m; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objc; };
 		51C18D291A9A3882000C42A8 /* Batch.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = Batch.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
@@ -282,7 +328,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				51E5BE3D1936A982003E45C3 /* UIKit.framework in Frameworks */,
+				51BE77721C53EEF100492336 /* XCTest.framework in Frameworks */,
 				51E5BE3C1936A982003E45C3 /* Foundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -449,6 +495,7 @@
 		51E5BE201936A982003E45C3 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				51BE77711C53EEF100492336 /* XCTest.framework */,
 				5121AFFF1C39A045001D3E78 /* libavcodec.a */,
 				5121B0001C39A045001D3E78 /* libavdevice.a */,
 				5121B0011C39A045001D3E78 /* libavfilter.a */,
@@ -526,6 +573,7 @@
 		51E5BE411936A982003E45C3 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				51BE778B1C5402C900492336 /* BatchingTest.m */,
 				51E5BE421936A982003E45C3 /* SpawnTests-Info.plist */,
 				51E5BE431936A982003E45C3 /* InfoPlist.strings */,
 				51D584C219AB8B1D00BB6CE6 /* ByteBufferTest.m */,
@@ -623,7 +671,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				51E5BE3F1936A982003E45C3 /* PBXTargetDependency */,
+				51BE778A1C54020C00492336 /* PBXTargetDependency */,
 			);
 			name = SpawnTests;
 			productName = MyFirstApplicationTests;
@@ -750,18 +798,62 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				51BE780C1C54068100492336 /* PipelineProcessor.h in Sources */,
+				51BE780D1C54068100492336 /* PipelineProcessor.m in Sources */,
+				51BE780E1C54068100492336 /* EncodingPipe.h in Sources */,
+				51BE780F1C54068100492336 /* EncodingPipe.m in Sources */,
+				51BE78101C54068100492336 /* DecodingPipe.h in Sources */,
+				51BE78111C54068100492336 /* DecodingPipe.m in Sources */,
+				51BE78121C54068100492336 /* ThrottledPipe.h in Sources */,
+				51BE78131C54068100492336 /* ThrottledPipe.m in Sources */,
+				51BE78141C54068100492336 /* DelayedPipe.m in Sources */,
+				51BE78151C54068100492336 /* DelayedPipe.h in Sources */,
+				51BE780B1C54067900492336 /* InputSessionBase.h in Sources */,
+				51BE78031C54061700492336 /* BatcherInput.h in Sources */,
+				51BE78041C54061700492336 /* BatcherInput.m in Sources */,
+				51BE78051C54061700492336 /* BatcherOutput.h in Sources */,
+				51BE78061C54061700492336 /* BatcherOutput.m in Sources */,
+				51BE78071C54061700492336 /* Batch.h in Sources */,
+				51BE78081C54061700492336 /* Batch.m in Sources */,
+				51BE78091C54061700492336 /* BatchSizeGenerator.m in Sources */,
+				51BE780A1C54061700492336 /* BatchSizeGenerator.h in Sources */,
+				51BE77ED1C54060E00492336 /* ActivityMonitor.h in Sources */,
+				51BE77EE1C54060E00492336 /* ActivityMonitor.m in Sources */,
+				51BE77EF1C54060E00492336 /* Signal.h in Sources */,
+				51BE77F01C54060E00492336 /* Signal.m in Sources */,
+				51BE77F11C54060E00492336 /* BlockingQueue.h in Sources */,
+				51BE77F21C54060E00492336 /* BlockingQueue.m in Sources */,
+				51BE77F31C54060E00492336 /* EventTracker.h in Sources */,
+				51BE77F41C54060E00492336 /* EventTracker.m in Sources */,
+				51BE77F51C54060E00492336 /* Timer.h in Sources */,
+				51BE77F61C54060E00492336 /* Timer.m in Sources */,
+				51BE77F71C54060E00492336 /* ThrottledBlock.h in Sources */,
+				51BE77F81C54060E00492336 /* ThrottledBlock.m in Sources */,
+				51BE77F91C54060E00492336 /* TimedEventTracker.h in Sources */,
+				51BE77FA1C54060E00492336 /* TimedEventTracker.m in Sources */,
+				51BE77FB1C54060E00492336 /* TimedGapEventTracker.m in Sources */,
+				51BE77FC1C54060E00492336 /* TimedGapEventTracker.h in Sources */,
+				51BE77FD1C54060E00492336 /* AverageTracker.m in Sources */,
+				51BE77FE1C54060E00492336 /* AverageTracker.h in Sources */,
+				51BE77FF1C54060E00492336 /* Threading.m in Sources */,
+				51BE78001C54060E00492336 /* Threading.h in Sources */,
+				51BE78011C54060E00492336 /* AccessDialog.h in Sources */,
+				51BE78021C54060E00492336 /* AccessDialog.m in Sources */,
+				51BE77871C5401C400492336 /* ByteBuffer.h in Sources */,
+				51BE77881C5401C400492336 /* ByteBuffer.m in Sources */,
 				51E5BE471936A982003E45C3 /* MyFirstApplicationTests.m in Sources */,
 				51D584C319AB8B1D00BB6CE6 /* ByteBufferTest.m in Sources */,
+				51BE778D1C54030300492336 /* BatchingTest.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		51E5BE3F1936A982003E45C3 /* PBXTargetDependency */ = {
+		51BE778A1C54020C00492336 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 51E5BE1D1936A982003E45C3 /* Spawn */;
-			targetProxy = 51E5BE3E1936A982003E45C3 /* PBXContainerItemProxy */;
+			targetProxy = 51BE77891C54020C00492336 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -823,6 +915,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 				STRIP_INSTALLED_PRODUCT = NO;
+				VALID_ARCHS = "arm64 x86_64 i386";
 			};
 			name = Debug;
 		};
@@ -857,6 +950,7 @@
 				SDKROOT = iphoneos;
 				STRIP_INSTALLED_PRODUCT = NO;
 				VALIDATE_PRODUCT = YES;
+				VALID_ARCHS = "arm64 x86_64 i386";
 			};
 			name = Release;
 		};
@@ -945,22 +1039,25 @@
 		51E5BE4E1936A982003E45C3 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/MyFirstApplication.app/MyFirstApplication";
+				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/Spawn.app/Spawn";
 				FRAMEWORK_SEARCH_PATHS = (
-					"$(SDKROOT)/Developer/Library/Frameworks",
 					"$(inherited)",
-					"$(DEVELOPER_FRAMEWORKS_DIR)",
+					/Users/pryormic/Documents/FacebookSDK,
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "MyFirstApplication/MyFirstApplication-Prefix.pch";
+				GCC_PREFIX_HEADER = "MyFirstApplication/Spawn-Prefix.pch";
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
 					"$(inherited)",
 				);
 				INFOPLIST_FILE = "MyFirstApplicationTests/SpawnTests-Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(PROJECT_DIR)/FFmpeg-iOS-build-script/FFmpeg-iOS/lib",
+					"$(PROJECT_DIR)/x264-ios/x264-iOS/lib",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = "mike.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = SpawnTests;
-				TEST_HOST = "$(BUNDLE_LOADER)";
+				TEST_HOST = "";
 				WRAPPER_EXTENSION = xctest;
 			};
 			name = Debug;
@@ -968,18 +1065,21 @@
 		51E5BE4F1936A982003E45C3 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/MyFirstApplication.app/MyFirstApplication";
+				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/Spawn.app/Spawn";
 				FRAMEWORK_SEARCH_PATHS = (
-					"$(SDKROOT)/Developer/Library/Frameworks",
 					"$(inherited)",
-					"$(DEVELOPER_FRAMEWORKS_DIR)",
+					/Users/pryormic/Documents/FacebookSDK,
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "MyFirstApplication/MyFirstApplication-Prefix.pch";
+				GCC_PREFIX_HEADER = "MyFirstApplication/Spawn-Prefix.pch";
 				INFOPLIST_FILE = "MyFirstApplicationTests/SpawnTests-Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(PROJECT_DIR)/FFmpeg-iOS-build-script/FFmpeg-iOS/lib",
+					"$(PROJECT_DIR)/x264-ios/x264-iOS/lib",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = "mike.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = SpawnTests;
-				TEST_HOST = "$(BUNDLE_LOADER)";
+				TEST_HOST = "";
 				WRAPPER_EXTENSION = xctest;
 			};
 			name = Release;

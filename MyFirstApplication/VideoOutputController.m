@@ -63,9 +63,9 @@
          _tcpNetworkOutputSession = tcpNetworkOutputSession;
 
 
-        _throttledBlock = [[ThrottledBlock alloc] initWithDefaultOutputFrequency:0.1 firingInitially:true];
+        _throttledBlock = [[ThrottledBlock alloc] initWithDefaultOutputFrequency:2 firingInitially:true];
 
-        _encodingPipeVideo = [[EncodingPipe alloc] initWithOutputSession:udpNetworkOutputSession prefixId:VIDEO_ID];
+        _encodingPipeVideo = [[EncodingPipe alloc] initWithOutputSession:self prefixId:VIDEO_ID];
 
         _batcherOutput = [[BatcherOutput alloc] initWithOutputSession:_encodingPipeVideo leftPadding:sizeof(uint)];
 
