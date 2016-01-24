@@ -403,6 +403,10 @@ static void HandleOutputBuffer(void *aqData,
         [self returnToPool:_audioBuffers[i]];
     }
 
+    [AVAudioSession sharedInstance];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(audioRouteChangeListenerCallback:)
+                                                 name:AVAudioSessionRouteChangeNotification
+                                               object:nil];
     [self selectSpeaker];
 
     NSLog(@"Initialized speaker thread");
@@ -438,10 +442,29 @@ static void HandleOutputBuffer(void *aqData,
         [_averageTracker addValue:qSize];
         double qAverageSize = [_averageTracker getWeightedAverage];
 
-        uint estimatedDelay = (uint) (qAverageSize * ((float)ESTIMATED_BUFFER_SIZE_MS));
+        uint estimatedDelay = (uint) (qAverageSize * ((float) ESTIMATED_BUFFER_SIZE_MS));
         //NSLog(@"Q rate = %d, averaged = %.3f, estimated delay required for video = %d", qSize, qAverageSize, estimatedDelay);
         [_mediaDelayDelegate onMediaDelayNotified:estimatedDelay];
     }
+}
+
+- (bool)isHeadsetPluggedIn {
+    AVAudioSessionRouteDescription *route = [[AVAudioSession sharedInstance] currentRoute];
+    for (AVAudioSessionPortDescription *desc in [route outputs]) {
+        if ([[desc portType] isEqualToString:AVAudioSessionPortHeadphones]) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// If the user changes the audio output device they are using.
+// Will be called on initialization automatically by iOS.
+- (void)audioRouteChangeListenerCallback:(NSNotification *)notification {
+    NSDictionary *interruptionDict = notification.userInfo;
+    NSInteger routeChangeReason = [[interruptionDict valueForKey:AVAudioSessionRouteChangeReasonKey] integerValue];
+    NSLog(@"Audio route changed, with reason: %d", routeChangeReason);
+    [self updateNoiseCancellation];
 }
 
 - (void)selectSpeaker {
@@ -454,12 +477,31 @@ static void HandleOutputBuffer(void *aqData,
     if (!result) {
         NSLog(@"Failed to enable AVAudioSessionCategoryOptionDefaultToSpeaker mode: %@", [error localizedDescription]);
     }
-    // Prevent echo so audio played from speaker should be filtered out.
-    result = [session setMode:AVAudioSessionModeVideoChat error:&error];
-    if (!result) {
-        NSLog(@"Failed to enable AVAudioSessionModeVideoChat mode: %@", [error localizedDescription]);
+}
+
+// Enable noise cancellation to prevent echo if output is through speakers, otherwise disable it because
+// it has the side effect of reducing the volume of audio output.
+- (void)updateNoiseCancellation {
+    AVAudioSession *session = [AVAudioSession sharedInstance];
+    NSError *error = nil;
+
+    NSString *desiredMode;
+    NSString *desiredModeDescription;
+    if ([self isHeadsetPluggedIn]) {
+        desiredMode = AVAudioSessionModeDefault;
+        desiredModeDescription = @"Disabling noise cancellation";
+    } else {
+        desiredMode = AVAudioSessionModeVideoChat;
+        desiredModeDescription = @"Enabling noise cancellation";
     }
 
+    if (![[session mode] isEqualToString:desiredMode]) {
+        NSLog(desiredModeDescription);
+        bool result = [session setMode:desiredMode error:&error];
+        if (!result) {
+            NSLog(@"Failed to enable %@ mode, reason: %@", desiredMode, [error localizedDescription]);
+        }
+    }
 }
 
 @end
