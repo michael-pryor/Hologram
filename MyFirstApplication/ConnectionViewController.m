@@ -131,7 +131,7 @@
     // login is complete, because its in that view controller that the dialog box about
     // how we use the video/microphone is displayed.
     SocialState *socialState = [SocialState getFacebookInstance];
-    [socialState updateFacebook];
+    [socialState updateCoreFacebookInformation];
     if (![socialState isBasicDataLoaded] || ![[NSUserDefaults standardUserDefaults] boolForKey:@"permissionsExplanationShown"]) {
         [self switchToFacebookLogonView];
         return;
@@ -141,7 +141,7 @@
         if (![socialState isDataLoaded]) {
             [socialState registerNotifier:self];
             [self setDisconnectStateWithShortDescription:@"Loading Facebook details" longDescription:@"Waiting for Facebook details to load"];
-            [socialState update];
+            [socialState updateGraphFacebookInformation];
         } else {
             [self onSocialDataLoaded:socialState];
         }

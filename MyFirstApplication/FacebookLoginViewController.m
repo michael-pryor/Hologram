@@ -109,7 +109,7 @@
 }
 
 - (void)_updateInternals {
-    [[SocialState getFacebookInstance] updateFacebook];
+    [[SocialState getFacebookInstance] updateCoreFacebookInformation];
     if ([[SocialState getFacebookInstance] isBasicDataLoaded]) {
         NSLog(@"Logged in");
     } else {
@@ -136,6 +136,6 @@
 
 - (void)loginButtonDidLogOut:(FBSDKLoginButton *)loginButton {
     NSLog(@"Logged out successfully");
-    [[SocialState getFacebookInstance] updateFacebook];
+    [[SocialState getFacebookInstance] updateCoreFacebookInformation];
 }
 @end

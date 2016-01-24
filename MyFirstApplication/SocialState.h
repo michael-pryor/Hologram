@@ -39,7 +39,9 @@
 
 - (void)reset;
 
-- (void)updateFacebook;
+- (void)updateCoreFacebookInformation;
+
+- (void)updateGraphFacebookInformation;
 
 - (void)update;
 

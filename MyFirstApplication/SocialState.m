@@ -10,6 +10,7 @@
 #import <FBSDKCoreKit/FBSDKCoreKit.h>
 
 SocialState *instance;
+typedef void (^Block)(id);
 
 @implementation SocialState {
     id <SocialStateDataLoadNotification> _notifier;
@@ -116,7 +117,7 @@ SocialState *instance;
     _isGraphDataLoaded = false;
 }
 
-- (void)loadStateFromFacebook {
+- (void)updateCoreFacebookInformation {
     FBSDKProfile *profile = [FBSDKProfile currentProfile];
     if (profile == nil) {
         [self reset];
@@ -125,8 +126,6 @@ SocialState *instance;
     }
 
     [self loadStateFromFirstName:[profile firstName] middleName:[profile middleName] lastName:[profile lastName] facebookUrl:[profile linkURL] facebookId:[profile userID]];
-
-    [self _retrieveGraphInformation];
 }
 
 - (uint)_parseGender:(NSString *)gender {
@@ -167,46 +166,59 @@ SocialState *instance;
     return (uint) age;
 }
 
-- (void)_retrieveGraphInformation {
-    if ([FBSDKAccessToken currentAccessToken]) {
-        NSLog(@"Retrieving Facebook graph API information");
-
-        NSDictionary* parameters = @{@"fields" : @"id,name,birthday,gender"};
-        [[[FBSDKGraphRequest alloc] initWithGraphPath:@"me" parameters:parameters]
-                startWithCompletionHandler:^(FBSDKGraphRequestConnection *connection, id result, NSError *error) {
-                    if (!error) {
-                        _dob = [result objectForKey:@"birthday"];
-                        if (_dob == nil) {
-                            NSLog(@"Failed to retrieve date of birth from Facebook API, defaulting to 0 - server will handle this");
-                            _age = 0;
-                        } else {
-                            _age = [self _getAgeFromDob:_dob];
-                        }
-
-                        _gender = [result objectForKey:@"gender"];
-                        if (_gender == nil) {
-                            NSLog(@"Failed to retrieve gender from Facebook API, defaulting to nil which will equate to BOTH - server will handle this");
-                        }
-                        _genderI = [self _parseGender:_gender];
-
-                        NSLog(@"Loaded DOB: [%@], gender: [%@] from Facebook graph API", _dob, _gender);
-                        _isGraphDataLoaded = true;
-                        if (_notifier != nil) {
-                            [_notifier onSocialDataLoaded:self];
-                        }
-                    } else {
-                        NSLog(@"Error accessing graph API: %@", error);
-                    }
-                }];
+- (void)updateGraphFacebookInformation {
+    if (![FBSDKAccessToken currentAccessToken]) {
+        NSLog(@"Core Facebook information not loaded!");
+        return;
     }
-}
 
-- (void)updateFacebook {
-    [self loadStateFromFacebook];
+    NSDictionary *parameters = @{@"fields" : @"id,name,birthday,gender"};
+    FBSDKGraphRequest *fbGraphRequest = [[FBSDKGraphRequest alloc] initWithGraphPath:@"me" parameters:parameters];
+
+    // Repeatedly runs block (polling graph API) until successful.
+    // This is useful if there are network issues temporarily, ensures we don't get stuck loading Facebook data.
+    Block block = ^(Block blockParam) {
+        NSLog(@"Retrieving Facebook graph API information");
+        [fbGraphRequest startWithCompletionHandler:^(FBSDKGraphRequestConnection *connection, id result, NSError *error) {
+            if (error) {
+                int secondsDelay = 1;
+                NSLog(@"Error accessing graph API: %@, retrying in %d second", error, secondsDelay);
+                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, secondsDelay * NSEC_PER_SEC), dispatch_get_main_queue(), ^ {
+                    blockParam(blockParam);
+                });
+                return;
+            }
+
+            _dob = [result objectForKey:@"birthday"];
+            if (_dob == nil) {
+                NSLog(@"Failed to retrieve date of birth from Facebook API, defaulting to 0 - server will handle this");
+                _age = 0;
+            } else {
+                _age = [self _getAgeFromDob:_dob];
+            }
+
+            _gender = [result objectForKey:@"gender"];
+            if (_gender == nil) {
+                NSLog(@"Failed to retrieve gender from Facebook API, defaulting to nil which will equate to BOTH - server will handle this");
+            }
+            _genderI = [self _parseGender:_gender];
+
+            NSLog(@"Loaded DOB: [%@], gender: [%@] from Facebook graph API", _dob, _gender);
+            _isGraphDataLoaded = true;
+            if (_notifier != nil) {
+                [_notifier onSocialDataLoaded:self];
+            }
+        }];
+    };
+
+    dispatch_async(dispatch_get_main_queue(), ^ {
+        block(block);
+    });
 }
 
 - (void)update {
-    [self updateFacebook];
+    [self updateCoreFacebookInformation];
+    [self updateGraphFacebookInformation];
 }
 
 - (void)setInterestedIn:(NSString *)interestedIn {
