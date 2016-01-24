@@ -150,7 +150,7 @@
         return;
     }
 
-    [packet setCursorPosition:4];
+    [packet setCursorPosition:1];
 
     // Copy byte buffer data into audio buffer.
     uint unreadData = packet.getUnreadDataFromCursor;
@@ -169,10 +169,6 @@
     desc->mStartOffset = 0;
     desc->mVariableFramesInPacket = 0;
     inBuffer->mAudioDataByteSize = unreadData;
-
-    uint batchId = [MediaShared getBatchIdFromByteBuffer:packet];
-    inBuffer->mUserData = (void *) batchId;
-
 
     struct AudioTimeStamp audioStartTime;
 

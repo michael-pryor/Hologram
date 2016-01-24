@@ -20,7 +20,7 @@
         _desiredBatchSize = desiredBatchSize;
         _minimumBatchSizeThreshold = minimumBatchSizeThreshold;
         _maximumBatchSizeThreshold = maximiumBatchSizeThreshold;
-        _maximumPacketSize = maximumPacketSize;
+        _maximumPacketSize = maximumPacketSize + 1; // because our arrays are 0 indexed.
 
         _batchSizeMappings = malloc(sizeof(uint) * _maximumPacketSize);
         _lastBatchSize = malloc(sizeof(uint) * _maximumPacketSize);

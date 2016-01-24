@@ -8,7 +8,3 @@
 @protocol MediaDelayNotifier
 - (void)onMediaDelayNotified:(uint)delayMs;
 @end
-
-@interface MediaShared : NSObject
-+ (uint)getBatchIdFromByteBuffer:(ByteBuffer *)buffer;
-@end

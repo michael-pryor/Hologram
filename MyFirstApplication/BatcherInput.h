@@ -14,4 +14,6 @@
 - (id)initWithOutputSession:(id <NewPacketDelegate>)outputSession numChunksThreshold:(float)numChunksThreshold timeoutMs:(uint)timeoutMs performanceInformationDelegate:(id <BatchPerformanceInformation>)performanceInformationDelegate;
 
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol;
+
+- (void)reset;
 @end

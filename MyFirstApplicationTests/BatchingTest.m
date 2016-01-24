@@ -89,7 +89,7 @@
     uint batchId = [packet getUnsignedInteger];
     uint chunkId = [packet getUnsignedInteger];
     uint totalChunks = [packet getUnsignedInteger];
-    uint lastChunkSize = [packet getUnsignedInteger];
+    uint lastChunkSize = [packet getUnsignedInteger8];
 
     if (chunkId == totalChunks - 1) {
         assert(lastChunkSize == [packet getUnreadDataFromCursor]);

@@ -33,8 +33,8 @@
         [self clearNatPunchthrough];
         _natPunchthroughDiscoveryTimer = [[Timer alloc] initWithFrequencySeconds:0.5 firingInitially:true];
 
-        _natPunchthroughDiscoveryPacket = [[ByteBuffer alloc] initWithSize:sizeof(uint)];
-        [_natPunchthroughDiscoveryPacket addUnsignedInteger:NAT_PUNCHTHROUGH_DISCOVERY];
+        _natPunchthroughDiscoveryPacket = [[ByteBuffer alloc] initWithSize:sizeof(uint8_t)];
+        [_natPunchthroughDiscoveryPacket addUnsignedInteger8:NAT_PUNCHTHROUGH_DISCOVERY];
     }
     return self;
 }
@@ -117,7 +117,7 @@
 
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
     if (protocol == UDP) {
-        unsigned int prefix = [packet getUnsignedIntegerAtPosition:0];
+        unsigned int prefix = [packet getUnsignedIntegerAtPosition8:0];
         if (prefix == NAT_PUNCHTHROUGH_DISCOVERY) {
             // As a precaution.
             NSLog(@"Discovery packet received on master connection, dropping packet");
@@ -125,7 +125,7 @@
             [_recvDelegate onNewPacket:packet fromProtocol:protocol];
         }
     } else if (protocol == TCP) {
-        unsigned int prefix = [packet getUnsignedInteger];
+        unsigned int prefix = [packet getUnsignedInteger8];
         if (prefix == NAT_PUNCHTHROUGH_ADDRESS) {
             _punchthroughAddress = [packet getUnsignedInteger];
             _punchthroughPort = [packet getUnsignedInteger];
@@ -160,7 +160,7 @@
             [_notifier onNatPunchthrough:self stateChange:PUNCHED_THROUGH];
             _routeThroughPunchthroughAddress = true;
         }
-        unsigned int prefix = [packet getUnsignedIntegerAtPosition:0];
+        unsigned int prefix = [packet getUnsignedIntegerAtPosition8:0];
         if (prefix == NAT_PUNCHTHROUGH_DISCOVERY) {
             NSString *addressConverted = [NetworkUtility convertPreparedAddress:address port:port];
             NSLog(@"Discovery packet received from: %@", addressConverted);

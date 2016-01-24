@@ -70,10 +70,10 @@
     }];
 
     _skipPersonPacket = [[ByteBuffer alloc] init];
-    [_skipPersonPacket addUnsignedInteger:SKIP_PERSON];
+    [_skipPersonPacket addUnsignedInteger8:SKIP_PERSON];
 
     _permDisconnectPacket = [[ByteBuffer alloc] init];
-    [_permDisconnectPacket addUnsignedInteger:DISCONNECT_PERM];
+    [_permDisconnectPacket addUnsignedInteger8:DISCONNECT_PERM];
 
     _waitingForNewEndPoint = true;
     _isConnectionActive = false;
@@ -343,7 +343,7 @@
 // Display view overlay showing how connection is being recovered.
 - (void)setDisconnectStateWithShortDescription:(NSString *)shortDescription longDescription:(NSString *)longDescription {
      [_accessDialog validateAuthorization:^{
-         /*dispatch_sync_main(^{
+         dispatch_sync_main(^{
              // Show the disconnect storyboard.
              UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Storyboard" bundle:nil];
 
@@ -363,7 +363,7 @@
                  _waitingForNewEndPoint = true;
                  [_mediaController stop];
              }
-         });*/
+         });
      }];
 }
 
@@ -374,7 +374,7 @@
     }
 
     if (protocol == TCP) {
-        uint operation = [packet getUnsignedIntegerAtPosition:0];
+        uint operation = [packet getUnsignedIntegerAtPosition8:0];
         if (operation == DISCONNECT_TEMP) {
             // Allow user to skip if doesn't want to wait for previous user to reconnect.
             _isSkippableDespiteNoMatch = true;

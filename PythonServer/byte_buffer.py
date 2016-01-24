@@ -110,6 +110,9 @@ class ByteBuffer(object):
     def addUnsignedInteger(self, data):
         self.addValue(struct.pack(DataConstants.ULONG_FORMAT, data), DataConstants.ULONG_SIZE)
 
+    def addUnsignedInteger8(self, data):
+        self.addValue(struct.pack(DataConstants.UBYTE_FORMAT, data), DataConstants.UBYTE_SIZE)
+
     def getValueAtPosition(self, startPosition, valueDataSize):
         endPosition = startPosition + valueDataSize
         if endPosition > self.used_size:
@@ -124,6 +127,9 @@ class ByteBuffer(object):
     def getUnsignedIntegerFromData(self, data):
         return struct.unpack(DataConstants.ULONG_FORMAT, data)[0]
 
+    def getUnsignedIntegerFromData8(self, data):
+        return struct.unpack(DataConstants.UBYTE_FORMAT, data)[0]
+
     def getUnsignedInteger(self):
         rawData = self.getValue(DataConstants.ULONG_SIZE)
         return self.getUnsignedIntegerFromData(rawData)
@@ -131,6 +137,14 @@ class ByteBuffer(object):
     def getUnsignedIntegerAtPosition(self, position):
         endPosition, rawData = self.getValueAtPosition(position, DataConstants.ULONG_SIZE)
         return self.getUnsignedIntegerFromData(rawData)
+
+    def getUnsignedInteger8(self):
+        rawData = self.getValue(DataConstants.UBYTE_SIZE)
+        return self.getUnsignedIntegerFromData8(rawData)
+
+    def getUnsignedIntegerAtPosition8(self, position):
+        endPosition, rawData = self.getValueAtPosition(position, DataConstants.UBYTE_SIZE)
+        return self.getUnsignedIntegerFromData8(rawData)
 
     def addVariableLengthData(self, data, dataSize, includePrefix = True):
         newSize = self.cursor_position + dataSize

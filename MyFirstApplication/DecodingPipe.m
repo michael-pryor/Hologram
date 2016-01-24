@@ -25,7 +25,7 @@
 
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
     [packet setCursorPosition:0];
-    uint prefix = [packet getUnsignedInteger];
+    uint prefix = [packet getUnsignedInteger8];
 
     NSObject <NewPacketDelegate> *delegate = [map objectForKey:[NSNumber numberWithUnsignedInt:prefix]];
     if (delegate == nil) {

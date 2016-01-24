@@ -23,10 +23,8 @@
         _batchId = 0;
 
         // Batch ID, Chunk ID, Total number of chunks in batch, size in bytes of last chunk.
-        uint numIntegers = 4;
-
         uint maximumChunkSize = 256;
-        _sendBuffer = [[ByteBuffer alloc] initWithSize:maximumChunkSize + (sizeof(uint) * numIntegers) + _leftPadding]; // space for IDs and padding too.
+        _sendBuffer = [[ByteBuffer alloc] initWithSize:maximumChunkSize + (sizeof(uint) * 3) + sizeof(uint8_t) + _leftPadding]; // space for IDs and padding too.
         _batchSizeGenerator = [[BatchSizeGenerator alloc] initWithDesiredBatchSize:128 minimum:90 maximum:maximumChunkSize maximumPacketSize:15000];
     }
     return self;
@@ -51,7 +49,8 @@
     }
     uint numChunks = (bufferSize / chunkSize) + extraChunks;
 
-    uint lastChunkSize;
+    // By contract chunkSize and remainder cannot be more than 256 bytes.
+    uint8_t lastChunkSize;
     if (remainder == 0) {
         lastChunkSize = chunkSize;
     } else {
@@ -68,7 +67,7 @@
     _batchId++;
 }
 
-- (ByteBuffer *)getChunkToSendFromBatch:(ByteBuffer *)batchPacket batchId:(uint)batchId chunkId:(uint)chunkId numChunks:(uint)numChunks chunkSizeBytes:(uint)chunkSizeBytes lastChunkSize:(uint)lastChunkSize {
+- (ByteBuffer *)getChunkToSendFromBatch:(ByteBuffer *)batchPacket batchId:(uint)batchId chunkId:(uint)chunkId numChunks:(uint)numChunks chunkSizeBytes:(uint)chunkSizeBytes lastChunkSize:(uint8_t)lastChunkSize {
     if (chunkId >= numChunks) {
         NSLog(@"Chunk ID >= num chunks %d vs %d", chunkId, numChunks);
     }
@@ -79,7 +78,7 @@
     [_sendBuffer addUnsignedInteger:batchId]; // batch ID.
     [_sendBuffer addUnsignedInteger:chunkId]; // chunk ID; ID within batch.
     [_sendBuffer addUnsignedInteger:numChunks]; // total number of chunks in this batch.
-    [_sendBuffer addUnsignedInteger:lastChunkSize]; // size of last chunk in batch.
+    [_sendBuffer addUnsignedInteger8:lastChunkSize]; // size of last chunk in batch.
 
     // Last chunk may be smaller.
     uint auxChunkSize;

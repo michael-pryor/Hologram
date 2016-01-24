@@ -30,7 +30,7 @@
         //NSLog(@"Writing prefix of %d", _prefix);
     }
 
-    [packet addUnsignedInteger:_prefix atPosition:_position];
+    [packet addUnsignedInteger8:_prefix atPosition:_position];
     [_outputSession onNewPacket:packet fromProtocol:protocol];
 }
 

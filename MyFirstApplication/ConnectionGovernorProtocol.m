@@ -105,14 +105,14 @@ uint NUM_SOCKETS = 1;
 
 - (void)_pingThreadEntryPoint:var {
     ByteBuffer *pingBuffer = [[ByteBuffer alloc] init];
-    [pingBuffer addUnsignedInteger:OP_PING];
+    [pingBuffer addUnsignedInteger8:OP_PING];
 
     Timer *pingTimer = [[Timer alloc] initWithFrequencySeconds:2 firingInitially:false];
 
     while (_alive) {
         if (_connectionStatus == P_CONNECTED) {
             [pingTimer blockUntilNextTick];
-           // NSLog(@"Sending ping to governor server");
+            // NSLog(@"Sending ping to governor server");
             [_tcpOutputSession onNewPacket:pingBuffer fromProtocol:TCP];
         }
     }
@@ -256,11 +256,11 @@ uint NUM_SOCKETS = 1;
     [self performSelector:@selector(sendUdpLogonHash:) withObject:bufferToSend afterDelay:0.5];
 }
 
-- (void)handleRejectCode:(uint)rejectCode description:(NSString*)rejectDescription{
+- (void)handleRejectCode:(uint)rejectCode description:(NSString *)rejectDescription {
     // Hash timed out, the next one will succeed if we clear it (server will give us a new one).
     if (rejectCode == REJECT_HASH_TIMEOUT) {
         [self terminateWithConnectionStatus:P_NOT_CONNECTED_HASH_REJECTED withDescription:@"Session expired"];
-    } else if(rejectCode == REJECT_BAD_VERSION) {
+    } else if (rejectCode == REJECT_BAD_VERSION) {
         [self disableReconnecting];
         if (!_badVersionNotified) {
             _badVersionNotified = true;
@@ -286,12 +286,15 @@ uint NUM_SOCKETS = 1;
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
     if (protocol == TCP) {
         if (_connectionStatus != P_CONNECTED) {
-            uint logon = [packet getUnsignedInteger];
+            uint logon = [packet getUnsignedInteger8];
 
             if (_connectionStatus == P_WAITING_FOR_TCP_LOGON_ACK) {
                 if (logon == OP_REJECT_LOGON) {
-                    uint rejectCode = [packet getUnsignedInteger];
+                    uint rejectCode = [packet getUnsignedInteger8];
                     NSString *rejectReason = [packet getString];
+                    if (rejectReason == nil) {
+                        rejectReason = @"[No reject reason]";
+                    }
                     NSString *rejectDescription = [@"Logon rejected with reason: " stringByAppendingString:rejectReason];
                     [self handleRejectCode:rejectCode description:rejectDescription];
                     [self reconnectLimitedWithFailureDescription:rejectDescription];
@@ -347,6 +350,9 @@ uint NUM_SOCKETS = 1;
         // Nothing to do here, we preemptively reported this when starting the connection attempt.
     } else if (status == T_ERROR) {
         if (_connectionStatus != P_NOT_CONNECTED) {
+            if (description == nil) {
+                description = @"[No failure description]";
+            }
             NSString *rejectDescription = [@"TCP connection failed: " stringByAppendingString:description];
             [self reconnectLimitedWithFailureDescription:rejectDescription];
         }
@@ -356,7 +362,8 @@ uint NUM_SOCKETS = 1;
         ByteBuffer *theLogonBuffer = [[ByteBuffer alloc] init];
 
         // If we are reconnecting, identify our session via the UDP hash.
-        [theLogonBuffer addUnsignedInteger:(_udpHash != nil)];
+        uint8_t val = (_udpHash != nil) ? 1 : 0;
+        [theLogonBuffer addUnsignedInteger8:val];
         if (_udpHash != nil) {
             [theLogonBuffer addString:_udpHash];
         }
@@ -375,6 +382,9 @@ uint NUM_SOCKETS = 1;
 
 - (void)connectionStatusChangeUdp:(ConnectionStatusUdp)status withDescription:(NSString *)description {
     if (status == U_ERROR) {
+        if (description == nil) {
+            description = @"[No failure description]";
+        }
         NSString *rejectDescription = [@"UDP connection failed: " stringByAppendingString:description];
         [self reconnectLimitedWithFailureDescription:rejectDescription];
     } else if (status == U_CONNECTED) {

@@ -264,12 +264,12 @@
 
     if (gotOutput) {
         int resultImageSizeBytes = av_image_get_buffer_size(codecDecoderContext->pix_fmt, codecDecoderContext->width, codecDecoderContext->height, ALIGN_TO_BITS);
-        NSLog(@"Retrieved YUV image of size: %d, bytes written: %d", resultImageSizeBytes, result);
+        //NSLog(@"Retrieved YUV image of size: %d, bytes written: %d", resultImageSizeBytes, result);
 
         av_packet_unref(&packet);
         return picture;
     } else {
-        NSLog(@"We didn't get any data from the decoder");
+        //NSLog(@"We didn't get any data from the decoder");
         av_packet_unref(&packet);
         av_frame_free(&picture);
         return nil;
@@ -381,15 +381,15 @@
     }
 
     if (gotOutput) {
-        NSLog(@"We got some data from the encoder, be proud, with size: %d", packet.size);
+        //NSLog(@"We got some data from the encoder, be proud, with size: %d", packet.size);
         [buffer addVariableLengthData:packet.data withLength:(uint) packet.size includingPrefix:false];
         av_packet_unref(&packet);
 
         return true;
     } else {
-        NSLog(@"We didn't get any data from the encoder");
-        // packet is freed automatically by avcodec_encode_video2 if no data returned.
+        //NSLog(@"We didn't get any data from the encoder");
 
+        // packet is freed automatically by avcodec_encode_video2 if no data returned.
         return false;
     }
 }

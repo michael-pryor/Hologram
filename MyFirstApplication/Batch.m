@@ -7,50 +7,16 @@
 //
 
 #import "Batch.h"
+#import "Threading.h"
 
 @implementation Batch {
-    uint _chunksReceived;
-    float _numChunksThreshold;
-
-    uint _totalChunks;
     uint _lastChunkSize;
     uint _normalChunkSize;
-    bool _partialPacketUsedSizeFinalized;
 
-    double _timeoutSeconds;
-    ByteBuffer *_partialPacket;
     NSTimer *_timer;
-    Boolean _hasOutput;
-    id <BatchPerformanceInformation> _performanceDelegate;
-    uint _batchId;
 }
 
-- (void)onTimeout:(NSTimer *)timer {
-    //NSLog(@"Timed out with chunks received: %ul and threshold: %ul", _chunksReceived, _numChunksThreshold);
-    if (_totalChunks == 0 || !_partialPacketUsedSizeFinalized) { // value not loaded yet.
-        return;
-    }
-
-    uint integerNumChunksThreshold = (uint)(_numChunksThreshold * (float) _totalChunks);
-
-    float chunksReceivedPercentage = ((float) _chunksReceived) / ((float) _totalChunks);
-    [_performanceDelegate onNewPerformanceNotification:chunksReceivedPercentage];
-
-    @synchronized (_partialPacket) {
-        if (_chunksReceived >= integerNumChunksThreshold) {
-            if (!_hasOutput) {
-                [_partialPacket setCursorPosition:0];
-                [_outputSession onNewPacket:_partialPacket fromProtocol:UDP];
-                _hasOutput = true;
-                NSLog(@"Joiner, completed batch ID: %d", _batchId);
-            }
-        } else {
-            NSLog(@"Dropping video frame, percentage %.2f", chunksReceivedPercentage);
-        }
-    }
-}
-
-- (id)initWithOutputSession:(id <NewPacketDelegate>)outputSession numChunksThreshold:(float)numChunksThreshold timeoutSeconds:(double)timeoutSeconds performanceInformationDelegate:(id <BatchPerformanceInformation>)performanceInformationDelegate batchId:(uint)batchId {
+- (id)initWithOutputSession:(id <NewPacketDelegate>)outputSession numChunksThreshold:(float)numChunksThreshold timeoutSeconds:(double)timeoutSeconds performanceInformationDelegate:(id <BatchPerformanceInformation>)performanceInformationDelegate batchId:(uint)batchId completionSelectorTarget:(id)aSelectorTarget completionSelector:(SEL)aSelector {
     self = [super initWithOutputSession:outputSession];
     if (self) {
         _chunksReceived = 0;
@@ -60,14 +26,13 @@
         _partialPacket = [[ByteBuffer alloc] initWithSize:1024 * 20];
         _partialPacketUsedSizeFinalized = false;
 
-        _timeoutSeconds = timeoutSeconds;
-        _hasOutput = false;
+        _hasOutput = [[Signal alloc] initWithFlag:false];
         _performanceDelegate = performanceInformationDelegate;
         _batchId = batchId;
         _normalChunkSize = 0;
 
         dispatch_async(dispatch_get_main_queue(), ^(void) {
-            _timer = [NSTimer scheduledTimerWithTimeInterval:_timeoutSeconds target:self selector:@selector(onTimeout:) userInfo:nil repeats:NO];
+            _timer = [NSTimer scheduledTimerWithTimeInterval:timeoutSeconds target:aSelectorTarget selector:aSelector userInfo:self repeats:NO];
         });
     }
     return self;
@@ -86,9 +51,9 @@
 
     // Size of the last chunk in the batch (may be less than other chunks).
     if (_lastChunkSize == 0) {
-        _lastChunkSize = [packet getUnsignedInteger];
+        _lastChunkSize = [packet getUnsignedInteger8];
     } else {
-        [packet getUnsignedInteger];
+        [packet getUnsignedInteger8];
     }
 
     // Size of normal chunks; we need to cache it so that we don't use last chunk
@@ -118,9 +83,9 @@
     //NSLog(@"Joiner - generated chunk with batch ID: %d, chunkID: %d, num chunks: %d, last chunk size: %d, full batch size real: %d, current chunk size: %d, current full chunk packet size: %d, joined buff position: %d", _batchId, chunkId, _totalChunks, _lastChunkSize, [_partialPacket bufferUsedSize], [packet getUnreadDataFromCursor], [packet bufferUsedSize], buffPosition);
 
     // Copy contents of chunk packet into partial packet.
-    Boolean fireNow = false; // optimization to avoid locking when timer fires.
+    bool fireNow = false; // optimization to avoid locking when timer fires.
     @synchronized (_partialPacket) {
-        if (!_hasOutput) {
+        if (![_hasOutput isSignaled]) {
             [_partialPacket addByteBuffer:packet includingPrefix:false atPosition:buffPosition startingFrom:[packet cursorPosition]];
 
             _chunksReceived += 1;
@@ -134,6 +99,12 @@
             [_timer fire];
         });
     }
+}
+
+- (void)reset {
+    dispatch_sync_main(^(void) {
+        [_timer invalidate];
+    });
 }
 
 @end

@@ -187,21 +187,43 @@
 - (uint)getUnsignedIntegerAtPosition:(uint)position {
     uint integer = 0;
     [self getValue:&integer fromPosition:position typeSize:sizeof(uint)];
-    return integer;
+    return CFSwapInt32LittleToHost(integer);
 }
 
 - (uint)getUnsignedInteger {
     uint integer;
     [self getValue:&integer typeSize:sizeof(uint)];
-    return integer;
+    return CFSwapInt32LittleToHost(integer);
 }
 
 - (void)addUnsignedInteger:(uint)integer atPosition:(uint)position {
+    integer = CFSwapInt32HostToLittle(integer);
     [self addValue:&integer atPosition:position typeSize:sizeof(uint)];
 }
 
 - (void)addUnsignedInteger:(uint)integer {
+    integer = CFSwapInt32HostToLittle(integer);
     [self addValue:&integer typeSize:sizeof(uint)];
+}
+
+- (uint8_t)getUnsignedIntegerAtPosition8:(uint)position {
+    uint8_t integer = 0;
+    [self getValue:&integer fromPosition:position typeSize:sizeof(uint8_t)];
+    return integer;
+}
+
+- (uint8_t)getUnsignedInteger8 {
+    uint8_t integer;
+    [self getValue:&integer typeSize:sizeof(uint8_t)];
+    return integer;
+}
+
+- (void)addUnsignedInteger8:(uint8_t)integer atPosition:(uint)position {
+    [self addValue:&integer atPosition:position typeSize:sizeof(uint8_t)];
+}
+
+- (void)addUnsignedInteger8:(uint8_t)integer {
+    [self addValue:&integer typeSize:sizeof(uint8_t)];
 }
 
 - (void)setCursorPosition:(uint)newCursorPosition {

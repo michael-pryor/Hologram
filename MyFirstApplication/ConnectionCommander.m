@@ -57,7 +57,7 @@
 
 // Commander packets.
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
-    uint commanderOperation = [packet getUnsignedInteger];
+    uint commanderOperation = [packet getUnsignedInteger8];
     if (commanderOperation == COMMANDER_SUCCESS) {
         // Prepare new governor.
         uint governorAddress = [packet getUnsignedInteger];

@@ -10,6 +10,9 @@ class DataConstants:
     ULONG_FORMAT = "<L"
     ULONG_SIZE = 4
 
+    UBYTE_FORMAT = "B"
+    UBYTE_SIZE = 1
+
 
 def getEpoch():
     return calendar.timegm(time.gmtime())
