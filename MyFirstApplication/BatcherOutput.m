@@ -27,7 +27,7 @@
 
         uint maximumChunkSize = 256;
         _sendBuffer = [[ByteBuffer alloc] initWithSize:maximumChunkSize + (sizeof(uint) * numIntegers) + _leftPadding]; // space for IDs and padding too.
-        _batchSizeGenerator = [[BatchSizeGenerator alloc] initWithDesiredBatchSize:128 minimum:90 maximum:maximumChunkSize maximumPacketSize:2049];
+        _batchSizeGenerator = [[BatchSizeGenerator alloc] initWithDesiredBatchSize:128 minimum:90 maximum:maximumChunkSize maximumPacketSize:15000];
     }
     return self;
 }
@@ -97,6 +97,9 @@
 
     [_sendBuffer setUsedSize:_sendBuffer.cursorPosition];
     [_sendBuffer setCursorPosition:0];
+
+    //NSLog(@"Splitter - generated chunk with batch ID: %d, chunkID: %d, num chunks: %d, last chunk size: %d, full batch size real: %d  full batch size calculated: %d, current chunk packet size: %d, current buff position: %d, unread data in batch: %d", batchId, chunkId, numChunks, lastChunkSize, [batchPacket bufferUsedSize], ((numChunks - 1) * chunkSizeBytes) + lastChunkSize, [_sendBuffer bufferUsedSize], [batchPacket cursorPosition] - auxChunkSize, unreadData);
+
     return _sendBuffer;
 }
 @end

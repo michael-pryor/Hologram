@@ -63,11 +63,9 @@
          _tcpNetworkOutputSession = tcpNetworkOutputSession;
 
 
-        _throttledBlock = [[ThrottledBlock alloc] initWithDefaultOutputFrequency:0.1 firingInitially:true];
+        _throttledBlock = [[ThrottledBlock alloc] initWithDefaultOutputFrequency:0 firingInitially:true];
 
-        _encodingPipeVideo = [[EncodingPipe alloc] initWithOutputSession:udpNetworkOutputSession prefixId:VIDEO_ID];
 
-        _batcherOutput = [[BatcherOutput alloc] initWithOutputSession:_encodingPipeVideo leftPadding:sizeof(uint)];
 
         _videoEncoder = [[VideoEncoding alloc] initWithVideoCompression:[[VideoCompression alloc] init]];
 
@@ -77,6 +75,10 @@
         _delayedPipe = [[DelayedPipe alloc] initWithMinimumDelay:0 outputSession:p];
 
         _batcherInput = [[BatcherInput alloc] initWithOutputSession:_delayedPipe numChunksThreshold:1 timeoutMs:1000 performanceInformationDelegate:self];
+
+        _encodingPipeVideo = [[EncodingPipe alloc] initWithOutputSession:_batcherInput prefixId:VIDEO_ID];
+
+        _batcherOutput = [[BatcherOutput alloc] initWithOutputSession:_encodingPipeVideo leftPadding:sizeof(uint)];
 
         _session = [_videoEncoder setupCaptureSessionWithDelegate:self];
 
@@ -138,7 +140,7 @@
 
 // Handle new data received on network to be pushed out to the user.
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
-    [_batcherInput onNewPacket:packet fromProtocol:protocol];
+    //[_batcherInput onNewPacket:packet fromProtocol:protocol];
 }
 
 - (void)slowSendRate {

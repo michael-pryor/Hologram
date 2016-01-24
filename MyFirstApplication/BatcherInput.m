@@ -36,6 +36,7 @@
 }
 
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
+    [packet getUnsignedInteger]; // TODO: REMOVE!!!
     uint batchId = [packet getUnsignedInteger];
 
     Batch *batch;

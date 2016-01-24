@@ -14,6 +14,7 @@
 
     uint _totalChunks;
     uint _lastChunkSize;
+    uint _normalChunkSize;
     bool _partialPacketUsedSizeFinalized;
 
     double _timeoutSeconds;
@@ -41,7 +42,7 @@
                 [_partialPacket setCursorPosition:0];
                 [_outputSession onNewPacket:_partialPacket fromProtocol:UDP];
                 _hasOutput = true;
-              //  NSLog(@"Output video batch ID: %d", _batchId);
+                NSLog(@"Joiner, completed batch ID: %d", _batchId);
             }
         } else {
             NSLog(@"Dropping video frame, percentage %.2f", chunksReceivedPercentage);
@@ -63,6 +64,7 @@
         _hasOutput = false;
         _performanceDelegate = performanceInformationDelegate;
         _batchId = batchId;
+        _normalChunkSize = 0;
 
         dispatch_async(dispatch_get_main_queue(), ^(void) {
             _timer = [NSTimer scheduledTimerWithTimeInterval:_timeoutSeconds target:self selector:@selector(onTimeout:) userInfo:nil repeats:NO];
@@ -82,24 +84,38 @@
         [packet getUnsignedInteger]; // discard total chunks field.
     }
 
+    // Size of the last chunk in the batch (may be less than other chunks).
     if (_lastChunkSize == 0) {
         _lastChunkSize = [packet getUnsignedInteger];
     } else {
         [packet getUnsignedInteger];
     }
 
-    uint chunkSize = [packet getUnreadDataFromCursor];
-    uint buffPosition = chunkId * chunkSize;
+    // Size of normal chunks; we need to cache it so that we don't use last chunk
+    // in calculations.
+    if (_normalChunkSize == 0) {
+        // We don't know where to store the last chunk yet,
+        // so all we can do is drop the data :(
+        if (chunkId == _totalChunks - 1) {
+            NSLog(@"Failed to process chunk, received last chunk prior to other chunks");
+            return;
+        }
 
-    if (!_partialPacketUsedSizeFinalized && _lastChunkSize != 0 && _totalChunks != 0) {
+        _normalChunkSize = [packet getUnreadDataFromCursor];
+    }
+    uint buffPosition = chunkId * _normalChunkSize;
+
+    if (!_partialPacketUsedSizeFinalized && _lastChunkSize != 0 && _totalChunks != 0 && _normalChunkSize != 0) {
         // Last chunk can be smaller, invalidating chunkSize.
         bool isLastChunkId = (_totalChunks - 1) == chunkId;
         if (!isLastChunkId) {
-            uint partialPacketSize = ((_totalChunks - 1) * chunkSize) + _lastChunkSize;
+            uint partialPacketSize = ((_totalChunks - 1) * _normalChunkSize) + _lastChunkSize;
             [_partialPacket setUsedSize:partialPacketSize];
             _partialPacketUsedSizeFinalized = true;
         }
     }
+
+    //NSLog(@"Joiner - generated chunk with batch ID: %d, chunkID: %d, num chunks: %d, last chunk size: %d, full batch size real: %d, current chunk size: %d, current full chunk packet size: %d, joined buff position: %d", _batchId, chunkId, _totalChunks, _lastChunkSize, [_partialPacket bufferUsedSize], [packet getUnreadDataFromCursor], [packet bufferUsedSize], buffPosition);
 
     // Copy contents of chunk packet into partial packet.
     Boolean fireNow = false; // optimization to avoid locking when timer fires.

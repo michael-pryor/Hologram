@@ -343,7 +343,7 @@
 // Display view overlay showing how connection is being recovered.
 - (void)setDisconnectStateWithShortDescription:(NSString *)shortDescription longDescription:(NSString *)longDescription {
      [_accessDialog validateAuthorization:^{
-         dispatch_sync_main(^{
+         /*dispatch_sync_main(^{
              // Show the disconnect storyboard.
              UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Storyboard" bundle:nil];
 
@@ -363,7 +363,7 @@
                  _waitingForNewEndPoint = true;
                  [_mediaController stop];
              }
-         });
+         });*/
      }];
 }
 
