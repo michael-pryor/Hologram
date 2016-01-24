@@ -15,24 +15,6 @@
 #import "TimedEventTracker.h"
 #import "DelayedPipe.h"
 
-@implementation OfflineAudioProcessor : PipelineProcessor
-//Add a comment to this line
-- (id)initWithOutputSession:(id <NewPacketDelegate>)outputSession {
-    self = [super initWithOutputSession:outputSession];
-    if (self) {
-
-    }
-    return self;
-}
-
-- (void)
-onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
-    // Skip the left padding, since we don't need this when not using networking.
-    [packet setCursorPosition:sizeof(uint) * 2];
-    [_outputSession onNewPacket:packet fromProtocol:protocol];
-}
-@end
-
 @implementation MediaController {
     Boolean _started;
 
@@ -49,11 +31,6 @@ onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
 
     // Both audio and video.
     DecodingPipe *_decodingPipe;
-}
-
-- (void)echoBackForTesting {
-    OfflineAudioProcessor *offlineAudioProcessor = [[OfflineAudioProcessor alloc] initWithOutputSession:_soundPlayback];
-    [_encodingPipeAudioVideoSync setOutputSession:offlineAudioProcessor];
 }
 
 - (id)initWithImageDelegate:(id <NewImageDelegate>)newImageDelegate videoSpeedNotifier:(id <VideoSpeedNotifier>)videoSpeedNotifier tcpNetworkOutputSession:(id <NewPacketDelegate>)tcpNetworkOutputSession udpNetworkOutputSession:(id <NewPacketDelegate>)udpNetworkOutputSession mediaDelayNotifier:(id <MediaDelayNotifier>)mediaDelayNotifier {
@@ -83,7 +60,7 @@ onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
         _encodingPipeAudio = [[EncodingPipe alloc] initWithOutputSession:udpNetworkOutputSession prefixId:AUDIO_ID];
 
 
-        _soundEncoder = [[SoundMicrophone alloc] initWithOutputSession:nil numBuffers:numMicrophoneBuffers leftPadding:sizeof(uint)];
+        _soundEncoder = [[SoundMicrophone alloc] initWithOutputSession:nil numBuffers:numMicrophoneBuffers leftPadding:sizeof(uint8_t)];
         [_soundEncoder initialize];
 
         _soundPlayback = [[SoundPlayback alloc] initWithAudioDescription:[_soundEncoder getAudioDescription] numBuffers:numPlaybackAudioBuffers maxPendingAmount:maxPlaybackPendingBuffers soundPlaybackDelegate:self mediaDelayDelegate:_videoOutputController];
@@ -141,7 +118,7 @@ onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
         packet.cursorPosition = 0;
         [_decodingPipe onNewPacket:packet fromProtocol:protocol];
     } else if (protocol == TCP) {
-        uint prefix = [packet getUnsignedInteger];
+        uint prefix = [packet getUnsignedInteger8];
         if (prefix == SLOW_DOWN_VIDEO) {
             NSLog(@"Slowing down video send rate");
             [_videoOutputController slowSendRate];

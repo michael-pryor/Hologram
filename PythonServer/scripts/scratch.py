@@ -53,13 +53,25 @@ if __name__ == '__main__':
     minimumAcceptableBatchSize = 90
     maximumAcceptableBatchSize = 256
 
-    maximumPacketSize = 100000
+    maximumPacketSize = 1000
 
     mapping_to_batch_size = list()
 
     for n in range(0, maximumPacketSize):
         result = computeBatchSize(n, desiredBatchSize, minimumAcceptableBatchSize, maximumAcceptableBatchSize)
         mapping_to_batch_size.append(result)
-        print 'batch size for %d -> %d' % (n, result)
+        #print 'batch size for %d -> %d' % (n, result)
         if n > desiredBatchSize and n % result != 0:
             print "PROPPER FAILURE!: %d (batch size=%d), remainder: %d" % (n, result, n % result)
+
+    for n in range(0, maximumPacketSize):
+        a = mapping_to_batch_size[n]
+        if n < desiredBatchSize:
+            if a != n:
+                print "PROBLEM %d" % a
+            continue
+
+        if n % a != 0:
+            print "FAILURE: %d (batch size=%d), remainder: %d" % (n, a, (n % a))
+
+

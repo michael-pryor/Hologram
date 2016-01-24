@@ -63,12 +63,9 @@
          _tcpNetworkOutputSession = tcpNetworkOutputSession;
 
 
-        _throttledBlock = [[ThrottledBlock alloc] initWithDefaultOutputFrequency:0.1 firingInitially:true];
+        _throttledBlock = [[ThrottledBlock alloc] initWithDefaultOutputFrequency:0 firingInitially:true];
 
-        _encodingPipeVideo = [[EncodingPipe alloc] initWithOutputSession:udpNetworkOutputSession prefixId:VIDEO_ID];
 
-        const uint chunkSize = 128;
-        _batcherOutput = [[BatcherOutput alloc] initWithOutputSession:_encodingPipeVideo chunkSize:chunkSize leftPadding:sizeof(uint) includeTotalChunks:true];
 
         _videoEncoder = [[VideoEncoding alloc] initWithVideoCompression:[[VideoCompression alloc] init]];
 
@@ -77,9 +74,11 @@
         // Delay video playback in order to sync up with audio.
         _delayedPipe = [[DelayedPipe alloc] initWithMinimumDelay:0 outputSession:p];
 
-        _batcherInput = [[BatcherInput alloc] initWithOutputSession:_delayedPipe chunkSize:chunkSize numChunks:0 andNumChunksThreshold:1 andTimeoutMs:1000 andPerformanceInformaitonDelegate:self];
+        _batcherInput = [[BatcherInput alloc] initWithOutputSession:_delayedPipe numChunksThreshold:1 timeoutMs:1000 performanceInformationDelegate:self];
 
+        _encodingPipeVideo = [[EncodingPipe alloc] initWithOutputSession:udpNetworkOutputSession prefixId:VIDEO_ID];
 
+        _batcherOutput = [[BatcherOutput alloc] initWithOutputSession:_encodingPipeVideo leftPadding:sizeof(uint8_t)];
 
         _session = [_videoEncoder setupCaptureSessionWithDelegate:self];
 
@@ -97,11 +96,13 @@
 - (void)start {
     NSLog(@"Starting video recording...");
     [_session startRunning];
+    [_batcherInput reset];
 }
 
 - (void)stop {
     NSLog(@"Stopped video recording...");
     [_session stopRunning];
+    [_batcherInput reset];
 }
 
 - (void)setNetworkOutputSessionTcp:(id <NewPacketDelegate>)tcp {

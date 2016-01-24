@@ -70,10 +70,10 @@
     }];
 
     _skipPersonPacket = [[ByteBuffer alloc] init];
-    [_skipPersonPacket addUnsignedInteger:SKIP_PERSON];
+    [_skipPersonPacket addUnsignedInteger8:SKIP_PERSON];
 
     _permDisconnectPacket = [[ByteBuffer alloc] init];
-    [_permDisconnectPacket addUnsignedInteger:DISCONNECT_PERM];
+    [_permDisconnectPacket addUnsignedInteger8:DISCONNECT_PERM];
 
     _waitingForNewEndPoint = true;
     _isConnectionActive = false;
@@ -374,7 +374,7 @@
     }
 
     if (protocol == TCP) {
-        uint operation = [packet getUnsignedIntegerAtPosition:0];
+        uint operation = [packet getUnsignedIntegerAtPosition8:0];
         if (operation == DISCONNECT_TEMP) {
             // Allow user to skip if doesn't want to wait for previous user to reconnect.
             _isSkippableDespiteNoMatch = true;

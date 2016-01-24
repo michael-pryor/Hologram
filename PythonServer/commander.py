@@ -123,11 +123,11 @@ class CommanderClientRouting(ClientFactory):
         subServer = self.subServerCoordinator.getNextSubServer()
         if subServer is None:
             logger.warn("Failed to retrieve governor, rejecting client")
-            result.addUnsignedInteger(CommanderClientRouting.RouterCodes.FAILURE)
+            result.addUnsignedInteger8(CommanderClientRouting.RouterCodes.FAILURE)
             result.addString("No governors available")
         else:
             logger.info("Directed client to governor: [%s]" % subServer)
-            result.addUnsignedInteger(CommanderClientRouting.RouterCodes.SUCCESS)
+            result.addUnsignedInteger8(CommanderClientRouting.RouterCodes.SUCCESS)
             result.addByteBuffer(subServer.forwardPacket, includePrefix=False)
 
         self.tcp.sendByteBuffer(result)

@@ -32,6 +32,22 @@
 
 - (void)addUnsignedInteger:(uint)integer;
 
+- (uint8_t)getUnsignedIntegerAtPosition8:(uint)position;
+
+- (uint8_t)getUnsignedInteger8;
+
+- (void)addUnsignedInteger8:(uint8_t)integer atPosition:(uint)position;
+
+- (void)addUnsignedInteger8:(uint8_t)integer;
+
+- (uint16_t)getUnsignedIntegerAtPosition16:(uint)position;
+
+- (uint16_t)getUnsignedInteger16;
+
+- (void)addUnsignedInteger16:(uint16_t)integer atPosition:(uint)position;
+
+- (void)addUnsignedInteger16:(uint16_t)integer;
+
 - (uint)increaseMemoryIfUnusedAt:(uint)threshold to:(uint)newSize;
 
 - (uint)getUnusedMemory;

@@ -137,7 +137,7 @@ class Client(object):
     def handleLogon(self, packet):
         assert isinstance(packet, ByteBuffer)
 
-        isSessionHash = packet.getUnsignedInteger() > 0
+        isSessionHash = packet.getUnsignedInteger8() > 0
         if isSessionHash:
             # Reconnection attempt, UDP hash included in logon.
             self.udp_hash = packet.getString()
@@ -181,11 +181,11 @@ class Client(object):
                 self.connection_status = Client.ConnectionStatus.WAITING_UDP
                 logger.info("Logon accepted, waiting for UDP connection")
 
-                response.addUnsignedInteger(Client.UdpOperationCodes.OP_ACCEPT_LOGON)
+                response.addUnsignedInteger8(Client.UdpOperationCodes.OP_ACCEPT_LOGON)
                 response.addString(dataString) # the UDP hash code.
             else:
                 logger.warn("Logon rejected, closing connection, reject code [%d], reject reason [%s]" % (rejectCode, dataString))
-                response.addUnsignedInteger(Client.UdpOperationCodes.OP_REJECT_LOGON)
+                response.addUnsignedInteger8(Client.UdpOperationCodes.OP_REJECT_LOGON)
                 response.addUnsignedInteger(rejectCode)
                 response.addString("Reject reason: %s" % dataString)
                 self.closeConnection()
@@ -213,7 +213,7 @@ class Client(object):
         assert isinstance(packet, ByteBuffer)
         # logger.info("Received a friendly TCP packet with length: %d" % packet.used_size)
 
-        opCode = packet.getUnsignedInteger()
+        opCode = packet.getUnsignedInteger8()
         if opCode == Client.TcpOperationCodes.OP_PING:
             self.last_received_data = getEpoch()
         elif opCode == Client.TcpOperationCodes.OP_SKIP_PERSON:

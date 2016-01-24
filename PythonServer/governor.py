@@ -205,7 +205,8 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
 
         theHash = data.getString()
         if theHash is None or len(theHash) == 0:
-            logger.warn("Malformed hash received in unknown UDP packet, discarding")
+            # This can happen because of UDP ordering or client sending video frames before fully connected.
+            logger.debug("Malformed hash received in unknown UDP packet, discarding")
             return
 
         registeredClient = self.udp_connection_linker.registerCompletion(theHash, ClientUdp(remoteAddress, self.transport.write))
@@ -226,7 +227,7 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
                     self._unlockClm()
 
                 successPing = ByteBuffer()
-                successPing.addUnsignedInteger(Client.UdpOperationCodes.OP_ACCEPT_UDP)
+                successPing.addUnsignedInteger8(Client.UdpOperationCodes.OP_ACCEPT_UDP)
 
                 logger.info("Sending fully connected ACK")
                 registeredClient.tcp.sendByteBuffer(successPing)
