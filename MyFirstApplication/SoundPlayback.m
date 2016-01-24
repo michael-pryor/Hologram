@@ -150,8 +150,6 @@
         return;
     }
 
-    [packet setCursorPosition:1];
-
     // Copy byte buffer data into audio buffer.
     uint unreadData = packet.getUnreadDataFromCursor;
     if (unreadData > 0) {

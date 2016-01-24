@@ -39,14 +39,14 @@
 }
 
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
-    uint chunkId = [packet getUnsignedInteger];
+    uint chunkId = [packet getUnsignedInteger16];
 
     // Total chunks may be unknown, in which case each chunk also contains
     // a total chunks field.
     if (_totalChunks == 0) {
-        _totalChunks = [packet getUnsignedInteger]; // use total chunks field.
+        _totalChunks = [packet getUnsignedInteger16]; // use total chunks field.
     } else {
-        [packet getUnsignedInteger]; // discard total chunks field.
+        [packet getUnsignedInteger16]; // discard total chunks field.
     }
 
     // Size of the last chunk in the batch (may be less than other chunks).

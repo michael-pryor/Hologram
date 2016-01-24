@@ -226,6 +226,28 @@
     [self addValue:&integer typeSize:sizeof(uint8_t)];
 }
 
+- (uint16_t)getUnsignedIntegerAtPosition16:(uint)position {
+    uint16_t integer = 0;
+    [self getValue:&integer fromPosition:position typeSize:sizeof(uint16_t)];
+    return CFSwapInt16LittleToHost(integer);
+}
+
+- (uint16_t)getUnsignedInteger16 {
+    uint16_t integer;
+    [self getValue:&integer typeSize:sizeof(uint16_t)];
+    return CFSwapInt16LittleToHost(integer);
+}
+
+- (void)addUnsignedInteger16:(uint16_t)integer atPosition:(uint)position {
+    integer = CFSwapInt16HostToLittle(integer);
+    [self addValue:&integer atPosition:position typeSize:sizeof(uint16_t)];
+}
+
+- (void)addUnsignedInteger16:(uint16_t)integer {
+    integer = CFSwapInt16HostToLittle(integer);
+    [self addValue:&integer typeSize:sizeof(uint16_t)];
+}
+
 - (void)setCursorPosition:(uint)newCursorPosition {
     [self increaseMemorySize:newCursorPosition];
     if (newCursorPosition > _bufferUsedSize) {

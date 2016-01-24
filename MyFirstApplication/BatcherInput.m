@@ -36,7 +36,7 @@
 }
 
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
-    uint batchId = [packet getUnsignedInteger];
+    uint batchId = [packet getUnsignedInteger16];
 
     Batch *batch;
     @synchronized (_batches) {
@@ -69,9 +69,11 @@
     Batch *batch = [timer userInfo];
     uint batchId = [batch batchId];
 
-    //NSLog(@"Timed out with chunks received: %ul and threshold: %ul", _chunksReceived, _numChunksThreshold);
     if ([batch totalChunks] == 0 || ![batch partialPacketUsedSizeFinalized]) { // value not loaded yet.
         NSLog(@"Dropping very incomplete video frame with batch ID: %d", batchId);
+        @synchronized (_batches) {
+            [_batches removeObjectForKey:@([batch batchId])];
+        }
         return;
     }
 
@@ -94,7 +96,7 @@
 
                         // Tolerate integer overflow.
                         int difference = _greatestCompletedBatchId - batchId;
-                        if (difference > (UINT_MAX / 2)) {
+                        if (difference > (UINT16_MAX / 2)) {
                             NSLog(@"Integer overflow detected with batch ID: %d vs greatest %d, resetting greatest to 0", batchId, _greatestCompletedBatchId);
                             _greatestCompletedBatchId = 0;
                         } else {
@@ -105,10 +107,13 @@
                 }
 
                 [_outputSession onNewPacket:[batch partialPacket] fromProtocol:UDP];
-                NSLog(@"Joiner, completed batch ID: %d", [batch batchId]);
+                //NSLog(@"Joiner, completed batch ID: %d", [batch batchId]);
             }
         } else {
             NSLog(@"Dropping video frame, percentage %.2f and batch ID: %d", chunksReceivedPercentage, batchId);
+            @synchronized (_batches) {
+                [_batches removeObjectForKey:@([batch batchId])];
+            }
         }
     }
 }
