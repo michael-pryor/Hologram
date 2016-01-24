@@ -63,9 +63,9 @@
          _tcpNetworkOutputSession = tcpNetworkOutputSession;
 
 
-        _throttledBlock = [[ThrottledBlock alloc] initWithDefaultOutputFrequency:2 firingInitially:true];
+        _throttledBlock = [[ThrottledBlock alloc] initWithDefaultOutputFrequency:0.1 firingInitially:true];
 
-        _encodingPipeVideo = [[EncodingPipe alloc] initWithOutputSession:self prefixId:VIDEO_ID];
+        _encodingPipeVideo = [[EncodingPipe alloc] initWithOutputSession:udpNetworkOutputSession prefixId:VIDEO_ID];
 
         _batcherOutput = [[BatcherOutput alloc] initWithOutputSession:_encodingPipeVideo leftPadding:sizeof(uint)];
 
@@ -73,7 +73,10 @@
 
         PacketToImageProcessor *p = [[PacketToImageProcessor alloc] initWithImageDelegate:newImageDelegate encoder:_videoEncoder];
 
-        _batcherInput = [[BatcherInput alloc] initWithOutputSession:p numChunksThreshold:1 timeoutMs:1000 performanceInformationDelegate:self];
+        // Delay video playback in order to sync up with audio.
+        _delayedPipe = [[DelayedPipe alloc] initWithMinimumDelay:0 outputSession:p];
+
+        _batcherInput = [[BatcherInput alloc] initWithOutputSession:_delayedPipe numChunksThreshold:1 timeoutMs:1000 performanceInformationDelegate:self];
 
         _session = [_videoEncoder setupCaptureSessionWithDelegate:self];
 

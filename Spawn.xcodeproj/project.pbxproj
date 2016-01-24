@@ -43,6 +43,7 @@
 		5121B00E1C39A045001D3E78 /* libswscale.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5121B0061C39A045001D3E78 /* libswscale.a */; };
 		51260FD41B47F60F001DE2B3 /* ConnectionCommander.m in Sources */ = {isa = PBXBuildFile; fileRef = 51260FD31B47F60F001DE2B3 /* ConnectionCommander.m */; };
 		513205E71AAE4CA600C80AD9 /* SoundMicrophone.m in Sources */ = {isa = PBXBuildFile; fileRef = 513205E61AAE4CA600C80AD9 /* SoundMicrophone.m */; };
+		516526631C54C85F00AA3816 /* BatchSizeGeneratorTest.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61829DC4A7512B689E307 /* BatchSizeGeneratorTest.m */; };
 		51865D2D1C1C438A008836E7 /* iphone5_launchscreen.png in Resources */ = {isa = PBXBuildFile; fileRef = 51865D2C1C1C438A008836E7 /* iphone5_launchscreen.png */; };
 		519573041AEBEB26000247E1 /* EventTracker.m in Sources */ = {isa = PBXBuildFile; fileRef = 519573031AEBEB26000247E1 /* EventTracker.m */; };
 		51BE77721C53EEF100492336 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 51BE77711C53EEF100492336 /* XCTest.framework */; };
@@ -284,6 +285,7 @@
 		D5D615E2A5F1E15DC186FC94 /* BatchSizeGenerator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BatchSizeGenerator.h; sourceTree = "<group>"; };
 		D5D615F63C69FA0011332EF8 /* AverageTracker.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AverageTracker.m; sourceTree = "<group>"; };
 		D5D617E1AB2467E773411B25 /* MediaShared.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MediaShared.h; sourceTree = "<group>"; };
+		D5D61829DC4A7512B689E307 /* BatchSizeGeneratorTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BatchSizeGeneratorTest.m; sourceTree = "<group>"; };
 		D5D619B9B74C7F1DF1AAC7AB /* TimedGapEventTracker.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TimedGapEventTracker.m; sourceTree = "<group>"; };
 		D5D61A6B1DCCCED8F72F6EFD /* Orientation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Orientation.h; sourceTree = "<group>"; };
 		D5D61A72597479299B065AE4 /* CustomNavigationController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CustomNavigationController.m; sourceTree = "<group>"; };
@@ -577,6 +579,7 @@
 				51E5BE421936A982003E45C3 /* SpawnTests-Info.plist */,
 				51E5BE431936A982003E45C3 /* InfoPlist.strings */,
 				51D584C219AB8B1D00BB6CE6 /* ByteBufferTest.m */,
+				D5D61829DC4A7512B689E307 /* BatchSizeGeneratorTest.m */,
 			);
 			name = "Supporting Files";
 			sourceTree = "<group>";
@@ -822,6 +825,7 @@
 				51BE77EF1C54060E00492336 /* Signal.h in Sources */,
 				51BE77F01C54060E00492336 /* Signal.m in Sources */,
 				51BE77F11C54060E00492336 /* BlockingQueue.h in Sources */,
+				516526631C54C85F00AA3816 /* BatchSizeGeneratorTest.m in Sources */,
 				51BE77F21C54060E00492336 /* BlockingQueue.m in Sources */,
 				51BE77F31C54060E00492336 /* EventTracker.h in Sources */,
 				51BE77F41C54060E00492336 /* EventTracker.m in Sources */,

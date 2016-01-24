@@ -32,7 +32,7 @@
         NSLog(@"Finished computing batch sizes");
 
         // Disable below line in production code.
-        [self verifyBatchSizesForDebugging];
+        //[self verifyBatchSizesForDebugging];
     }
     return self;
 }
@@ -53,6 +53,14 @@
             *lastBatchSizes = 0;
         }
         return packetSize;
+    }
+
+    // If already perfect.
+    if (packetSize % _desiredBatchSize == 0) {
+        if (lastBatchSizes != nil) {
+            *lastBatchSizes = 0;
+        }
+        return _desiredBatchSize;
     }
 
     uint up = _desiredBatchSize + 1;
@@ -129,27 +137,5 @@
         return packetSize % _desiredBatchSize;
     }
     return _lastBatchSize[packetSize];
-}
-
-- (void)verifyBatchSizesForDebugging {
-    for (uint n = 0; n < _maximumPacketSize; n++) {
-        uint batchSize = [self getBatchSize:n];
-        if (n < _desiredBatchSize) {
-            if (n != batchSize) {
-                NSLog(@"Problem with small: %d", n);
-            }
-
-            continue;
-        }
-
-        uint remainder = n % batchSize;
-        if (_lastBatchSize[n] != remainder) {
-            NSLog(@"Serious problem, last batch size not marked properly");
-        }
-
-        if (remainder != 0) {
-            NSLog(@"Imperfection with packet_size=%d, batch_size=%d, remainder=%d", n, batchSize, remainder);
-        }
-    }
 }
 @end

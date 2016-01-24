@@ -82,14 +82,14 @@
         [packet getUnsignedInteger]; // discard total chunks field.
     }
 
-    uint chunkSize = [packet getUnreadDataFromCursor];
-    uint buffPosition = chunkId * chunkSize;
-
     if (_lastChunkSize == 0) {
         _lastChunkSize = [packet getUnsignedInteger];
     } else {
         [packet getUnsignedInteger];
     }
+
+    uint chunkSize = [packet getUnreadDataFromCursor];
+    uint buffPosition = chunkId * chunkSize;
 
     if (!_partialPacketUsedSizeFinalized && _lastChunkSize != 0 && _totalChunks != 0) {
         // Last chunk can be smaller, invalidating chunkSize.
@@ -105,9 +105,9 @@
     Boolean fireNow = false; // optimization to avoid locking when timer fires.
     @synchronized (_partialPacket) {
         if (!_hasOutput) {
-            _chunksReceived += 1;
             [_partialPacket addByteBuffer:packet includingPrefix:false atPosition:buffPosition startingFrom:[packet cursorPosition]];
 
+            _chunksReceived += 1;
             if (_chunksReceived == _totalChunks) {
                 fireNow = true;
             }
