@@ -1,5 +1,5 @@
 from twisted.internet.endpoints import TCP4ServerEndpoint
-from twisted.internet import reactor, protocol
+from twisted.internet import reactor, protocol, ssl
 from twisted.internet.protocol import ClientFactory, ReconnectingClientFactory
 from byte_buffer import ByteBuffer
 from client import Client
@@ -11,6 +11,8 @@ from utility import getRemainingTimeOnAction
 from house import House
 import logging
 import argparse
+import os
+
 from database import Database
 
 __author__ = 'pryormic'
@@ -251,6 +253,10 @@ class CommanderConnection(ReconnectingClientFactory):
 
     def __init__(self, commanderHost, commanderPort, ourGovernorTcpPort, ourGovernorUdpPort):
         self.governorPacket = ByteBuffer()
+        passwordEnvVariable = os.environ['HOLOGRAM_PASSWORD']
+        if len(passwordEnvVariable) == 0:
+           raise RuntimeError('HOLOGRAM_PASSWORD env variable must be set')
+        self.governorPacket.addString(passwordEnvVariable)
         self.governorPacket.addUnsignedInteger(ourGovernorTcpPort)
         self.governorPacket.addUnsignedInteger(ourGovernorUdpPort)
 
@@ -316,7 +322,7 @@ if __name__ == "__main__":
 
     commanderConnection = CommanderConnection(commanderHost, commanderPort, tcpPort, udpPort)
     logger.info("Connecting to commander via TCP with address: [%s:%d]" % (commanderHost, commanderPort))
-    reactor.connectTCP(commanderHost, commanderPort, commanderConnection)
+    reactor.connectSSL(commanderHost, commanderPort, commanderConnection, ssl.ClientContextFactory())
 
     database = Database(governorName, "localhost", 27017)
 

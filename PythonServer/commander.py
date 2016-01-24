@@ -1,14 +1,16 @@
 from twisted.internet.protocol import ClientFactory
-from twisted.internet import reactor, defer
+from twisted.internet import reactor, defer, ssl
 from protocol_client import ClientTcp
 from byte_buffer import ByteBuffer
 from utility import inet_addr
-from twisted.internet.endpoints import TCP4ServerEndpoint
-
-__author__ = 'pryormic'
+from twisted.internet.endpoints import TCP4ServerEndpoint, SSL4ServerEndpoint
 
 import logging
 import argparse
+import os
+
+__author__ = 'pryormic'
+
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +40,16 @@ class CommanderGovernor(object):
         assert isinstance(packet, ByteBuffer)
 
         if self.connection_status == CommanderGovernor.ConnectionStatus.WAITING_FOR_CONNECTION_DETAILS:
+            passwordEnvVariable = os.environ['HOLOGRAM_PASSWORD']
+            if len(passwordEnvVariable) == 0:
+               raise RuntimeError('HOLOGRAM_PASSWORD env variable must be set')
+
+            passwordFromGovernor = packet.getString()
+            if passwordFromGovernor != passwordEnvVariable:
+                logger.warn('Invalid governor password of: %s' % passwordFromGovernor)
+                self.tcp.transport.loseConnection()
+                return
+
             self.forwardPortTcp = packet.getUnsignedInteger()
             self.forwardPortUdp = packet.getUnsignedInteger()
             self.forwardIpAddress = self.tcp.remote_address.host
@@ -94,6 +106,7 @@ class CommanderGovernorController(ClientFactory):
         logger.info("Governor disconnected, deleting [%s]" % client)
         self.sub_servers.remove(client)
 
+
     def buildProtocol(self, addr):
         logger.info('A new governor server has connected with details [%s]' % addr)
         tcp = ClientTcp(addr)
@@ -133,6 +146,7 @@ class CommanderClientRouting(ClientFactory):
         self.tcp.sendByteBuffer(result)
 
 
+
 if __name__ == '__main__':
     logging.basicConfig(level = logging.DEBUG, format = '%(asctime)-30s %(name)-20s %(levelname)-8s %(message)s')
 
@@ -152,7 +166,11 @@ if __name__ == '__main__':
 
     server = CommanderGovernorController(governor_host)
     router = CommanderClientRouting(server)
-    endpoint = TCP4ServerEndpoint(reactor, governor_logon_port)
+    endpoint = SSL4ServerEndpoint(reactor,
+                                  governor_logon_port,
+                                  ssl.DefaultOpenSSLContextFactory(
+                                  '../security/hologram.key',
+                                  '../security/hologram.crt'))
     endpoint2 = TCP4ServerEndpoint(reactor, client_logon_port)
     endpoint.listen(server)
     endpoint2.listen(router)
