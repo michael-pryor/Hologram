@@ -17,7 +17,7 @@
 @end
 
 @interface ConnectionCommander : NSObject <NewPacketDelegate, ConnectionStatusDelegateTcp>
-- (id)initWithRecvDelegate:(id <NewPacketDelegate>)recvDelegate connectionStatusDelegate:(id <ConnectionStatusDelegateProtocol>)connectionStatusDelegate slowNetworkDelegate:(id <SlowNetworkDelegate>)slowNetworkDelegate governorSetupDelegate:(id <GovernorSetupProtocol>)governorSetupDelegate loginProvider:(id <LoginProvider>)loginProvider punchthroughNotifier:(id <NatPunchthroughNotifier>)notifier;
+- (id)initWithRecvDelegate:(id <NewPacketDelegate>)recvDelegate connectionStatusDelegate:(id <ConnectionStatusDelegateProtocol>)connectionStatusDelegate governorSetupDelegate:(id <GovernorSetupProtocol>)governorSetupDelegate loginProvider:(id <LoginProvider>)loginProvider punchthroughNotifier:(id <NatPunchthroughNotifier>)notifier;
 
 - (void)connectToTcpHost:(NSString *)tcpHost tcpPort:(ushort)tcpPort;
 

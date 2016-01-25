@@ -16,5 +16,5 @@
 
 @import AVFoundation;
 
-@interface ConnectionViewController : UIViewController <ConnectionStatusDelegateProtocol, NewPacketDelegate, UITextFieldDelegate, UIImagePickerControllerDelegate, NewImageDelegate, VideoSpeedNotifier, SlowNetworkDelegate, GovernorSetupProtocol, GpsStateDataLoadNotification, SocialStateDataLoadNotification, NatPunchthroughNotifier, MediaDelayNotifier>
+@interface ConnectionViewController : UIViewController <ConnectionStatusDelegateProtocol, NewPacketDelegate, UITextFieldDelegate, UIImagePickerControllerDelegate, NewImageDelegate, GovernorSetupProtocol, GpsStateDataLoadNotification, SocialStateDataLoadNotification, NatPunchthroughNotifier, MediaDelayNotifier>
 @end

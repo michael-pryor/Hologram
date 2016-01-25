@@ -18,4 +18,6 @@
 - (bool)encodeSampleBuffer:(CMSampleBufferRef)sampleBuffer toByteBuffer:(ByteBuffer *)buffer;
 
 - (UIImage *)decodeByteBuffer:(ByteBuffer *)buffer;
+
+- (UIImage *)convertSampleBufferToUiImage:(CMSampleBufferRef)sampleBuffer;
 @end

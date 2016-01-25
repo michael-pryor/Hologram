@@ -13,7 +13,6 @@
 @implementation ConnectionCommander {
     id <NewPacketDelegate> _recvDelegate;
     id <ConnectionStatusDelegateProtocol> _connectionStatusDelegate;
-    id <SlowNetworkDelegate> _slowNetworkDelegate;
     id <GovernorSetupProtocol> _governorSetupDelegate;
     ConnectionManagerTcp *_commander;
     OutputSessionTcp *_commanderOutput;
@@ -25,13 +24,12 @@
     ushort _tcpPort;
 }
 
-- (id)initWithRecvDelegate:(id <NewPacketDelegate>)recvDelegate connectionStatusDelegate:(id <ConnectionStatusDelegateProtocol>)connectionStatusDelegate slowNetworkDelegate:(id <SlowNetworkDelegate>)slowNetworkDelegate governorSetupDelegate:(id <GovernorSetupProtocol>)governorSetupDelegate loginProvider:(id <LoginProvider>)loginProvider punchthroughNotifier:(id <NatPunchthroughNotifier>)notifier {
+- (id)initWithRecvDelegate:(id <NewPacketDelegate>)recvDelegate connectionStatusDelegate:(id <ConnectionStatusDelegateProtocol>)connectionStatusDelegate governorSetupDelegate:(id <GovernorSetupProtocol>)governorSetupDelegate loginProvider:(id <LoginProvider>)loginProvider punchthroughNotifier:(id <NatPunchthroughNotifier>)notifier {
     if (self) {
         _natPunchthroughNotifier = notifier;
 
         _recvDelegate = recvDelegate;
         _connectionStatusDelegate = connectionStatusDelegate;
-        _slowNetworkDelegate = slowNetworkDelegate;
         _governorSetupDelegate = governorSetupDelegate;
 
         _commanderOutput = [[OutputSessionTcp alloc] init];
@@ -64,7 +62,7 @@
         NSString *governorAddressConverted = [NetworkUtility convertPreparedHostName:governorAddress];
         uint governorPortTcp = [packet getUnsignedInteger];
         uint governorPortUdp = [packet getUnsignedInteger];
-        id <ConnectionGovernor> governor = [[ConnectionGovernorNatPunchthrough alloc] initWithRecvDelegate:_recvDelegate connectionStatusDelegate:_connectionStatusDelegate slowNetworkDelegate:_slowNetworkDelegate loginProvider:_loginProvider punchthroughNotifier:_natPunchthroughNotifier];
+        id <ConnectionGovernor> governor = [[ConnectionGovernorNatPunchthrough alloc] initWithRecvDelegate:_recvDelegate connectionStatusDelegate:_connectionStatusDelegate loginProvider:_loginProvider punchthroughNotifier:_natPunchthroughNotifier];
         [governor connectToTcpHost:governorAddressConverted tcpPort:governorPortTcp udpHost:governorAddressConverted udpPort:governorPortUdp];
 
         // Announce governor.

@@ -60,7 +60,7 @@ uint NUM_SOCKETS = 1;
 #define OP_PING 10
 }
 
-- (id)initWithRecvDelegate:(id <NewPacketDelegate>)recvDelegate unknownRecvDelegate:(id <NewUnknownPacketDelegate>)unknownRecvDelegate connectionStatusDelegate:(id <ConnectionStatusDelegateProtocol>)connectionStatusDelegate slowNetworkDelegate:(id <SlowNetworkDelegate>)slowNetworkDelegate loginProvider:(id <LoginProvider>)loginProvider {
+- (id)initWithRecvDelegate:(id <NewPacketDelegate>)recvDelegate unknownRecvDelegate:(id <NewUnknownPacketDelegate>)unknownRecvDelegate connectionStatusDelegate:(id <ConnectionStatusDelegateProtocol>)connectionStatusDelegate loginProvider:(id <LoginProvider>)loginProvider {
     self = [super init];
     if (self) {
         _alive = true;
@@ -82,7 +82,7 @@ uint NUM_SOCKETS = 1;
         _tcpOutputSession = [[OutputSessionTcp alloc] init];
         _tcpConnection = [[ConnectionManagerTcp alloc] initWithConnectionStatusDelegate:self inputSession:tcpSession outputSession:_tcpOutputSession];
 
-        _udpConnection = [[ConnectionManagerUdp alloc] initWithNewPacketDelegate:self newUnknownPacketDelegate:unknownRecvDelegate slowNetworkDelegate:slowNetworkDelegate connectionDelegate:self retryCount:5];
+        _udpConnection = [[ConnectionManagerUdp alloc] initWithNewPacketDelegate:self newUnknownPacketDelegate:unknownRecvDelegate connectionDelegate:self retryCount:5];
 
         _loginProvider = loginProvider;
         _badVersionNotified = false;

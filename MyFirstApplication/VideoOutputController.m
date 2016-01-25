@@ -49,22 +49,18 @@
     BatcherInput *_batcherInput;                      // Join up networked packets into one image.
     DelayedPipe *_delayedPipe;                        // Delay video output so that it syncs up with audio.
 
-    id <NewPacketDelegate> _tcpNetworkOutputSession;   // For requesting slow down in network usage.
+    id <MediaDelayNotifier> _mediaDelayNotifier;       // Inform upstreams (e.g. GUI) of delay for debugging purposes.
 
-    TimedEventTracker *_slowDownThreshold;            // Decides when to ask for less network traffic.
-    id <VideoSpeedNotifier> _videoSpeedNotifier;       // Notify of change in video frame rate.
-
-    id<MediaDelayNotifier> _mediaDelayNotifier;       // Inform upstreams (e.g. GUI) of delay for debugging purposes.
+    id <NewImageDelegate> _localImageDelegate;         // Display user's own camera to user (so that can see what other people see of them.
+    ThrottledBlock *_localImageUpdateThrottle;
 
 }
-- (id)initWithTcpNetworkOutputSession:(id <NewPacketDelegate>)tcpNetworkOutputSession udpNetworkOutputSession:(id <NewPacketDelegate>)udpNetworkOutputSession imageDelegate:(id <NewImageDelegate>)newImageDelegate videoSpeedNotifier:(id <VideoSpeedNotifier>)videoSpeedNotifier mediaDelayNotifier:(id<MediaDelayNotifier>) mediaDelayNotifier {
+- (id)initWithUdpNetworkOutputSession:(id <NewPacketDelegate>)udpNetworkOutputSession imageDelegate:(id <NewImageDelegate>)newImageDelegate mediaDelayNotifier:(id <MediaDelayNotifier>)mediaDelayNotifier {
     self = [super init];
     if (self) {
-         _tcpNetworkOutputSession = tcpNetworkOutputSession;
-
+        _localImageDelegate = nil;
 
         _throttledBlock = [[ThrottledBlock alloc] initWithDefaultOutputFrequency:0 firingInitially:true];
-
 
 
         _videoEncoder = [[VideoEncoding alloc] initWithVideoCompression:[[VideoCompression alloc] init]];
@@ -74,7 +70,7 @@
         // Delay video playback in order to sync up with audio.
         _delayedPipe = [[DelayedPipe alloc] initWithMinimumDelay:0 outputSession:p];
 
-        _batcherInput = [[BatcherInput alloc] initWithOutputSession:_delayedPipe numChunksThreshold:1 timeoutMs:1000 performanceInformationDelegate:self];
+        _batcherInput = [[BatcherInput alloc] initWithOutputSession:_delayedPipe numChunksThreshold:1 timeoutMs:1000];
 
         _encodingPipeVideo = [[EncodingPipe alloc] initWithOutputSession:udpNetworkOutputSession prefixId:VIDEO_ID];
 
@@ -82,15 +78,19 @@
 
         _session = [_videoEncoder setupCaptureSessionWithDelegate:self];
 
-        // 5 second of bad data.
-        _slowDownThreshold = [[TimedEventTracker alloc] initWithMaxEvents:10 timePeriod:1];
-
-        _videoSpeedNotifier = videoSpeedNotifier;
-
         _mediaDelayNotifier = mediaDelayNotifier;
 
+        _localImageUpdateThrottle = [[ThrottledBlock alloc] initWithDefaultOutputFrequency:0.1 firingInitially:true];
     }
     return self;
+}
+
+- (void)setLocalImageDelegate:(id <NewImageDelegate>)localImageDelegate {
+    _localImageDelegate = localImageDelegate;
+}
+
+- (void)clearLocalImageDelegate {
+    _localImageDelegate = nil;
 }
 
 - (void)start {
@@ -105,18 +105,22 @@
     [_batcherInput reset];
 }
 
-- (void)setNetworkOutputSessionTcp:(id <NewPacketDelegate>)tcp {
-    NSLog(@"Updating video tcp network output sessions");
-    _tcpNetworkOutputSession = tcp;
-}
-
 // Handle data from camera device and push out to network.
 - (void)captureOutput:(AVCaptureOutput *)captureOutput didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection {
+    if (_localImageDelegate != nil) {
+        [_localImageUpdateThrottle runBlock:^{
+            UIImage *localImage = [_videoEncoder convertSampleBufferToUiImage:sampleBuffer];
+            if (localImage != nil) {
+                [_localImageDelegate onNewImage:localImage];
+            }
+        }];
+    }
+
     [_throttledBlock runBlock:^{
         // Send image as packet.
         ByteBuffer *rawBuffer = [[ByteBuffer alloc] init];
 
-        if(![_videoEncoder addImage:sampleBuffer toByteBuffer:rawBuffer]) {
+        if (![_videoEncoder addImage:sampleBuffer toByteBuffer:rawBuffer]) {
             return;
         }
         rawBuffer.cursorPosition = 0;
@@ -125,41 +129,14 @@
     }];
 }
 
-// Handle degrading network performance.
-- (void)onNewPerformanceNotification:(float)percentageFilled {
-    if (percentageFilled < 100.0 && [_slowDownThreshold increment]) {
-        [self sendSlowdownRequest];
-    }
-}
-
-- (void)sendSlowdownRequest {
-    // Consider removing this; I don't think its particularly useful.
-    /*NSLog(@"Requesting slow down in video");
-    ByteBuffer *buffer = [[ByteBuffer alloc] init];
-    [buffer addUnsignedInteger:SLOW_DOWN_VIDEO];
-    [_tcpNetworkOutputSession onNewPacket:buffer fromProtocol:TCP];*/
-}
-
 // Handle new data received on network to be pushed out to the user.
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
     [_batcherInput onNewPacket:packet fromProtocol:protocol];
 }
 
-- (void)slowSendRate {
-    /*NSLog(@"Slowing send rate of video");
-    [_throttledBlock slowRate];
-    [_videoSpeedNotifier onNewVideoFrameFrequency:[_throttledBlock secondsFrequency]];*/
-}
-
-- (void)resetSendRate {
-    /*NSLog(@"Resetting video send rate");
-    [_throttledBlock reset];
-    [_videoSpeedNotifier onNewVideoFrameFrequency:[_throttledBlock secondsFrequency]];*/
-}
-
 - (void)onMediaDelayNotified:(uint)delayMs {
     // NSLog(@"Should delay by %dms", delayMs);
-    [_delayedPipe setMinimumDelay:((float)delayMs / 1000.0)];
+    [_delayedPipe setMinimumDelay:((float) delayMs / 1000.0)];
 
     if (_mediaDelayNotifier != nil) {
         [_mediaDelayNotifier onMediaDelayNotified:delayMs];

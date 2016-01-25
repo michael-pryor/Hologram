@@ -124,6 +124,10 @@
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
 
+    if (_mediaController == nil) {
+        _mediaController = [[MediaController alloc] initWithImageDelegate:self mediaDelayNotifier:self];
+    }
+
     _inFacebookLoginView = false;
     _isSkippableDespiteNoMatch = false;
 
@@ -173,7 +177,7 @@
 - (void)onGpsDataLoaded:(GpsState *)state {
     QuarkLogin *loginProvider = [[QuarkLogin alloc] initWithGpsState:state];
 
-    _connectionCommander = [[ConnectionCommander alloc] initWithRecvDelegate:self connectionStatusDelegate:self slowNetworkDelegate:self governorSetupDelegate:self loginProvider:loginProvider punchthroughNotifier:self];
+    _connectionCommander = [[ConnectionCommander alloc] initWithRecvDelegate:self connectionStatusDelegate:self governorSetupDelegate:self loginProvider:loginProvider punchthroughNotifier:self];
 
     [self connectToCommander];
 }
@@ -274,6 +278,7 @@
         } else {
             _disconnectViewController = nil;
             _isSkippableDespiteNoMatch = false;
+            [_mediaController clearLocalImageDelegate];
         }
     }
 
@@ -306,12 +311,8 @@
     }
     _connection = governor;
 
-    if (_mediaController != nil) {
-        [_mediaController setNetworkOutputSessionTcp:[_connection getTcpOutputSession] Udp:[_connection getUdpOutputSession]];
-    } else {
-        _mediaController = [[MediaController alloc] initWithImageDelegate:self videoSpeedNotifier:self tcpNetworkOutputSession:[_connection getTcpOutputSession] udpNetworkOutputSession:[_connection getUdpOutputSession] mediaDelayNotifier:self];
-    }
-    [_mediaController start];
+   [_mediaController setNetworkOutputSessionUdp:[_connection getUdpOutputSession]];
+   [_mediaController start];
 }
 
 // Handle change in connection state.
@@ -361,6 +362,7 @@
             if (!alreadyPresented) {
                 _disconnectViewController = (AlertViewController *) [storyboard instantiateViewControllerWithIdentifier:@"DisconnectAlertView"];
                 _disconnectViewController.view.frame = self.view.bounds;
+                [_mediaController setLocalImageDelegate:_disconnectViewController];
                 [self addChildViewController:_disconnectViewController];
                 [self.view addSubview:_disconnectViewController.view];
             }
@@ -421,12 +423,5 @@
     dispatch_sync_main(^{
         [_frameRate setText:[NSString stringWithFormat:@"%d", delayMs]];
     });
-}
-
-// Received request to slow down video send rate.
-- (void)slowNetworkNotification {
-    if (_mediaController != nil) {
-        [_mediaController sendSlowdownRequest];
-    }
 }
 @end

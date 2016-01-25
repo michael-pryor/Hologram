@@ -26,14 +26,12 @@
     Signal *_closingNotInProgress;
     Signal *_openingNotInProgress;
     EventTracker *_sendFailureEventTracker;
-    id <SlowNetworkDelegate> _slowNetworkDelegate;
-    Timer *_slowNetworkDelegateThrottle;
     struct sockaddr_in _connectAddress;
     id <NewUnknownPacketDelegate> _newUnknownPacketDelegate;
     uint _sockAddressSize;
 }
 
-- (id)initWithNewPacketDelegate:(id <NewPacketDelegate>)newPacketDelegate newUnknownPacketDelegate:(id <NewUnknownPacketDelegate>)newUnknownPacketDelegate slowNetworkDelegate:(id <SlowNetworkDelegate>)slowNetworkDelegate connectionDelegate:(id <ConnectionStatusDelegateUdp>)connectionDelegate retryCount:(uint)retryCountMax {
+- (id)initWithNewPacketDelegate:(id <NewPacketDelegate>)newPacketDelegate newUnknownPacketDelegate:(id <NewUnknownPacketDelegate>)newUnknownPacketDelegate connectionDelegate:(id <ConnectionStatusDelegateUdp>)connectionDelegate retryCount:(uint)retryCountMax {
     self = [super init];
     if (self) {
         _socket = 0;
@@ -46,8 +44,6 @@
         _gcd_queue_sending = dispatch_queue_create("ConnectionManagerUdpSendQueue", NULL);
         _dispatch_source = nil;
         _sendFailureEventTracker = [[EventTracker alloc] initWithMaxEvents:retryCountMax];
-        _slowNetworkDelegate = slowNetworkDelegate;
-        _slowNetworkDelegateThrottle = [[Timer alloc] initWithFrequencySeconds:5 firingInitially:true];
         _sockAddressSize = sizeof(struct sockaddr_in);
         _newUnknownPacketDelegate = newUnknownPacketDelegate;
     }
@@ -195,12 +191,6 @@
 
         long result = sendto(_socket, [buffer buffer], [buffer bufferUsedSize], 0, (struct sockaddr *) address, _sockAddressSize);
         if (result < 0) {
-            // No buffer space available, we are sending too quickly.
-            if (result == ENOBUFS && [_slowNetworkDelegateThrottle getState]) {
-                NSLog(@"UDP network send buffer is full, sending slow down notification");
-                [_slowNetworkDelegate slowNetworkNotification];
-            }
-
             if ([_sendFailureEventTracker increment]) {
                 [self onFailure];
             } else {

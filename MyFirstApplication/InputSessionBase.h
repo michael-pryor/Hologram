@@ -33,9 +33,3 @@ typedef enum {
 @protocol NewPacketDelegate
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol;
 @end
-
-// Notifies users that network is slow,
-// so they should try to reduce network usage.
-@protocol SlowNetworkDelegate
-- (void)slowNetworkNotification;
-@end

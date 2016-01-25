@@ -20,4 +20,6 @@
 - (bool)addImage:(CMSampleBufferRef)image toByteBuffer:(ByteBuffer *)buffer;
 
 - (UIImage *)getImageFromByteBuffer:(ByteBuffer *)buffer;
+
+- (UIImage *)convertSampleBufferToUiImage:(CMSampleBufferRef)sampleBuffer;
 @end

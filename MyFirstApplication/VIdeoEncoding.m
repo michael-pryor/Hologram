@@ -132,4 +132,9 @@
 - (UIImage *)getImageFromByteBuffer:(ByteBuffer *)byteBuffer {
     return [_compression decodeByteBuffer:byteBuffer];
 }
+
+- (UIImage *)convertSampleBufferToUiImage:(CMSampleBufferRef)sampleBuffer {
+    // No actual compression/decompression here, but reusing some of the same logic.
+    return [_compression convertSampleBufferToUiImage:sampleBuffer];
+}
 @end

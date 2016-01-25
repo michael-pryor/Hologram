@@ -279,14 +279,8 @@
                         <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="center" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Here is some sample text to talk about stuff" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="3" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="MuE-y5-gsJ">
-                                <rect key="frame" x="0.0" y="262" width="600" height="17"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                                <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
-                                <nil key="highlightedColor"/>
-                            </label>
                             <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" animating="YES" style="white" translatesAutoresizingMaskIntoConstraints="NO" id="dvT-tN-vmd">
-                                <rect key="frame" x="290" y="289" width="20" height="20"/>
+                                <rect key="frame" x="290" y="444" width="20" height="20"/>
                                 <color key="color" white="1" alpha="1" colorSpace="calibratedWhite"/>
                             </activityIndicatorView>
                             <adBannerView hidden="YES" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="hSC-qc-XE8">
@@ -295,21 +289,36 @@
                                     <outlet property="delegate" destination="szN-uc-xgc" id="SUi-9i-F4C"/>
                                 </connections>
                             </adBannerView>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="4GO-A5-5zk">
+                                <rect key="frame" x="20" y="40" width="560" height="354"/>
+                            </imageView>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="center" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Here is some sample text to talk about stuff" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="3" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="MuE-y5-gsJ">
+                                <rect key="frame" x="0.0" y="417" width="600" height="17"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <color key="backgroundColor" red="0.02763500548245611" green="0.030384799890350846" blue="0.29056160910087714" alpha="1" colorSpace="calibratedRGB"/>
                         <constraints>
-                            <constraint firstItem="hSC-qc-XE8" firstAttribute="width" secondItem="qfn-EI-xYg" secondAttribute="width" id="CxF-Bs-Ga4"/>
+                            <constraint firstItem="hSC-qc-XE8" firstAttribute="width" secondItem="qfn-EI-xYg" secondAttribute="width" id="CxF-Bs-Ga4" userLabel="Banner Width"/>
+                            <constraint firstItem="4GO-A5-5zk" firstAttribute="leading" secondItem="qfn-EI-xYg" secondAttribute="leadingMargin" id="EJW-ms-iTq" userLabel="LocalImage left edge"/>
                             <constraint firstItem="MuE-y5-gsJ" firstAttribute="width" secondItem="qfn-EI-xYg" secondAttribute="width" id="Gal-Ed-jDD" userLabel="AlertText width"/>
+                            <constraint firstItem="4GO-A5-5zk" firstAttribute="bottom" secondItem="hSC-qc-XE8" secondAttribute="top" constant="-140" id="L4c-1j-oT5" userLabel="LocalImage Y"/>
                             <constraint firstItem="MuE-y5-gsJ" firstAttribute="bottom" secondItem="dvT-tN-vmd" secondAttribute="top" constant="-10" id="MyL-tp-jFG" userLabel="Activity Indicator Top"/>
                             <constraint firstItem="MuE-y5-gsJ" firstAttribute="centerX" secondItem="qfn-EI-xYg" secondAttribute="centerX" id="Pr5-8e-bO0" userLabel="AlertText center X"/>
-                            <constraint firstItem="hSC-qc-XE8" firstAttribute="centerX" secondItem="qfn-EI-xYg" secondAttribute="centerX" id="YMV-WX-K9L"/>
-                            <constraint firstItem="MuE-y5-gsJ" firstAttribute="centerY" secondItem="qfn-EI-xYg" secondAttribute="centerY" constant="-30" id="YcE-pP-zIb" userLabel="AlertText center Y"/>
+                            <constraint firstItem="4GO-A5-5zk" firstAttribute="trailing" secondItem="qfn-EI-xYg" secondAttribute="trailingMargin" id="RRK-KK-DSq" userLabel="LocalImage right"/>
+                            <constraint firstItem="hSC-qc-XE8" firstAttribute="centerX" secondItem="qfn-EI-xYg" secondAttribute="centerX" id="YMV-WX-K9L" userLabel="Banner center X"/>
                             <constraint firstItem="dvT-tN-vmd" firstAttribute="centerX" secondItem="qfn-EI-xYg" secondAttribute="centerX" id="fkv-nQ-Nhv" userLabel="Activity Indicator center"/>
-                            <constraint firstItem="hSC-qc-XE8" firstAttribute="bottom" secondItem="dBu-An-5ob" secondAttribute="top" id="tZs-aK-ygS"/>
+                            <constraint firstItem="MuE-y5-gsJ" firstAttribute="bottom" secondItem="hSC-qc-XE8" secondAttribute="top" constant="-100" id="kIP-LH-Rqc" userLabel="AlertText Y"/>
+                            <constraint firstItem="4GO-A5-5zk" firstAttribute="top" secondItem="zQz-dJ-HyO" secondAttribute="bottom" constant="20" id="nhI-Ra-PKh" userLabel="LocalImage top"/>
+                            <constraint firstItem="4GO-A5-5zk" firstAttribute="centerX" secondItem="MuE-y5-gsJ" secondAttribute="centerX" id="oCi-p1-dWk" userLabel="LocalImage center X"/>
+                            <constraint firstItem="hSC-qc-XE8" firstAttribute="bottom" secondItem="dBu-An-5ob" secondAttribute="top" id="tZs-aK-ygS" userLabel="Banner Bottom"/>
                         </constraints>
                     </view>
                     <connections>
                         <outlet property="_alertShortText" destination="MuE-y5-gsJ" id="7Df-1T-xIO"/>
+                        <outlet property="_localImageView" destination="4GO-A5-5zk" id="dcv-r8-ZWm"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="SN5-oZ-zxh" userLabel="First Responder" sceneMemberID="firstResponder"/>

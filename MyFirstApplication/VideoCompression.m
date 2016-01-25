@@ -29,12 +29,19 @@
 
     CVPixelBufferPoolRef _pixelBufferPool;
     UIImageOrientation _imageOrientation;
+    
+    CIContext *_context;
 }
 - (id)init {
     self = [super init];
     if (self) {
         int result;
 
+        {
+            // Note: this call leaks memory, so its important to only call it once per lifetime of app.
+            _context = [CIContext contextWithOptions:nil];
+        }
+        
         av_register_all();
 
         {
@@ -141,7 +148,7 @@
     UIInterfaceOrientation orientation = [Orientation getDeviceOrientation];
 
     _imageOrientation = UIImageOrientationLeft;
-    switch(orientation) {
+    switch (orientation) {
         case UIInterfaceOrientationLandscapeRight:
         case UIInterfaceOrientationLandscapeLeft:
             _imageOrientation = UIImageOrientationDown;
@@ -211,19 +218,17 @@
     CVPixelBufferUnlockBaseAddress(pixelBuffer, 0);
 
     CIImage *coreImage = [CIImage imageWithCVPixelBuffer:pixelBuffer];
-
-    CIContext *context = [CIContext contextWithOptions:nil];
-    CGImageRef videoImage = [context
+    
+    CGImageRef videoImage = [_context
             createCGImage:coreImage
                  fromRect:CGRectMake(0, 0,
                          width,
                          height)];
 
     UIImage *imageResult = [[UIImage alloc] initWithCGImage:videoImage scale:1.0 orientation:_imageOrientation];
-
+    
     CGImageRelease(videoImage);
     CVPixelBufferRelease(pixelBuffer);
-
     return imageResult;
 }
 
@@ -285,8 +290,7 @@
     av_frame_free(&picture);
 }
 
-// Encodes the packet
-- (bool)encodeSampleBuffer:(CMSampleBufferRef)sampleBuffer toByteBuffer:(ByteBuffer *)buffer {
+- (bool)convertSampleBuffer:(CMSampleBufferRef)sampleBuffer toFrame:(AVFrame **)frameResult {
     int result;
 
     // SO basically.
@@ -306,6 +310,7 @@
         NSLog(@"Failed av_frame_alloc");
         return false;
     }
+    *frameResult = picture;
 
     int pictureByteSize = av_image_alloc(picture->data, picture->linesize, codecEncoderContext->width, codecEncoderContext->height, codecEncoderContext->pix_fmt, ALIGN_TO_BITS);
     if (pictureByteSize < 0) {
@@ -361,6 +366,19 @@
     }
 
     CVPixelBufferUnlockBaseAddress(pixelBuffer, 0);
+    return true;
+}
+
+// Encodes the packet
+- (bool)encodeSampleBuffer:(CMSampleBufferRef)sampleBuffer toByteBuffer:(ByteBuffer *)buffer {
+    int result;
+
+    AVFrame *picture;
+    bool success = [self convertSampleBuffer:sampleBuffer toFrame:&picture];
+    if (!success) {
+        NSLog(@"Failed convertSampleBufferToFrame");
+        return false;
+    }
 
     // Packet to be allocated by the encoder (will contain output).
     AVPacket packet;
@@ -405,6 +423,19 @@
     av_frame_free(&decodedYuv);
 
     // May be null.
+    return image;
+}
+
+- (UIImage *)convertSampleBufferToUiImage:(CMSampleBufferRef)sampleBuffer {
+    AVFrame *frame;
+    bool success = [self convertSampleBuffer:sampleBuffer toFrame:&frame];
+    if (!success) {
+        NSLog(@"Failed convertSampleBuffer inside convertSampleBufferToUiImage");
+        return nil;
+    }
+
+    UIImage *image = [self convertYuvFrameToImage:frame];
+    [self freeYuvFrame:frame];
     return image;
 }
 

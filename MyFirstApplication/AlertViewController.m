@@ -13,6 +13,7 @@
 @implementation AlertViewController {
     IBOutlet UILabel *_alertShortText;
     Timer *_timerSinceAdvertCreated;
+    __weak IBOutlet UIImageView *_localImageView;
 }
 
 - (void)setAlertShortText:(NSString *)shortText longText:(NSString *)longText {
@@ -70,4 +71,9 @@
         [_timerSinceAdvertCreated setSecondsFrequency:0];
     });
 }
+
+- (void)onNewImage:(UIImage *)image {
+    [_localImageView performSelectorOnMainThread:@selector(setImage:) withObject:image waitUntilDone:YES];
+}
+
 @end
