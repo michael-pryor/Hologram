@@ -24,6 +24,10 @@
 
 - (void)start;
 
+- (void)startVideo;
+
+- (void)stopVideo;
+
 - (void)setLocalImageDelegate:(id <NewImageDelegate>)localImageDelegate;
 
 - (void)clearLocalImageDelegate;

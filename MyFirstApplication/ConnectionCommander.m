@@ -46,6 +46,7 @@
 // Commander connect.
 - (void)connectToTcpHost:(NSString *)tcpHost tcpPort:(ushort)tcpPort {
     [self shutdown];
+    _terminated = false;
     _tcpHost = tcpHost;
     _tcpPort = tcpPort;
     [self _reconnect];

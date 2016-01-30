@@ -10,7 +10,6 @@
 #import "ThrottledBlock.h"
 #import "BatcherInput.h"
 #import "EncodingPipe.h"
-#import "TimedEventTracker.h"
 #import "DelayedPipe.h"
 #import "VideoCompression.h"
 
@@ -40,7 +39,7 @@
 
 
 @implementation VideoOutputController {
-    AVCaptureSession *_session;                       // Link to video input hardware.
+    AVCaptureSession *_captureSession;                       // Link to video input hardware.
     ThrottledBlock *_throttledBlock;                  // Control rate of video transmission over network.
     BatcherOutput *_batcherOutput;                    // Split up image into multiple packets for network.
     VideoEncoding *_videoEncoder;                     // Convert between network and image formats.
@@ -53,6 +52,8 @@
 
     id <NewImageDelegate> _localImageDelegate;         // Display user's own camera to user (so that can see what other people see of them.
     ThrottledBlock *_localImageUpdateThrottle;
+
+    Signal *_isRunning;
 
 }
 - (id)initWithUdpNetworkOutputSession:(id <NewPacketDelegate>)udpNetworkOutputSession imageDelegate:(id <NewImageDelegate>)newImageDelegate mediaDelayNotifier:(id <MediaDelayNotifier>)mediaDelayNotifier {
@@ -76,11 +77,13 @@
 
         _batcherOutput = [[BatcherOutput alloc] initWithOutputSession:_encodingPipeVideo leftPadding:sizeof(uint8_t)];
 
-        _session = [_videoEncoder setupCaptureSessionWithDelegate:self];
+        _captureSession = [_videoEncoder setupCaptureSessionWithDelegate:self];
 
         _mediaDelayNotifier = mediaDelayNotifier;
 
         _localImageUpdateThrottle = [[ThrottledBlock alloc] initWithDefaultOutputFrequency:0.1 firingInitially:true];
+
+        _isRunning = [[Signal alloc] initWithFlag:false];
     }
     return self;
 }
@@ -93,15 +96,25 @@
     _localImageDelegate = nil;
 }
 
-- (void)start {
-    NSLog(@"Starting video recording...");
-    [_session startRunning];
-    [_batcherInput reset];
+- (void)startCapturing {
+    @synchronized (self) {
+        if ([_isRunning signalAll]) {
+            NSLog(@"Starting video recording...");
+            [_captureSession startRunning];
+        }
+    }
 }
 
-- (void)stop {
-    NSLog(@"Stopped video recording...");
-    [_session stopRunning];
+- (void)stopCapturing {
+    @synchronized (self) {
+        if ([_isRunning clear]) {
+            NSLog(@"Stopped video recording...");
+            [_captureSession stopRunning];
+        }
+    }
+}
+
+- (void)resetInbound {
     [_batcherInput reset];
 }
 

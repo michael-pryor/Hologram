@@ -186,7 +186,7 @@ class Client(object):
             else:
                 logger.warn("Logon rejected, closing connection, reject code [%d], reject reason [%s]" % (rejectCode, dataString))
                 response.addUnsignedInteger8(Client.UdpOperationCodes.OP_REJECT_LOGON)
-                response.addUnsignedInteger(rejectCode)
+                response.addUnsignedInteger8(rejectCode)
                 response.addString("Reject reason: %s" % dataString)
                 self.closeConnection()
 

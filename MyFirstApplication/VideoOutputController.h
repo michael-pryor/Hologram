@@ -27,9 +27,11 @@
 @interface VideoOutputController : NSObject <AVCaptureVideoDataOutputSampleBufferDelegate, NewPacketDelegate, MediaDelayNotifier>
 - (id)initWithUdpNetworkOutputSession:(id <NewPacketDelegate>)udpNetworkOutputSession imageDelegate:(id <NewImageDelegate>)newImageDelegate mediaDelayNotifier:(id <MediaDelayNotifier>)mediaDelayNotifier;
 
-- (void)start;
+- (void)startCapturing;
 
-- (void)stop;
+- (void)stopCapturing;
+
+- (void)resetInbound;
 
 - (void)setLocalImageDelegate:(id <NewImageDelegate>)localImageDelegate;
 

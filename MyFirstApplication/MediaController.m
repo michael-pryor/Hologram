@@ -68,8 +68,6 @@
 
         [_soundPlayback initialize];
         NSLog(@"Audio microphone and speaker initialized");
-
-        [_videoOutputController start];
     }
     return self;
 }
@@ -91,9 +89,12 @@
 
         NSLog(@"Starting video recording and microphone");
         [_soundPlayback resetQueue];
-        //[_videoOutputController start];
         [_soundEncoder startCapturing];
         [_soundPlayback startPlayback];
+
+        // We discard out of order batches based on keeping track of the batch ID.
+        // We need to reset this when moving to the next person.
+        [_videoOutputController resetInbound];
     }
 }
 
@@ -105,10 +106,19 @@
         _started = false;
 
         NSLog(@"Stopping video recording and microphone");
-        //[_videoOutputController stop];
         [_soundEncoder stopCapturing];
         [_soundPlayback stopPlayback];
     }
+}
+
+- (void)startVideo {
+    // We use the video on the disconnect screen aswell, so once initialized, we never need to stop capturing.
+    [_videoOutputController startCapturing];
+}
+
+- (void)stopVideo {
+    // We use the video on the disconnect screen aswell, so once initialized, we never need to stop capturing.
+    [_videoOutputController stopCapturing];
 }
 
 - (void)setNetworkOutputSessionUdp:(id <NewPacketDelegate>)udp {

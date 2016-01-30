@@ -59,7 +59,7 @@
 
     [self setDisconnectStateWithShortDescription:@"Initializing" longDescription:@"Initializing media controller"];
 
-    // If failure action is triggered, application is guarenteed to be terminated by
+    // If failure action is triggered, application is guaranteed to be terminated by
     // _accessDialog (we may just be waiting for a user to acknowledge a dialog box).
     //
     // This is important, because we can't recover from terminateCurrentSession without
@@ -105,6 +105,7 @@
 
     // Terminate microphone and video.
     [_mediaController stop];
+    [_mediaController stopVideo];
 }
 
 // View disappears; happens if user switches app or moves from a different view controller.
@@ -149,6 +150,7 @@
         if (_mediaController == nil) {
             _mediaController = [[MediaController alloc] initWithImageDelegate:self mediaDelayNotifier:self];
         }
+        [_mediaController startVideo];
 
         if (![socialState isDataLoaded]) {
             [socialState registerNotifier:self];
@@ -184,9 +186,7 @@
 // Starts connection.
 - (void)onGpsDataLoaded:(GpsState *)state {
     QuarkLogin *loginProvider = [[QuarkLogin alloc] initWithGpsState:state];
-
     _connectionCommander = [[ConnectionCommander alloc] initWithRecvDelegate:self connectionStatusDelegate:self governorSetupDelegate:self loginProvider:loginProvider punchthroughNotifier:self];
-
     [self connectToCommander];
 }
 
@@ -366,14 +366,19 @@
             // Show the disconnect storyboard.
             UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Storyboard" bundle:nil];
             
-            [_mediaController setLocalImageDelegate:_disconnectViewController];
-
             Boolean alreadyPresented = _disconnectViewController != nil;
             if (!alreadyPresented) {
                 _disconnectViewController = (AlertViewController *) [storyboard instantiateViewControllerWithIdentifier:@"DisconnectAlertView"];
                 _disconnectViewController.view.frame = self.view.bounds;
+                if (_mediaController != nil) {
+                    [_mediaController setLocalImageDelegate:_disconnectViewController];
+                }
                 [self addChildViewController:_disconnectViewController];
                 [self.view addSubview:_disconnectViewController.view];
+            } else {
+                if (_mediaController != nil) {
+                    [_mediaController setLocalImageDelegate:_disconnectViewController];
+                }
             }
             // Set its content
             NSLog(@"Disconnect screen presented, long description: %@", longDescription);
@@ -429,11 +434,6 @@
             [_mediaController onNewPacket:packet fromProtocol:protocol];
         }
     }
-}
-
-// Notification that video frame rate has changed.
-- (void)onNewVideoFrameFrequency:(CFAbsoluteTime)secondsFrequency {
-    // Do nothing with this information.
 }
 
 - (void)onMediaDelayNotified:(uint)delayMs {
