@@ -32,6 +32,6 @@ bool HandleResultOSStatus(OSStatus errCode, NSString *performing, bool shouldLog
     return false;
 }
 
-int calculateBufferSize(AudioStreamBasicDescription *audioDescription) {
+uint calculateBufferSize(AudioStreamBasicDescription *audioDescription) {
     return 1024;
 }

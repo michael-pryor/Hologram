@@ -42,7 +42,7 @@
                                     <constraint firstAttribute="height" constant="30" id="W9L-jl-9Zb"/>
                                 </constraints>
                                 <state key="normal" title="Start!">
-                                    <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                    <color key="titleColor" cocoaTouchSystemColor="darkTextColor"/>
                                 </state>
                                 <connections>
                                     <action selector="onFinishedButtonClick:" destination="HPd-0g-j2K" eventType="touchUpInside" id="H6m-47-h07"/>
@@ -51,10 +51,10 @@
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="center" lineBreakMode="wordWrap" numberOfLines="4" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="cSh-QE-Wji">
                                 <rect key="frame" x="282" y="215" width="36" height="17"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                                <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
+                                <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <view opaque="NO" clipsSubviews="YES" alpha="0.5" contentMode="center" horizontalCompressionResistancePriority="250" verticalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="Tqe-eB-ZAO" customClass="FBSDKProfilePictureView">
+                            <view opaque="NO" clipsSubviews="YES" alpha="0.94999999999999996" contentMode="center" horizontalCompressionResistancePriority="250" verticalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="Tqe-eB-ZAO" customClass="FBSDKProfilePictureView">
                                 <rect key="frame" x="211" y="25" width="180" height="180"/>
                                 <color key="backgroundColor" red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                 <constraints>
@@ -75,7 +75,7 @@
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Facebook" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="VbS-z8-oK5" userLabel="Facebook Label">
                                 <rect key="frame" x="20" y="237" width="560" height="18"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="15"/>
-                                <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
+                                <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <segmentedControl opaque="NO" contentMode="scaleToFill" selected="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" segmentControlStyle="plain" selectedSegmentIndex="2" translatesAutoresizingMaskIntoConstraints="NO" id="OOB-gH-KCT">
@@ -96,20 +96,13 @@
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Interested in" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="9Bj-2i-1uF" userLabel="Gender Chooser Label">
                                 <rect key="frame" x="20" y="320" width="560" height="18"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="15"/>
-                                <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
-                                <nil key="highlightedColor"/>
-                            </label>
-                            <label hidden="YES" opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="1" verticalCompressionResistancePriority="1" text="asdadsadadadasdsadsadadsadasdasdadasd" lineBreakMode="wordWrap" numberOfLines="14" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="D36-ZX-SI2" userLabel="Facebook Login Ask">
-                                <rect key="frame" x="20" y="20" width="560" height="217"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                                <color key="textColor" red="0.0" green="1" blue="0.49427918526267378" alpha="1" colorSpace="calibratedRGB"/>
+                                <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
                         </subviews>
-                        <color key="backgroundColor" red="0.027635005479999999" green="0.030384799890000001" blue="0.29056160910000001" alpha="1" colorSpace="calibratedRGB"/>
+                        <color key="backgroundColor" red="0.5490196078431373" green="1" blue="0.93725490196078431" alpha="1" colorSpace="calibratedRGB"/>
                         <constraints>
                             <constraint firstItem="vn7-7t-VXi" firstAttribute="bottom" secondItem="9Bj-2i-1uF" secondAttribute="top" constant="-20" id="2z5-wP-OwQ" userLabel="LoginButton bottom"/>
-                            <constraint firstItem="D36-ZX-SI2" firstAttribute="bottom" secondItem="VbS-z8-oK5" secondAttribute="top" id="4XG-HG-Tmq"/>
                             <constraint firstItem="suW-MI-gIg" firstAttribute="bottom" secondItem="b6S-Yq-msf" secondAttribute="top" priority="100" constant="-117" id="5TV-WH-fgF"/>
                             <constraint firstItem="VbS-z8-oK5" firstAttribute="trailing" secondItem="a3M-hh-5zc" secondAttribute="trailingMargin" id="8QI-08-n0D" userLabel="FacebookLabel right"/>
                             <constraint firstItem="VbS-z8-oK5" firstAttribute="bottom" secondItem="vn7-7t-VXi" secondAttribute="top" constant="-5" id="8sm-52-djg" userLabel="LoginButtonLabel bottom"/>
@@ -117,9 +110,7 @@
                             <constraint firstItem="suW-MI-gIg" firstAttribute="centerX" secondItem="a3M-hh-5zc" secondAttribute="centerX" id="Hye-yA-QLV" userLabel="ButtonFinished left/right"/>
                             <constraint firstItem="OOB-gH-KCT" firstAttribute="leading" relation="lessThanOrEqual" secondItem="a3M-hh-5zc" secondAttribute="leadingMargin" id="IbV-Sb-ifP" userLabel="GenderChooser left"/>
                             <constraint firstItem="9Bj-2i-1uF" firstAttribute="leading" secondItem="a3M-hh-5zc" secondAttribute="leadingMargin" id="Ity-22-pIs" userLabel="GenderChooserLabel left"/>
-                            <constraint firstItem="suW-MI-gIg" firstAttribute="bottom" relation="lessThanOrEqual" secondItem="b6S-Yq-msf" secondAttribute="top" constant="-30" id="Jjd-ZV-rt0"/>
-                            <constraint firstItem="D36-ZX-SI2" firstAttribute="leading" secondItem="VbS-z8-oK5" secondAttribute="leading" id="KvQ-e1-F2a"/>
-                            <constraint firstItem="D36-ZX-SI2" firstAttribute="top" secondItem="lWr-th-MY7" secondAttribute="bottom" id="NQO-c9-elO"/>
+                            <constraint firstItem="suW-MI-gIg" firstAttribute="bottom" relation="lessThanOrEqual" secondItem="b6S-Yq-msf" secondAttribute="top" constant="-15" id="Jjd-ZV-rt0"/>
                             <constraint firstItem="cSh-QE-Wji" firstAttribute="centerX" secondItem="a3M-hh-5zc" secondAttribute="centerX" id="PKI-l9-Mgl" userLabel="DisplayName centre"/>
                             <constraint firstItem="vn7-7t-VXi" firstAttribute="width" secondItem="OOB-gH-KCT" secondAttribute="width" constant="-1" id="REq-ag-V4V" userLabel="LoginButton width"/>
                             <constraint firstItem="Tqe-eB-ZAO" firstAttribute="centerX" secondItem="a3M-hh-5zc" secondAttribute="centerX" constant="1" id="Rln-pH-h4p" userLabel="DisplayPicture centre"/>
@@ -127,9 +118,7 @@
                             <constraint firstItem="Tqe-eB-ZAO" firstAttribute="top" secondItem="lWr-th-MY7" secondAttribute="bottom" constant="5" id="eCf-c9-qe8"/>
                             <constraint firstItem="Tqe-eB-ZAO" firstAttribute="height" relation="lessThanOrEqual" secondItem="a3M-hh-5zc" secondAttribute="height" multiplier="0.3" id="ffX-WQ-Ncz" userLabel="DisplayPicture max size"/>
                             <constraint firstItem="cSh-QE-Wji" firstAttribute="bottom" secondItem="VbS-z8-oK5" secondAttribute="top" constant="-5" id="hlW-4q-xU6" userLabel="DisplayName bottom minimum"/>
-                            <constraint firstItem="D36-ZX-SI2" firstAttribute="centerX" secondItem="a3M-hh-5zc" secondAttribute="centerX" id="mrB-yE-kJd"/>
                             <constraint firstItem="9Bj-2i-1uF" firstAttribute="bottom" secondItem="OOB-gH-KCT" secondAttribute="top" constant="-5" id="nb5-G1-kkz" userLabel="GenderChooserLabel bottom"/>
-                            <constraint firstItem="D36-ZX-SI2" firstAttribute="trailing" secondItem="VbS-z8-oK5" secondAttribute="trailing" id="oDr-po-BqJ"/>
                             <constraint firstItem="9Bj-2i-1uF" firstAttribute="trailing" secondItem="a3M-hh-5zc" secondAttribute="trailingMargin" id="pYJ-iG-QUR" userLabel="GenderChooserLabel right"/>
                             <constraint firstAttribute="trailingMargin" relation="lessThanOrEqual" secondItem="OOB-gH-KCT" secondAttribute="trailing" id="pvo-5H-tOP" userLabel="GenderChooser right"/>
                             <constraint firstItem="cSh-QE-Wji" firstAttribute="bottom" secondItem="VbS-z8-oK5" secondAttribute="top" priority="750" constant="-5" id="qal-hY-cxH" userLabel="DisplayPicture expanding"/>
@@ -142,7 +131,6 @@
                     <navigationItem key="navigationItem" id="26w-at-jnP"/>
                     <connections>
                         <outlet property="_desiredGenderChooser" destination="OOB-gH-KCT" id="qsG-k1-h1a"/>
-                        <outlet property="_facebookAskLabel" destination="D36-ZX-SI2" id="Wf0-3C-dZG"/>
                         <outlet property="buttonFinished" destination="suW-MI-gIg" id="cfR-ze-8VP"/>
                         <outlet property="displayName" destination="cSh-QE-Wji" id="rRq-yg-MED"/>
                         <outlet property="displayPicture" destination="Tqe-eB-ZAO" id="8Hu-Cb-xqY"/>
@@ -279,38 +267,37 @@
                         <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="center" horizontalHuggingPriority="1000" verticalHuggingPriority="1000" horizontalCompressionResistancePriority="1000" verticalCompressionResistancePriority="1000" text="Here is some sample text to talk about stuff" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="3" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="MuE-y5-gsJ">
+                                <rect key="frame" x="0.0" y="433" width="600" height="17"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="4GO-A5-5zk">
+                                <rect key="frame" x="20" y="40" width="560" height="353"/>
+                            </imageView>
                             <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" animating="YES" style="white" translatesAutoresizingMaskIntoConstraints="NO" id="dvT-tN-vmd">
-                                <rect key="frame" x="290" y="444" width="20" height="20"/>
-                                <color key="color" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <rect key="frame" x="290" y="460" width="20" height="20"/>
+                                <color key="color" cocoaTouchSystemColor="darkTextColor"/>
                             </activityIndicatorView>
-                            <adBannerView hidden="YES" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="hSC-qc-XE8">
+                            <adBannerView hidden="YES" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="hSC-qc-XE8">
                                 <rect key="frame" x="0.0" y="534" width="600" height="66"/>
                                 <connections>
                                     <outlet property="delegate" destination="szN-uc-xgc" id="SUi-9i-F4C"/>
                                 </connections>
                             </adBannerView>
-                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="4GO-A5-5zk">
-                                <rect key="frame" x="20" y="40" width="560" height="354"/>
-                            </imageView>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="center" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Here is some sample text to talk about stuff" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="3" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="MuE-y5-gsJ">
-                                <rect key="frame" x="0.0" y="417" width="600" height="17"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                                <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
-                                <nil key="highlightedColor"/>
-                            </label>
                         </subviews>
-                        <color key="backgroundColor" red="0.02763500548245611" green="0.030384799890350846" blue="0.29056160910087714" alpha="1" colorSpace="calibratedRGB"/>
+                        <color key="backgroundColor" red="0.60392156862745094" green="0.99607843137254903" blue="0.94901960784313721" alpha="1" colorSpace="calibratedRGB"/>
                         <constraints>
-                            <constraint firstItem="hSC-qc-XE8" firstAttribute="width" secondItem="qfn-EI-xYg" secondAttribute="width" id="CxF-Bs-Ga4" userLabel="Banner Width"/>
+                            <constraint firstItem="MuE-y5-gsJ" firstAttribute="bottom" secondItem="dBu-An-5ob" secondAttribute="top" constant="-150" id="5Eu-9p-y43"/>
                             <constraint firstItem="4GO-A5-5zk" firstAttribute="leading" secondItem="qfn-EI-xYg" secondAttribute="leadingMargin" id="EJW-ms-iTq" userLabel="LocalImage left edge"/>
                             <constraint firstItem="MuE-y5-gsJ" firstAttribute="width" secondItem="qfn-EI-xYg" secondAttribute="width" id="Gal-Ed-jDD" userLabel="AlertText width"/>
-                            <constraint firstItem="4GO-A5-5zk" firstAttribute="bottom" secondItem="hSC-qc-XE8" secondAttribute="top" constant="-140" id="L4c-1j-oT5" userLabel="LocalImage Y"/>
                             <constraint firstItem="MuE-y5-gsJ" firstAttribute="bottom" secondItem="dvT-tN-vmd" secondAttribute="top" constant="-10" id="MyL-tp-jFG" userLabel="Activity Indicator Top"/>
                             <constraint firstItem="MuE-y5-gsJ" firstAttribute="centerX" secondItem="qfn-EI-xYg" secondAttribute="centerX" id="Pr5-8e-bO0" userLabel="AlertText center X"/>
                             <constraint firstItem="4GO-A5-5zk" firstAttribute="trailing" secondItem="qfn-EI-xYg" secondAttribute="trailingMargin" id="RRK-KK-DSq" userLabel="LocalImage right"/>
+                            <constraint firstItem="hSC-qc-XE8" firstAttribute="width" secondItem="qfn-EI-xYg" secondAttribute="width" id="Rn1-nj-9dT"/>
                             <constraint firstItem="hSC-qc-XE8" firstAttribute="centerX" secondItem="qfn-EI-xYg" secondAttribute="centerX" id="YMV-WX-K9L" userLabel="Banner center X"/>
+                            <constraint firstItem="4GO-A5-5zk" firstAttribute="bottom" secondItem="MuE-y5-gsJ" secondAttribute="top" constant="-40" id="bpE-7V-5cu"/>
                             <constraint firstItem="dvT-tN-vmd" firstAttribute="centerX" secondItem="qfn-EI-xYg" secondAttribute="centerX" id="fkv-nQ-Nhv" userLabel="Activity Indicator center"/>
-                            <constraint firstItem="MuE-y5-gsJ" firstAttribute="bottom" secondItem="hSC-qc-XE8" secondAttribute="top" constant="-100" id="kIP-LH-Rqc" userLabel="AlertText Y"/>
                             <constraint firstItem="4GO-A5-5zk" firstAttribute="top" secondItem="zQz-dJ-HyO" secondAttribute="bottom" constant="20" id="nhI-Ra-PKh" userLabel="LocalImage top"/>
                             <constraint firstItem="4GO-A5-5zk" firstAttribute="centerX" secondItem="MuE-y5-gsJ" secondAttribute="centerX" id="oCi-p1-dWk" userLabel="LocalImage center X"/>
                             <constraint firstItem="hSC-qc-XE8" firstAttribute="bottom" secondItem="dBu-An-5ob" secondAttribute="top" id="tZs-aK-ygS" userLabel="Banner Bottom"/>
@@ -318,6 +305,7 @@
                     </view>
                     <connections>
                         <outlet property="_alertShortText" destination="MuE-y5-gsJ" id="7Df-1T-xIO"/>
+                        <outlet property="_bannerView" destination="hSC-qc-XE8" id="w79-G4-urz"/>
                         <outlet property="_localImageView" destination="4GO-A5-5zk" id="dcv-r8-ZWm"/>
                     </connections>
                 </viewController>

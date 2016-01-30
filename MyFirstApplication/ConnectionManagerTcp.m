@@ -8,6 +8,7 @@
 
 #import "ConnectionManagerTcp.h"
 #import "Signal.h"
+#import "Threading.h"
 
 @implementation ConnectionManagerTcp {
     NSInputStream *_inputStream;
@@ -61,19 +62,9 @@
 
 - (void)connectToHost:(NSString *)host andPort:(ushort)port; {
     // So that sockets/streams are owned by main thread.
-    if ([NSThread isMainThread]) {
+    dispatch_sync_main(^{
         [self _doConnectToHost:host andPort:port];
-    } else {
-        dispatch_sync(dispatch_get_main_queue(), ^{
-            [self _doConnectToHost:host andPort:port];
-        });
-    }
-}
-
-- (void)performShutdownInRunLoop {
-    NSLog(@"TCP output - Terminating run loop and closing streams");
-    [self onNormalError:_outputStream withError:@"Terminating TCP connection"];
-    [self closeStream:_inputStream];
+    });
 }
 
 - (void)shutdown {

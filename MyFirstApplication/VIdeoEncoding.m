@@ -67,6 +67,7 @@
             input = [AVCaptureDeviceInput deviceInputWithDevice:device error:&error];
             if (!input) {
                 NSLog(@"Could not access input device: %@", error);
+                return nil;
             }
         }
 

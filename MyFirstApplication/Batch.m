@@ -60,7 +60,7 @@
         // We don't know where to store the last chunk yet,
         // so all we can do is drop the data :(
         if (chunkId == _totalChunks - 1) {
-            NSLog(@"Failed to process chunk, received last chunk prior to other chunks");
+           // NSLog(@"Failed to process chunk, received last chunk prior to other chunks");
             return;
         }
 

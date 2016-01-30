@@ -14,6 +14,7 @@
     IBOutlet UILabel *_alertShortText;
     Timer *_timerSinceAdvertCreated;
     __weak IBOutlet UIImageView *_localImageView;
+    __weak IBOutlet ADBannerView *_bannerView;
 }
 
 - (void)setAlertShortText:(NSString *)shortText longText:(NSString *)longText {
@@ -34,6 +35,8 @@
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
     [_timerSinceAdvertCreated reset];
+    
+    
 }
 
 - (Boolean)hideIfVisibleAndReady {
@@ -54,7 +57,7 @@
     dispatch_sync_main(^{
         NSLog(@"Banner has loaded, unhiding it");
         [banner setHidden:false];
-
+        
         // User must wait a minimum of 2 seconds extra while the advert is visible
         // (giving them a chance to see it and click it).
         [_timerSinceAdvertCreated reset];
@@ -66,7 +69,7 @@
     dispatch_sync_main(^{
         NSLog(@"Failed to retrieve banner, hiding it; error is: %@", error);
         [banner setHidden:true];
-
+        
         // Will not wait for banner to be displayed.
         [_timerSinceAdvertCreated setSecondsFrequency:0];
     });
@@ -77,3 +80,4 @@
 }
 
 @end
+

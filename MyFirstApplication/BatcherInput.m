@@ -68,7 +68,7 @@
     uint batchId = [batch batchId];
 
     if ([batch totalChunks] == 0 || ![batch partialPacketUsedSizeFinalized]) { // value not loaded yet.
-        NSLog(@"Dropping very incomplete video frame with batch ID: %d", batchId);
+        //NSLog(@"Dropping very incomplete video frame with batch ID: %d", batchId);
         @synchronized (_batches) {
             [_batches removeObjectForKey:@([batch batchId])];
         }

@@ -38,7 +38,11 @@
 
     // Thread blocks on the sound queue and pushes data out to the output thread.
     NSThread *_soundQueueThread;
+    Signal *_soundQueueThreadTerminated;
+
     NSThread *_outputThread;
+    CFRunLoopRef _outputThreadRunLoop;
+    Signal *_outputThreadTerminated;
 
     uint _numAudioBuffers;
     AudioQueueBufferRef *_audioBuffers;
@@ -55,6 +59,8 @@
     volatile bool _flush;
 
     AverageTracker *_averageTracker;
+    Signal *_running;
+
 }
 
 
@@ -94,6 +100,15 @@
 
         _forceRestart = false;
         _flush = false;
+
+        _running = [[Signal alloc] initWithFlag:false];
+        _outputThreadTerminated = [[Signal alloc] initWithFlag:false];
+        _soundQueueThreadTerminated = [[Signal alloc] initWithFlag:false];
+
+        [self selectSpeaker];
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(audioRouteChangeListenerCallback:)
+                                                     name:AVAudioSessionRouteChangeNotification
+                                                   object:nil];
     }
     return self;
 }
@@ -233,10 +248,6 @@
     }
 }
 
-- (int)getBuffersInUse {
-    return _numAudioBuffers - [_bufferPool size];
-}
-
 - (bool)handleResultOsStatus:(OSStatus)result description:(NSString *)description {
     if (HandleResultOSStatus(result, description, false)) {
         return true;
@@ -330,7 +341,7 @@ static void HandleOutputBuffer(void *aqData,
 }
 
 - (void)waitForQueueToFill {
-    while ([_soundQueue size] < 3) {
+    while ([_soundQueue size] < 3 && [_running isSignaled]) {
         //NSLog(@"Waiting for playback queue to expand");
         [NSThread sleepForTimeInterval:0.01];
     }
@@ -338,9 +349,10 @@ static void HandleOutputBuffer(void *aqData,
 
 // Thread polls on sound queue and plays data.
 - (void)soundQueueThreadEntryPoint:var {
+    [_soundQueueThreadTerminated clear];
     [self waitForQueueToFill];
 
-    while (true) {
+    while ([_running isSignaled]) {
         // Wait for an available audio buffer.
         NSValue *_bufferVal = [_bufferPool get];
         if (_bufferVal == nil) {
@@ -349,7 +361,7 @@ static void HandleOutputBuffer(void *aqData,
 
         // Wait for a new item to play.
         ByteBuffer *nextItem = [_soundQueue get];
-        if (nextItem == nil) {
+        if (nextItem == nil || ![_running isSignaled]) {
             break;
         }
 
@@ -384,9 +396,13 @@ static void HandleOutputBuffer(void *aqData,
         // Push the data into audio queues.
         [self playSoundData:nextItem withBuffer:audioQueueBuffer];
     }
+
+    [_soundQueueThreadTerminated signalAll];
 }
 
 - (void)outputThreadEntryPoint:var {
+    [_outputThreadTerminated clear];
+
     OSStatus result = AudioQueueNewOutput(_audioDescription, HandleOutputBuffer, (__bridge void *) (self), CFRunLoopGetCurrent(), kCFRunLoopCommonModes, 0, &_audioQueue);
     HandleResultOSStatus(result, @"Initializing speaker queue", true);
 
@@ -403,34 +419,79 @@ static void HandleOutputBuffer(void *aqData,
         [self returnToPool:_audioBuffers[i]];
     }
 
-    [AVAudioSession sharedInstance];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(audioRouteChangeListenerCallback:)
-                                                 name:AVAudioSessionRouteChangeNotification
-                                               object:nil];
-    [self selectSpeaker];
-
     NSLog(@"Initialized speaker thread");
     [_queueSetup signalAll];
 
+    _outputThreadRunLoop = CFRunLoopGetCurrent();
     CFRunLoopRun();
 
+    result = AudioQueueDispose(_audioQueue, false);
+    HandleResultOSStatus(result, @"Disposing of speaker queue", true);
+
+    [_outputThreadTerminated signalAll];
     NSLog(@"Speaker thread exiting");
 }
 
 
 - (void)initialize {
-    // Run send operations in a ; run loop (and thread) because we wait for packets to
-    // enter a queue and block indefinitely, which would block anything else in the run loop (e.g.
-    // receive operations) if there were some.
-    _outputThread = [[NSThread alloc] initWithTarget:self
-                                            selector:@selector(outputThreadEntryPoint:)
-                                              object:nil];
-    [_outputThread start];
-    [_queueSetup wait];
-    NSLog(@"Speaker thread initialized");
+    @synchronized(self) {
+        if (![_running signalAll]) {
+            return;
+        }
 
-    _soundQueueThread = [[NSThread alloc] initWithTarget:self selector:@selector(soundQueueThreadEntryPoint:) object:nil];
-    [_soundQueueThread start];
+        [_bufferPool clear];
+
+        // Run send operations in a ; run loop (and thread) because we wait for packets to
+        // enter a queue and block indefinitely, which would block anything else in the run loop (e.g.
+        // receive operations) if there were some.
+        _outputThread = [[NSThread alloc] initWithTarget:self
+                                                selector:@selector(outputThreadEntryPoint:)
+                                                  object:nil];
+        [_outputThread start];
+        [_queueSetup wait];
+        NSLog(@"Speaker thread initialized");
+
+        _soundQueueThread = [[NSThread alloc] initWithTarget:self selector:@selector(soundQueueThreadEntryPoint:) object:nil];
+        [_soundQueueThread start];
+    }
+}
+
+// a further call to initialize can revoke this.
+- (void)terminate {
+    // synchronize on running because stopPlayback is called from the thread _soundQueueThread,
+    // and stopPlayback synchronizes on this object (self).
+    @synchronized(_running) {
+        if (![_running clear]) {
+            return;
+        }
+
+        // Force thread to exit.
+        // This also pauses the queue, preventing new additions.
+        [_soundQueue add:nil];
+
+        // Wait for _soundQueueThread to terminate in response to _running being false.
+        [_soundQueueThreadTerminated wait];
+
+        CFRunLoopStop(_outputThreadRunLoop);
+        [_outputThreadTerminated wait];
+
+        // Allow new additions to the queue.
+        [_soundQueue restartQueue];
+
+        // Ensure playback is resumed properly later on.
+        [_isPlaying clear];
+    }
+}
+
+// If currently initialized, reinitialize
+// If not currently initialized, do nothing.
+- (void)reinitialize {
+    @synchronized (_running) {
+        if ([_running isSignaled]) {
+            [self terminate];
+            [self initialize];
+        }
+    }
 }
 
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
@@ -495,11 +556,17 @@ static void HandleOutputBuffer(void *aqData,
         desiredModeDescription = @"Enabling noise cancellation";
     }
 
-    if (![[session mode] isEqualToString:desiredMode]) {
-        NSLog(desiredModeDescription);
-        bool result = [session setMode:desiredMode error:&error];
-        if (!result) {
-            NSLog(@"Failed to enable %@ mode, reason: %@", desiredMode, [error localizedDescription]);
+    // Incase callback is called multiple times simultaneously.
+    @synchronized(_running) {
+        if (![[session mode] isEqualToString:desiredMode]) {
+            NSLog(desiredModeDescription);
+            bool result = [session setMode:desiredMode error:&error];
+            if (!result) {
+                NSLog(@"Failed to enable %@ mode, reason: %@", desiredMode, [error localizedDescription]);
+            }
+
+            // To pickup the change we need to reinitialize the audio queue.
+            [self reinitialize];
         }
     }
 }

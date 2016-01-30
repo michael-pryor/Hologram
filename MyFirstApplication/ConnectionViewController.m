@@ -57,6 +57,8 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
 
+    [self setDisconnectStateWithShortDescription:@"Initializing" longDescription:@"Initializing media controller"];
+
     // If failure action is triggered, application is guarenteed to be terminated by
     // _accessDialog (we may just be waiting for a user to acknowledge a dialog box).
     //
@@ -94,6 +96,10 @@
         [_connection sendTcpPacket:_permDisconnectPacket];
     }
 
+    if (_connectionCommander != nil) {
+        [_connectionCommander terminate];
+    }
+
     // Don't push anything to the display, might get a few lingering packets received after this point.
     _isConnectionActive = false;
 
@@ -124,10 +130,6 @@
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
 
-    if (_mediaController == nil) {
-        _mediaController = [[MediaController alloc] initWithImageDelegate:self mediaDelayNotifier:self];
-    }
-
     _inFacebookLoginView = false;
     _isSkippableDespiteNoMatch = false;
 
@@ -142,6 +144,12 @@
     }
 
     [_accessDialog validateAuthorization:^{
+        // This step can take a few seconds (particularly on older devices).
+        [self setDisconnectStateWithShortDescription:@"Initializing" longDescription:@"Initializing media controller"];
+        if (_mediaController == nil) {
+            _mediaController = [[MediaController alloc] initWithImageDelegate:self mediaDelayNotifier:self];
+        }
+
         if (![socialState isDataLoaded]) {
             [socialState registerNotifier:self];
             [self setDisconnectStateWithShortDescription:@"Loading Facebook details" longDescription:@"Waiting for Facebook details to load"];
@@ -311,8 +319,8 @@
     }
     _connection = governor;
 
-   [_mediaController setNetworkOutputSessionUdp:[_connection getUdpOutputSession]];
-   [_mediaController start];
+    [_mediaController setNetworkOutputSessionUdp:[_connection getUdpOutputSession]];
+    [_mediaController start];
 }
 
 // Handle change in connection state.
@@ -353,16 +361,17 @@
 
 // Display view overlay showing how connection is being recovered.
 - (void)setDisconnectStateWithShortDescription:(NSString *)shortDescription longDescription:(NSString *)longDescription {
-    [_accessDialog validateAuthorization:^{
+    void (^block)() = ^{
         dispatch_sync_main(^{
             // Show the disconnect storyboard.
             UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Storyboard" bundle:nil];
+            
+            [_mediaController setLocalImageDelegate:_disconnectViewController];
 
             Boolean alreadyPresented = _disconnectViewController != nil;
             if (!alreadyPresented) {
                 _disconnectViewController = (AlertViewController *) [storyboard instantiateViewControllerWithIdentifier:@"DisconnectAlertView"];
                 _disconnectViewController.view.frame = self.view.bounds;
-                [_mediaController setLocalImageDelegate:_disconnectViewController];
                 [self addChildViewController:_disconnectViewController];
                 [self.view addSubview:_disconnectViewController.view];
             }
@@ -376,7 +385,15 @@
                 [_mediaController stop];
             }
         });
-    }];
+    };
+
+    if (_accessDialog != nil) {
+        [_accessDialog validateAuthorization:^{
+            block();
+        }];
+    } else {
+        block();
+    }
 }
 
 // Handle data and pass to relevant parts of application.

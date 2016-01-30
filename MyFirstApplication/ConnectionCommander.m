@@ -22,6 +22,7 @@
 
     NSString *_tcpHost;
     ushort _tcpPort;
+    bool _terminated;
 }
 
 - (id)initWithRecvDelegate:(id <NewPacketDelegate>)recvDelegate connectionStatusDelegate:(id <ConnectionStatusDelegateProtocol>)connectionStatusDelegate governorSetupDelegate:(id <GovernorSetupProtocol>)governorSetupDelegate loginProvider:(id <LoginProvider>)loginProvider punchthroughNotifier:(id <NatPunchthroughNotifier>)notifier {
@@ -37,6 +38,7 @@
         _commander = [[ConnectionManagerTcp alloc] initWithConnectionStatusDelegate:self inputSession:[[InputSessionTcp alloc] initWithDelegate:self] outputSession:_commanderOutput];
 
         _loginProvider = loginProvider;
+        _terminated = false;
     }
     return self;
 }
@@ -50,6 +52,10 @@
 }
 
 - (void)_reconnect {
+    if (_terminated) {
+        NSLog(@"Commander connection is terminated, ignoring reconnect attempt");
+        return;
+    }
     [_commander connectToHost:_tcpHost andPort:_tcpPort];
 }
 
@@ -89,11 +95,12 @@
 }
 
 - (void)terminate {
+    _terminated = true;
     [_commander shutdown];
 }
 
 - (Boolean)isTerminated {
-    return false;
+    return _terminated;
 }
 
 - (void)shutdownWithDescription:(NSString *)description {

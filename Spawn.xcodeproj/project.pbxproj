@@ -976,6 +976,7 @@
 					"/Users/pryormic/Desktop/MyFirstApplication/x264-ios/x264-iOS/include",
 				);
 				INFOPLIST_FILE = "MyFirstApplication/Spawn-Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 8.1;
 				KEEP_PRIVATE_EXTERNS = NO;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
@@ -991,6 +992,8 @@
 				PRODUCT_NAME = Spawn;
 				PROVISIONING_PROFILE = "";
 				STRIP_STYLE = debugging;
+				TARGETED_DEVICE_FAMILY = 1;
+				VALID_ARCHS = "arm64 x86_64 i386 armv7s armv7";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -1018,6 +1021,7 @@
 					"/Users/pryormic/Desktop/MyFirstApplication/x264-ios/x264-iOS/include",
 				);
 				INFOPLIST_FILE = "MyFirstApplication/Spawn-Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 8.1;
 				KEEP_PRIVATE_EXTERNS = NO;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1032,6 +1036,8 @@
 				PRODUCT_NAME = Spawn;
 				PROVISIONING_PROFILE = "";
 				STRIP_STYLE = debugging;
+				TARGETED_DEVICE_FAMILY = 1;
+				VALID_ARCHS = "arm64 x86_64 i386 armv7s armv7";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;
