@@ -93,7 +93,11 @@
 
                         // Tolerate integer overflow.
                         int difference = _greatestCompletedBatchId - batchId;
-                        if (difference > (UINT16_MAX / 2)) {
+                        // Abritrary value here..
+                        // For non P2P (without NAT punchthrough) traffic we always risk potentially receiving a late
+                        // packet from the previous person, bumping up our _greatestCompletedBatchId. In the worst
+                        // case let's just wait 100 batches, instead of for a very long time.
+                        if (difference > 100) {
                             NSLog(@"Integer overflow detected with batch ID: %d vs greatest %d, resetting greatest to 0", batchId, _greatestCompletedBatchId);
                             _greatestCompletedBatchId = 0;
                         } else {
