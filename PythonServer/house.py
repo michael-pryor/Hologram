@@ -31,9 +31,6 @@ class House:
 
         self.house_lock = RLock()
 
-        self.reset_send_speed_packet = ByteBuffer()
-        self.reset_send_speed_packet.addUnsignedInteger(Client.TcpOperationCodes.OP_RESET_SEND_RATE)
-
         self.disconnected_temporary = ByteBuffer()
         self.disconnected_temporary.addUnsignedInteger(Client.TcpOperationCodes.OP_TEMP_DISCONNECT)
 
@@ -60,16 +57,9 @@ class House:
             self.house_lock.release()
 
         self.adviseNatPunchthrough(clientA, clientB)
-        self.resetSendFrequency(clientA)
-        self.resetSendFrequency(clientB)
 
         logger.info("New room set up between client [%s] and [%s]" % (clientA, clientB))
         return True
-
-    def resetSendFrequency(self, client):
-        assert isinstance(client, Client)
-        client.tcp.sendByteBuffer(self.reset_send_speed_packet)
-
 
     def adviseNatPunchthrough(self, clientA, clientB):
         assert isinstance(clientA, Client)

@@ -67,6 +67,7 @@
             input = [AVCaptureDeviceInput deviceInputWithDevice:device error:&error];
             if (!input) {
                 NSLog(@"Could not access input device: %@", error);
+                return nil;
             }
         }
 
@@ -131,5 +132,10 @@
 
 - (UIImage *)getImageFromByteBuffer:(ByteBuffer *)byteBuffer {
     return [_compression decodeByteBuffer:byteBuffer];
+}
+
+- (UIImage *)convertSampleBufferToUiImage:(CMSampleBufferRef)sampleBuffer {
+    // No actual compression/decompression here, but reusing some of the same logic.
+    return [_compression convertSampleBufferToUiImage:sampleBuffer];
 }
 @end

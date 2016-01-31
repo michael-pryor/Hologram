@@ -10,8 +10,9 @@
 
 #import <Foundation/Foundation.h>
 #import <UIKit/UIViewController.h>
+#import "VideoOutputController.h"
 
-@interface AlertViewController : UIViewController<ADBannerViewDelegate>
+@interface AlertViewController : UIViewController<ADBannerViewDelegate, NewImageDelegate>
 - (void)setAlertShortText:(NSString *)shortText longText:(NSString *)longText;
 
 - (Boolean)hideIfVisibleAndReady;

@@ -54,7 +54,7 @@
 
 - (uint)addObject:(id)obj atPosition:(int)position {
     if (_queueShutdown) {
-        NSLog(@"Queue is shutdown, discarding send attempt");
+        NSLog(@"Queue is shutdown, discarding insertion attempt");
         return 0;
     }
 

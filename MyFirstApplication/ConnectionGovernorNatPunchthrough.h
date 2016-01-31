@@ -21,7 +21,7 @@ typedef enum {
 @protocol NatPunchthroughNotifier;
 
 @interface ConnectionGovernorNatPunchthrough : NSObject <ConnectionGovernor, NewPacketDelegate, NewUnknownPacketDelegate, ConnectionStatusDelegateProtocol>
-- (id)initWithRecvDelegate:(id <NewPacketDelegate>)recvDelegate connectionStatusDelegate:(id <ConnectionStatusDelegateProtocol>)connectionStatusDelegate slowNetworkDelegate:(id <SlowNetworkDelegate>)slowNetworkDelegate loginProvider:(id <LoginProvider>)loginProvider punchthroughNotifier:(id <NatPunchthroughNotifier>)notifier;
+- (id)initWithRecvDelegate:(id <NewPacketDelegate>)recvDelegate connectionStatusDelegate:(id <ConnectionStatusDelegateProtocol>)connectionStatusDelegate loginProvider:(id <LoginProvider>)loginProvider punchthroughNotifier:(id <NatPunchthroughNotifier>)notifier;
 
 - (void)connectToTcpHost:(NSString *)tcpHost tcpPort:(ushort)tcpPort udpHost:(NSString *)udpHost udpPort:(ushort)udpPort;
 

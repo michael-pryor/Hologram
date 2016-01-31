@@ -17,10 +17,6 @@
 #define NAT_PUNCHTHROUGH_DISCOVERY 3
 
 // ****** TCP ******
-// End point cannot keep up with rate of network flow,
-// slow down the video frame rate that we are sending to help them cope.
-#define SLOW_DOWN_VIDEO 1
-
 // The master server has sent a packet containing an address to connect to,
 // we will periodically fire discovery messages to try and connect.
 #define NAT_PUNCHTHROUGH_ADDRESS 2
@@ -34,9 +30,6 @@
 
 // No longer interested in talking to current person, give me someone new.
 #define SKIP_PERSON 4
-
-// Reset video speed
-#define RESET_VIDEO_SPEED 5
 
 // End point has temporarily disconnect (end point = person we are talking to) due to network issue.
 #define DISCONNECT_TEMP 6

@@ -22,13 +22,13 @@
     id <NatPunchthroughNotifier> _notifier;
     id <ConnectionStatusDelegateProtocol> _connectionStatusDelegate;
 }
-- (id)initWithRecvDelegate:(id <NewPacketDelegate>)recvDelegate connectionStatusDelegate:(id <ConnectionStatusDelegateProtocol>)connectionStatusDelegate slowNetworkDelegate:(id <SlowNetworkDelegate>)slowNetworkDelegate loginProvider:(id <LoginProvider>)loginProvider punchthroughNotifier:(id <NatPunchthroughNotifier>)notifier {
+- (id)initWithRecvDelegate:(id <NewPacketDelegate>)recvDelegate connectionStatusDelegate:(id <ConnectionStatusDelegateProtocol>)connectionStatusDelegate loginProvider:(id <LoginProvider>)loginProvider punchthroughNotifier:(id <NatPunchthroughNotifier>)notifier {
     if (self) {
         _notifier = notifier;
         _connectionStatusDelegate = connectionStatusDelegate;
 
         _recvDelegate = recvDelegate;
-        _connectionGovernor = [[ConnectionGovernorProtocol alloc] initWithRecvDelegate:self unknownRecvDelegate:self connectionStatusDelegate:self slowNetworkDelegate:slowNetworkDelegate loginProvider:loginProvider];
+        _connectionGovernor = [[ConnectionGovernorProtocol alloc] initWithRecvDelegate:self unknownRecvDelegate:self connectionStatusDelegate:self loginProvider:loginProvider];
 
         [self clearNatPunchthrough];
         _natPunchthroughDiscoveryTimer = [[Timer alloc] initWithFrequencySeconds:0.5 firingInitially:true];

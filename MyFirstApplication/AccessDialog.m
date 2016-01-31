@@ -74,7 +74,7 @@
     //
     // Note that there is no neat way of requesting it globally, as is the case with microphone and camera.
     CLAuthorizationStatus authStatus = [CLLocationManager authorizationStatus];
-    if (authStatus == kCLAuthorizationStatusNotDetermined || authStatus == kCLAuthorizationStatusAuthorized || authStatus == kCLAuthorizationStatusAuthorizedAlways || authStatus == kCLAuthorizationStatusAuthorizedWhenInUse) {
+    if (authStatus == kCLAuthorizationStatusNotDetermined || authStatus == kCLAuthorizationStatusAuthorizedAlways || authStatus == kCLAuthorizationStatusAuthorizedWhenInUse) {
         [AccessDialog doAction:successAction];
         return;
     } else {

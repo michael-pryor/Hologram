@@ -30,7 +30,7 @@ typedef enum {
 @end
 
 @interface ConnectionManagerUdp : NSObject <ConnectionManagerBase, NewPacketDelegate>
-- (id)initWithNewPacketDelegate:(id <NewPacketDelegate>)newPacketDelegate newUnknownPacketDelegate:(id <NewUnknownPacketDelegate>)newUnknownPacketDelegate slowNetworkDelegate:(id <SlowNetworkDelegate>)slowNetworkDelegate connectionDelegate:(id <ConnectionStatusDelegateUdp>)connectionDelegate retryCount:(uint)retryCountMax;
+- (id)initWithNewPacketDelegate:(id <NewPacketDelegate>)newPacketDelegate newUnknownPacketDelegate:(id <NewUnknownPacketDelegate>)newUnknownPacketDelegate connectionDelegate:(id <ConnectionStatusDelegateUdp>)connectionDelegate retryCount:(uint)retryCountMax;
 
 - (void)connectToHost:(NSString *)host andPort:(ushort)port;
 

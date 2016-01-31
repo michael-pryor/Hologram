@@ -16,18 +16,16 @@
     NSTimer *_timer;
 }
 
-- (id)initWithOutputSession:(id <NewPacketDelegate>)outputSession numChunksThreshold:(float)numChunksThreshold timeoutSeconds:(double)timeoutSeconds performanceInformationDelegate:(id <BatchPerformanceInformation>)performanceInformationDelegate batchId:(uint)batchId completionSelectorTarget:(id)aSelectorTarget completionSelector:(SEL)aSelector {
+- (id)initWithOutputSession:(id <NewPacketDelegate>)outputSession timeoutSeconds:(double)timeoutSeconds batchId:(uint)batchId completionSelectorTarget:(id)aSelectorTarget completionSelector:(SEL)aSelector {
     self = [super initWithOutputSession:outputSession];
     if (self) {
         _chunksReceived = 0;
-        _numChunksThreshold = numChunksThreshold;
 
         // Allocate some memory to prevent lots of resizing.
         _partialPacket = [[ByteBuffer alloc] initWithSize:1024 * 20];
         _partialPacketUsedSizeFinalized = false;
 
         _hasOutput = [[Signal alloc] initWithFlag:false];
-        _performanceDelegate = performanceInformationDelegate;
         _batchId = batchId;
         _normalChunkSize = 0;
 
@@ -62,7 +60,7 @@
         // We don't know where to store the last chunk yet,
         // so all we can do is drop the data :(
         if (chunkId == _totalChunks - 1) {
-            NSLog(@"Failed to process chunk, received last chunk prior to other chunks");
+           // NSLog(@"Failed to process chunk, received last chunk prior to other chunks");
             return;
         }
 

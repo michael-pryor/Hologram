@@ -15,4 +15,4 @@ NSString *NSStringFromOSStatus(OSStatus errCode);
 
 bool HandleResultOSStatus(OSStatus errCode, NSString *performing, bool shouldLogSuccess);
 
-int calculateBufferSize(AudioStreamBasicDescription *audioDescription);
+uint calculateBufferSize(AudioStreamBasicDescription *audioDescription);

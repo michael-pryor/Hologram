@@ -19,7 +19,7 @@
 @end
 
 @interface ConnectionGovernorProtocol : NSObject <ConnectionGovernor>
-- (id)initWithRecvDelegate:(id <NewPacketDelegate>)recvDelegate unknownRecvDelegate:(id <NewUnknownPacketDelegate>)unknownRecvDelegate connectionStatusDelegate:(id <ConnectionStatusDelegateProtocol>)connectionStatusDelegate slowNetworkDelegate:(id <SlowNetworkDelegate>)slowNetworkDelegate loginProvider:(id <LoginProvider>)loginProvider;
+- (id)initWithRecvDelegate:(id <NewPacketDelegate>)recvDelegate unknownRecvDelegate:(id <NewUnknownPacketDelegate>)unknownRecvDelegate connectionStatusDelegate:(id <ConnectionStatusDelegateProtocol>)connectionStatusDelegate loginProvider:(id <LoginProvider>)loginProvider;
 
 - (void)connectToTcpHost:(NSString *)tcpHost tcpPort:(ushort)tcpPort udpHost:(NSString *)udpHost udpPort:(ushort)udpPort;
 

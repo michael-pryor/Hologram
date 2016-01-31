@@ -57,7 +57,9 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
 
-    // If failure action is triggered, application is guarenteed to be terminated by
+    [self setDisconnectStateWithShortDescription:@"Initializing" longDescription:@"Initializing media controller"];
+
+    // If failure action is triggered, application is guaranteed to be terminated by
     // _accessDialog (we may just be waiting for a user to acknowledge a dialog box).
     //
     // This is important, because we can't recover from terminateCurrentSession without
@@ -94,11 +96,16 @@
         [_connection sendTcpPacket:_permDisconnectPacket];
     }
 
+    if (_connectionCommander != nil) {
+        [_connectionCommander terminate];
+    }
+
     // Don't push anything to the display, might get a few lingering packets received after this point.
     _isConnectionActive = false;
 
     // Terminate microphone and video.
     [_mediaController stop];
+    [_mediaController stopVideo];
 }
 
 // View disappears; happens if user switches app or moves from a different view controller.
@@ -138,6 +145,13 @@
     }
 
     [_accessDialog validateAuthorization:^{
+        // This step can take a few seconds (particularly on older devices).
+        [self setDisconnectStateWithShortDescription:@"Initializing" longDescription:@"Initializing media controller"];
+        if (_mediaController == nil) {
+            _mediaController = [[MediaController alloc] initWithImageDelegate:self mediaDelayNotifier:self];
+        }
+        [_mediaController startVideo];
+
         if (![socialState isDataLoaded]) {
             [socialState registerNotifier:self];
             [self setDisconnectStateWithShortDescription:@"Loading Facebook details" longDescription:@"Waiting for Facebook details to load"];
@@ -172,9 +186,7 @@
 // Starts connection.
 - (void)onGpsDataLoaded:(GpsState *)state {
     QuarkLogin *loginProvider = [[QuarkLogin alloc] initWithGpsState:state];
-
-    _connectionCommander = [[ConnectionCommander alloc] initWithRecvDelegate:self connectionStatusDelegate:self slowNetworkDelegate:self governorSetupDelegate:self loginProvider:loginProvider punchthroughNotifier:self];
-
+    _connectionCommander = [[ConnectionCommander alloc] initWithRecvDelegate:self connectionStatusDelegate:self governorSetupDelegate:self loginProvider:loginProvider punchthroughNotifier:self];
     [self connectToCommander];
 }
 
@@ -274,6 +286,7 @@
         } else {
             _disconnectViewController = nil;
             _isSkippableDespiteNoMatch = false;
+            [_mediaController clearLocalImageDelegate];
         }
     }
 
@@ -306,11 +319,7 @@
     }
     _connection = governor;
 
-    if (_mediaController != nil) {
-        [_mediaController setNetworkOutputSessionTcp:[_connection getTcpOutputSession] Udp:[_connection getUdpOutputSession]];
-    } else {
-        _mediaController = [[MediaController alloc] initWithImageDelegate:self videoSpeedNotifier:self tcpNetworkOutputSession:[_connection getTcpOutputSession] udpNetworkOutputSession:[_connection getUdpOutputSession] mediaDelayNotifier:self];
-    }
+    [_mediaController setNetworkOutputSessionUdp:[_connection getUdpOutputSession]];
     [_mediaController start];
 }
 
@@ -352,17 +361,24 @@
 
 // Display view overlay showing how connection is being recovered.
 - (void)setDisconnectStateWithShortDescription:(NSString *)shortDescription longDescription:(NSString *)longDescription {
-    [_accessDialog validateAuthorization:^{
+    void (^block)() = ^{
         dispatch_sync_main(^{
             // Show the disconnect storyboard.
             UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Storyboard" bundle:nil];
-
+            
             Boolean alreadyPresented = _disconnectViewController != nil;
             if (!alreadyPresented) {
                 _disconnectViewController = (AlertViewController *) [storyboard instantiateViewControllerWithIdentifier:@"DisconnectAlertView"];
                 _disconnectViewController.view.frame = self.view.bounds;
+                if (_mediaController != nil) {
+                    [_mediaController setLocalImageDelegate:_disconnectViewController];
+                }
                 [self addChildViewController:_disconnectViewController];
                 [self.view addSubview:_disconnectViewController.view];
+            } else {
+                if (_mediaController != nil) {
+                    [_mediaController setLocalImageDelegate:_disconnectViewController];
+                }
             }
             // Set its content
             NSLog(@"Disconnect screen presented, long description: %@", longDescription);
@@ -374,7 +390,15 @@
                 [_mediaController stop];
             }
         });
-    }];
+    };
+
+    if (_accessDialog != nil) {
+        [_accessDialog validateAuthorization:^{
+            block();
+        }];
+    } else {
+        block();
+    }
 }
 
 // Handle data and pass to relevant parts of application.
@@ -412,21 +436,9 @@
     }
 }
 
-// Notification that video frame rate has changed.
-- (void)onNewVideoFrameFrequency:(CFAbsoluteTime)secondsFrequency {
-    // Do nothing with this information.
-}
-
 - (void)onMediaDelayNotified:(uint)delayMs {
     dispatch_sync_main(^{
         [_frameRate setText:[NSString stringWithFormat:@"%d", delayMs]];
     });
-}
-
-// Received request to slow down video send rate.
-- (void)slowNetworkNotification {
-    if (_mediaController != nil) {
-        [_mediaController sendSlowdownRequest];
-    }
 }
 @end

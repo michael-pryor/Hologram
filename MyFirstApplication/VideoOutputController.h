@@ -20,26 +20,20 @@
 - (void)onNewImage:(UIImage *)image;
 @end
 
-@protocol VideoSpeedNotifier
-- (void)onNewVideoFrameFrequency:(CFAbsoluteTime)secondsFrequency;
-@end
-
 @interface PacketToImageProcessor : NSObject <NewPacketDelegate>
 @end
 
 
-@interface VideoOutputController : NSObject <AVCaptureVideoDataOutputSampleBufferDelegate, BatchPerformanceInformation, NewPacketDelegate, MediaDelayNotifier>
-- (id)initWithTcpNetworkOutputSession:(id <NewPacketDelegate>)tcpNetworkOutputSession udpNetworkOutputSession:(id <NewPacketDelegate>)udpNetworkOutputSession imageDelegate:(id <NewImageDelegate>)newImageDelegate videoSpeedNotifier:(id <VideoSpeedNotifier>)videoSpeedNotifier mediaDelayNotifier:(id<MediaDelayNotifier>) mediaDelayNotifier;
+@interface VideoOutputController : NSObject <AVCaptureVideoDataOutputSampleBufferDelegate, NewPacketDelegate, MediaDelayNotifier>
+- (id)initWithUdpNetworkOutputSession:(id <NewPacketDelegate>)udpNetworkOutputSession imageDelegate:(id <NewImageDelegate>)newImageDelegate mediaDelayNotifier:(id <MediaDelayNotifier>)mediaDelayNotifier;
 
-- (void)slowSendRate;
+- (void)startCapturing;
 
-- (void)resetSendRate;
+- (void)stopCapturing;
 
-- (void)sendSlowdownRequest;
+- (void)resetInbound;
 
-- (void)setNetworkOutputSessionTcp:(id <NewPacketDelegate>)tcp;
+- (void)setLocalImageDelegate:(id <NewImageDelegate>)localImageDelegate;
 
-- (void)start;
-
-- (void)stop;
+- (void)clearLocalImageDelegate;
 @end

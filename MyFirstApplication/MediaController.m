@@ -26,14 +26,14 @@
     SoundMicrophone *_soundEncoder;
     SoundPlayback *_soundPlayback;
     EncodingPipe *_encodingPipeAudio;
-    EncodingPipe *_encodingPipeAudioVideoSync;
+
     TimedEventTracker *_startStopTracker;
 
     // Both audio and video.
     DecodingPipe *_decodingPipe;
 }
 
-- (id)initWithImageDelegate:(id <NewImageDelegate>)newImageDelegate videoSpeedNotifier:(id <VideoSpeedNotifier>)videoSpeedNotifier tcpNetworkOutputSession:(id <NewPacketDelegate>)tcpNetworkOutputSession udpNetworkOutputSession:(id <NewPacketDelegate>)udpNetworkOutputSession mediaDelayNotifier:(id <MediaDelayNotifier>)mediaDelayNotifier {
+- (id)initWithImageDelegate:(id <NewImageDelegate>)newImageDelegate mediaDelayNotifier:(id <MediaDelayNotifier>)mediaDelayNotifier {
     self = [super init];
     if (self) {
         _started = false;
@@ -48,17 +48,14 @@
         Float64 estimatedDelay = 3 * secondsPerBuffer;
 
         _decodingPipe = [[DecodingPipe alloc] init];
-        _delayedPipe = [[DelayedPipe alloc] initWithMinimumDelay:estimatedDelay outputSession:udpNetworkOutputSession];
+        _delayedPipe = [[DelayedPipe alloc] initWithMinimumDelay:estimatedDelay outputSession:nil];
 
         // Video.
-        _videoOutputController = [[VideoOutputController alloc] initWithTcpNetworkOutputSession:tcpNetworkOutputSession udpNetworkOutputSession:_delayedPipe imageDelegate:newImageDelegate videoSpeedNotifier:videoSpeedNotifier mediaDelayNotifier:mediaDelayNotifier];
-
+        _videoOutputController = [[VideoOutputController alloc] initWithUdpNetworkOutputSession:_delayedPipe imageDelegate:newImageDelegate mediaDelayNotifier:mediaDelayNotifier];
         [_decodingPipe addPrefix:VIDEO_ID mappingToOutputSession:_videoOutputController];
 
-
         // Audio.
-        _encodingPipeAudio = [[EncodingPipe alloc] initWithOutputSession:udpNetworkOutputSession prefixId:AUDIO_ID];
-
+        _encodingPipeAudio = [[EncodingPipe alloc] initWithOutputSession:nil prefixId:AUDIO_ID];
 
         _soundEncoder = [[SoundMicrophone alloc] initWithOutputSession:nil numBuffers:numMicrophoneBuffers leftPadding:sizeof(uint8_t)];
         [_soundEncoder initialize];
@@ -68,12 +65,19 @@
         [_decodingPipe addPrefix:AUDIO_ID mappingToOutputSession:_soundPlayback];
 
         [_soundEncoder setOutputSession:_encodingPipeAudio];
-        // [self echoBackForTesting];
 
         [_soundPlayback initialize];
         NSLog(@"Audio microphone and speaker initialized");
     }
     return self;
+}
+
+- (void)setLocalImageDelegate:(id <NewImageDelegate>)localImageDelegate {
+    [_videoOutputController setLocalImageDelegate:localImageDelegate];
+}
+
+- (void)clearLocalImageDelegate {
+    [_videoOutputController clearLocalImageDelegate];
 }
 
 - (void)start {
@@ -85,9 +89,12 @@
 
         NSLog(@"Starting video recording and microphone");
         [_soundPlayback resetQueue];
-        [_videoOutputController start];
         [_soundEncoder startCapturing];
         [_soundPlayback startPlayback];
+
+        // We discard out of order batches based on keeping track of the batch ID.
+        // We need to reset this when moving to the next person.
+        [_videoOutputController resetInbound];
     }
 }
 
@@ -99,18 +106,25 @@
         _started = false;
 
         NSLog(@"Stopping video recording and microphone");
-        [_videoOutputController stop];
         [_soundEncoder stopCapturing];
         [_soundPlayback stopPlayback];
     }
 }
 
-- (void)setNetworkOutputSessionTcp:(id <NewPacketDelegate>)tcp Udp:(id <NewPacketDelegate>)udp {
-    [_encodingPipeAudio setOutputSession:udp];
+- (void)startVideo {
+    // We use the video on the disconnect screen aswell, so once initialized, we never need to stop capturing.
+    [_videoOutputController startCapturing];
+}
+
+- (void)stopVideo {
+    // We use the video on the disconnect screen aswell, so once initialized, we never need to stop capturing.
+    [_videoOutputController stopCapturing];
+}
+
+- (void)setNetworkOutputSessionUdp:(id <NewPacketDelegate>)udp {
     NSLog(@"Updating video output session UDP");
+    [_encodingPipeAudio setOutputSession:udp];
     [_delayedPipe setOutputSession:udp];
-    [_videoOutputController setNetworkOutputSessionTcp:tcp];
-    [_videoOutputController resetSendRate];
 }
 
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
@@ -118,41 +132,24 @@
         packet.cursorPosition = 0;
         [_decodingPipe onNewPacket:packet fromProtocol:protocol];
     } else if (protocol == TCP) {
-        uint prefix = [packet getUnsignedInteger8];
-        if (prefix == SLOW_DOWN_VIDEO) {
-            NSLog(@"Slowing down video send rate");
-            [_videoOutputController slowSendRate];
-        } else if (prefix == RESET_VIDEO_SPEED) {
-            NSLog(@"Video speed reset");
-            [_videoOutputController resetSendRate];
-        } else {
-            NSLog(@"Invalid TCP packet received");
-        }
+        NSLog(@"Invalid TCP packet received");
     }
 }
 
 - (void)resetSendRate {
-    [_videoOutputController resetSendRate];
-
     // This gets called when we move to another person, so discard any delayed video from previous person.
     [_delayedPipe reset];
 }
 
-- (void)sendSlowdownRequest {
-    [_videoOutputController sendSlowdownRequest];
-}
-
 - (void)playbackStopped {
     if ([_startStopTracker increment]) {
-        NSLog(@"Playback start/stopped too many times in a short space of time, slowing video send rate to free up network");
-        [self sendSlowdownRequest];
+        NSLog(@"Playback start/stopped frequently in a short space of time, quality of service may be impacted");
     }
 }
 
 - (void)playbackStarted {
     if ([_startStopTracker increment]) {
-        NSLog(@"Playback start/stopped too many times in a short space of time, slowing video send rate to free up network");
-        [self sendSlowdownRequest];
+        NSLog(@"Playback start/stopped frequently in a short space of time, quality of service may be impacted");
     }
 }
 

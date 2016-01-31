@@ -12,16 +12,14 @@
     NSMutableDictionary *_batches;
     float _numChunksThreshold;
     double _timeoutMs;
-    id <BatchPerformanceInformation> _performanceDelegate;
     uint _greatestCompletedBatchId;
 }
-- (id)initWithOutputSession:(id <NewPacketDelegate>)outputSession numChunksThreshold:(float)numChunksThreshold timeoutMs:(uint)timeoutMs performanceInformationDelegate:(id <BatchPerformanceInformation>)performanceInformationDelegate {
+- (id)initWithOutputSession:(id <NewPacketDelegate>)outputSession numChunksThreshold:(float)numChunksThreshold timeoutMs:(uint)timeoutMs {
     self = [super initWithOutputSession:outputSession];
     if (self) {
         _batches = [[NSMutableDictionary alloc] init];
         _numChunksThreshold = numChunksThreshold;
         _timeoutMs = ((double) timeoutMs) / 1000;
-        _performanceDelegate = performanceInformationDelegate;
         _greatestCompletedBatchId = 0;
     }
     return self;
@@ -42,7 +40,7 @@
     @synchronized (_batches) {
         batch = _batches[@(batchId)];
         if (batch == nil) {
-            batch = [[Batch alloc] initWithOutputSession:_outputSession numChunksThreshold:_numChunksThreshold timeoutSeconds:_timeoutMs performanceInformationDelegate:_performanceDelegate batchId:batchId completionSelectorTarget:self completionSelector:@selector(onBatchTimeout:)];
+            batch = [[Batch alloc] initWithOutputSession:_outputSession timeoutSeconds:_timeoutMs batchId:batchId completionSelectorTarget:self completionSelector:@selector(onBatchTimeout:)];
             _batches[@(batchId)] = batch;
         }
     }
@@ -70,7 +68,7 @@
     uint batchId = [batch batchId];
 
     if ([batch totalChunks] == 0 || ![batch partialPacketUsedSizeFinalized]) { // value not loaded yet.
-        NSLog(@"Dropping very incomplete video frame with batch ID: %d", batchId);
+        //NSLog(@"Dropping very incomplete video frame with batch ID: %d", batchId);
         @synchronized (_batches) {
             [_batches removeObjectForKey:@([batch batchId])];
         }
@@ -80,7 +78,6 @@
     uint integerNumChunksThreshold = (uint) (_numChunksThreshold * (float) [batch totalChunks]);
 
     float chunksReceivedPercentage = ((float) [batch chunksReceived]) / ((float) [batch totalChunks]);
-    [_performanceDelegate onNewPerformanceNotification:chunksReceivedPercentage];
 
     @synchronized ([batch partialPacket]) {
         if ([batch chunksReceived] >= integerNumChunksThreshold) {
@@ -96,7 +93,11 @@
 
                         // Tolerate integer overflow.
                         int difference = _greatestCompletedBatchId - batchId;
-                        if (difference > (UINT16_MAX / 2)) {
+                        // Abritrary value here..
+                        // For non P2P (without NAT punchthrough) traffic we always risk potentially receiving a late
+                        // packet from the previous person, bumping up our _greatestCompletedBatchId. In the worst
+                        // case let's just wait 100 batches, instead of for a very long time.
+                        if (difference > 100) {
                             NSLog(@"Integer overflow detected with batch ID: %d vs greatest %d, resetting greatest to 0", batchId, _greatestCompletedBatchId);
                             _greatestCompletedBatchId = 0;
                         } else {

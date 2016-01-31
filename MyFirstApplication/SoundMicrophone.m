@@ -195,15 +195,6 @@
     NSLog(@"Microphone thread started");
 }
 
-- (int)getAudioBufferIndex:(AudioQueueBufferRef)buffer {
-    for(int n = 0;n<_audioBuffers;n++) {
-        if (_audioBuffers[n] == buffer) {
-            return n;
-        }
-    }
-    return -1;
-}
-
 - (void)bufferControllerThreadEntryPoint:(id)obj {
     bool running = true;
 
@@ -212,9 +203,11 @@
         // Wait for an available audio buffer.
         NSValue *_bufferVal = [_bufferPool getWithTimeout:RESET_AFTER_NO_DATA_FOR_SECONDS];
         if (_bufferVal == nil || [_successTracker getState]) {
-            NSLog(@"Resetting microphone buffer pool because failed to succeed within %d seconds", RESET_AFTER_NO_DATA_FOR_SECONDS);
-            [self stopCapturing];
-            [self startCapturing];
+            if (!_stoppedExternally) {
+                NSLog(@"Resetting microphone because failed to succeed within %d seconds", RESET_AFTER_NO_DATA_FOR_SECONDS);
+                [self stopCapturing:false];
+                [self startCapturing:false];
+            }
             continue;
         }
 

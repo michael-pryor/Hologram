@@ -13,7 +13,6 @@
 @implementation ConnectionCommander {
     id <NewPacketDelegate> _recvDelegate;
     id <ConnectionStatusDelegateProtocol> _connectionStatusDelegate;
-    id <SlowNetworkDelegate> _slowNetworkDelegate;
     id <GovernorSetupProtocol> _governorSetupDelegate;
     ConnectionManagerTcp *_commander;
     OutputSessionTcp *_commanderOutput;
@@ -23,15 +22,15 @@
 
     NSString *_tcpHost;
     ushort _tcpPort;
+    bool _terminated;
 }
 
-- (id)initWithRecvDelegate:(id <NewPacketDelegate>)recvDelegate connectionStatusDelegate:(id <ConnectionStatusDelegateProtocol>)connectionStatusDelegate slowNetworkDelegate:(id <SlowNetworkDelegate>)slowNetworkDelegate governorSetupDelegate:(id <GovernorSetupProtocol>)governorSetupDelegate loginProvider:(id <LoginProvider>)loginProvider punchthroughNotifier:(id <NatPunchthroughNotifier>)notifier {
+- (id)initWithRecvDelegate:(id <NewPacketDelegate>)recvDelegate connectionStatusDelegate:(id <ConnectionStatusDelegateProtocol>)connectionStatusDelegate governorSetupDelegate:(id <GovernorSetupProtocol>)governorSetupDelegate loginProvider:(id <LoginProvider>)loginProvider punchthroughNotifier:(id <NatPunchthroughNotifier>)notifier {
     if (self) {
         _natPunchthroughNotifier = notifier;
 
         _recvDelegate = recvDelegate;
         _connectionStatusDelegate = connectionStatusDelegate;
-        _slowNetworkDelegate = slowNetworkDelegate;
         _governorSetupDelegate = governorSetupDelegate;
 
         _commanderOutput = [[OutputSessionTcp alloc] init];
@@ -39,6 +38,7 @@
         _commander = [[ConnectionManagerTcp alloc] initWithConnectionStatusDelegate:self inputSession:[[InputSessionTcp alloc] initWithDelegate:self] outputSession:_commanderOutput];
 
         _loginProvider = loginProvider;
+        _terminated = false;
     }
     return self;
 }
@@ -46,12 +46,17 @@
 // Commander connect.
 - (void)connectToTcpHost:(NSString *)tcpHost tcpPort:(ushort)tcpPort {
     [self shutdown];
+    _terminated = false;
     _tcpHost = tcpHost;
     _tcpPort = tcpPort;
     [self _reconnect];
 }
 
 - (void)_reconnect {
+    if (_terminated) {
+        NSLog(@"Commander connection is terminated, ignoring reconnect attempt");
+        return;
+    }
     [_commander connectToHost:_tcpHost andPort:_tcpPort];
 }
 
@@ -64,7 +69,7 @@
         NSString *governorAddressConverted = [NetworkUtility convertPreparedHostName:governorAddress];
         uint governorPortTcp = [packet getUnsignedInteger];
         uint governorPortUdp = [packet getUnsignedInteger];
-        id <ConnectionGovernor> governor = [[ConnectionGovernorNatPunchthrough alloc] initWithRecvDelegate:_recvDelegate connectionStatusDelegate:_connectionStatusDelegate slowNetworkDelegate:_slowNetworkDelegate loginProvider:_loginProvider punchthroughNotifier:_natPunchthroughNotifier];
+        id <ConnectionGovernor> governor = [[ConnectionGovernorNatPunchthrough alloc] initWithRecvDelegate:_recvDelegate connectionStatusDelegate:_connectionStatusDelegate loginProvider:_loginProvider punchthroughNotifier:_natPunchthroughNotifier];
         [governor connectToTcpHost:governorAddressConverted tcpPort:governorPortTcp udpHost:governorAddressConverted udpPort:governorPortUdp];
 
         // Announce governor.
@@ -91,11 +96,12 @@
 }
 
 - (void)terminate {
+    _terminated = true;
     [_commander shutdown];
 }
 
 - (Boolean)isTerminated {
-    return false;
+    return _terminated;
 }
 
 - (void)shutdownWithDescription:(NSString *)description {
