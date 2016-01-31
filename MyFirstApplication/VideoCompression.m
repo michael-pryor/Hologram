@@ -164,6 +164,17 @@
     }
 }
 
+// Sadly we can't make this loop faster because iOS doesn't support tri planar i.e. 3 seperate
+// buffers for Y, Cb and Cr. It only supports Y and then CbCr interlaced (a seperate buffer as CbCrCbCr..)
+// So we are forced to convert between the two formats.
+//
+// The error I saw in logs when attempting the optimization described above is:
+// "initWithIOSurface failed because surface format was f420."
+//
+// coming from [CIImage imageWithCVPixelBuffer:pixelBuffer];,
+// after setting the pixel buffer pool type to: kCVPixelFormatType_420YpCbCr8PlanarFullRange.
+// So although we can get the tri planar image, we can't actually convert it to UIImage.
+// I am sure there is a way... but it is too much effort.
 - (UIImage *)convertYuvFrameToImage:(AVFrame *)frame {
     size_t width = (size_t) frame->width;
     size_t height = (size_t) frame->height;
@@ -191,23 +202,26 @@
 
     // Copy Cr and Cb component into ffmpeg structure.
     // Divide by 2 on y because half as many rows in cbCr as Y.
-    for (int y = 0; y < height / 2; y++) {
+    const size_t halfHeight = height / 2;
+    const size_t halfWidth = width / 2;
+
+    for (int y = 0; y < halfHeight; y++) {
         uint8_t *cbCrBufferLine = &uvDestPlane[y * width];
 
         // Divide by 2 on x because width is half in cbCr vs Y.
-        for (int x = 0; x < width / 2; x++) {
+        for (int x = 0; x < halfWidth; x++) {
             // when xMultTwo is 0, cbIndex is 0, crIndex is 1
             // when xMultTwo is 1, cbIndex is 0, crIndex is 1
             // when xMultTwo is 2, cbIndex is 2, crIndex is 3
             // when xMultTwo is 3, cbIndex is 2, crIndex is 3
             // when xMultTwo is 4, cbIndex is 4, crIndex is 5
             // ...
-            int xMultTwo = x * 2;
-            int cbIndex = xMultTwo & ~1;
-            int crIndex = xMultTwo | 1;
+            const int xMultTwo = x * 2;
+            const int cbIndex = xMultTwo & ~1;
+            const int crIndex = xMultTwo | 1;
 
             // Divide by 2 because each buffer takes half of the contents (one for cb, one for cr).
-            size_t theIndex = (y * (width / 2)) + x;
+            const size_t theIndex = (y * halfWidth) + x;
             uint8_t cb = frame->data[1][theIndex];
             uint8_t cr = frame->data[2][theIndex];
 
