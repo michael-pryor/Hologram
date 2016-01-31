@@ -23,6 +23,7 @@
     self = [super init];
     if (self) {
         _monitorThread = [[NSThread alloc] initWithTarget:self selector:@selector(entryPoint:) object:nil];
+        [_monitorThread setName:@"ActivityMonitor"];
         _actionSignal = [[Signal alloc] initWithFlag:false];
         _terminationSignal = [[Signal alloc] initWithFlag:false];
         _terminatedSignal = [[Signal alloc] initWithFlag:false];

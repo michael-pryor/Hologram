@@ -184,12 +184,14 @@
     _inputThread = [[NSThread alloc] initWithTarget:self
                                            selector:@selector(inputThreadEntryPoint:)
                                              object:nil];
+    [_inputThread setName:@"Microphone RunLoop"];
     [_inputThread start];
     [_queueSetup wait];
 
     [self startCapturing];
 
     _bufferControllerThread = [[NSThread alloc] initWithTarget:self selector:@selector(bufferControllerThreadEntryPoint:) object:nil];
+    [_bufferControllerThread setName:@"Microphone BufferController"];
     [_bufferControllerThread start];
 
     NSLog(@"Microphone thread started");

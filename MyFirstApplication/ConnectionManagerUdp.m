@@ -94,7 +94,7 @@
     //
     // Instead we now fix the max size of packets we can handle to 2048, which should be more than enough for UDP.
     long maximumAmountReceivable = 2048; //dispatch_source_get_data(_dispatch_source);
-    size_t realAmountReceived;
+    ssize_t realAmountReceived;
 
     if (maximumAmountReceivable > [_recvBuffer bufferMemorySize]) {
         [_recvBuffer setMemorySize:(uint) maximumAmountReceivable retaining:false];

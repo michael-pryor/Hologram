@@ -11,6 +11,7 @@
 #import "libavutil/imgutils.h"
 #import "VideoOutputController.h"
 #import "Orientation.h"
+#import "VideoShared.h"
 
 // Handle endianness
 #define clamp(a) (a>255?255:(a<0?0:a))
@@ -47,10 +48,10 @@
         {
             CVReturn cvResult = CVPixelBufferPoolCreate(nil,
                     (__bridge CFDictionaryRef _Nullable) (@{(id) kCVPixelBufferPoolMinimumBufferCountKey : @5}),
-                    (__bridge CFDictionaryRef _Nullable) (@{(id) kCVPixelBufferPixelFormatTypeKey : [NSNumber numberWithUnsignedInt:kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange],
-                            (id) kCVPixelBufferWidthKey : [NSNumber numberWithUnsignedInt:(uint) 640],
-                            (id) kCVPixelBufferHeightKey : [NSNumber numberWithUnsignedInt:(uint) 480],
-                            (id) kCVPixelBufferIOSurfacePropertiesKey : @{}}),
+                    (__bridge CFDictionaryRef _Nullable) @{(id) kCVPixelBufferPixelFormatTypeKey : @(getVideoEncodingTypeOs()),
+                            (id) kCVPixelBufferWidthKey : @(640),
+                            (id) kCVPixelBufferHeightKey : @(480),
+                            (id) kCVPixelBufferIOSurfacePropertiesKey : @{}},
                     &_pixelBufferPool);
 
 

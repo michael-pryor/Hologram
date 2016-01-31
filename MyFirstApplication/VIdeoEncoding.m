@@ -9,6 +9,7 @@
 #import "VideoEncoding.h"
 #import "VideoCompression.h"
 #import "Orientation.h"
+#import "VideoShared.h"
 
 @implementation VideoEncoding {
     NSString *_sessionPreset;
@@ -93,7 +94,7 @@
     }
 
     // Set video encoding settings.
-    output.videoSettings = @{(NSString *) kCVPixelBufferPixelFormatTypeKey : @(kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange)};
+    output.videoSettings = @{(NSString *) kCVPixelBufferPixelFormatTypeKey : @(getVideoEncodingTypeOs())};
 
     // Pass video output to delegate function (parameter of this method).
     [output setSampleBufferDelegate:delegate queue:_videoOutputQueue];

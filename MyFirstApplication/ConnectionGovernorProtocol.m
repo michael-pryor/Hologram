@@ -92,6 +92,7 @@ uint NUM_SOCKETS = 1;
         _pingThread = [[NSThread alloc] initWithTarget:self
                                               selector:@selector(_pingThreadEntryPoint:)
                                                 object:nil];
+        [_pingThread setName:@"Pinger"];
         [_pingThread start];
     }
     return self;
@@ -110,12 +111,13 @@ uint NUM_SOCKETS = 1;
     Timer *pingTimer = [[Timer alloc] initWithFrequencySeconds:2 firingInitially:false];
 
     while (_alive) {
+        [pingTimer blockUntilNextTick];
         if (_connectionStatus == P_CONNECTED) {
-            [pingTimer blockUntilNextTick];
-            // NSLog(@"Sending ping to governor server");
             [_tcpOutputSession onNewPacket:pingBuffer fromProtocol:TCP];
+            //NSLog(@"Sending ping to governor server");
         }
     }
+    NSLog(@"Ping thread exiting");
 }
 
 /**

@@ -61,7 +61,7 @@
     if (self) {
         _localImageDelegate = nil;
 
-        _throttledBlock = [[ThrottledBlock alloc] initWithDefaultOutputFrequency:0 firingInitially:true];
+        _throttledBlock = [[ThrottledBlock alloc] initWithDefaultOutputFrequency:0.25 firingInitially:true];
 
 
         _videoEncoder = [[VideoEncoding alloc] initWithVideoCompression:[[VideoCompression alloc] init]];

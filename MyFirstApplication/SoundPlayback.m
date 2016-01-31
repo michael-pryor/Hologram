@@ -447,11 +447,13 @@ static void HandleOutputBuffer(void *aqData,
         _outputThread = [[NSThread alloc] initWithTarget:self
                                                 selector:@selector(outputThreadEntryPoint:)
                                                   object:nil];
+        [_outputThread setName:@"AudioOutput RunLoop"];
         [_outputThread start];
         [_queueSetup wait];
         NSLog(@"Speaker thread initialized");
 
         _soundQueueThread = [[NSThread alloc] initWithTarget:self selector:@selector(soundQueueThreadEntryPoint:) object:nil];
+        [_soundQueueThread setName:@"AudioOutput BufferController"];
         [_soundQueueThread start];
     }
 }

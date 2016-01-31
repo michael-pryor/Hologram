@@ -133,6 +133,7 @@
 		D5D6192DFC855EFECF623757 /* AccessDialog.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61D7435CE35550C2AB293 /* AccessDialog.m */; };
 		D5D61CBB3513E39935B73FDC /* CustomNavigationController.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61A72597479299B065AE4 /* CustomNavigationController.m */; };
 		D5D61CBEDFE3FFE1F6EE3C44 /* BatchSizeGenerator.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61FA523774C1B712EA210 /* BatchSizeGenerator.m */; };
+		D5D61DE40E2F5421A186CCF2 /* VideoShared.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61A144314C7CA192F96E6 /* VideoShared.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -286,11 +287,13 @@
 		D5D617E1AB2467E773411B25 /* MediaShared.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MediaShared.h; sourceTree = "<group>"; };
 		D5D61829DC4A7512B689E307 /* BatchSizeGeneratorTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BatchSizeGeneratorTest.m; sourceTree = "<group>"; };
 		D5D619B9B74C7F1DF1AAC7AB /* TimedGapEventTracker.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TimedGapEventTracker.m; sourceTree = "<group>"; };
+		D5D61A144314C7CA192F96E6 /* VideoShared.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = VideoShared.m; sourceTree = "<group>"; };
 		D5D61A6B1DCCCED8F72F6EFD /* Orientation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Orientation.h; sourceTree = "<group>"; };
 		D5D61A72597479299B065AE4 /* CustomNavigationController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CustomNavigationController.m; sourceTree = "<group>"; };
 		D5D61A9D2F7039076A85F3A0 /* AverageTracker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AverageTracker.h; sourceTree = "<group>"; };
 		D5D61D7435CE35550C2AB293 /* AccessDialog.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AccessDialog.m; sourceTree = "<group>"; };
 		D5D61DCE61D1A8B9C8957FE1 /* Threading.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Threading.h; sourceTree = "<group>"; };
+		D5D61DF7A6799F2AD87E0AF5 /* VideoShared.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VideoShared.h; sourceTree = "<group>"; };
 		D5D61FA523774C1B712EA210 /* BatchSizeGenerator.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BatchSizeGenerator.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -625,6 +628,8 @@
 				D5D617E1AB2467E773411B25 /* MediaShared.h */,
 				5121AFE51C3956E6001D3E78 /* VideoCompression.h */,
 				5121AFE61C3956E6001D3E78 /* VideoCompression.m */,
+				D5D61DF7A6799F2AD87E0AF5 /* VideoShared.h */,
+				D5D61A144314C7CA192F96E6 /* VideoShared.m */,
 			);
 			name = Media;
 			sourceTree = "<group>";
@@ -790,6 +795,7 @@
 				D5D6192DFC855EFECF623757 /* AccessDialog.m in Sources */,
 				D5D61487C694F7BDD0E86A7C /* Orientation.m in Sources */,
 				D5D61CBEDFE3FFE1F6EE3C44 /* BatchSizeGenerator.m in Sources */,
+				D5D61DE40E2F5421A186CCF2 /* VideoShared.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
