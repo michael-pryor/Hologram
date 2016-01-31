@@ -128,6 +128,7 @@
 		D5D61065DF0FE43CD8139FEE /* TimedGapEventTracker.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D619B9B74C7F1DF1AAC7AB /* TimedGapEventTracker.m */; };
 		D5D6109C65D00FC0470BFE1E /* DelayedPipe.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61109DD409D89A9B6D01A /* DelayedPipe.m */; };
 		D5D61138250F5B15745691AF /* AverageTracker.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D615F63C69FA0011332EF8 /* AverageTracker.m */; };
+		D5D611D1DE3EDA3A80460046 /* ViewInteractions.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61E1702DA62D0167A5510 /* ViewInteractions.m */; };
 		D5D61487C694F7BDD0E86A7C /* Orientation.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61361F43525D3DF93DCE0 /* Orientation.m */; };
 		D5D614CA16CE4BB1DA691742 /* Threading.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D610546CB5BFA2EC52AFD5 /* Threading.m */; };
 		D5D6192DFC855EFECF623757 /* AccessDialog.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61D7435CE35550C2AB293 /* AccessDialog.m */; };
@@ -286,6 +287,7 @@
 		D5D615F63C69FA0011332EF8 /* AverageTracker.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AverageTracker.m; sourceTree = "<group>"; };
 		D5D617E1AB2467E773411B25 /* MediaShared.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MediaShared.h; sourceTree = "<group>"; };
 		D5D61829DC4A7512B689E307 /* BatchSizeGeneratorTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BatchSizeGeneratorTest.m; sourceTree = "<group>"; };
+		D5D61923E1F12385A8AA014E /* ViewInteractions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ViewInteractions.h; sourceTree = "<group>"; };
 		D5D619B9B74C7F1DF1AAC7AB /* TimedGapEventTracker.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TimedGapEventTracker.m; sourceTree = "<group>"; };
 		D5D61A144314C7CA192F96E6 /* VideoShared.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = VideoShared.m; sourceTree = "<group>"; };
 		D5D61A6B1DCCCED8F72F6EFD /* Orientation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Orientation.h; sourceTree = "<group>"; };
@@ -294,6 +296,7 @@
 		D5D61D7435CE35550C2AB293 /* AccessDialog.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AccessDialog.m; sourceTree = "<group>"; };
 		D5D61DCE61D1A8B9C8957FE1 /* Threading.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Threading.h; sourceTree = "<group>"; };
 		D5D61DF7A6799F2AD87E0AF5 /* VideoShared.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VideoShared.h; sourceTree = "<group>"; };
+		D5D61E1702DA62D0167A5510 /* ViewInteractions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ViewInteractions.m; sourceTree = "<group>"; };
 		D5D61FA523774C1B712EA210 /* BatchSizeGenerator.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BatchSizeGenerator.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -379,6 +382,8 @@
 				D5D610A89DF4541DD9D12B97 /* CustomNavigationController.h */,
 				D5D61361F43525D3DF93DCE0 /* Orientation.m */,
 				D5D61A6B1DCCCED8F72F6EFD /* Orientation.h */,
+				D5D61E1702DA62D0167A5510 /* ViewInteractions.m */,
+				D5D61923E1F12385A8AA014E /* ViewInteractions.h */,
 			);
 			name = Storyboard;
 			sourceTree = "<group>";
@@ -796,6 +801,7 @@
 				D5D61487C694F7BDD0E86A7C /* Orientation.m in Sources */,
 				D5D61CBEDFE3FFE1F6EE3C44 /* BatchSizeGenerator.m in Sources */,
 				D5D61DE40E2F5421A186CCF2 /* VideoShared.m in Sources */,
+				D5D611D1DE3EDA3A80460046 /* ViewInteractions.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

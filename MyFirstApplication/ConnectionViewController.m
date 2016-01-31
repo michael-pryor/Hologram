@@ -13,6 +13,7 @@
 #import "AlertViewController.h"
 #import "Threading.h"
 #import "AccessDialog.h"
+#import "ViewInteractions.h"
 
 @implementation ConnectionViewController {
     // Connection
@@ -295,7 +296,7 @@
             _disconnectViewController = nil;
             _isSkippableDespiteNoMatch = false;
             [_mediaController clearLocalImageDelegate];
-            [self handleTutorials];
+            [self prepareRuntimeView];
         }
     }
 
@@ -377,6 +378,7 @@
 
             Boolean alreadyPresented = _disconnectViewController != nil;
             if (!alreadyPresented) {
+                [self preprepareRuntimeView];
                 _disconnectViewController = (AlertViewController *) [storyboard instantiateViewControllerWithIdentifier:@"DisconnectAlertView"];
                 _disconnectViewController.view.frame = self.view.bounds;
                 if (_mediaController != nil) {
@@ -451,25 +453,37 @@
     });
 }
 
-- (void)fadeInOutLabel:(UILabel *)label completion:(void (^)(BOOL))block {
-    [label setAlpha:0.0f];
-    [UIView animateWithDuration:1.0f animations:^{
-        [label setAlpha:1.0f];
-    }                completion:^(BOOL finished) {
-        [UIView animateWithDuration:2.0f animations:^{
-            [label setAlpha:0.0f];
-        }                completion:block];
-    }];
-}
 
-- (void)handleTutorials {
+- (void)prepareTutorials {
     // Once per application run.
     if ([_tutorialsDone signalAll]) {
-        dispatch_sync_main(^{
-            [self fadeInOutLabel:_swipeTutorialSkip completion:^void(BOOL b) {
-                [self fadeInOutLabel:_swipeTutorialChangeSettings completion:nil];
-            }];
-        });
+        [ViewInteractions fadeInOutLabel:_swipeTutorialSkip completion:^void(BOOL b) {
+            [ViewInteractions fadeInOutLabel:_swipeTutorialChangeSettings completion:nil];
+        }];
     }
+}
+
+- (void)preprepareRuntimeView {
+    [_swipeTutorialSkip setAlpha:0.0f];
+    [_swipeTutorialChangeSettings setAlpha:0.0f];
+    [_ownerAge setAlpha:0.0f];
+    [_ownerName setAlpha:0.0f];
+    [_remoteAge setAlpha:0.0f];
+    [_remoteName setAlpha:0.0f];
+    [_cameraView setAlpha:0.0f];
+}
+
+- (void)prepareRuntimeView {
+    [self prepareTutorials];
+
+    [ViewInteractions fadeIn:_cameraView completion:nil duration:4.0f];
+
+    [ViewInteractions fadeIn:_ownerName completion:^(BOOL completed) {
+        [ViewInteractions fadeIn:_ownerAge completion:nil duration:2.0f];
+    }               duration:2.0f];
+
+    [ViewInteractions fadeIn:_remoteName completion:^(BOOL completed) {
+        [ViewInteractions fadeIn:_remoteAge completion:nil duration:2.0f];
+    }               duration:2.0f];
 }
 @end

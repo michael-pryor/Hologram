@@ -303,7 +303,7 @@
                                 <rect key="frame" x="290" y="460" width="20" height="20"/>
                                 <color key="color" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                             </activityIndicatorView>
-                            <adBannerView hidden="YES" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="hSC-qc-XE8">
+                            <adBannerView clipsSubviews="YES" multipleTouchEnabled="YES" alpha="0.0" contentMode="center" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="hSC-qc-XE8">
                                 <rect key="frame" x="0.0" y="534" width="600" height="66"/>
                                 <connections>
                                     <outlet property="delegate" destination="szN-uc-xgc" id="SUi-9i-F4C"/>
