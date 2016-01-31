@@ -49,13 +49,21 @@
     // - When user has temporarily disconnected; if user doesn't want to wait and wants to get a new match.
     volatile bool _isSkippableDespiteNoMatch;
 
+    // Checks access to microphone, speakers and GPS.
     AccessDialog *_accessDialog;
+
+    // Temporary tutorial labels.
+    __weak IBOutlet UILabel *_swipeTutorialChangeSettings;
+    __weak IBOutlet UILabel *_swipeTutorialSkip;
+    Signal *_tutorialsDone;
 }
 
 // View initially load; happens once per process.
 // Essentially this is the constructor.
 - (void)viewDidLoad {
     [super viewDidLoad];
+
+    _tutorialsDone = [[Signal alloc] initWithFlag:false];
 
     [self setDisconnectStateWithShortDescription:@"Initializing" longDescription:@"Initializing media controller"];
 
@@ -287,6 +295,7 @@
             _disconnectViewController = nil;
             _isSkippableDespiteNoMatch = false;
             [_mediaController clearLocalImageDelegate];
+            [self handleTutorials];
         }
     }
 
@@ -365,7 +374,7 @@
         dispatch_sync_main(^{
             // Show the disconnect storyboard.
             UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Storyboard" bundle:nil];
-            
+
             Boolean alreadyPresented = _disconnectViewController != nil;
             if (!alreadyPresented) {
                 _disconnectViewController = (AlertViewController *) [storyboard instantiateViewControllerWithIdentifier:@"DisconnectAlertView"];
@@ -440,5 +449,27 @@
     dispatch_sync_main(^{
         [_frameRate setText:[NSString stringWithFormat:@"%d", delayMs]];
     });
+}
+
+- (void)fadeInOutLabel:(UILabel *)label completion:(void (^)(BOOL))block {
+    [label setAlpha:0.0f];
+    [UIView animateWithDuration:1.0f animations:^{
+        [label setAlpha:1.0f];
+    }                completion:^(BOOL finished) {
+        [UIView animateWithDuration:2.0f animations:^{
+            [label setAlpha:0.0f];
+        }                completion:block];
+    }];
+}
+
+- (void)handleTutorials {
+    // Once per application run.
+    if ([_tutorialsDone signalAll]) {
+        dispatch_sync_main(^{
+            [self fadeInOutLabel:_swipeTutorialSkip completion:^void(BOOL b) {
+                [self fadeInOutLabel:_swipeTutorialChangeSettings completion:nil];
+            }];
+        });
+    }
 }
 @end
