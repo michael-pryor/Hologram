@@ -283,7 +283,6 @@
     }
 
     if (gotOutput) {
-        int resultImageSizeBytes = av_image_get_buffer_size(codecDecoderContext->pix_fmt, codecDecoderContext->width, codecDecoderContext->height, ALIGN_TO_BITS);
         //NSLog(@"Retrieved YUV image of size: %d, bytes written: %d", resultImageSizeBytes, result);
 
         av_packet_unref(&packet);
