@@ -67,9 +67,9 @@
 }
 
 - (void)doubleFrequencyValue {
-   /* float orig = _secondsFrequency;
-    _secondsFrequency *= 2;
-    NSLog(@"Slowed frequency from %.2f seconds to %.2f seconds", orig, _secondsFrequency);*/
+    /* float orig = _secondsFrequency;
+     _secondsFrequency *= 2;
+     NSLog(@"Slowed frequency from %.2f seconds to %.2f seconds", orig, _secondsFrequency);*/
 }
 
 @end

@@ -14,6 +14,7 @@
 #import "Threading.h"
 #import "AccessDialog.h"
 #import "ViewInteractions.h"
+#import "Timer.h"
 
 @implementation ConnectionViewController {
     // Connection
@@ -56,15 +57,12 @@
     // Temporary tutorial labels.
     __weak IBOutlet UILabel *_swipeTutorialChangeSettings;
     __weak IBOutlet UILabel *_swipeTutorialSkip;
-    Signal *_tutorialsDone;
 }
 
 // View initially load; happens once per process.
 // Essentially this is the constructor.
 - (void)viewDidLoad {
     [super viewDidLoad];
-
-    _tutorialsDone = [[Signal alloc] initWithFlag:false];
 
     [self setDisconnectStateWithShortDescription:@"Initializing" longDescription:@"Initializing media controller"];
 
@@ -455,12 +453,38 @@
 
 
 - (void)prepareTutorials {
-    // Once per application run.
-    if ([_tutorialsDone signalAll]) {
-        [ViewInteractions fadeInOutLabel:_swipeTutorialSkip completion:^void(BOOL b) {
-            [ViewInteractions fadeInOutLabel:_swipeTutorialChangeSettings completion:nil];
-        }];
+    NSString *tutorialLastPreparedEpochSecondsKey = @"tutorialLastPreparedEpochSeconds";
+
+    // Show the tutorial if not had the potential to do so (by running the app) for at least this long.
+    const double tutorialInactivityFrequency = 86400 * 7; // 7 days.
+
+    const NSUserDefaults *storage = [NSUserDefaults standardUserDefaults];
+    const double storedEpochSeconds = [storage doubleForKey:tutorialLastPreparedEpochSecondsKey]; // returns 0 if not stored.
+    const double currentEpochSeconds = [Timer getSecondsEpoch];
+    const double difference = currentEpochSeconds - storedEpochSeconds;
+    if (difference < tutorialInactivityFrequency || difference < 0) {
+        NSLog(@"Time since last tutorial prepare is: %.0f seconds, not showing tutorial", difference);
+        [storage setDouble:currentEpochSeconds forKey:tutorialLastPreparedEpochSecondsKey];
+        return;
     }
+
+    NSLog(@"Time since last tutorial prepare is: %.0f seconds, showing tutorial", difference);
+
+    // Once per application run.
+    [ViewInteractions fadeInOutLabel:_swipeTutorialSkip completion:^void(BOOL finishedSkip) {
+        if (!finishedSkip) {
+            return;
+        }
+
+        [ViewInteractions fadeInOutLabel:_swipeTutorialChangeSettings completion:^void(BOOL finishedChangeSettings) {
+            if (!finishedChangeSettings) {
+                return;
+            }
+
+            // Update only after tutorial has completed successfully.
+            [storage setDouble:currentEpochSeconds forKey:tutorialLastPreparedEpochSecondsKey];
+        }];
+    }];
 }
 
 - (void)preprepareRuntimeView {

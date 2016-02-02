@@ -25,4 +25,6 @@
 - (CFAbsoluteTime)getSecondsSinceLastTick;
 
 - (void)blockUntilNextTick;
+
++ (CFAbsoluteTime)getSecondsEpoch;
 @end

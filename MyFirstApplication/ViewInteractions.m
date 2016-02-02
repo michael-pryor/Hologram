@@ -14,9 +14,11 @@
         [UIView animateWithDuration:1.0f animations:^{
             [label setAlpha:1.0f];
         }                completion:^(BOOL finished) {
-            [UIView animateWithDuration:2.0f animations:^{
-                [label setAlpha:0.0f];
-            }                completion:block];
+            if (finished) {
+                [UIView animateWithDuration:2.0f animations:^{
+                    [label setAlpha:0.0f];
+                }                completion:block];
+            }
         }];
     });
 }
