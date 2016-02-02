@@ -9,6 +9,8 @@
 #import "SocialState.h"
 #import <FBSDKCoreKit/FBSDKCoreKit.h>
 
+const NSString* selectedGenderPreferenceKey = @"selectedGenderPreference";
+
 SocialState *instance;
 typedef void (^Block)(id);
 
@@ -19,9 +21,16 @@ typedef void (^Block)(id);
 - (id)init {
     self = [super init];
     if (self) {
-        // Default is both. Initialize here instead of in reset because this value doesn't come from Facebook.
+        // Initialize here instead of in reset because this value doesn't come from Facebook.
         // It comes form a GUI item (direct from user).
-        _interestedInI = BOTH;
+        if([[NSUserDefaults standardUserDefaults] objectForKey:selectedGenderPreferenceKey] != nil) {
+            const int selectedGenderPreference = [[NSUserDefaults standardUserDefaults] integerForKey:selectedGenderPreferenceKey];
+            NSLog(@"Loaded previous gender preference selection from storage: %d", selectedGenderPreference);
+            [self loadInterestedInFromSegmentIndex:selectedGenderPreference];
+        } else {
+            NSLog(@"No previous gender preference selection found in storage, defaulting to BOTH");
+            _interestedInI = BOTH;
+        }
     }
     return self;
 }
@@ -42,6 +51,7 @@ typedef void (^Block)(id);
     if (instance == nil) {
         instance = [[SocialState alloc] init];
     }
+
     return instance;
 }
 
@@ -139,6 +149,16 @@ typedef void (^Block)(id);
         // Facebook API tells us that this can't happen.
         NSLog(@"Unknown gender: %@", gender);
         return BOTH;
+    }
+}
+
+- (void)loadInterestedInFromSegmentIndex:(int)segmentIndex {
+    if (segmentIndex == 0) {
+        [self setInterestedIn:@"male"];
+    } else if (segmentIndex == 1) {
+        [self setInterestedIn:@"female"];
+    } else if (segmentIndex == 2) {
+        [self setInterestedIn:nil];
     }
 }
 

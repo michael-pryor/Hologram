@@ -12,9 +12,9 @@
 #define FEMALE 2
 #define BOTH 3
 
+extern const NSString* selectedGenderPreferenceKey;
 
 @class SocialState;
-
 @protocol SocialStateDataLoadNotification <NSObject>
 - (void)onSocialDataLoaded:(SocialState *)state;
 @end
@@ -44,6 +44,8 @@
 - (void)updateGraphFacebookInformation;
 
 - (void)update;
+
+- (void)loadInterestedInFromSegmentIndex:(int)segmentIndex;
 
 + (SocialState *)getFacebookInstance;
 
