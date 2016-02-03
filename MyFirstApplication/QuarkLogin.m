@@ -28,7 +28,7 @@
         [buffer addString:[state humanShortName]];
         [buffer addUnsignedInteger:[state age]];
         [buffer addUnsignedInteger:[state genderI]];
-        [buffer addUnsignedInteger:[state interestedInI]];
+        [buffer addUnsignedInteger:[state interestedIn]];
     }
 
     {

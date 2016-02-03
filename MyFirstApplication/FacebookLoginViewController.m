@@ -23,7 +23,7 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
 
-
+    _desiredGenderChooser.selectedSegmentIndex = [[SocialState getFacebookInstance] interestedInSegmentIndex];
 
     [_facebookAskLabel setText:@"Please allow this application to access your name and age (date of birth) from your Facebook account. This application uses only this information, and absolutely nothing else."];
     [_facebookAskLabel setHidden:true];
@@ -40,13 +40,8 @@
     }
 }
 
-
-
 - (IBAction)onDesiredGenderChanged:(id)sender {
-    int selectedSegment = [_desiredGenderChooser selectedSegmentIndex];
-    [[SocialState getFacebookInstance] loadInterestedInFromSegmentIndex:selectedSegment];
-
-    [[NSUserDefaults standardUserDefaults] setInteger:selectedSegment forKey:selectedGenderPreferenceKey];
+    [[SocialState getFacebookInstance] setInterestedInWithSegmentIndex:[_desiredGenderChooser selectedSegmentIndex]];
 }
 
 - (void)_updateDisplay {

@@ -35,7 +35,11 @@ extern const NSString* selectedGenderPreferenceKey;
 @property(readonly) NSString *dob;
 @property(readonly) uint age;
 @property(readonly) uint genderI;
-@property(readonly) uint interestedInI;
+@property(readonly) uint interestedIn;
+
+// This relates to the Facebook login view, the index of the selected button.
+// Used to rebuild this during initialization.
+@property(readonly) int interestedInSegmentIndex;
 
 - (void)reset;
 
@@ -45,7 +49,7 @@ extern const NSString* selectedGenderPreferenceKey;
 
 - (void)update;
 
-- (void)loadInterestedInFromSegmentIndex:(int)segmentIndex;
+- (void)setInterestedInWithSegmentIndex:(int)segmentIndex;
 
 + (SocialState *)getFacebookInstance;
 

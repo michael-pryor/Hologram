@@ -14,6 +14,8 @@ const NSString* selectedGenderPreferenceKey = @"selectedGenderPreference";
 SocialState *instance;
 typedef void (^Block)(id);
 
+#define INTERESTED_IN_BOTH_SEGMENT_ID 2
+
 @implementation SocialState {
     id <SocialStateDataLoadNotification> _notifier;
 }
@@ -26,10 +28,10 @@ typedef void (^Block)(id);
         if([[NSUserDefaults standardUserDefaults] objectForKey:selectedGenderPreferenceKey] != nil) {
             const int selectedGenderPreference = [[NSUserDefaults standardUserDefaults] integerForKey:selectedGenderPreferenceKey];
             NSLog(@"Loaded previous gender preference selection from storage: %d", selectedGenderPreference);
-            [self loadInterestedInFromSegmentIndex:selectedGenderPreference];
+            [self setInterestedInWithSegmentIndex:selectedGenderPreference saving:false];
         } else {
             NSLog(@"No previous gender preference selection found in storage, defaulting to BOTH");
-            _interestedInI = BOTH;
+            [self setInterestedInBoth];
         }
     }
     return self;
@@ -138,7 +140,7 @@ typedef void (^Block)(id);
     [self loadStateFromFirstName:[profile firstName] middleName:[profile middleName] lastName:[profile lastName] facebookUrl:[profile linkURL] facebookId:[profile userID]];
 }
 
-- (uint)_parseGender:(NSString *)gender {
+- (uint)parseGenderFromFacebookApi:(NSString *)gender {
     if (gender == nil) {
         return BOTH;
     } else if ([@"male" isEqualToString:gender]) {
@@ -152,17 +154,34 @@ typedef void (^Block)(id);
     }
 }
 
-- (void)loadInterestedInFromSegmentIndex:(int)segmentIndex {
+- (void)setInterestedInWithSegmentIndex:(int)segmentIndex saving:(bool)doSave {
     if (segmentIndex == 0) {
         [self setInterestedIn:@"male"];
     } else if (segmentIndex == 1) {
         [self setInterestedIn:@"female"];
-    } else if (segmentIndex == 2) {
+    } else if (segmentIndex == INTERESTED_IN_BOTH_SEGMENT_ID) {
         [self setInterestedIn:nil];
+    } else {
+        [NSException raise:@"Invalid interested in segment index" format:@"segment index %d is invalid", segmentIndex];
+    }
+
+    _interestedInSegmentIndex = segmentIndex;
+
+    if (doSave) {
+        NSLog(@"Saving interested in segment index of %d", segmentIndex);
+        [[NSUserDefaults standardUserDefaults] setInteger:segmentIndex forKey:selectedGenderPreferenceKey];
     }
 }
 
-- (uint)_getAgeFromDob:(NSString *)dob {
+- (void)setInterestedInBoth {
+    [self setInterestedInWithSegmentIndex:INTERESTED_IN_BOTH_SEGMENT_ID];
+}
+
+- (void)setInterestedInWithSegmentIndex:(int)segmentIndex {
+    [self setInterestedInWithSegmentIndex:segmentIndex saving:true];
+}
+
+- (uint)getAgeFromDateOfBirth:(NSString *)dob {
     NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
 
     if ([dob length] == 4) {
@@ -203,7 +222,14 @@ typedef void (^Block)(id);
             if (error) {
                 int secondsDelay = 1;
                 NSLog(@"Error accessing graph API: %@, retrying in %d second", error, secondsDelay);
-                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, secondsDelay * NSEC_PER_SEC), dispatch_get_main_queue(), ^ {
+
+                if (_isGraphDataLoaded) {
+                    NSLog(@"Not scheduling retry attempt for loading Facebook data, had previously succeeded");
+                    return;
+                }
+
+                // Retry attempt.
+                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, secondsDelay * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
                     blockParam(blockParam);
                 });
                 return;
@@ -214,14 +240,14 @@ typedef void (^Block)(id);
                 NSLog(@"Failed to retrieve date of birth from Facebook API, defaulting to 0 - server will handle this");
                 _age = 0;
             } else {
-                _age = [self _getAgeFromDob:_dob];
+                _age = [self getAgeFromDateOfBirth:_dob];
             }
 
             _gender = [result objectForKey:@"gender"];
             if (_gender == nil) {
                 NSLog(@"Failed to retrieve gender from Facebook API, defaulting to nil which will equate to BOTH - server will handle this");
             }
-            _genderI = [self _parseGender:_gender];
+            _genderI = [self parseGenderFromFacebookApi:_gender];
 
             NSLog(@"Loaded DOB: [%@], gender: [%@] from Facebook graph API", _dob, _gender);
             _isGraphDataLoaded = true;
@@ -242,7 +268,7 @@ typedef void (^Block)(id);
 }
 
 - (void)setInterestedIn:(NSString *)interestedIn {
-    _interestedInI = [self _parseGender:interestedIn];
+    _interestedIn = [self parseGenderFromFacebookApi:interestedIn];
 }
 
 @end
