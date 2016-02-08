@@ -206,6 +206,20 @@
     [self addValue:&integer typeSize:sizeof(uint)];
 }
 
+- (void)addFloat:(Float32)theFloat {
+    uint theFloatBytes = CFConvertFloat32HostToSwapped(theFloat).v;
+    [self addUnsignedInteger:theFloatBytes];
+}
+
+- (float)getFloat {
+    uint theFloatBytes = [self getUnsignedInteger];
+    CFSwappedFloat32 swapped;
+    swapped.v = theFloatBytes;
+
+    Float32 result = CFConvertFloat32SwappedToHost(swapped);
+    return result;
+}
+
 - (uint8_t)getUnsignedIntegerAtPosition8:(uint)position {
     uint8_t integer = 0;
     [self getValue:&integer fromPosition:position typeSize:sizeof(uint8_t)];

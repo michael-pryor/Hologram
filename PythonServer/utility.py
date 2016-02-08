@@ -10,6 +10,10 @@ class DataConstants:
     ULONG_FORMAT = "<L"
     ULONG_SIZE = 4
 
+    # Big endian, 4 bytes (or network byte order)
+    FLOAT_FORMAT = ">f"
+    FLOAT_SIZE = 4
+
     UBYTE_FORMAT = "B"
     UBYTE_SIZE = 1
 

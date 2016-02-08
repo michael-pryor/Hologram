@@ -135,8 +135,10 @@
             NSString *userName = [packet getString];
             uint userAge = [packet getUnsignedInteger];
 
+            uint distanceFromUser = [packet getUnsignedInteger];
+
             [_notifier onNatPunchthrough:self stateChange:ADDRESS_RECEIVED];
-            [_notifier handleUserName:userName age:userAge];
+            [_notifier handleUserName:userName age:userAge distance:(uint)distanceFromUser];
         } else if (prefix == NAT_PUNCHTHROUGH_DISCONNECT) {
             NSLog(@"Request to stop using NAT punchthrough received");
             [self clearNatPunchthrough];

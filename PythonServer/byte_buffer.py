@@ -110,6 +110,9 @@ class ByteBuffer(object):
     def addUnsignedInteger(self, data):
         self.addValue(struct.pack(DataConstants.ULONG_FORMAT, data), DataConstants.ULONG_SIZE)
 
+    def addFloat(self, data):
+        self.addValue(struct.pack(DataConstants.FLOAT_FORMAT, data), DataConstants.FLOAT_SIZE)
+
     def addUnsignedInteger8(self, data):
         self.addValue(struct.pack(DataConstants.UBYTE_FORMAT, data), DataConstants.UBYTE_SIZE)
 
@@ -124,6 +127,9 @@ class ByteBuffer(object):
         self.cursor_position, value = self.getValueAtPosition(self.cursor_position, valueDataSize)
         return value
 
+    def getFloatFromData(self, data):
+        return struct.unpack(DataConstants.FLOAT_FORMAT, data)[0]
+
     def getUnsignedIntegerFromData(self, data):
         return struct.unpack(DataConstants.ULONG_FORMAT, data)[0]
 
@@ -133,6 +139,10 @@ class ByteBuffer(object):
     def getUnsignedInteger(self):
         rawData = self.getValue(DataConstants.ULONG_SIZE)
         return self.getUnsignedIntegerFromData(rawData)
+
+    def getFloat(self):
+        rawData = self.getValue(DataConstants.FLOAT_SIZE)
+        return self.getFloatFromData(rawData)
 
     def getUnsignedIntegerAtPosition(self, position):
         endPosition, rawData = self.getValueAtPosition(position, DataConstants.ULONG_SIZE)

@@ -163,8 +163,8 @@ class Client(object):
         gender = packet.getUnsignedInteger()
         interestedIn = packet.getUnsignedInteger()
 
-        latitude = packet.getUnsignedInteger()
-        longitude = packet.getUnsignedInteger()
+        latitude = packet.getFloat()
+        longitude = packet.getFloat()
 
         self.login_details = Client.LoginDetails(self.udp_hash, fullName, shortName, age, gender, interestedIn, latitude, longitude)
 

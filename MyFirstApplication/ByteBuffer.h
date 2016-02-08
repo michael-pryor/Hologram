@@ -99,4 +99,8 @@
 - (uint8_t *)getRawDataPtr;
 
 - (void)clear;
+
+- (void)addFloat:(Float32)theFloat;
+
+- (float)getFloat;
 @end

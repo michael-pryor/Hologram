@@ -32,8 +32,8 @@
     }
 
     {
-        [buffer addUnsignedInteger:[_gpsState latitude]];
-        [buffer addUnsignedInteger:[_gpsState longitude]];
+        [buffer addFloat:[_gpsState latitude]];
+        [buffer addFloat:[_gpsState longitude]];
     }
 
     return buffer;

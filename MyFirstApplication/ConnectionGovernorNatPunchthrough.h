@@ -48,5 +48,5 @@ typedef enum {
 - (void)onNatPunchthrough:(ConnectionGovernorNatPunchthrough *)connection stateChange:(NatState)state;
 
 // NAT punch through also provides user name and age details as part of the login process.
-- (void)handleUserName:(NSString*)name age:(uint)age;
+- (void)handleUserName:(NSString*)name age:(uint)age distance:(uint)distance;
 @end

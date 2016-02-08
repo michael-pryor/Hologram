@@ -111,7 +111,7 @@ if __name__ == '__main__':
 
     def getRandomClient():
         dummyClient = Client(ClientTcp(("localhost",0)), None, None, None)
-        dummyClient.login_details = Client.LoginDetails(str(uuid.uuid4()), "Mike P", random.randint(18,30), random.randint(1,2), random.randint(1,3), random.randint(0,180), random.randint(0,90))
+        dummyClient.login_details = Client.LoginDetails(str(uuid.uuid4()), "Mike P", "Mike", random.randint(18,30), random.randint(1,2), random.randint(1,3), random.randint(0,180), random.randint(0,90))
         return dummyClient
 
     try:

@@ -36,6 +36,8 @@
     IBOutlet UILabel *_ownerAge;
     IBOutlet UILabel *_remoteName;
     IBOutlet UILabel *_remoteAge;
+    IBOutlet UILabel *_remoteDistance;
+    
     // State
     volatile bool _waitingForNewEndPoint;
     bool _isConnectionActive;
@@ -265,7 +267,7 @@
     });
 }
 
-- (void)handleUserName:(NSString *)name age:(uint)age {
+- (void)handleUserName:(NSString *)name age:(uint)age distance:(uint)distance {
     dispatch_sync_main(^{
         NSLog(@"Connected with user named [%@] with age [%u]", name, age);
         [_remoteName setText:name];
@@ -276,6 +278,18 @@
         } else {
             [_remoteAge setHidden:true];
         }
+        
+        NSString* distanceString;
+        if (distance <= 1) {
+            distanceString = @"< 1km away";
+        } else if (distance > 15000) {
+            distanceString = @"> 15000km away";
+        } else {
+            distanceString = [NSString stringWithFormat:@"%dkm away", distance];
+        }
+        [_remoteDistance setText:distanceString];
+
+        NSLog(@"Distance from other user: %d, producing string: %@", distance, distanceString);
     });
 }
 
@@ -495,6 +509,7 @@
     [_remoteAge setAlpha:0.0f];
     [_remoteName setAlpha:0.0f];
     [_cameraView setAlpha:0.0f];
+    [_remoteDistance setAlpha:0.0f];
 }
 
 - (void)prepareRuntimeView {
@@ -503,7 +518,9 @@
     [ViewInteractions fadeIn:_cameraView completion:nil duration:4.0f];
 
     [ViewInteractions fadeIn:_ownerName completion:^(BOOL completed) {
-        [ViewInteractions fadeIn:_ownerAge completion:nil duration:2.0f];
+        [ViewInteractions fadeIn:_ownerAge completion:^(BOOL completed) {
+            [ViewInteractions fadeIn:_remoteDistance completion:nil duration:2.0f];
+        }duration:2.0f];
     }               duration:2.0f];
 
     [ViewInteractions fadeIn:_remoteName completion:^(BOOL completed) {

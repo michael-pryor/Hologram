@@ -6,6 +6,8 @@ from threading import RLock
 import logging
 from database import Database
 from utility import getRemainingTimeOnAction, getEpoch
+from geography import distanceBetweenPointsKm
+import math
 
 logger = logging.getLogger(__name__)
 
@@ -61,9 +63,23 @@ class House:
         logger.info("New room set up between client [%s] and [%s]" % (clientA, clientB))
         return True
 
+    def getDistance(self, clientA, clientB):
+        assert isinstance(clientA, Client)
+        assert isinstance(clientB, Client)
+
+        trueDistance = distanceBetweenPointsKm(clientA.login_details.longitude,
+                                               clientA.login_details.latitude,
+                                               clientB.login_details.longitude,
+                                               clientB.login_details.latitude)
+
+        roundedDistance = math.ceil(trueDistance)
+        return int(roundedDistance)
+
     def adviseNatPunchthrough(self, clientA, clientB):
         assert isinstance(clientA, Client)
         assert isinstance(clientB, Client)
+
+        distance = self.getDistance(clientA, clientB)
 
         bufferClientA = ByteBuffer()
         bufferClientA.addUnsignedInteger8(Client.TcpOperationCodes.OP_NAT_PUNCHTHROUGH_ADDRESS)
@@ -71,6 +87,7 @@ class House:
         bufferClientA.addUnsignedInteger(htons(clientB.udp.remote_address[1]))
         bufferClientA.addString(clientB.login_details.short_name)
         bufferClientA.addUnsignedInteger(clientB.login_details.age)
+        bufferClientA.addUnsignedInteger(distance)
 
         bufferClientB = ByteBuffer()
         bufferClientB.addUnsignedInteger8(Client.TcpOperationCodes.OP_NAT_PUNCHTHROUGH_ADDRESS)
@@ -78,10 +95,12 @@ class House:
         bufferClientB.addUnsignedInteger(htons(clientA.udp.remote_address[1]))
         bufferClientB.addString(clientA.login_details.short_name)
         bufferClientB.addUnsignedInteger(clientA.login_details.age)
+        bufferClientB.addUnsignedInteger(distance)
+
 
         clientA.tcp.sendByteBuffer(bufferClientA)
         clientB.tcp.sendByteBuffer(bufferClientB)
-        logger.info("NAT punchthrough introduction made between client [%s] and [%s]" % (clientA, clientB))
+        logger.info("NAT punchthrough introduction made between client [%s] and [%s], distance between them [%dkm]" % (clientA, clientB, distance))
 
     def adviseAbortNatPunchthrough(self, client):
         assert isinstance(client, Client)
