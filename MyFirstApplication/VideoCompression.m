@@ -12,6 +12,8 @@
 #import "VideoOutputController.h"
 #import "Orientation.h"
 #import "VideoShared.h"
+#import "Timer.h"
+#import <CoreImage/CoreImage.h>
 
 // Handle endianness
 #define clamp(a) (a>255?255:(a<0?0:a))
@@ -30,19 +32,27 @@
 
     CVPixelBufferPoolRef _pixelBufferPool;
     UIImageOrientation _imageOrientation;
-    
+
     CIContext *_context;
+
+    float _filterIntensity;
+    Timer* _filterIntensityDecreaseTimer;
+    float _filterIntensityDecreaseValue;
 }
 - (id)init {
     self = [super init];
     if (self) {
         int result;
 
+        _filterIntensity = 1.0f;
+        _filterIntensityDecreaseTimer = [[Timer alloc] initWithFrequencySeconds:1.0f firingInitially:false];
+        _filterIntensityDecreaseValue = 0.01;
+
         {
             // Note: this call leaks memory, so its important to only call it once per lifetime of app.
             _context = [CIContext contextWithOptions:nil];
         }
-        
+
         av_register_all();
 
         {
@@ -164,6 +174,28 @@
     }
 }
 
+- (CIImage*)applyFilter:(CIImage *)coreImage {
+    if ([_filterIntensityDecreaseTimer getState]) {
+        if (_filterIntensity > 0) {
+            _filterIntensity -= _filterIntensityDecreaseValue;
+        }
+    }
+
+    if (_filterIntensity <= 0) {
+        return coreImage;
+    }
+
+    CIFilter * filter = [CIFilter filterWithName:@"CISepiaTone"];
+    [filter setValue:coreImage forKey:kCIInputImageKey];
+    [filter setValue:@(_filterIntensity) forKey:kCIInputIntensityKey];
+    return [filter valueForKey:kCIOutputImageKey];
+}
+
+- (void)resetFilters {
+    [_filterIntensityDecreaseTimer reset];
+    _filterIntensity = 1.0f;
+}
+
 // Sadly we can't make this loop faster because iOS doesn't support tri planar i.e. 3 seperate
 // buffers for Y, Cb and Cr. It only supports Y and then CbCr interlaced (a seperate buffer as CbCrCbCr..)
 // So we are forced to convert between the two formats.
@@ -233,7 +265,9 @@
     CVPixelBufferUnlockBaseAddress(pixelBuffer, 0);
 
     CIImage *coreImage = [CIImage imageWithCVPixelBuffer:pixelBuffer];
-    
+
+    coreImage = [self applyFilter:coreImage];
+
     CGImageRef videoImage = [_context
             createCGImage:coreImage
                  fromRect:CGRectMake(0, 0,
@@ -241,7 +275,7 @@
                          height)];
 
     UIImage *imageResult = [[UIImage alloc] initWithCGImage:videoImage scale:1.0 orientation:_imageOrientation];
-    
+
     CGImageRelease(videoImage);
     CVPixelBufferRelease(pixelBuffer);
     return imageResult;
@@ -305,8 +339,6 @@
 }
 
 - (bool)convertSampleBuffer:(CMSampleBufferRef)sampleBuffer toFrame:(AVFrame **)frameResult {
-    int result;
-
     // SO basically.
     // iOS gives us CMSampleBuffer, in this there are two planar:
     // 1. Y values

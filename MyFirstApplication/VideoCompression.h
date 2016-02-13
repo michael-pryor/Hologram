@@ -20,4 +20,6 @@
 - (UIImage *)decodeByteBuffer:(ByteBuffer *)buffer;
 
 - (UIImage *)convertSampleBufferToUiImage:(CMSampleBufferRef)sampleBuffer;
+
+- (void)resetFilters;
 @end

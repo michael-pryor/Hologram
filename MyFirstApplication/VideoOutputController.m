@@ -53,6 +53,9 @@
     id <NewImageDelegate> _localImageDelegate;         // Display user's own camera to user (so that can see what other people see of them.
     ThrottledBlock *_localImageUpdateThrottle;
 
+    // Does all the image compression/decompression and applying of filters.
+    VideoCompression *_videoCompression;
+
     Signal *_isRunning;
 
 }
@@ -64,7 +67,8 @@
         _throttledBlock = [[ThrottledBlock alloc] initWithDefaultOutputFrequency:0.1 firingInitially:true];
 
 
-        _videoEncoder = [[VideoEncoding alloc] initWithVideoCompression:[[VideoCompression alloc] init]];
+        _videoCompression = [[VideoCompression alloc] init];
+        _videoEncoder = [[VideoEncoding alloc] initWithVideoCompression:_videoCompression];
 
         PacketToImageProcessor *p = [[PacketToImageProcessor alloc] initWithImageDelegate:newImageDelegate encoder:_videoEncoder];
 
@@ -115,8 +119,10 @@
     }
 }
 
+// Called when changing person we're talking to.
 - (void)resetInbound {
     [_batcherInput reset];
+    [_videoCompression resetFilters];
 }
 
 // Handle data from camera device and push out to network.
