@@ -49,9 +49,9 @@
 
     // Size of the last chunk in the batch (may be less than other chunks).
     if (_lastChunkSize == 0) {
-        _lastChunkSize = [packet getUnsignedInteger8];
+        _lastChunkSize = [packet getUnsignedInteger16];
     } else {
-        [packet getUnsignedInteger8];
+        [packet getUnsignedInteger16];
     }
 
     // Size of normal chunks; we need to cache it so that we don't use last chunk

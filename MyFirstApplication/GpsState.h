@@ -20,9 +20,10 @@
 @interface GpsState : NSObject <CLLocationManagerDelegate>
 - (void)update;
 
-@property double longitude;
-@property double latitude;
-@property Boolean loaded;
+@property float longitude;
+@property float latitude;
+
+- (bool)isLoaded;
 
 - (id)initWithNotifier:(id <GpsStateDataLoadNotification>)notifier;
 @end

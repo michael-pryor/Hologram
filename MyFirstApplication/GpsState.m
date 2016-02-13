@@ -7,21 +7,27 @@
 //
 
 #import "GpsState.h"
+#import "Signal.h"
 
 GpsState *state;
 
 @implementation GpsState {
     CLLocationManager *_locationManager;
     id <GpsStateDataLoadNotification> _notifier;
+    Signal *_loaded;
 }
 
 - (id)initWithNotifier:(id <GpsStateDataLoadNotification>)notifier {
     self = [super init];
     if (self) {
         _notifier = notifier;
-        _loaded = false;
+        _loaded = [[Signal alloc] initWithFlag:false];
     }
     return self;
+}
+
+- (bool)isLoaded {
+    return [_loaded isSignaled];
 }
 
 - (void)update {
@@ -34,21 +40,25 @@ GpsState *state;
         _locationManager.desiredAccuracy = kCLLocationAccuracyKilometer;
 
         // Set a movement threshold for new events.
-        _locationManager.distanceFilter = 500; // meters
+        _locationManager.distanceFilter = 1000; // meters
 
         // Check for iOS 8. Without this guard the code will crash with "unknown selector" on iOS 7.
         if ([_locationManager respondsToSelector:@selector(requestWhenInUseAuthorization)]) {
             [_locationManager requestWhenInUseAuthorization];
         }
-        
+
         // Now we receive updates initially, and every time we change location.
         [_locationManager startUpdatingLocation];
     } else {
-        if (_loaded) {
-            if (_notifier != nil) {
-                [_notifier onGpsDataLoaded:self];
-            }
+        if ([_loaded isSignaled]) {
+            [self notifySuccess];
         }
+    }
+}
+
+- (void)notifySuccess {
+    if (_notifier != nil) {
+        [_notifier onGpsDataLoaded:self];
     }
 }
 
@@ -59,30 +69,25 @@ GpsState *state;
     double horizontalAccuracy = [location horizontalAccuracy];
     double verticalAccuracy = [location verticalAccuracy];
     double altitude = [location altitude];
-    _latitude = [location coordinate].latitude;
-    _longitude = [location coordinate].longitude;
+    _latitude = (float) [location coordinate].latitude;
+    _longitude = (float) [location coordinate].longitude;
     NSString *description = [location description];
 
     NSLog(@"Loaded GPS location (%.2f seconds old): %.2f,%.2f / %.2f with accuracy %.2f,%.2f - description: %@", age, _longitude, _latitude, altitude, horizontalAccuracy, verticalAccuracy, description);
 
-    if (!_loaded) {
-        _loaded = true;
-        if (_notifier != nil) {
-            [_notifier onGpsDataLoaded:self];
-        }
+    if ([_loaded signalAll]) {
+        [self notifySuccess];
     }
 }
 
 - (void)locationManager:(CLLocationManager *)manager didFailWithError:(NSArray *)locations {
     NSLog(@"Error retrieving GPS location");
     if (_notifier != nil) {
-        if (!_loaded) {
+        if (![_loaded isSignaled]) {
             NSLog(@"Total failure to retrieve GPS");
             [_notifier onGpsDataLoadFailure:self withDescription:@"Failed to load GPS position"];
         } else {
-            NSLog(@"Reusing old GPS location");
-            // Use last retrieved location.
-            //[_notifier onGpsDataLoaded:self];
+            NSLog(@"GPS location update failed but we have already loaded a location, so ignoring error; on next login old GPS location will be reused");
         }
     }
 }

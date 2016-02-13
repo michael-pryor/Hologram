@@ -5,6 +5,7 @@ from client import Client
 from protocol_client import ClientTcp, ClientUdp
 import uuid
 import random
+import pymongo.errors
 
 logger = logging.getLogger(__name__)
 
@@ -68,7 +69,11 @@ class Database(object):
                       '_id' : {'$ne' : loginDetails.unique_id}
                     })
 
-        return self.match_collection.find_one(query)
+        try:
+            return self.match_collection.find_one(query)
+        except Exception as e:
+            raise ValueError(e)
+
 
 
 

@@ -188,7 +188,12 @@ class House:
 
                 # This loop allows us to clean up the database quickly if there are alot of inconsistencies.
                 while True:
-                    databaseResultMatch = self.database.findMatch(client)
+                    try:
+                        databaseResultMatch = self.database.findMatch(client)
+                    except ValueError as e:
+                        logger.error("Bad database query attempt [%s], forcefully disconnecting client: [%s]" % (e, client))
+                        client.closeConnection()
+                        return
 
                     # If we can't immediately find a match then add it to the waiting list.
                     if databaseResultMatch is None:

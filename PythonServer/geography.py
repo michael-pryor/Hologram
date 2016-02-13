@@ -34,3 +34,5 @@ def distanceBetweenPointsKm(longitudeA, latitudeA, longitudeB, latitudeB):
 
 if __name__ == '__main__':
     print distanceBetweenPointsKm(-0.110755, 51.507761, -0.389731, 51.651498)
+    print distanceBetweenPointsKm(-0.02312598, 51.49324584,+37.61763300, +55.75578600)
+    print distanceBetweenPointsKm(51.49324584, -0.02312598, +55.75578600, +37.61763300)

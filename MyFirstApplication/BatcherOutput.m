@@ -23,9 +23,9 @@
         _batchId = 0;
 
         // Batch ID, Chunk ID, Total number of chunks in batch, size in bytes of last chunk.
-        uint maximumChunkSize = 255; // do not increase, because we store in uint8_t.
+        uint maximumChunkSize = 640; // must fit into uint16_t i.e. <= 65535.
         _sendBuffer = [[ByteBuffer alloc] initWithSize:maximumChunkSize + (sizeof(uint16_t) * 3) + sizeof(uint8_t) + _leftPadding]; // space for IDs and padding too.
-        _batchSizeGenerator = [[BatchSizeGenerator alloc] initWithDesiredBatchSize:128 minimum:90 maximum:maximumChunkSize maximumPacketSize:15000];
+        _batchSizeGenerator = [[BatchSizeGenerator alloc] initWithDesiredBatchSize:512 minimum:384 maximum:maximumChunkSize maximumPacketSize:15000];
     }
     return self;
 }
@@ -78,7 +78,7 @@
     [_sendBuffer addUnsignedInteger16:batchId]; // batch ID.
     [_sendBuffer addUnsignedInteger16:chunkId]; // chunk ID; ID within batch.
     [_sendBuffer addUnsignedInteger16:numChunks]; // total number of chunks in this batch.
-    [_sendBuffer addUnsignedInteger8:lastChunkSize]; // size of last chunk in batch.
+    [_sendBuffer addUnsignedInteger16:lastChunkSize]; // size of last chunk in batch.
 
     // Last chunk may be smaller.
     uint auxChunkSize;

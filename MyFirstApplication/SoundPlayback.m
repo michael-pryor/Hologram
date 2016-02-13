@@ -15,8 +15,8 @@
 
 @import AVFoundation;
 
-// We think that each buffer is 150ms in length.
-#define ESTIMATED_BUFFER_SIZE_MS 150
+// We think that each buffer is 125ms in length.
+#define ESTIMATED_BUFFER_SIZE_MS 125
 
 // When determining what delay to impose on video, we count the number of buffers within a time period. Ideally
 // we would set this to equal ESTIMATED_BUFFER_SIZE_MS but is is essential that we do not overestimate the value

@@ -37,7 +37,7 @@
     IBOutlet UILabel *_remoteName;
     IBOutlet UILabel *_remoteAge;
     IBOutlet UILabel *_remoteDistance;
-    
+
     // State
     volatile bool _waitingForNewEndPoint;
     bool _isConnectionActive;
@@ -224,9 +224,13 @@
     [self setDisconnectStateWithShortDescription:@"Failed to load GPS details, retrying" longDescription:description];
 
     // Try again in 2 seconds time.
+    // Note this is just updating the UI. After failure, GPS automatically keeps retrying so needs
+    // no further calls. But after two seconds we want the user to feel like we are doing something if
+    // the situation hasn't improved.
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t) (2.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        [state update];
-        [self setDisconnectStateWithShortDescription:@"Loading GPS details" longDescription:@"Waiting for GPS information to load"];
+        if (![state isLoaded]) {
+            [self setDisconnectStateWithShortDescription:@"Loading GPS details" longDescription:@"Waiting for GPS information to load"];
+        }
     });
 }
 
@@ -278,8 +282,8 @@
         } else {
             [_remoteAge setHidden:true];
         }
-        
-        NSString* distanceString;
+
+        NSString *distanceString;
         if (distance <= 1) {
             distanceString = @"< 1km away";
         } else if (distance > 15000) {
@@ -520,7 +524,7 @@
     [ViewInteractions fadeIn:_ownerName completion:^(BOOL completed) {
         [ViewInteractions fadeIn:_ownerAge completion:^(BOOL completed) {
             [ViewInteractions fadeIn:_remoteDistance completion:nil duration:2.0f];
-        }duration:2.0f];
+        }               duration:2.0f];
     }               duration:2.0f];
 
     [ViewInteractions fadeIn:_remoteName completion:^(BOOL completed) {

@@ -166,7 +166,7 @@ class Client(object):
         latitude = packet.getFloat()
         longitude = packet.getFloat()
 
-        self.login_details = Client.LoginDetails(self.udp_hash, fullName, shortName, age, gender, interestedIn, latitude, longitude)
+        self.login_details = Client.LoginDetails(self.udp_hash, fullName, shortName, age, gender, interestedIn, longitude, latitude)
 
         logger.info("Login processed with details, udp hash: [%s], full name: [%s], short name: [%s], age: [%d], gender [%d], interested in [%d], GPS: [(%d,%d)]" % (self.udp_hash, fullName, shortName, age, gender, interestedIn, longitude, latitude))
         return Client.RejectCodes.SUCCESS, self.udp_hash

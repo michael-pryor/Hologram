@@ -61,7 +61,7 @@
     if (self) {
         _localImageDelegate = nil;
 
-        _throttledBlock = [[ThrottledBlock alloc] initWithDefaultOutputFrequency:0.25 firingInitially:true];
+        _throttledBlock = [[ThrottledBlock alloc] initWithDefaultOutputFrequency:0.1 firingInitially:true];
 
 
         _videoEncoder = [[VideoEncoding alloc] initWithVideoCompression:[[VideoCompression alloc] init]];
@@ -69,6 +69,7 @@
         PacketToImageProcessor *p = [[PacketToImageProcessor alloc] initWithImageDelegate:newImageDelegate encoder:_videoEncoder];
 
         // Delay video playback in order to sync up with audio.
+        // Value gets set later based on calculated delay.
         _delayedPipe = [[DelayedPipe alloc] initWithMinimumDelay:0 outputSession:p];
 
         _batcherInput = [[BatcherInput alloc] initWithOutputSession:_delayedPipe numChunksThreshold:1 timeoutMs:1000];
