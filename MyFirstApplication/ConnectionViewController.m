@@ -9,7 +9,7 @@
 #import "ConnectionViewController.h"
 #import "MediaController.h"
 #import "FacebookLoginViewController.h"
-#import "QuarkLogin.h"
+#import "HologramLogin.h"
 #import "AlertViewController.h"
 #import "Threading.h"
 #import "AccessDialog.h"
@@ -195,7 +195,7 @@
 // Callback for GPS data.
 // Starts connection.
 - (void)onGpsDataLoaded:(GpsState *)state {
-    QuarkLogin *loginProvider = [[QuarkLogin alloc] initWithGpsState:state];
+    HologramLogin *loginProvider = [[HologramLogin alloc] initWithGpsState:state];
     _connectionCommander = [[ConnectionCommander alloc] initWithRecvDelegate:self connectionStatusDelegate:self governorSetupDelegate:self loginProvider:loginProvider punchthroughNotifier:self];
     [self connectToCommander];
 }

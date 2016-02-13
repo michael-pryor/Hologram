@@ -1,5 +1,5 @@
 //
-//  QuarkLogin.h
+//  HologramLogin.h
 //  MyFirstApplication
 //
 //  Created by Michael Pryor on 14/07/2015.
@@ -10,7 +10,7 @@
 #import "LoginProvider.h"
 #import "GpsState.h"
 
-@interface QuarkLogin : NSObject <LoginProvider>
+@interface HologramLogin : NSObject <LoginProvider>
 - (id)initWithGpsState:(GpsState *)gpsState;
 
 - (ByteBuffer *)getLoginBuffer;

@@ -1,15 +1,15 @@
 //
-//  QuarkLogin.m
+//  HologramLogin.m
 //  MyFirstApplication
 //
 //  Created by Michael Pryor on 14/07/2015.
 //
 //
 
-#import "QuarkLogin.h"
+#import "HologramLogin.h"
 #import "SocialState.h"
 
-@implementation QuarkLogin {
+@implementation HologramLogin {
     GpsState *_gpsState;
 }
 - (id)initWithGpsState:(GpsState *)gpsState {
