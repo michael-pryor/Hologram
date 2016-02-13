@@ -49,11 +49,31 @@
     [_localImageViewVisible clear];
     [_localImageView setAlpha:0.0f];
     _localImageFadeInDelayTimer = [[Timer alloc] initWithFrequencySeconds:1 firingInitially:false];
+
+    NSLog(@"Alert view loaded, unhiding banner advert and setting delegate");
+    _bannerView.delegate = self;
+    [_bannerView setHidden:false];
 }
 
 - (void)viewDidDisappear:(BOOL)animated {
-    [_localImageView setAlpha:0.0f];
-    _localImageFadeInDelayTimer = nil;
+    dispatch_sync_main(^{
+        [_localImageView setAlpha:0.0f];
+        _localImageFadeInDelayTimer = nil;
+
+        // Pause the banner view, stop it loading new adverts.
+        NSLog(@"Alert view hidden, hiding banner advert and removing delegate");
+        _bannerView.delegate = nil;
+        [_bannerView setHidden:true];
+    });
+}
+
+- (void)hideNow {
+    dispatch_sync_main(^{
+        NSLog(@"Removing disconnect screen from parent");
+        [self willMoveToParentViewController:nil];
+        [self removeFromParentViewController];
+        [self.view removeFromSuperview];
+    });
 }
 
 - (Boolean)hideIfVisibleAndReady {
@@ -61,12 +81,7 @@
         return false;
     }
 
-    dispatch_sync_main(^{
-        NSLog(@"Removing disconnect screen from parent");
-        [self willMoveToParentViewController:nil];
-        [self removeFromParentViewController];
-        [self.view removeFromSuperview];
-    });
+    [self hideNow];
     return true;
 }
 
@@ -74,7 +89,7 @@
     dispatch_sync_main(^{
         NSLog(@"Banner has loaded, unhiding it");
         [ViewInteractions fadeIn:_bannerView completion:nil duration:1.0f];
-        
+
         // User must wait a minimum of 2 seconds extra while the advert is visible
         // (giving them a chance to see it and click it).
         [_timerSinceAdvertCreated reset];
@@ -86,7 +101,7 @@
     dispatch_sync_main(^{
         NSLog(@"Failed to retrieve banner, hiding it; error is: %@", error);
         [ViewInteractions fadeOut:_bannerView completion:nil duration:1.0f];
-        
+
         // Will not wait for banner to be displayed.
         [_timerSinceAdvertCreated setSecondsFrequency:0];
     });

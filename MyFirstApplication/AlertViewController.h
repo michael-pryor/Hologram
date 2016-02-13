@@ -16,4 +16,6 @@
 - (void)setAlertShortText:(NSString *)shortText longText:(NSString *)longText;
 
 - (Boolean)hideIfVisibleAndReady;
+
+- (void)hideNow;
 @end

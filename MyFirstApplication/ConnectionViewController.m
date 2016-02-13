@@ -119,6 +119,7 @@
 
 // View disappears; happens if user switches app or moves from a different view controller.
 - (void)viewDidDisappear:(BOOL)animated {
+    [super viewDidDisappear:animated];
     [self terminateCurrentSession];
 }
 
@@ -285,11 +286,11 @@
 
         NSString *distanceString;
         if (distance <= 1) {
-            distanceString = @"< 1km away";
+            distanceString = @"< 1 km away";
         } else if (distance > 15000) {
-            distanceString = @"> 15000km away";
+            distanceString = @"> 15000 km away";
         } else {
-            distanceString = [NSString stringWithFormat:@"%dkm away", distance];
+            distanceString = [NSString stringWithFormat:@"%d km away", distance];
         }
         [_remoteDistance setText:distanceString];
 

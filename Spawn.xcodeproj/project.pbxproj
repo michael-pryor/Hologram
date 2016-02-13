@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		5103D2A21B55960B00B9593C /* QuarkLogin.m in Sources */ = {isa = PBXBuildFile; fileRef = 5103D2A11B55960B00B9593C /* QuarkLogin.m */; };
 		5109583B1BB32C5800319FA9 /* iAd.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5109583A1BB32C5800319FA9 /* iAd.framework */; };
-		5109D3A81C1606FE003EAA33 /* icon_120.png in Resources */ = {isa = PBXBuildFile; fileRef = 5109D3A71C1606FE003EAA33 /* icon_120.png */; };
 		510F6DF91BA74C1800D2AF48 /* AlertViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 510F6DF81BA74C1800D2AF48 /* AlertViewController.m */; };
 		511605F51B3EBE5D0071A183 /* NetworkUtility.m in Sources */ = {isa = PBXBuildFile; fileRef = 511605F41B3EBE5D0071A183 /* NetworkUtility.m */; };
 		511949341B3FFF8F00314436 /* ConnectionGovernor.m in Sources */ = {isa = PBXBuildFile; fileRef = 511949331B3FFF8F00314436 /* ConnectionGovernor.m */; };
@@ -44,7 +43,6 @@
 		51260FD41B47F60F001DE2B3 /* ConnectionCommander.m in Sources */ = {isa = PBXBuildFile; fileRef = 51260FD31B47F60F001DE2B3 /* ConnectionCommander.m */; };
 		513205E71AAE4CA600C80AD9 /* SoundMicrophone.m in Sources */ = {isa = PBXBuildFile; fileRef = 513205E61AAE4CA600C80AD9 /* SoundMicrophone.m */; };
 		516526631C54C85F00AA3816 /* BatchSizeGeneratorTest.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61829DC4A7512B689E307 /* BatchSizeGeneratorTest.m */; };
-		51865D2D1C1C438A008836E7 /* iphone5_launchscreen.png in Resources */ = {isa = PBXBuildFile; fileRef = 51865D2C1C1C438A008836E7 /* iphone5_launchscreen.png */; };
 		519573041AEBEB26000247E1 /* EventTracker.m in Sources */ = {isa = PBXBuildFile; fileRef = 519573031AEBEB26000247E1 /* EventTracker.m */; };
 		51BE77721C53EEF100492336 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 51BE77711C53EEF100492336 /* XCTest.framework */; };
 		51BE77871C5401C400492336 /* ByteBuffer.h in Sources */ = {isa = PBXBuildFile; fileRef = 51D584BF19AB7A9400BB6CE6 /* ByteBuffer.h */; };
@@ -152,7 +150,6 @@
 		5103D2A01B55960B00B9593C /* QuarkLogin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = QuarkLogin.h; sourceTree = "<group>"; };
 		5103D2A11B55960B00B9593C /* QuarkLogin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = QuarkLogin.m; sourceTree = "<group>"; };
 		5109583A1BB32C5800319FA9 /* iAd.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = iAd.framework; path = System/Library/Frameworks/iAd.framework; sourceTree = SDKROOT; };
-		5109D3A71C1606FE003EAA33 /* icon_120.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = icon_120.png; sourceTree = "<group>"; };
 		510F6DF71BA74C1800D2AF48 /* AlertViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AlertViewController.h; sourceTree = "<group>"; };
 		510F6DF81BA74C1800D2AF48 /* AlertViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AlertViewController.m; sourceTree = "<group>"; };
 		511605F31B3EBE5D0071A183 /* NetworkUtility.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NetworkUtility.h; sourceTree = "<group>"; };
@@ -208,7 +205,6 @@
 		51260FD31B47F60F001DE2B3 /* ConnectionCommander.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ConnectionCommander.m; sourceTree = "<group>"; };
 		513205E51AAE4CA600C80AD9 /* SoundMicrophone.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SoundMicrophone.h; sourceTree = "<group>"; };
 		513205E61AAE4CA600C80AD9 /* SoundMicrophone.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SoundMicrophone.m; sourceTree = "<group>"; };
-		51865D2C1C1C438A008836E7 /* iphone5_launchscreen.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = iphone5_launchscreen.png; sourceTree = "<group>"; };
 		519573021AEBEB26000247E1 /* EventTracker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EventTracker.h; sourceTree = "<group>"; };
 		519573031AEBEB26000247E1 /* EventTracker.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EventTracker.m; sourceTree = "<group>"; };
 		51BDB1491A6F0E7E00E0DA49 /* InputSessionBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InputSessionBase.h; sourceTree = "<group>"; };
@@ -563,8 +559,6 @@
 				51E5BE2A1936A982003E45C3 /* InfoPlist.strings */,
 				51E5BE2D1936A982003E45C3 /* main.m */,
 				51E5BE2F1936A982003E45C3 /* Spawn-Prefix.pch */,
-				5109D3A71C1606FE003EAA33 /* icon_120.png */,
-				51865D2C1C1C438A008836E7 /* iphone5_launchscreen.png */,
 			);
 			name = "Supporting Files";
 			sourceTree = "<group>";
@@ -730,11 +724,9 @@
 			files = (
 				51E5BE2C1936A982003E45C3 /* InfoPlist.strings in Resources */,
 				5121AFE91C395A37001D3E78 /* include in Resources */,
-				5109D3A81C1606FE003EAA33 /* icon_120.png in Resources */,
 				51E5BE341936A982003E45C3 /* Images.xcassets in Resources */,
 				51E219DC193B2D190066D915 /* Storyboard.storyboard in Resources */,
 				511EB6611B4B01C7000E287F /* FacebookSDKStrings.bundle in Resources */,
-				51865D2D1C1C438A008836E7 /* iphone5_launchscreen.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

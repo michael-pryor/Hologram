@@ -4,7 +4,7 @@
 
 #import "AverageTracker.h"
 #import "Timer.h"
-#import "BlockingQueue.h"#import "TrackedItem.h"
+#import "BlockingQueue.h"
 
 @interface TrackedItem : NSObject
 @end
