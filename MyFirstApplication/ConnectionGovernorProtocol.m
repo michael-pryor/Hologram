@@ -246,7 +246,7 @@ uint NUM_SOCKETS = 1;
 }
 
 - (void)sendUdpLogonHash:(ByteBuffer *)bufferToSend {
-    if (_connectionStatus == P_WAITING_FOR_UDP_HASH_ACK) {
+    if (_connectionStatus == P_WAITING_FOR_UDP_HASH_ACK && _alive) {
         NSLog(@"Sending UDP hash logon attempt..");
 
         [_udpConnection sendBuffer:bufferToSend];
@@ -301,8 +301,6 @@ uint NUM_SOCKETS = 1;
                     [self handleRejectCode:rejectCode description:rejectDescription];
                     [self reconnectLimitedWithFailureDescription:rejectDescription];
                 } else if (logon == OP_ACCEPT_LOGON) {
-
-
                     NSLog(@"Login accepted, sending UDP hash packet with hash: %@", _udpHash);
                     _isNewSession = _udpHash == nil;
                     if (_isNewSession) {
