@@ -14,6 +14,7 @@
 #import "DecodingPipe.h"
 #import "TimedEventTracker.h"
 #import "DelayedPipe.h"
+#import "AudioMicrophone.h"
 
 @implementation MediaController {
     Boolean _started;
@@ -23,9 +24,10 @@
     DelayedPipe *_delayedPipe;
 
     // Audio
-    SoundMicrophone *_soundEncoder;
-    SoundPlayback *_soundPlayback;
+    //SoundMicrophone *_soundEncoder;
+    //SoundPlayback *_soundPlayback;
     EncodingPipe *_encodingPipeAudio;
+    AudioMicrophone *_audioMicrophone;
 
     TimedEventTracker *_startStopTracker;
 
@@ -57,7 +59,9 @@
         // Audio.
         _encodingPipeAudio = [[EncodingPipe alloc] initWithOutputSession:nil prefixId:AUDIO_ID];
 
-        _soundEncoder = [[SoundMicrophone alloc] initWithOutputSession:nil numBuffers:numMicrophoneBuffers leftPadding:sizeof(uint8_t)];
+        _audioMicrophone = [[AudioMicrophone alloc] init];
+
+        /*_soundEncoder = [[SoundMicrophone alloc] initWithOutputSession:nil numBuffers:numMicrophoneBuffers leftPadding:sizeof(uint8_t)];
         [_soundEncoder initialize];
 
         _soundPlayback = [[SoundPlayback alloc] initWithAudioDescription:[_soundEncoder getAudioDescription] numBuffers:numPlaybackAudioBuffers maxPendingAmount:maxPlaybackPendingBuffers soundPlaybackDelegate:self mediaDelayDelegate:_videoOutputController];
@@ -67,7 +71,7 @@
         [_soundEncoder setOutputSession:_encodingPipeAudio];
 
         [_soundPlayback initialize];
-        NSLog(@"Audio microphone and speaker initialized");
+        NSLog(@"Audio microphone and speaker initialized");*/
     }
     return self;
 }
@@ -87,10 +91,10 @@
         }
         _started = true;
 
-        NSLog(@"Starting video recording and microphone");
-        [_soundPlayback resetQueue];
-        [_soundEncoder startCapturing];
-        [_soundPlayback startPlayback];
+        //NSLog(@"Starting video recording and microphone");
+        //[_soundPlayback resetQueue];
+        //[_soundEncoder startCapturing];
+        //[_soundPlayback startPlayback];
 
         // We discard out of order batches based on keeping track of the batch ID.
         // We need to reset this when moving to the next person.
@@ -105,9 +109,9 @@
         }
         _started = false;
 
-        NSLog(@"Stopping video recording and microphone");
-        [_soundEncoder stopCapturing];
-        [_soundPlayback stopPlayback];
+        //NSLog(@"Stopping video recording and microphone");
+        //[_soundEncoder stopCapturing];
+        //[_soundPlayback stopPlayback];
     }
 }
 
