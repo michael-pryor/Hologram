@@ -165,7 +165,9 @@
         if (![socialState isDataLoaded]) {
             [socialState registerNotifier:self];
             [self setDisconnectStateWithShortDescription:@"Loading Facebook details" longDescription:@"Waiting for Facebook details to load"];
-            [socialState updateGraphFacebookInformation];
+            if (![socialState updateGraphFacebookInformation]) {
+                [self switchToFacebookLogonView];
+            }
         } else {
             [self onSocialDataLoaded:socialState];
         }

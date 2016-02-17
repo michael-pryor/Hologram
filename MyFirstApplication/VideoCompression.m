@@ -459,7 +459,7 @@
 }
 
 - (UIImage *)decodeByteBuffer:(ByteBuffer *)buffer {
-    AVFrame *decodedYuv = [self decodeToYuvFromData:buffer.buffer + buffer.cursorPosition andSize:buffer.bufferUsedSize];
+    AVFrame *decodedYuv = [self decodeToYuvFromData:buffer.buffer + buffer.cursorPosition andSize:buffer.bufferUsedSize - buffer.cursorPosition];
 
     if (decodedYuv == nil) {
         return nil;

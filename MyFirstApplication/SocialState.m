@@ -130,7 +130,13 @@ typedef void (^Block)(id);
 }
 
 - (void)updateCoreFacebookInformation {
-    FBSDKProfile *profile = [FBSDKProfile currentProfile];
+    // It is possible for the two conditions to be disjoint i.e. profile to be non nil while access token is nil.
+    // That is why we check both, because graph API requires token.
+    FBSDKProfile *profile = nil;
+    if ([FBSDKAccessToken currentAccessToken]) {
+       profile = [FBSDKProfile currentProfile];
+    }
+
     if (profile == nil) {
         [self reset];
         NSLog(@"Facebook state not ready yet, please request details from user");
@@ -205,10 +211,10 @@ typedef void (^Block)(id);
     return (uint) age;
 }
 
-- (void)updateGraphFacebookInformation {
+- (bool)updateGraphFacebookInformation {
     if (![FBSDKAccessToken currentAccessToken]) {
         NSLog(@"Core Facebook information not loaded!");
-        return;
+        return false;
     }
 
     NSDictionary *parameters = @{@"fields" : @"id,name,birthday,gender"};
@@ -260,6 +266,8 @@ typedef void (^Block)(id);
     dispatch_async(dispatch_get_main_queue(), ^ {
         block(block);
     });
+
+    return true;
 }
 
 - (void)update {

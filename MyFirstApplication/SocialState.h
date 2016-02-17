@@ -45,7 +45,7 @@ extern const NSString* selectedGenderPreferenceKey;
 
 - (void)updateCoreFacebookInformation;
 
-- (void)updateGraphFacebookInformation;
+- (bool)updateGraphFacebookInformation;
 
 - (void)update;
 
