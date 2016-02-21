@@ -3,13 +3,18 @@
 //
 
 #import "AudioMicrophone.h"
-#import "BlockingQueue.h"
 #import "SoundEncodingShared.h"
 
+#import "AudioCompression.h"
+@import AVFoundation;
+
 @implementation AudioMicrophone {
-    BlockingQueue *audioInputQueue;
-    AudioUnit audioProducer;
-    AUGraph mainGraph;
+    AudioCompression *_audioCompression;
+
+    AudioUnit _audioProducer;
+    AUGraph _mainGraph;
+
+    AudioStreamBasicDescription _audioFormat;
 }
 
 static OSStatus audioOutputPullCallback(
@@ -20,16 +25,36 @@ static OSStatus audioOutputPullCallback(
         UInt32 inNumberFrames,
         AudioBufferList *ioData
 ) {
-    AudioMicrophone *audioController = (__bridge AudioMicrophone *) inRefCon;
-    NSLog(@"We got a pull request from the speaker!");
+    OSStatus status;
 
-    OSStatus status = AudioUnitRender([audioController getAudioProducer], ioActionFlags, inTimeStamp, 1, inNumberFrames, ioData);
+    AudioMicrophone *audioController = (__bridge AudioMicrophone *) inRefCon;
+    /*NSLog(@"We got a pull request from the speaker!, num frames: %u, num buffers: %u", inNumberFrames, ioData->mNumberBuffers);
+    for (int n = 0; n < ioData->mNumberBuffers; n++) {
+        NSLog(@"Buffer length: %u, num channels: %u", ioData->mBuffers[n].mDataByteSize, ioData->mBuffers[n].mNumberChannels);
+    }*/
+
+    // TODO: remove this, and use compression.
+    status = AudioUnitRender([audioController getAudioProducer], ioActionFlags, inTimeStamp, 1, inNumberFrames, ioData);
+    HandleResultOSStatus(status, @"rendering input audio direct", false);
+
+    return status;
+
+    [audioController->_audioCompression onNewAudioData:[[AudioDataContainer alloc] initWithNumFrames:inNumberFrames audioList:ioData]];
+
+    AudioDataContainer *pendingData = [audioController->_audioCompression getPendingDecompressedData];
+    if (pendingData == nil) {
+        // Play silence.
+        *ioActionFlags |= kAudioUnitRenderAction_OutputIsSilence;
+        return noErr;
+    }
+
+    status = AudioUnitRender([audioController getAudioProducer], ioActionFlags, inTimeStamp, 1, [pendingData numFrames], [pendingData audioList]);
     HandleResultOSStatus(status, @"rendering input audio", false);
     return status;
 }
 
 - (AudioUnit)getAudioProducer {
-    return audioProducer;
+    return _audioProducer;
 }
 
 - (bool)validateResult:(OSStatus)result description:(NSString *)description logSuccess:(bool)logSuccess {
@@ -40,7 +65,7 @@ static OSStatus audioOutputPullCallback(
     return [self validateResult:result description:description logSuccess:true];
 }
 
-- (AUNode) addIoNodeToGraph:(AUGraph)graph {
+- (AUNode)addIoNodeToGraph:(AUGraph)graph {
     // Access speaker (bus 0)
     // Access microphone (bus 1)
     AudioComponentDescription ioUnitDescription;
@@ -60,25 +85,7 @@ static OSStatus audioOutputPullCallback(
     return ioNode;
 };
 
-- (AUNode) addAudioConverterNodeToGraph:(AUGraph)graph {
-    AudioComponentDescription convertUnitDescription;
-    convertUnitDescription.componentManufacturer  = kAudioUnitManufacturer_Apple;
-    convertUnitDescription.componentType          = kAudioUnitType_FormatConverter;
-    convertUnitDescription.componentSubType       = kAudioUnitSubType_AUConverter;
-    convertUnitDescription.componentFlags         = 0;
-    convertUnitDescription.componentFlagsMask     = 0;
-
-    AUNode audioConverter;
-    OSStatus status = AUGraphAddNode(
-            graph,
-            &convertUnitDescription,
-            &audioConverter
-    );
-    [self validateResult:status description:@"adding converter node"];
-    return audioConverter;
-}
-
-- (AudioUnit) getAudioUnitFromGraph:(AUGraph)graph fromNode:(AUNode)node {
+- (AudioUnit)getAudioUnitFromGraph:(AUGraph)graph fromNode:(AUNode)node {
     AudioUnit audioUnit;
 
     // Obtain a reference to the newly-instantiated I/O unit
@@ -90,6 +97,55 @@ static OSStatus audioOutputPullCallback(
     );
     [self validateResult:status description:@"getting audio node information"];
     return audioUnit;
+}
+
+- (double)setupAudioSession {
+    // Determine sample rate.
+    double sampleRate = 44100.0;
+
+    NSError *audioSessionError = nil;
+    AVAudioSession *mySession = [AVAudioSession sharedInstance];
+    BOOL result = [mySession setPreferredSampleRate:sampleRate
+                                              error:&audioSessionError];
+    if (!result) {
+        NSLog(@"Preferred sample rate of %.2f not allowed, reason: %@", sampleRate, [audioSessionError localizedFailureReason]);
+    }
+
+    result = [mySession setActive:YES
+                            error:&audioSessionError];
+    if (!result) {
+        NSLog(@"Failed to activate audio session, reason: %@", [audioSessionError localizedFailureReason]);
+    }
+
+    sampleRate = [mySession sampleRate];
+    NSLog(@"Device sample rate is: %.2f", sampleRate);
+
+    // Lower latency.
+    double ioBufferDuration = 0.005;
+    result = [mySession setPreferredIOBufferDuration:ioBufferDuration
+                                               error:&audioSessionError];
+    if (!result) {
+        NSLog(@"Failed to set buffer duration to %.5f, reason: %@", ioBufferDuration, [audioSessionError localizedFailureReason]);
+    }
+    return sampleRate;
+}
+
+- (void)setAudioFormat:(AudioUnit)audioUnit {
+    OSStatus status = AudioUnitSetProperty(audioUnit,
+            kAudioUnitProperty_StreamFormat,
+            kAudioUnitScope_Output,
+            1,
+            &_audioFormat,
+            sizeof(_audioFormat));
+    [self validateResult:status description:@"setting audio format of audio output device"];
+
+    status = AudioUnitSetProperty(audioUnit,
+            kAudioUnitProperty_StreamFormat,
+            kAudioUnitScope_Input,
+            0,
+            &_audioFormat,
+            sizeof(_audioFormat));
+    [self validateResult:status description:@"setting audio format of audio input device"];
 }
 
 - (void)enableInputOnAudioUnit:(AudioUnit)audioUnit {
@@ -105,13 +161,13 @@ static OSStatus audioOutputPullCallback(
     [self validateResult:status description:@"enabling audio input"];
 }
 
-- (void)setAudioPullCallback:(AudioUnit)ioAudioUnit {
+- (void)setAudioPullCallback:(AudioUnit)audioUnitPulling {
     AURenderCallbackStruct ioUnitCallbackStructure;
     ioUnitCallbackStructure.inputProc = &audioOutputPullCallback;
     ioUnitCallbackStructure.inputProcRefCon = (__bridge void *) self;
 
     OSStatus status = AudioUnitSetProperty(
-            ioAudioUnit,
+            audioUnitPulling,
             kAudioUnitProperty_SetRenderCallback,
             kAudioUnitScope_Input,
             0,                 // output element
@@ -134,10 +190,10 @@ static OSStatus audioOutputPullCallback(
     AudioUnit ioUnit = [self getAudioUnitFromGraph:processingGraph fromNode:ioNode];
 
     [self enableInputOnAudioUnit:ioUnit];
+    [self setAudioFormat:ioUnit];
 
     [self setAudioPullCallback:ioUnit];
-    audioProducer = ioUnit;
-
+    _audioProducer = ioUnit;
 
     status = AUGraphInitialize(processingGraph);
     [self validateResult:status description:@"initializing graph"];
@@ -148,12 +204,31 @@ static OSStatus audioOutputPullCallback(
     return processingGraph;
 }
 
+- (AudioStreamBasicDescription)prepareAudioFormatWithSampleRate:(double)sampleRate {
+    AudioStreamBasicDescription audioDescription = {0};
+
+    size_t bytesPerSample = sizeof(AudioUnitSampleType);
+    audioDescription.mFormatID = kAudioFormatLinearPCM;
+    audioDescription.mFramesPerPacket = 1;    // Always 1 for PCM.
+    audioDescription.mChannelsPerFrame = 1;   // mono
+    audioDescription.mSampleRate = sampleRate;
+    audioDescription.mBitsPerChannel = 8 * bytesPerSample;;
+    audioDescription.mBytesPerFrame = bytesPerSample;
+    audioDescription.mBytesPerPacket = bytesPerSample;
+    audioDescription.mFormatFlags = kAudioFormatFlagsAudioUnitCanonical;
+
+    return audioDescription;
+}
+
 - (id)init {
     self = [super init];
     if (self) {
-        audioInputQueue = [[BlockingQueue alloc] init];
+        double sampleRate = [self setupAudioSession];
+        _audioFormat = [self prepareAudioFormatWithSampleRate:sampleRate];
 
-        mainGraph = [self buildIoGraph];
+        _audioCompression = [[AudioCompression alloc] initWithAudioFormat:_audioFormat];
+
+        _mainGraph = [self buildIoGraph];
 
         NSLog(@"LETS GOGOGOGO");
 
