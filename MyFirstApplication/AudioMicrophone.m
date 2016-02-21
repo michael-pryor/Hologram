@@ -8,8 +8,8 @@
 
 @implementation AudioMicrophone {
     BlockingQueue *audioInputQueue;
-    AudioUnit ioUnit;
-    AUGraph graph;
+    AudioUnit audioProducer;
+    AUGraph mainGraph;
 }
 
 static OSStatus audioOutputPullCallback(
@@ -23,13 +23,13 @@ static OSStatus audioOutputPullCallback(
     AudioMicrophone *audioController = (__bridge AudioMicrophone *) inRefCon;
     NSLog(@"We got a pull request from the speaker!");
 
-    OSStatus status = AudioUnitRender([audioController getIoUnit], ioActionFlags, inTimeStamp, 1, inNumberFrames, ioData);
+    OSStatus status = AudioUnitRender([audioController getAudioProducer], ioActionFlags, inTimeStamp, 1, inNumberFrames, ioData);
     HandleResultOSStatus(status, @"rendering input audio", false);
     return status;
 }
 
-- (AudioUnit)getIoUnit {
-    return ioUnit;
+- (AudioUnit)getAudioProducer {
+    return audioProducer;
 }
 
 - (bool)validateResult:(OSStatus)result description:(NSString *)description logSuccess:(bool)logSuccess {
@@ -40,11 +40,7 @@ static OSStatus audioOutputPullCallback(
     return [self validateResult:result description:description logSuccess:true];
 }
 
-- (AUGraph)buildIoGraph {
-    AUGraph processingGraph;
-    OSStatus status = NewAUGraph(&processingGraph);
-    [self validateResult:status description:@"creating graph"];
-
+- (AUNode) addIoNodeToGraph:(AUGraph)graph {
     // Access speaker (bus 0)
     // Access microphone (bus 1)
     AudioComponentDescription ioUnitDescription;
@@ -55,30 +51,51 @@ static OSStatus audioOutputPullCallback(
     ioUnitDescription.componentFlagsMask = 0;
 
     AUNode ioNode;
-    status = AUGraphAddNode(
-            processingGraph,
+    OSStatus status = AUGraphAddNode(
+            graph,
             &ioUnitDescription,
             &ioNode
     );
     [self validateResult:status description:@"adding I/O node"];
+    return ioNode;
+};
 
-    status = AUGraphOpen(processingGraph);
-    [self validateResult:status description:@"opening graph"];
+- (AUNode) addAudioConverterNodeToGraph:(AUGraph)graph {
+    AudioComponentDescription convertUnitDescription;
+    convertUnitDescription.componentManufacturer  = kAudioUnitManufacturer_Apple;
+    convertUnitDescription.componentType          = kAudioUnitType_FormatConverter;
+    convertUnitDescription.componentSubType       = kAudioUnitSubType_AUConverter;
+    convertUnitDescription.componentFlags         = 0;
+    convertUnitDescription.componentFlagsMask     = 0;
+
+    AUNode audioConverter;
+    OSStatus status = AUGraphAddNode(
+            graph,
+            &convertUnitDescription,
+            &audioConverter
+    );
+    [self validateResult:status description:@"adding converter node"];
+    return audioConverter;
+}
+
+- (AudioUnit) getAudioUnitFromGraph:(AUGraph)graph fromNode:(AUNode)node {
+    AudioUnit audioUnit;
 
     // Obtain a reference to the newly-instantiated I/O unit
-    status = AUGraphNodeInfo(
-            processingGraph,
-            ioNode,
+    OSStatus status = AUGraphNodeInfo(
+            graph,
+            node,
             NULL,
-            &ioUnit
+            &audioUnit
     );
-    [self validateResult:status description:@"getting I/O node information"];
+    [self validateResult:status description:@"getting audio node information"];
+    return audioUnit;
+}
 
-
-    // Enable input on microphone.
+- (void)enableInputOnAudioUnit:(AudioUnit)audioUnit {
     int enable = 1;
-    status = AudioUnitSetProperty(
-            ioUnit,
+    OSStatus status = AudioUnitSetProperty(
+            audioUnit,
             kAudioOutputUnitProperty_EnableIO,   // the property key
             kAudioUnitScope_Input,             // the scope to set the property on
             1,                                 // the element to set the property on
@@ -86,15 +103,15 @@ static OSStatus audioOutputPullCallback(
             sizeof(enable)
     );
     [self validateResult:status description:@"enabling audio input"];
+}
 
-
+- (void)setAudioPullCallback:(AudioUnit)ioAudioUnit {
     AURenderCallbackStruct ioUnitCallbackStructure;
     ioUnitCallbackStructure.inputProc = &audioOutputPullCallback;
     ioUnitCallbackStructure.inputProcRefCon = (__bridge void *) self;
 
-    // Retrieve pull notifications from speaker.
-    status = AudioUnitSetProperty(
-            ioUnit,
+    OSStatus status = AudioUnitSetProperty(
+            ioAudioUnit,
             kAudioUnitProperty_SetRenderCallback,
             kAudioUnitScope_Input,
             0,                 // output element
@@ -102,6 +119,25 @@ static OSStatus audioOutputPullCallback(
             sizeof(ioUnitCallbackStructure)
     );
     [self validateResult:status description:@"adding audio output pull callback"];
+}
+
+- (AUGraph)buildIoGraph {
+    AUGraph processingGraph;
+    OSStatus status = NewAUGraph(&processingGraph);
+    [self validateResult:status description:@"creating graph"];
+
+    AUNode ioNode = [self addIoNodeToGraph:processingGraph];
+
+    status = AUGraphOpen(processingGraph);
+    [self validateResult:status description:@"opening graph"];
+
+    AudioUnit ioUnit = [self getAudioUnitFromGraph:processingGraph fromNode:ioNode];
+
+    [self enableInputOnAudioUnit:ioUnit];
+
+    [self setAudioPullCallback:ioUnit];
+    audioProducer = ioUnit;
+
 
     status = AUGraphInitialize(processingGraph);
     [self validateResult:status description:@"initializing graph"];
@@ -117,7 +153,7 @@ static OSStatus audioOutputPullCallback(
     if (self) {
         audioInputQueue = [[BlockingQueue alloc] init];
 
-        graph = [self buildIoGraph];
+        mainGraph = [self buildIoGraph];
 
         NSLog(@"LETS GOGOGOGO");
 

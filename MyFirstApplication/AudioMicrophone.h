@@ -6,5 +6,5 @@
 @import AudioToolbox;
 
 @interface AudioMicrophone : NSObject
-- (AudioUnit)getIoUnit;
+- (AudioUnit)getAudioProducer;
 @end
