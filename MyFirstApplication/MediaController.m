@@ -60,6 +60,7 @@
         _encodingPipeAudio = [[EncodingPipe alloc] initWithOutputSession:nil prefixId:AUDIO_ID];
 
         _audioMicrophone = [[AudioMicrophone alloc] init];
+        [_audioMicrophone initialize];
 
         /*_soundEncoder = [[SoundMicrophone alloc] initWithOutputSession:nil numBuffers:numMicrophoneBuffers leftPadding:sizeof(uint8_t)];
         [_soundEncoder initialize];

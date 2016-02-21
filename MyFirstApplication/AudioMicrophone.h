@@ -7,4 +7,6 @@
 
 @interface AudioMicrophone : NSObject
 - (AudioUnit)getAudioProducer;
+
+- (void)initialize;
 @end

@@ -34,10 +34,10 @@ static OSStatus audioOutputPullCallback(
     }*/
 
     // TODO: remove this, and use compression.
-    status = AudioUnitRender([audioController getAudioProducer], ioActionFlags, inTimeStamp, 1, inNumberFrames, ioData);
+   /* status = AudioUnitRender([audioController getAudioProducer], ioActionFlags, inTimeStamp, 1, inNumberFrames, ioData);
     HandleResultOSStatus(status, @"rendering input audio direct", false);
 
-    return status;
+    return status;*/
 
     [audioController->_audioCompression onNewAudioData:[[AudioDataContainer alloc] initWithNumFrames:inNumberFrames audioList:ioData]];
 
@@ -234,6 +234,10 @@ static OSStatus audioOutputPullCallback(
 
     }
     return self;
+}
+
+- (void)initialize {
+    [_audioCompression initialize];
 }
 
 @end

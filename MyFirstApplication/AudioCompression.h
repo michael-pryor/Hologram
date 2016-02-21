@@ -6,8 +6,8 @@
 @import AudioToolbox;
 
 @interface AudioDataContainer : NSObject
-@property(readonly) UInt32 numFrames;
-@property(readonly) AudioBufferList *audioList;
+@property UInt32 numFrames;
+@property AudioBufferList *audioList;
 
 - (id)initWithNumFrames:(UInt32)numFrames audioList:(AudioBufferList *)audioList;
 @end
@@ -20,4 +20,8 @@
 - (id)initWithAudioFormat:(AudioStreamBasicDescription)audioFormat;
 
 - (AudioDataContainer *)getPendingDecompressedData;
+
+- (AudioDataContainer*)getUncompressedItem;
+
+- (void)initialize;
 @end
