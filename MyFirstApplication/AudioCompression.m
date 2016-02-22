@@ -48,6 +48,8 @@
     // Documentation states we must not cleanup between callbacks, but during next cleanup can cleanup,
     // which means that it is sufficient to maintain one reference here.
     AudioDataContainer * _uncompressedAudioDataContainer;
+
+    AudioClassDescription * _compressionClass;
 }
 
 - (id)initWithAudioFormat:(AudioStreamBasicDescription)uncompressedAudioFormat {
@@ -68,48 +70,10 @@
         compressedAudioDescription.mFramesPerPacket = 1024;
         compressedAudioDescription.mFormatFlags = 0;
         _compressedAudioFormat = compressedAudioDescription;
+
+        _compressionClass = getAudioClassDescriptionWithType(kAudioFormatMPEG4AAC, kAppleSoftwareAudioCodecManufacturer);
     }
     return self;
-}
-
-- (AudioClassDescription *)getAudioClassDescriptionWithType:(UInt32)type
-                                           fromManufacturer:(UInt32)manufacturer {
-    static AudioClassDescription desc;
-
-    UInt32 encoderSpecifier = type;
-    OSStatus st;
-
-    UInt32 size;
-    st = AudioFormatGetPropertyInfo(kAudioFormatProperty_Encoders,
-            sizeof(encoderSpecifier),
-            &encoderSpecifier,
-            &size);
-    if (st) {
-        NSLog(@"error getting audio format propery info: %d", (int) (st));
-        return nil;
-    }
-
-    unsigned int count = size / sizeof(AudioClassDescription);
-    AudioClassDescription descriptions[count];
-    st = AudioFormatGetProperty(kAudioFormatProperty_Encoders,
-            sizeof(encoderSpecifier),
-            &encoderSpecifier,
-            &size,
-            descriptions);
-    if (st) {
-        NSLog(@"error getting audio format propery: %d", (int) (st));
-        return nil;
-    }
-
-    for (unsigned int i = 0; i < count; i++) {
-        if ((type == descriptions[i].mSubType) &&
-                (manufacturer == descriptions[i].mManufacturer)) {
-            memcpy(&desc, &(descriptions[i]), sizeof(desc));
-            return &desc;
-        }
-    }
-
-    return nil;
 }
 
 - (void)initialize {
@@ -161,11 +125,7 @@ OSStatus pullUncompressedDataToAudioConverter(AudioConverterRef inAudioConverter
 }
 
 - (void)compressionThreadEntryPoint:var {
-    AudioClassDescription *description = [self
-            getAudioClassDescriptionWithType:kAudioFormatMPEG4AAC
-                            fromManufacturer:kAppleSoftwareAudioCodecManufacturer];
-
-    OSStatus status = AudioConverterNewSpecific(&_uncompressedAudioFormat, &_compressedAudioFormat, 1, description, &_audioConverter);
+    OSStatus status = AudioConverterNewSpecific(&_uncompressedAudioFormat, &_compressedAudioFormat, 1, _compressionClass, &_audioConverter);
     [self validateResult:status description:@"setting up audio converter"];
 
     bool isRunning = true;

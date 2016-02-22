@@ -174,3 +174,41 @@ bool deepCopyBuffers(AudioBufferList *destinationAudioBufferList, AudioBufferLis
 
     return true;
 }
+
+AudioClassDescription *getAudioClassDescriptionWithType(UInt32 type, UInt32 manufacturer) {
+    static AudioClassDescription desc;
+
+    UInt32 encoderSpecifier = type;
+    OSStatus st;
+
+    UInt32 size;
+    st = AudioFormatGetPropertyInfo(kAudioFormatProperty_Encoders,
+            sizeof(encoderSpecifier),
+            &encoderSpecifier,
+            &size);
+    if (st) {
+        NSLog(@"error getting audio format property info: %d", (int) (st));
+        return nil;
+    }
+
+    unsigned int count = size / sizeof(AudioClassDescription);
+    AudioClassDescription descriptions[count];
+    st = AudioFormatGetProperty(kAudioFormatProperty_Encoders,
+            sizeof(encoderSpecifier),
+            &encoderSpecifier,
+            &size,
+            descriptions);
+    if (st) {
+        NSLog(@"error getting audio format property: %d", (int) (st));
+        return nil;
+    }
+
+    for (unsigned int i = 0; i < count; i++) {
+        if (type == descriptions[i].mSubType && manufacturer == descriptions[i].mManufacturer) {
+            memcpy(&desc, &(descriptions[i]), sizeof(desc));
+            return &desc;
+        }
+    }
+
+    return nil;
+}

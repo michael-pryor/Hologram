@@ -33,3 +33,5 @@ bool shallowCopyBuffers(AudioBufferList *destinationAudioBufferList, AudioBuffer
 bool resetBuffers(AudioBufferList *destinationAudioBufferList, AudioBufferList *sourceAudioBufferList);
 
 bool deepCopyBuffers(AudioBufferList *destinationAudioBufferList, AudioBufferList *sourceAudioBufferList, UInt32 destinationBufferMemorySize);
+
+AudioClassDescription *getAudioClassDescriptionWithType(UInt32 type, UInt32 manufacturer);
