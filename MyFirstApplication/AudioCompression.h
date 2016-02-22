@@ -5,6 +5,8 @@
 #import <Foundation/Foundation.h>
 @import AudioToolbox;
 
+void printAudioBufferList(AudioBufferList *audioList, NSString* description);
+
 @interface AudioDataContainer : NSObject
 @property UInt32 numFrames;
 @property AudioBufferList *audioList;
@@ -17,11 +19,13 @@
 @end
 
 @interface AudioCompression : NSObject <AudioDataPipeline>
+@property uint numFramesRemaining;
+
 - (id)initWithAudioFormat:(AudioStreamBasicDescription)audioFormat;
 
 - (AudioDataContainer *)getPendingDecompressedData;
 
-- (AudioDataContainer*)getUncompressedItem;
+- (AudioDataContainer *)getUncompressedItem;
 
 - (void)initialize;
 @end

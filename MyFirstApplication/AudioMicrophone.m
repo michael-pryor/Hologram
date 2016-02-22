@@ -39,9 +39,26 @@ static OSStatus audioOutputPullCallback(
 
     return status;*/
 
+    status = AudioUnitRender([audioController getAudioProducer], ioActionFlags, inTimeStamp, 1, inNumberFrames, ioData);
+    HandleResultOSStatus(status, @"rendering input audio", false);
+
+    // If there is a mismatch, may get gaps in the audio, which is annoying for the user.
+    // Not sure exactly why this happens, but adjusting the sample rate solves.
+    if (ioData->mNumberBuffers > 0) {
+        size_t estimatedSize = inNumberFrames * audioController->_audioFormat.mBytesPerFrame;
+        size_t actualSize = ioData->mBuffers[0].mDataByteSize;
+        if (estimatedSize != actualSize) {
+            NSLog(@"Mismatch, num frames = %lu, estimated size = %lu, byte size = %lu", inNumberFrames, estimatedSize, actualSize);
+
+            // Fix the number frames so that the audio compression continues to work properly regardless.
+            inNumberFrames = actualSize / audioController->_audioFormat.mBytesPerFrame;
+        }
+    }
+
+    printAudioBufferList(ioData, @"audio graph");
     [audioController->_audioCompression onNewAudioData:[[AudioDataContainer alloc] initWithNumFrames:inNumberFrames audioList:ioData]];
 
-    AudioDataContainer *pendingData = [audioController->_audioCompression getPendingDecompressedData];
+   /* AudioDataContainer *pendingData = [audioController->_audioCompression getPendingDecompressedData];
     if (pendingData == nil) {
         // Play silence.
         *ioActionFlags |= kAudioUnitRenderAction_OutputIsSilence;
@@ -49,7 +66,7 @@ static OSStatus audioOutputPullCallback(
     }
 
     status = AudioUnitRender([audioController getAudioProducer], ioActionFlags, inTimeStamp, 1, [pendingData numFrames], [pendingData audioList]);
-    HandleResultOSStatus(status, @"rendering input audio", false);
+    HandleResultOSStatus(status, @"rendering input audio", false);*/
     return status;
 }
 
