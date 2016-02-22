@@ -18,8 +18,13 @@
     return self;
 }
 
-- (void)dealloc {
+- (void)freeMemory {
     freeAudioBufferList(_audioList);
+    _audioList = NULL;
+}
+
+- (void)dealloc {
+    [self freeMemory];
 }
 @end
 
@@ -48,6 +53,8 @@
 - (id)initWithAudioFormat:(AudioStreamBasicDescription)uncompressedAudioFormat {
     self = [super init];
     if (self) {
+        _uncompressedAudioDataContainer = nil;
+        
         _audioToBeCompressedQueue = [[BlockingQueue alloc] initWithMaxQueueSize:30];
         _audioToBeDecompressedQueue = [[BlockingQueue alloc] initWithMaxQueueSize:30];
         _audioToBeOutputQueue = [[BlockingQueue alloc] initWithMaxQueueSize:30];
@@ -136,6 +143,11 @@ OSStatus pullUncompressedDataToAudioConverter(AudioConverterRef inAudioConverter
     }
 
     // Maintain reference to prevent cleanup while buffers are being used.
+    // Cleanup manually, because ARC gets confused thinking we're holding onto the buffers which
+    // we've shallow copied into the encoder. It can't see when the encoder is done with it.
+    if (audioCompression->_uncompressedAudioDataContainer != nil) {
+        [audioCompression->_uncompressedAudioDataContainer freeMemory];
+    }
     audioCompression->_uncompressedAudioDataContainer = item;
 
     // Point compression engine to the PCM data.

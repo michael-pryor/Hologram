@@ -96,6 +96,7 @@ void freeAudioBufferListEx(AudioBufferList *audioBufferList, bool onStack) {
     for (int n = 0; n < audioBufferList->mNumberBuffers; n++) {
         AudioBuffer *currentAudioBuffer = &audioBufferList->mBuffers[n];
         free(currentAudioBuffer->mData);
+        currentAudioBuffer->mData = NULL;
     }
 
     // Caller may have allocated the list on the stack.

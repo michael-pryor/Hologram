@@ -10,7 +10,7 @@ void printAudioBufferList(AudioBufferList *audioList, NSString* description);
 @interface AudioDataContainer : NSObject
 @property UInt32 numFrames;
 @property AudioBufferList *audioList;
-
+- (void)freeMemory;
 - (id)initWithNumFrames:(UInt32)numFrames audioList:(AudioBufferList *)audioList;
 @end
 
