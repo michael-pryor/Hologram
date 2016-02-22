@@ -5,65 +5,21 @@
 #import "AudioCompression.h"
 #import "BlockingQueue.h"
 #import "SoundEncodingShared.h"
-#import "Timer.h"
+#import "AudioUnitHelpers.h"
 
-void printAudioBufferList(AudioBufferList *audioList, NSString* description) {
-    for (int n = 0; n < audioList->mNumberBuffers; n++) {
-        NSData* data = nil;//[NSData dataWithBytes:audioList->mBuffers[n].mData length:audioList->mBuffers[n].mDataByteSize];
-        //NSLog(@"[ABL %@] buffer index %d (/%lu), channels %lu, size %lu, contents: %@", description, n, audioList->mNumberBuffers, audioList->mBuffers[n].mNumberChannels, audioList->mBuffers[n].mDataByteSize, data);
-    }
-}
-
-
-AudioBufferList *allocateABL(UInt32 channelsPerFrame, UInt32 bytesPerFrame, bool interleaved, UInt32 capacityFrames) {
-    AudioBufferList *bufferList = NULL;
-
-    UInt32 numBuffers = interleaved ? 1 : channelsPerFrame;
-    UInt32 channelsPerBuffer = interleaved ? channelsPerFrame : 1;
-
-    bufferList = calloc(1, offsetof(AudioBufferList, mBuffers) + (sizeof(AudioBuffer) * numBuffers));
-
-    bufferList->mNumberBuffers = numBuffers;
-
-    for (UInt32 bufferIndex = 0; bufferIndex < bufferList->mNumberBuffers; ++bufferIndex) {
-        bufferList->mBuffers[bufferIndex].mData = calloc(capacityFrames, bytesPerFrame);
-        bufferList->mBuffers[bufferIndex].mDataByteSize = capacityFrames * bytesPerFrame;
-        bufferList->mBuffers[bufferIndex].mNumberChannels = channelsPerBuffer;
-    }
-
-    return bufferList;
-}
-
-AudioBufferList *cloneAudioList(AudioBufferList *copyFrom) {
-    AudioBufferList *audioList;
-    size_t size = sizeof(AudioBufferList) + (copyFrom->mNumberBuffers - 1) * sizeof(AudioBuffer);
-    audioList = malloc(size);
-    audioList->mNumberBuffers = copyFrom->mNumberBuffers;
-    for (int n = 0; n < copyFrom->mNumberBuffers; n++) {
-        audioList[n].mBuffers[n].mDataByteSize = copyFrom->mBuffers[n].mDataByteSize;
-        audioList[n].mBuffers[n].mNumberChannels = copyFrom->mBuffers[n].mNumberChannels;
-        audioList[n].mBuffers[n].mData = malloc(audioList[n].mBuffers[n].mDataByteSize);
-        memcpy(audioList[n].mBuffers[n].mData, copyFrom->mBuffers[n].mData, audioList[n].mBuffers[n].mDataByteSize);
-    }
-    return audioList;
-}
-
-@implementation AudioDataContainer {
-
-}
-
+@implementation AudioDataContainer
 - (id)initWithNumFrames:(UInt32)numFrames audioList:(AudioBufferList *)audioList {
     self = [super init];
     if (self) {
         _numFrames = numFrames;
-        _audioList = cloneAudioList(audioList);
+        _audioList = cloneAudioBufferList(audioList);
         printAudioBufferList(_audioList, @"container init");
     }
     return self;
 }
 
 - (void)dealloc {
-    //  free(_audioList);
+    freeAudioBufferList(_audioList);
 }
 @end
 
@@ -83,7 +39,10 @@ AudioBufferList *cloneAudioList(AudioBufferList *copyFrom) {
     AudioStreamBasicDescription _compressedAudioFormat;
     AudioStreamBasicDescription _uncompressedAudioFormat;
 
-    char * _pcmBuffer;
+    // We keep a reference to this to prevent it being cleaned up while the data is being compressed.
+    // Documentation states we must not cleanup between callbacks, but during next cleanup can cleanup,
+    // which means that it is sufficient to maintain one reference here.
+    AudioDataContainer * _uncompressedAudioDataContainer;
 }
 
 - (id)initWithAudioFormat:(AudioStreamBasicDescription)uncompressedAudioFormat {
@@ -154,40 +113,38 @@ AudioBufferList *cloneAudioList(AudioBufferList *copyFrom) {
     [_compressionThread start];
 }
 
-- (void) copyPCMSamplesIntoBuffer:(AudioBufferList*)ioData fromAudioList:(AudioBufferList*)list {
-    ioData->mNumberBuffers = list->mNumberBuffers;
-    ioData->mBuffers[0].mData = list->mBuffers[0].mData;
-    ioData->mBuffers[0].mDataByteSize = list->mBuffers[0].mDataByteSize;
-    _pcmBuffer = NULL;
-}
-
 // Converting PCM to AAC.
 OSStatus pullUncompressedDataToAudioConverter(AudioConverterRef inAudioConverter, UInt32 *ioNumberDataPackets, AudioBufferList *ioData, AudioStreamPacketDescription **outDataPacketDescription, void *inUserData) {
-    AudioCompression *_audioCompression = (__bridge AudioCompression *) inUserData;
+    AudioCompression *audioCompression = (__bridge AudioCompression *) inUserData;
 
-    AudioDataContainer *item = [_audioCompression getUncompressedItem];
+    AudioDataContainer *item = [audioCompression getUncompressedItem];
 
-    // 1 frame per packet.
-    if (item.numFrames * 4 != item.audioList->mBuffers[0].mDataByteSize) {
-        NSLog(@"Mistmatch, num frames = %lu, mult4 = %lu, byte size = %lu", item.numFrames, item.numFrames * 4, item.audioList->mBuffers[0].mDataByteSize);
-    }
-    *ioNumberDataPackets = item.numFrames;
+    // Normally 1 frame per packet.
+    *ioNumberDataPackets = item.numFrames / audioCompression->_uncompressedAudioFormat.mFramesPerPacket;
 
     AudioBufferList *sourceAudioBufferList = [item audioList];
+
+    // Validation.
     if (ioData->mNumberBuffers > sourceAudioBufferList->mNumberBuffers) {
         NSLog(@"Problem, more source buffers than destination");
-        return -1;
+        return kAudioConverterErr_UnspecifiedError;
     }
 
     if (outDataPacketDescription != NULL) {
         NSLog(@"outDataPacketDescription is not NULL, unexpected");
+        return kAudioConverterErr_UnspecifiedError;
     }
 
-    [_audioCompression copyPCMSamplesIntoBuffer:ioData fromAudioList:sourceAudioBufferList];
+    // Maintain reference to prevent cleanup while buffers are being used.
+    audioCompression->_uncompressedAudioDataContainer = item;
+
+    // Point compression engine to the PCM data.
+    bool success = shallowCopyBuffers(ioData, sourceAudioBufferList);
+    if (!success) {
+        return kAudioConverterErr_UnspecifiedError;
+    }
+
     printAudioBufferList(ioData, @"compression callback");
-
-    //NSLog(@"Callback called");
-
     return noErr;
 }
 
@@ -199,34 +156,32 @@ OSStatus pullUncompressedDataToAudioConverter(AudioConverterRef inAudioConverter
     OSStatus status = AudioConverterNewSpecific(&_uncompressedAudioFormat, &_compressedAudioFormat, 1, description, &_audioConverter);
     [self validateResult:status description:@"setting up audio converter"];
 
-   /* UInt32 ulBitRate = 44100;
-    UInt32 ulSize = sizeof(ulBitRate);
-    status = AudioConverterSetProperty(_audioConverter, kAudioConverterEncodeBitRate, ulSize, &ulBitRate);
-    [self validateResult:status description:@"setting audio converter bit rate"];*/
-
-
     bool isRunning = true;
-    Timer *timer = [[Timer alloc] initWithFrequencySeconds:1 firingInitially:false];
-    int count = 0;
+
+    AudioBufferList audioBufferList = initializeAudioBufferList();
+    AudioBufferList audioBufferListStartState = initializeAudioBufferList();
+
+    allocateBuffersToAudioBufferListEx(&audioBufferList, 1, _compressedAudioFormat.mFramesPerPacket, 1, 1, true);
+    shallowCopyBuffersEx(&audioBufferListStartState, &audioBufferList, ABL_BUFFER_NULL_OUT); // store original state, namely mBuffers[n].mDataByteSize.
     while (isRunning) {
-        AudioBufferList *audioBufferList = allocateABL(_compressedAudioFormat.mChannelsPerFrame, 1024, true, 1);
         const int numFrames = 1;
         AudioStreamPacketDescription compressedPacketDescription[numFrames] = {0};
         UInt32 numFramesResult = numFrames;
 
-        status = AudioConverterFillComplexBuffer(_audioConverter, pullUncompressedDataToAudioConverter, (__bridge void *) self, &numFramesResult, audioBufferList, compressedPacketDescription);
+        status = AudioConverterFillComplexBuffer(_audioConverter, pullUncompressedDataToAudioConverter, (__bridge void *) self, &numFramesResult, &audioBufferList, compressedPacketDescription);
         [self validateResult:status description:@"compressing audio data" logSuccess:false];
-        count++;
 
-         /*for (int n = 0;n<audioBufferList->mNumberBuffers;n++) {
-             NSLog(@"Compressed buffer size: %ul", audioBufferList->mBuffers[n].mDataByteSize);
-         }*/
-
-        if ([timer getState]) {
-           // NSLog(@"We have had %d compression results in the last second", count);
-            count = 0;
+        for (int n = 0;n<audioBufferList.mNumberBuffers;n++) {
+            NSLog(@"Compressed buffer size: %ul", audioBufferList.mBuffers[n].mDataByteSize);
         }
+
+        // TODO: here we should write out to the network via a callback.
+        // or for loopback, we can temporarily (for the purposes of testing) goto _audioToBeDecompressedQueue.
+
+        // Reset mBuffers[n].mDataByteSize so that buffer can be reused.
+        resetBuffers(&audioBufferList, &audioBufferListStartState);
     }
+    freeAudioBufferListEx(&audioBufferList, true);
 }
 
 - (AudioDataContainer *)getUncompressedItem {
