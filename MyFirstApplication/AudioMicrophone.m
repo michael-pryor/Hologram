@@ -34,6 +34,7 @@ static OSStatus audioOutputPullCallback(
 ) {
     OSStatus status;
 
+    @autoreleasepool {
     AudioMicrophone *audioController = (__bridge AudioMicrophone *) inRefCon;
 
     // Validation.
@@ -126,6 +127,7 @@ static OSStatus audioOutputPullCallback(
             amountToFill -= amountAvailableToUseNow;
             audioController->amountAvailable -= amountAvailableToUseNow;
         }
+    }
     }
 
     return status;

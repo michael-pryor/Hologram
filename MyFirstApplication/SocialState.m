@@ -264,7 +264,7 @@ typedef void (^Block)(id);
     };
 
     dispatch_async(dispatch_get_main_queue(), ^ {
-        block(block);
+        //block(block);
     });
 
     return true;

@@ -13,7 +13,9 @@
     self = [super init];
     if (self) {
         _numFrames = numFrames;
+        if (audioList != nil) {
         _audioList = cloneAudioBufferList(audioList);
+        }
         printAudioBufferList(_audioList, @"container init");
     }
     return self;
@@ -46,6 +48,9 @@
 
     AudioStreamBasicDescription _compressedAudioFormat;
     AudioStreamBasicDescription _uncompressedAudioFormat;
+
+    // To decompress, we need a description for each AAC packet.
+    AudioStreamPacketDescription _compressedDescription;
 
     // We keep a reference to this to prevent it being cleaned up while the data is being compressed.
     // Documentation states we must not cleanup between callbacks, but during next cleanup can cleanup,
@@ -166,50 +171,52 @@ OSStatus pullUncompressedDataToAudioConverter(AudioConverterRef inAudioConverter
     allocateBuffersToAudioBufferListEx(&audioBufferList, 1, _compressedAudioFormat.mFramesPerPacket, 1, 1, true);
     shallowCopyBuffersEx(&audioBufferListStartState, &audioBufferList, ABL_BUFFER_NULL_OUT); // store original state, namely mBuffers[n].mDataByteSize.
     while (isRunning) {
-        const UInt32 maxNumFrames = 1;
-        AudioStreamPacketDescription compressedPacketDescription[maxNumFrames] = {0};
-        UInt32 numFramesResult = maxNumFrames;
+        @autoreleasepool {
+            const UInt32 maxNumFrames = 1;
+            AudioStreamPacketDescription compressedPacketDescription[maxNumFrames] = {0};
+            UInt32 numFramesResult = maxNumFrames;
 
-        status = AudioConverterFillComplexBuffer(audioConverter, pullUncompressedDataToAudioConverter, (__bridge void *) self, &numFramesResult, &audioBufferList, compressedPacketDescription);
-        [self validateResult:status description:@"compressing audio data" logSuccess:false];
+            status = AudioConverterFillComplexBuffer(audioConverter, pullUncompressedDataToAudioConverter, (__bridge void *) self, &numFramesResult, &audioBufferList, compressedPacketDescription);
+            [self validateResult:status description:@"compressing audio data" logSuccess:false];
 
-        if (numFramesResult > audioBufferList.mNumberBuffers || numFramesResult > maxNumFrames) {
-            NSLog(@"After compression, number of frames (%lu) is greater than number of buffers (%lu) or maximum number of frames (%lu)", numFramesResult, audioBufferList.mNumberBuffers, maxNumFrames);
-            continue;
-        }
-
-        bool problemDetected = false;
-        for (int n = 0; n < numFramesResult; n++) {
-            AudioStreamPacketDescription compressedPacketDescriptionItem = compressedPacketDescription[n];
-            AudioBuffer *buffer = &audioBufferList.mBuffers[n];
-
-            if (compressedPacketDescriptionItem.mVariableFramesInPacket > 0) {
-                NSLog(@"Variable frames detected in compressed data, this is not supported");
-                problemDetected = true;
-                break;
+            if (numFramesResult > audioBufferList.mNumberBuffers || numFramesResult > maxNumFrames) {
+                NSLog(@"After compression, number of frames (%lu) is greater than number of buffers (%lu) or maximum number of frames (%lu)", numFramesResult, audioBufferList.mNumberBuffers, maxNumFrames);
+                continue;
             }
 
-            if (compressedPacketDescriptionItem.mDataByteSize != buffer->mDataByteSize) {
-                NSLog(@"Mismatch in packet description and packet data, %lu vs %lu", compressedPacketDescriptionItem.mDataByteSize, buffer->mDataByteSize);
-                problemDetected = true;
-                break;
+            bool problemDetected = false;
+            for (int n = 0; n < numFramesResult; n++) {
+                AudioStreamPacketDescription compressedPacketDescriptionItem = compressedPacketDescription[n];
+                AudioBuffer *buffer = &audioBufferList.mBuffers[n];
+
+                if (compressedPacketDescriptionItem.mVariableFramesInPacket > 0) {
+                    NSLog(@"Variable frames detected in compressed data, this is not supported");
+                    problemDetected = true;
+                    break;
+                }
+
+                if (compressedPacketDescriptionItem.mDataByteSize != buffer->mDataByteSize) {
+                    NSLog(@"Mismatch in packet description and packet data, %lu vs %lu", compressedPacketDescriptionItem.mDataByteSize, buffer->mDataByteSize);
+                    problemDetected = true;
+                    break;
+                }
             }
+
+            if (problemDetected) {
+                continue;
+            }
+
+            /*for (int n = 0; n < audioBufferList.mNumberBuffers; n++) {
+                NSLog(@"Compressed buffer size: %lu, pd size: %lu, pd variable frames %lu", audioBufferList.mBuffers[n].mDataByteSize, compressedPacketDescription[0].mDataByteSize, compressedPacketDescription[0].mStartOffset, compressedPacketDescription[0].mVariableFramesInPacket);
+            }*/
+
+            // TODO: here we should write out to the network via a callback.
+            // or for loopback, we can temporarily (for the purposes of testing) goto _audioToBeDecompressedQueue.
+            [_audioToBeDecompressedQueue add:[[AudioDataContainer alloc] initWithNumFrames:numFramesResult audioList:&audioBufferList]];
+
+            // Reset mBuffers[n].mDataByteSize so that buffer can be reused.
+            resetBuffers(&audioBufferList, &audioBufferListStartState);
         }
-
-        if (problemDetected) {
-            continue;
-        }
-
-        for (int n = 0; n < audioBufferList.mNumberBuffers; n++) {
-            NSLog(@"Compressed buffer size: %lu, pd size: %lu, pd variable frames %lu", audioBufferList.mBuffers[n].mDataByteSize, compressedPacketDescription[0].mDataByteSize, compressedPacketDescription[0].mStartOffset, compressedPacketDescription[0].mVariableFramesInPacket);
-        }
-
-        // TODO: here we should write out to the network via a callback.
-        // or for loopback, we can temporarily (for the purposes of testing) goto _audioToBeDecompressedQueue.
-        [_audioToBeDecompressedQueue add:[[AudioDataContainer alloc] initWithNumFrames:numFramesResult audioList:&audioBufferList]];
-
-        // Reset mBuffers[n].mDataByteSize so that buffer can be reused.
-        resetBuffers(&audioBufferList, &audioBufferListStartState);
     }
     freeAudioBufferListEx(&audioBufferList, true);
 }
@@ -226,8 +233,8 @@ OSStatus pullCompressedDataToAudioConverter(AudioConverterRef inAudioConverter, 
     AudioBufferList *sourceAudioBufferList = [item audioList];
 
     // Validation.
-    if (ioData->mNumberBuffers > sourceAudioBufferList->mNumberBuffers) {
-        NSLog(@"Problem, more source buffers than destination");
+    if (ioData->mNumberBuffers > 1) {
+        NSLog(@"Problem, expected only one buffer");
         return kAudioConverterErr_UnspecifiedError;
     }
 
@@ -236,7 +243,8 @@ OSStatus pullCompressedDataToAudioConverter(AudioConverterRef inAudioConverter, 
         return kAudioConverterErr_UnspecifiedError;
     }
 
-    *outDataPacketDescription = malloc(sizeof(AudioStreamPacketDescription));
+
+    *outDataPacketDescription = &audioCompression->_compressedDescription;
     AudioStreamPacketDescription *description = *outDataPacketDescription;
     description->mStartOffset = 0;
     description->mVariableFramesInPacket = 0;
@@ -279,20 +287,22 @@ OSStatus pullCompressedDataToAudioConverter(AudioConverterRef inAudioConverter, 
     allocateBuffersToAudioBufferListEx(&audioBufferList, 1, 1024, 1, 1, true);
     shallowCopyBuffersEx(&audioBufferListStartState, &audioBufferList, ABL_BUFFER_NULL_OUT); // store original state, namely mBuffers[n].mDataByteSize.
     while (isRunning) {
-        const int numFrames = 256;
-        UInt32 numFramesResult = numFrames;
+        @autoreleasepool {
+            const int numFrames = 256;
+            UInt32 numFramesResult = numFrames;
 
-        status = AudioConverterFillComplexBuffer(audioConverterDecompression, pullCompressedDataToAudioConverter, (__bridge void *) self, &numFramesResult, &audioBufferList, NULL);
-        [self validateResult:status description:@"decompressing audio data" logSuccess:true];
+            status = AudioConverterFillComplexBuffer(audioConverterDecompression, pullCompressedDataToAudioConverter, (__bridge void *) self, &numFramesResult, &audioBufferList, NULL);
+            [self validateResult:status description:@"decompressing audio data" logSuccess:false];
 
-        for (int n = 0; n < audioBufferList.mNumberBuffers; n++) {
-            NSLog(@"Decompressed buffer size: %ul", audioBufferList.mBuffers[n].mDataByteSize);
+            /*for (int n = 0; n < audioBufferList.mNumberBuffers; n++) {
+                NSLog(@"Decompressed buffer size: %lu", audioBufferList.mBuffers[n].mDataByteSize);
+            }*/
+
+            [_audioToBeOutputQueue add:[[AudioDataContainer alloc] initWithNumFrames:numFramesResult audioList:&audioBufferList]];
+
+            // Reset mBuffers[n].mDataByteSize so that buffer can be reused.
+            resetBuffers(&audioBufferList, &audioBufferListStartState);
         }
-
-        [_audioToBeOutputQueue add:[[AudioDataContainer alloc] initWithNumFrames:numFramesResult audioList:&audioBufferList]];
-
-        // Reset mBuffers[n].mDataByteSize so that buffer can be reused.
-        resetBuffers(&audioBufferList, &audioBufferListStartState);
     }
     freeAudioBufferListEx(&audioBufferList, true);
 }
