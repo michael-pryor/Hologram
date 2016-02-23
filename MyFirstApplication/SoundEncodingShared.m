@@ -31,7 +31,3 @@ bool HandleResultOSStatus(OSStatus errCode, NSString *performing, bool shouldLog
     NSLog(@"While %@ the following error occurred: %@", performing, errorMessage);
     return false;
 }
-
-uint calculateBufferSize(AudioStreamBasicDescription *audioDescription) {
-    return 1024;
-}

@@ -10,6 +10,6 @@
 
 int main(int argc, char *argv[]) {
     @autoreleasepool {
-        return UIApplicationMain(argc, argv, nil, NSStringFromClass([MJPAppDelegate class]));
+       return UIApplicationMain(argc, argv, nil, NSStringFromClass([MJPAppDelegate class]));
     }
 }
