@@ -6,6 +6,7 @@
 #import "SoundEncodingShared.h"
 
 #import "AudioCompression.h"
+#import "AudioUnitHelpers.h"
 @import AVFoundation;
 
 @implementation AudioMicrophone {
@@ -28,20 +29,9 @@ static OSStatus audioOutputPullCallback(
     OSStatus status;
 
     AudioMicrophone *audioController = (__bridge AudioMicrophone *) inRefCon;
-    /*NSLog(@"We got a pull request from the speaker!, num frames: %u, num buffers: %u", inNumberFrames, ioData->mNumberBuffers);
-    for (int n = 0; n < ioData->mNumberBuffers; n++) {
-        NSLog(@"Buffer length: %u, num channels: %u", ioData->mBuffers[n].mDataByteSize, ioData->mBuffers[n].mNumberChannels);
-    }*/
 
-    // TODO: remove this, and use compression.
-   /* status = AudioUnitRender([audioController getAudioProducer], ioActionFlags, inTimeStamp, 1, inNumberFrames, ioData);
-    HandleResultOSStatus(status, @"rendering input audio direct", false);
-
-    return status;*/
-
-    status = AudioUnitRender([audioController getAudioProducer], ioActionFlags, inTimeStamp, 1, inNumberFrames, ioData);
-    HandleResultOSStatus(status, @"rendering input audio", false);
-
+    // Validation.
+    //
     // If there is a mismatch, may get gaps in the audio, which is annoying for the user.
     // Not sure exactly why this happens, but adjusting the sample rate solves.
     if (ioData->mNumberBuffers > 0) {
@@ -55,18 +45,41 @@ static OSStatus audioOutputPullCallback(
         }
     }
 
-    printAudioBufferList(ioData, @"audio graph");
-    [audioController->_audioCompression onNewAudioData:[[AudioDataContainer alloc] initWithNumFrames:inNumberFrames audioList:ioData]];
+    if (ioData->mNumberBuffers > 1) {
+        NSLog(@"Number of buffers is greater than 1, not supported, value is: %lu", ioData->mNumberBuffers);
+        return kAudioConverterErr_UnspecifiedError;
+    }
 
-   /* AudioDataContainer *pendingData = [audioController->_audioCompression getPendingDecompressedData];
+    if (inNumberFrames == 0 || ioData->mNumberBuffers == 0) {
+        NSLog(@"No data expected, skipping render request");
+        return noErr;
+    }
+
+    // Get audio from speaker.
+    // Number of buffer = 1 so we can initialize on stack.
+    AudioBufferList audioBufferList = initializeAudioBufferList();
+    shallowCopyBuffersEx(&audioBufferList, ioData, ABL_BUFFER_ALLOCATE_NEW);
+
+    status = AudioUnitRender([audioController getAudioProducer], ioActionFlags, inTimeStamp, 1, inNumberFrames, &audioBufferList);
+    HandleResultOSStatus(status, @"rendering input audio", false);
+
+    // Compress audio and send to network.
+    printAudioBufferList(ioData, @"audio graph");
+    [audioController->_audioCompression onNewAudioData:[[AudioDataContainer alloc] initWithNumFrames:inNumberFrames audioList:&audioBufferList]];
+
+    freeAudioBufferListEx(&audioBufferList, true);
+
+    // Get decompressed data
+    // Data was on network, and then decompressed, and is now ready for PCM consumption.
+    AudioDataContainer *pendingData = [audioController->_audioCompression getPendingDecompressedData];
     if (pendingData == nil) {
         // Play silence.
         *ioActionFlags |= kAudioUnitRenderAction_OutputIsSilence;
         return noErr;
     }
+    deepCopyBuffers(ioData, [pendingData audioList], ioData->mBuffers[0].mDataByteSize);
+    [pendingData freeMemory];
 
-    status = AudioUnitRender([audioController getAudioProducer], ioActionFlags, inTimeStamp, 1, [pendingData numFrames], [pendingData audioList]);
-    HandleResultOSStatus(status, @"rendering input audio", false);*/
     return status;
 }
 

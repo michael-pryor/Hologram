@@ -7,7 +7,8 @@
 enum AudioBufferListBufferHandling {
     ABL_BUFFER_NULL_OUT,
     ABL_BUFFER_COPY,
-    ABL_BUFFER_NOTHING
+    ABL_BUFFER_NOTHING,
+    ABL_BUFFER_ALLOCATE_NEW
 };
 
 void printAudioBufferList(AudioBufferList *audioList, NSString *description);
@@ -35,3 +36,7 @@ bool resetBuffers(AudioBufferList *destinationAudioBufferList, AudioBufferList *
 bool deepCopyBuffers(AudioBufferList *destinationAudioBufferList, AudioBufferList *sourceAudioBufferList, UInt32 destinationBufferMemorySize);
 
 AudioClassDescription *getAudioClassDescriptionWithType(UInt32 type, UInt32 manufacturer);
+
+char *getMagicCookieFromAudioConverter(AudioConverterRef audioConverter, UInt32 *cookieSizeOut);
+
+OSStatus loadMagicCookieIntoAudioConverter(AudioConverterRef audioConverter, char *magicCookie, UInt32 cookieSize);

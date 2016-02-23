@@ -125,12 +125,15 @@ bool shallowCopyBuffersEx(AudioBufferList *destinationAudioBufferList, AudioBuff
             destinationAudioBuffer->mData = sourceAudioBuffer->mData;
         } else if (bufferHandling == ABL_BUFFER_NULL_OUT) {
             destinationAudioBuffer->mData = NULL;
+        } else if (bufferHandling == ABL_BUFFER_ALLOCATE_NEW) {
+            destinationAudioBuffer->mData = malloc(sourceAudioBuffer->mDataByteSize);
         } else if (bufferHandling == ABL_BUFFER_NOTHING) {
             // Do nothing.
         } else {
             NSLog(@"Invalid buffer handling mode");
         }
         destinationAudioBuffer->mDataByteSize = sourceAudioBuffer->mDataByteSize;
+        destinationAudioBuffer->mNumberChannels = sourceAudioBuffer->mNumberChannels;
     }
 
     return true;
@@ -211,4 +214,31 @@ AudioClassDescription *getAudioClassDescriptionWithType(UInt32 type, UInt32 manu
     }
 
     return nil;
+}
+
+
+char *getMagicCookieFromAudioConverter(AudioConverterRef audioConverter, UInt32 *cookieSizeOut) {
+    *cookieSizeOut = 0;
+    OSStatus error = AudioConverterGetPropertyInfo(audioConverter, kAudioConverterCompressionMagicCookie, cookieSizeOut, NULL);
+
+    // if there is an error here, then the format doesn't have a cookie - this is perfectly fine as some formats do not
+    if (error != noErr || *cookieSizeOut == 0) {
+        NSLog(@"No magic cookie found on audio converter");
+        return NULL;
+    }
+
+    char *cookie = malloc(*cookieSizeOut);
+
+    error = AudioConverterGetProperty(audioConverter, kAudioConverterCompressionMagicCookie, cookieSizeOut, cookie);
+    if (error != noErr) {
+        NSLog(@"Failed to retrieve magic cookie");
+        free(cookie);
+        return NULL;
+    }
+
+    return cookie;
+}
+
+OSStatus loadMagicCookieIntoAudioConverter(AudioConverterRef audioConverter, char *magicCookie, UInt32 cookieSize) {
+    return AudioConverterSetProperty(audioConverter, kAudioConverterDecompressionMagicCookie, cookieSize, magicCookie);
 }

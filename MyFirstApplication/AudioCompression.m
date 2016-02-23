@@ -6,6 +6,7 @@
 #import "BlockingQueue.h"
 #import "SoundEncodingShared.h"
 #import "AudioUnitHelpers.h"
+#import "Signal.h"
 
 @implementation AudioDataContainer
 - (id)initWithNumFrames:(UInt32)numFrames audioList:(AudioBufferList *)audioList {
@@ -37,10 +38,6 @@
 
     BlockingQueue *_audioToBeOutputQueue;
 
-    AudioConverterRef _audioConverter;
-
-    AudioConverterRef _audioConverterDecompression;
-
     NSThread *_compressionThread;
 
     NSThread *_decompressionThread;
@@ -52,14 +49,25 @@
     // Documentation states we must not cleanup between callbacks, but during next cleanup can cleanup,
     // which means that it is sufficient to maintain one reference here.
     AudioDataContainer *_uncompressedAudioDataContainer;
+    AudioDataContainer *_compressedAudioDataContainer;
 
     AudioClassDescription *_compressionClass;
+
+    char *_magicCookie;
+    UInt32 _magicCookieSize;
+    Signal *_magicCookieLoaded;
+
 }
 
 - (id)initWithAudioFormat:(AudioStreamBasicDescription)uncompressedAudioFormat {
     self = [super init];
     if (self) {
         _uncompressedAudioDataContainer = nil;
+        _compressedAudioDataContainer = nil;
+        _magicCookie = NULL;
+        _magicCookieSize = 0;
+
+        _magicCookieLoaded = [[Signal alloc] initWithFlag:false];
 
         _audioToBeCompressedQueue = [[BlockingQueue alloc] initWithMaxQueueSize:30];
         _audioToBeDecompressedQueue = [[BlockingQueue alloc] initWithMaxQueueSize:30];
@@ -81,17 +89,22 @@
 }
 
 - (void)initialize {
-    _compressionThread = [[NSThread alloc] initWithTarget:self
-                                                 selector:@selector(compressionThreadEntryPoint:)
-                                                   object:nil];
-    [_compressionThread setName:@"Audio Compression"];
-    [_compressionThread start];
-
     _decompressionThread = [[NSThread alloc] initWithTarget:self
                                                    selector:@selector(decompressionThreadEntryPoint:)
                                                      object:nil];
     [_decompressionThread setName:@"Audio Decompression"];
     [_decompressionThread start];
+
+
+    _compressionThread = [[NSThread alloc] initWithTarget:self
+                                                 selector:@selector(compressionThreadEntryPoint:)
+                                                   object:nil];
+    [_compressionThread setName:@"Audio Compression"];
+    [_compressionThread start];
+}
+
+- (void)dealloc {
+    free(_magicCookie);
 }
 
 // Converting PCM to AAC.
@@ -135,8 +148,13 @@ OSStatus pullUncompressedDataToAudioConverter(AudioConverterRef inAudioConverter
 }
 
 - (void)compressionThreadEntryPoint:var {
-    OSStatus status = AudioConverterNewSpecific(&_uncompressedAudioFormat, &_compressedAudioFormat, 1, _compressionClass, &_audioConverter);
+    AudioConverterRef audioConverter;
+
+    OSStatus status = AudioConverterNewSpecific(&_uncompressedAudioFormat, &_compressedAudioFormat, 1, _compressionClass, &audioConverter);
     [self validateResult:status description:@"setting up audio converter"];
+
+    _magicCookie = getMagicCookieFromAudioConverter(audioConverter, &_magicCookieSize);
+    [_magicCookieLoaded signalAll];
 
     bool isRunning = true;
 
@@ -150,7 +168,7 @@ OSStatus pullUncompressedDataToAudioConverter(AudioConverterRef inAudioConverter
         AudioStreamPacketDescription compressedPacketDescription[maxNumFrames] = {0};
         UInt32 numFramesResult = maxNumFrames;
 
-        status = AudioConverterFillComplexBuffer(_audioConverter, pullUncompressedDataToAudioConverter, (__bridge void *) self, &numFramesResult, &audioBufferList, compressedPacketDescription);
+        status = AudioConverterFillComplexBuffer(audioConverter, pullUncompressedDataToAudioConverter, (__bridge void *) self, &numFramesResult, &audioBufferList, compressedPacketDescription);
         [self validateResult:status description:@"compressing audio data" logSuccess:false];
 
         if (numFramesResult > audioBufferList.mNumberBuffers || numFramesResult > maxNumFrames) {
@@ -161,7 +179,7 @@ OSStatus pullUncompressedDataToAudioConverter(AudioConverterRef inAudioConverter
         bool problemDetected = false;
         for (int n = 0; n < numFramesResult; n++) {
             AudioStreamPacketDescription compressedPacketDescriptionItem = compressedPacketDescription[n];
-            AudioBuffer* buffer = &audioBufferList.mBuffers[n];
+            AudioBuffer *buffer = &audioBufferList.mBuffers[n];
 
             if (compressedPacketDescriptionItem.mVariableFramesInPacket > 0) {
                 NSLog(@"Variable frames detected in compressed data, this is not supported");
@@ -195,14 +213,13 @@ OSStatus pullUncompressedDataToAudioConverter(AudioConverterRef inAudioConverter
 }
 
 
-
 // Converting AAC to PCM.
 OSStatus pullCompressedDataToAudioConverter(AudioConverterRef inAudioConverter, UInt32 *ioNumberDataPackets, AudioBufferList *ioData, AudioStreamPacketDescription **outDataPacketDescription, void *inUserData) {
     AudioCompression *audioCompression = (__bridge AudioCompression *) inUserData;
 
     AudioDataContainer *item = [audioCompression getCompressedItem];
 
-    *ioNumberDataPackets = audioCompression->_compressedAudioFormat.mFramesPerPacket;
+    *ioNumberDataPackets = 1;
 
     AudioBufferList *sourceAudioBufferList = [item audioList];
 
@@ -218,55 +235,59 @@ OSStatus pullCompressedDataToAudioConverter(AudioConverterRef inAudioConverter, 
     }
 
     *outDataPacketDescription = malloc(sizeof(AudioStreamPacketDescription));
-    AudioStreamPacketDescription * description = *outDataPacketDescription;
+    AudioStreamPacketDescription *description = *outDataPacketDescription;
     description->mStartOffset = 0;
     description->mVariableFramesInPacket = 0;
     description->mDataByteSize = sourceAudioBufferList->mBuffers[0].mDataByteSize;
 
 
-    /*// Maintain reference to prevent cleanup while buffers are being used.
+    // Maintain reference to prevent cleanup while buffers are being used.
     // Cleanup manually, because ARC gets confused thinking we're holding onto the buffers which
-    // we've shallow copied into the encoder. It can't see when the encoder is done with it.
-    if (audioCompression->_uncompressedAudioDataContainer != nil) {
-        [audioCompression->_uncompressedAudioDataContainer freeMemory];
+    // we've shallow copied into the encoder. It can't see when the decoder is done with it.
+    if (audioCompression->_compressedAudioDataContainer != nil) {
+        [audioCompression->_compressedAudioDataContainer freeMemory];
     }
-    audioCompression->_uncompressedAudioDataContainer = item;
+    audioCompression->_compressedAudioDataContainer = item;
 
     // Point compression engine to the PCM data.
     bool success = shallowCopyBuffers(ioData, sourceAudioBufferList);
     if (!success) {
         return kAudioConverterErr_UnspecifiedError;
-    }*/
+    }
 
     printAudioBufferList(ioData, @"decompression callback");
     return noErr;
 }
 
-
 - (void)decompressionThreadEntryPoint:var {
-    OSStatus status = AudioConverterNewSpecific(&_compressedAudioFormat, &_uncompressedAudioFormat, 1, _compressionClass, &_audioConverterDecompression);
+    AudioConverterRef audioConverterDecompression;
+
+    OSStatus status = AudioConverterNewSpecific(&_compressedAudioFormat, &_uncompressedAudioFormat, 1, _compressionClass, &audioConverterDecompression);
     [self validateResult:status description:@"setting up audio converter"];
+
+    [_magicCookieLoaded wait];
+    status = loadMagicCookieIntoAudioConverter(audioConverterDecompression, _magicCookie, _magicCookieSize);
+    [self validateResult:status description:@"loading magic cookie into decompression audio converter"];
 
     bool isRunning = true;
 
     AudioBufferList audioBufferList = initializeAudioBufferList();
     AudioBufferList audioBufferListStartState = initializeAudioBufferList();
 
-    allocateBuffersToAudioBufferListEx(&audioBufferList, 1, 4096, 1, 1, true);
+    allocateBuffersToAudioBufferListEx(&audioBufferList, 1, 1024, 1, 1, true);
     shallowCopyBuffersEx(&audioBufferListStartState, &audioBufferList, ABL_BUFFER_NULL_OUT); // store original state, namely mBuffers[n].mDataByteSize.
     while (isRunning) {
-        const int numFrames = 1;
-        AudioStreamPacketDescription compressedPacketDescription[numFrames] = {0};
+        const int numFrames = 256;
         UInt32 numFramesResult = numFrames;
 
-        status = AudioConverterFillComplexBuffer(_audioConverterDecompression, pullCompressedDataToAudioConverter, (__bridge void *) self, &numFramesResult, &audioBufferList, compressedPacketDescription);
+        status = AudioConverterFillComplexBuffer(audioConverterDecompression, pullCompressedDataToAudioConverter, (__bridge void *) self, &numFramesResult, &audioBufferList, NULL);
         [self validateResult:status description:@"decompressing audio data" logSuccess:true];
 
         for (int n = 0; n < audioBufferList.mNumberBuffers; n++) {
             NSLog(@"Decompressed buffer size: %ul", audioBufferList.mBuffers[n].mDataByteSize);
         }
 
-        // TODO: here we should write to the _audioToBeOutputQueue queue.
+        [_audioToBeOutputQueue add:[[AudioDataContainer alloc] initWithNumFrames:numFramesResult audioList:&audioBufferList]];
 
         // Reset mBuffers[n].mDataByteSize so that buffer can be reused.
         resetBuffers(&audioBufferList, &audioBufferListStartState);
@@ -295,7 +316,6 @@ OSStatus pullCompressedDataToAudioConverter(AudioConverterRef inAudioConverter, 
 }
 
 - (AudioDataContainer *)getPendingDecompressedData {
-    //return [_audioToBeCompressedQueue getImmediate];
     return [_audioToBeOutputQueue getImmediate];
 }
 
