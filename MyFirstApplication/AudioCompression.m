@@ -7,6 +7,7 @@
 #import "SoundEncodingShared.h"
 #import "AudioUnitHelpers.h"
 #import "Signal.h"
+#import "InputSessionBase.h"
 
 @implementation AudioDataContainer
 - (id)initWithNumFrames:(UInt32)numFrames audioList:(AudioBufferList *)audioList {
@@ -14,11 +15,42 @@
     if (self) {
         _numFrames = numFrames;
         if (audioList != nil) {
-        _audioList = cloneAudioBufferList(audioList);
+            _audioList = cloneAudioBufferList(audioList);
         }
         printAudioBufferList(_audioList, @"container init");
     }
     return self;
+}
+
+- (id)initFromByteBuffer:(ByteBuffer *)byteBuffer audioFormat:(AudioStreamBasicDescription *)description {
+    self = [super init];
+    if (self) {
+        UInt32 bytesToCopy = [byteBuffer getUnreadDataFromCursor];
+
+        // Takes into account cursor position.
+        [byteBuffer getVariableLengthData:^id(uint8_t *data, uint length) {
+            _audioList = initializeAudioBufferListHeapSingle(length, description->mChannelsPerFrame);
+            AudioBuffer *buffer = &_audioList->mBuffers[0];
+            buffer->mDataByteSize = length;
+            memcpy(buffer->mData, data, length);
+
+            return nil; // we populate _audioList direct.
+        }                      withLength:bytesToCopy];
+    }
+    return self;
+}
+
+- (ByteBuffer *)buildByteBufferWithLeftPadding:(uint)leftPadding {
+    if (_audioList->mNumberBuffers != 1) {
+        NSLog(@"Could not build byte buffer, need exactly 1 buffer");
+        return nil;
+    }
+    AudioBuffer *buffer = &_audioList->mBuffers[0];
+
+    ByteBuffer *byteBuffer = [[ByteBuffer alloc] initWithSize:_audioList->mBuffers[0].mDataByteSize + leftPadding];
+    [byteBuffer addVariableLengthData:buffer->mData withLength:buffer->mDataByteSize includingPrefix:false atPosition:leftPadding];
+
+    return byteBuffer;
 }
 
 - (void)freeMemory {
@@ -64,11 +96,19 @@
     UInt32 _magicCookieSize;
     Signal *_magicCookieLoaded;
 
+    // Push compressed packets out to this session.
+    id <NewPacketDelegate> _outputSession;
+
+    // Network keeps some bytes for its protocol.
+    UInt32 _leftPadding;
 }
 
-- (id)initWithAudioFormat:(AudioStreamBasicDescription)uncompressedAudioFormat {
+- (id)initWithAudioFormat:(AudioStreamBasicDescription)uncompressedAudioFormat outputSession:(id <NewPacketDelegate>)outputSession leftPadding:(uint)leftPadding {
     self = [super init];
     if (self) {
+        _outputSession = outputSession;
+        _leftPadding = leftPadding;
+
         _uncompressedAudioDataContainer = nil;
         _compressedAudioDataContainer = nil;
         _magicCookie = NULL;
@@ -76,9 +116,11 @@
 
         _magicCookieLoaded = [[Signal alloc] initWithFlag:false];
 
-        _audioToBeCompressedQueue = [[BlockingQueue alloc] initWithMaxQueueSize:5];
-        _audioToBeDecompressedQueue = [[BlockingQueue alloc] initWithMaxQueueSize:5];
-        _audioToBeOutputQueue = [[BlockingQueue alloc] initWithMaxQueueSize:20];
+        // Get about half a second 1 second delay at worst.
+        // TODO: Consider impact of these values.
+        _audioToBeCompressedQueue = [[BlockingQueue alloc] initWithMaxQueueSize:100];
+        _audioToBeDecompressedQueue = [[BlockingQueue alloc] initWithMaxQueueSize:100];
+        _audioToBeOutputQueue = [[BlockingQueue alloc] initWithMaxQueueSize:100];
 
         _uncompressedAudioFormat = uncompressedAudioFormat;
 
@@ -210,9 +252,17 @@ OSStatus pullUncompressedDataToAudioConverter(AudioConverterRef inAudioConverter
                 NSLog(@"Compressed buffer size: %lu, pd size: %lu, pd variable frames %lu", audioBufferList.mBuffers[n].mDataByteSize, compressedPacketDescription[0].mDataByteSize, compressedPacketDescription[0].mStartOffset, compressedPacketDescription[0].mVariableFramesInPacket);
             }*/
 
-            // TODO: here we should write out to the network via a callback.
-            // or for loopback, we can temporarily (for the purposes of testing) goto _audioToBeDecompressedQueue.
-            [_audioToBeDecompressedQueue add:[[AudioDataContainer alloc] initWithNumFrames:numFramesResult audioList:&audioBufferList]];
+            AudioDataContainer *resultingContainer = [[AudioDataContainer alloc] initWithNumFrames:numFramesResult audioList:&audioBufferList];
+            if (_outputSession != nil) {
+                // Write out to network callback, in production code we should always do this.
+                ByteBuffer *byteBuffer = [resultingContainer buildByteBufferWithLeftPadding:_leftPadding];
+                [_outputSession onNewPacket:byteBuffer fromProtocol:UDP];
+            } else {
+                // Loopback for testing, we can temporarily for the purposes of testing go straight
+                // to the network inbound queue, so that the data is immediately decompressed
+                // and sent to the speaker.
+                [_audioToBeDecompressedQueue add:resultingContainer];
+            }
 
             // Reset mBuffers[n].mDataByteSize so that buffer can be reused.
             resetBuffers(&audioBufferList, &audioBufferListStartState);
@@ -329,6 +379,12 @@ OSStatus pullCompressedDataToAudioConverter(AudioConverterRef inAudioConverter, 
 
 - (AudioDataContainer *)getPendingDecompressedData {
     return [_audioToBeOutputQueue getImmediate];
+}
+
+
+- (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
+    AudioDataContainer *container = [[AudioDataContainer alloc] initFromByteBuffer:packet audioFormat:&_compressedAudioFormat];
+    [_audioToBeDecompressedQueue add:container];
 }
 
 

@@ -2,14 +2,15 @@
 // Created by Michael Pryor on 17/02/2016.
 //
 
-#import "AudioMicrophone.h"
+#import "AudioGraph.h"
 #import "SoundEncodingShared.h"
 
 #import "AudioCompression.h"
 #import "AudioUnitHelpers.h"
+
 @import AVFoundation;
 
-@implementation AudioMicrophone {
+@implementation AudioGraph {
     AudioCompression *_audioCompression;
 
     AudioUnit _audioProducer;
@@ -35,99 +36,99 @@ static OSStatus audioOutputPullCallback(
     OSStatus status;
 
     @autoreleasepool {
-    AudioMicrophone *audioController = (__bridge AudioMicrophone *) inRefCon;
+        AudioGraph *audioController = (__bridge AudioGraph *) inRefCon;
 
-    // Validation.
-    //
-    // If there is a mismatch, may get gaps in the audio, which is annoying for the user.
-    // Not sure exactly why this happens, but adjusting the sample rate solves.
-    if (ioData->mNumberBuffers > 0) {
-        size_t estimatedSize = inNumberFrames * audioController->_audioFormat.mBytesPerFrame;
-        size_t actualSize = ioData->mBuffers[0].mDataByteSize;
-        if (estimatedSize != actualSize) {
-            NSLog(@"Mismatch, num frames = %lu, estimated size = %lu, byte size = %lu", inNumberFrames, estimatedSize, actualSize);
+        // Validation.
+        //
+        // If there is a mismatch, may get gaps in the audio, which is annoying for the user.
+        // Not sure exactly why this happens, but adjusting the sample rate solves.
+        if (ioData->mNumberBuffers > 0) {
+            size_t estimatedSize = inNumberFrames * audioController->_audioFormat.mBytesPerFrame;
+            size_t actualSize = ioData->mBuffers[0].mDataByteSize;
+            if (estimatedSize != actualSize) {
+                NSLog(@"Mismatch, num frames = %lu, estimated size = %lu, byte size = %lu", inNumberFrames, estimatedSize, actualSize);
 
-            // Fix the number frames so that the audio compression continues to work properly regardless.
-            inNumberFrames = actualSize / audioController->_audioFormat.mBytesPerFrame;
-        }
-    }
-
-    if (ioData->mNumberBuffers > 1) {
-        NSLog(@"Number of buffers is greater than 1, not supported, value is: %lu", ioData->mNumberBuffers);
-        return kAudioConverterErr_UnspecifiedError;
-    }
-
-    if (inNumberFrames == 0 || ioData->mNumberBuffers == 0) {
-        NSLog(@"No data expected, skipping render request");
-        return noErr;
-    }
-
-    {
-        // Get audio from speaker.
-        // Number of buffer = 1 so we can initialize on stack.
-        AudioBufferList audioBufferList = initializeAudioBufferList();
-        shallowCopyBuffersEx(&audioBufferList, ioData, ABL_BUFFER_ALLOCATE_NEW);
-
-        status = AudioUnitRender([audioController getAudioProducer], ioActionFlags, inTimeStamp, 1, inNumberFrames, &audioBufferList);
-        HandleResultOSStatus(status, @"rendering input audio", false);
-
-        // Compress audio and send to network.
-        printAudioBufferList(ioData, @"audio graph");
-        [audioController->_audioCompression onNewAudioData:[[AudioDataContainer alloc] initWithNumFrames:inNumberFrames audioList:&audioBufferList]];
-
-        freeAudioBufferListEx(&audioBufferList, true);
-    }
-
-    {
-        AudioBuffer bufferToFill = ioData->mBuffers[0];
-        UInt32 amountToFill = bufferToFill.mDataByteSize;
-
-        while (amountToFill > 0) {
-            if (audioController->amountAvailable == 0) {
-                // Cleanup old container. Helps ARC.
-                if (audioController->bufferAvailableContainer != nil) {
-                    [audioController->bufferAvailableContainer freeMemory];
-                }
-
-                // Get decompressed data
-                // Data was on network, and then decompressed, and is now ready for PCM consumption.
-                audioController->bufferAvailableContainer = [audioController->_audioCompression getPendingDecompressedData];
-                if (audioController->bufferAvailableContainer == nil) {
-                    // Play silence.
-                    *ioActionFlags |= kAudioUnitRenderAction_OutputIsSilence;
-                    return noErr;
-                }
-
-                // Validation.
-                AudioBufferList *audioBufferList = [audioController->bufferAvailableContainer audioList];
-                if (audioBufferList->mNumberBuffers != 1) {
-                    NSLog(@"Decompressed audio buffer must have only 1 buffer, actually has: %lu", audioBufferList->mNumberBuffers);
-                    return kAudioConverterErr_UnspecifiedError;
-                }
-
-                // Load in for processing.
-                audioController->bufferAvailable = audioBufferList->mBuffers[0];
-                audioController->amountAvailable = audioController->bufferAvailable.mDataByteSize;
+                // Fix the number frames so that the audio compression continues to work properly regardless.
+                inNumberFrames = actualSize / audioController->_audioFormat.mBytesPerFrame;
             }
-
-            // May be larger or smaller than destination buffer.
-            // Copy the data in.
-            UInt32 amountAvailableToUseNow;
-            if (audioController->amountAvailable > amountToFill) {
-                amountAvailableToUseNow = amountToFill;
-            } else {
-                amountAvailableToUseNow = audioController->amountAvailable;
-            }
-
-            UInt32 currentPositionFill = bufferToFill.mDataByteSize - amountToFill;
-            UInt32 currentPositionAvailable = audioController->bufferAvailable.mDataByteSize - audioController->amountAvailable;
-
-            memcpy(bufferToFill.mData + currentPositionFill, audioController->bufferAvailable.mData + currentPositionAvailable, amountAvailableToUseNow);
-
-            amountToFill -= amountAvailableToUseNow;
-            audioController->amountAvailable -= amountAvailableToUseNow;
         }
-    }
+
+        if (ioData->mNumberBuffers > 1) {
+            NSLog(@"Number of buffers is greater than 1, not supported, value is: %lu", ioData->mNumberBuffers);
+            return kAudioConverterErr_UnspecifiedError;
+        }
+
+        if (inNumberFrames == 0 || ioData->mNumberBuffers == 0) {
+            NSLog(@"No data expected, skipping render request");
+            return noErr;
+        }
+
+        {
+            // Get audio from speaker.
+            // Number of buffer = 1 so we can initialize on stack.
+            AudioBufferList audioBufferList = initializeAudioBufferList();
+            shallowCopyBuffersEx(&audioBufferList, ioData, ABL_BUFFER_ALLOCATE_NEW);
+
+            status = AudioUnitRender([audioController getAudioProducer], ioActionFlags, inTimeStamp, 1, inNumberFrames, &audioBufferList);
+            HandleResultOSStatus(status, @"rendering input audio", false);
+
+            // Compress audio and send to network.
+            printAudioBufferList(ioData, @"audio graph");
+            [audioController->_audioCompression onNewAudioData:[[AudioDataContainer alloc] initWithNumFrames:inNumberFrames audioList:&audioBufferList]];
+
+            freeAudioBufferListEx(&audioBufferList, true);
+        }
+
+        {
+            AudioBuffer bufferToFill = ioData->mBuffers[0];
+            UInt32 amountToFill = bufferToFill.mDataByteSize;
+
+            while (amountToFill > 0) {
+                if (audioController->amountAvailable == 0) {
+                    // Cleanup old container. Helps ARC.
+                    if (audioController->bufferAvailableContainer != nil) {
+                        [audioController->bufferAvailableContainer freeMemory];
+                    }
+
+                    // Get decompressed data
+                    // Data was on network, and then decompressed, and is now ready for PCM consumption.
+                    audioController->bufferAvailableContainer = [audioController->_audioCompression getPendingDecompressedData];
+                    if (audioController->bufferAvailableContainer == nil) {
+                        // Play silence.
+                        *ioActionFlags |= kAudioUnitRenderAction_OutputIsSilence;
+                        return noErr;
+                    }
+
+                    // Validation.
+                    AudioBufferList *audioBufferList = [audioController->bufferAvailableContainer audioList];
+                    if (audioBufferList->mNumberBuffers != 1) {
+                        NSLog(@"Decompressed audio buffer must have only 1 buffer, actually has: %lu", audioBufferList->mNumberBuffers);
+                        return kAudioConverterErr_UnspecifiedError;
+                    }
+
+                    // Load in for processing.
+                    audioController->bufferAvailable = audioBufferList->mBuffers[0];
+                    audioController->amountAvailable = audioController->bufferAvailable.mDataByteSize;
+                }
+
+                // May be larger or smaller than destination buffer.
+                // Copy the data in.
+                UInt32 amountAvailableToUseNow;
+                if (audioController->amountAvailable > amountToFill) {
+                    amountAvailableToUseNow = amountToFill;
+                } else {
+                    amountAvailableToUseNow = audioController->amountAvailable;
+                }
+
+                UInt32 currentPositionFill = bufferToFill.mDataByteSize - amountToFill;
+                UInt32 currentPositionAvailable = audioController->bufferAvailable.mDataByteSize - audioController->amountAvailable;
+
+                memcpy(bufferToFill.mData + currentPositionFill, audioController->bufferAvailable.mData + currentPositionAvailable, amountAvailableToUseNow);
+
+                amountToFill -= amountAvailableToUseNow;
+                audioController->amountAvailable -= amountAvailableToUseNow;
+            }
+        }
     }
 
     return status;
@@ -313,12 +314,12 @@ static OSStatus audioOutputPullCallback(
     return audioDescription;
 }
 
-- (id)init {
+- (id)initWithOutputSession:(id <NewPacketDelegate>)outputSession leftPadding:(uint)leftPadding {
     self = [super init];
     if (self) {
         double sampleRate = [self setupAudioSession];
         _audioFormat = [self prepareAudioFormatWithSampleRate:sampleRate];
-        _audioCompression = [[AudioCompression alloc] initWithAudioFormat:_audioFormat];
+        _audioCompression = [[AudioCompression alloc] initWithAudioFormat:_audioFormat outputSession:outputSession leftPadding:leftPadding];
         _mainGraph = [self buildIoGraph];
 
         bufferAvailableContainer = nil;
@@ -329,6 +330,10 @@ static OSStatus audioOutputPullCallback(
 
 - (void)initialize {
     [_audioCompression initialize];
+}
+
+- (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
+    [_audioCompression onNewPacket:packet fromProtocol:protocol];
 }
 
 @end

@@ -40,3 +40,7 @@ AudioClassDescription *getAudioClassDescriptionWithType(UInt32 type, UInt32 manu
 char *getMagicCookieFromAudioConverter(AudioConverterRef audioConverter, UInt32 *cookieSizeOut);
 
 OSStatus loadMagicCookieIntoAudioConverter(AudioConverterRef audioConverter, char *magicCookie, UInt32 cookieSize);
+
+AudioBufferList * initializeAudioBufferListHeap(UInt32 numBuffers);
+
+AudioBufferList * initializeAudioBufferListHeapSingle(UInt32 byteSize, UInt32 numberChannels);

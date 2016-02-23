@@ -9,12 +9,10 @@
 #import "VideoEncoding.h"
 #import "OutputSessionTcp.h"
 #import "MediaController.h"
-#import "SoundMicrophone.h"
 #import "EncodingPipe.h"
 #import "DecodingPipe.h"
-#import "TimedEventTracker.h"
 #import "DelayedPipe.h"
-#import "AudioMicrophone.h"
+#import "AudioGraph.h"
 
 @implementation MediaController {
     Boolean _started;
@@ -27,9 +25,7 @@
     //SoundMicrophone *_soundEncoder;
     //SoundPlayback *_soundPlayback;
     EncodingPipe *_encodingPipeAudio;
-    AudioMicrophone *_audioMicrophone;
-
-    TimedEventTracker *_startStopTracker;
+    AudioGraph *_audioMicrophone;
 
     // Both audio and video.
     DecodingPipe *_decodingPipe;
@@ -39,40 +35,26 @@
     self = [super init];
     if (self) {
         _started = false;
-        _startStopTracker = [[TimedEventTracker alloc] initWithMaxEvents:8 timePeriod:5];
-
-        // Buffering estimations (introduce delay so that playback is smooth).
-        uint numMicrophoneBuffers = 10;
-        uint numPlaybackAudioBuffers = 2;
-        uint maxPlaybackPendingBuffers = 50;
 
         Float64 secondsPerBuffer = 0.2; // estimate.
         Float64 estimatedDelay = 3 * secondsPerBuffer;
 
+        const uint leftPadding = sizeof(uint8_t);
+
         _decodingPipe = [[DecodingPipe alloc] init];
         _delayedPipe = [[DelayedPipe alloc] initWithMinimumDelay:estimatedDelay outputSession:nil];
 
+
         // Video.
-        _videoOutputController = [[VideoOutputController alloc] initWithUdpNetworkOutputSession:_delayedPipe imageDelegate:newImageDelegate mediaDelayNotifier:mediaDelayNotifier];
+        _videoOutputController = [[VideoOutputController alloc] initWithUdpNetworkOutputSession:_delayedPipe imageDelegate:newImageDelegate mediaDelayNotifier:mediaDelayNotifier leftPadding:leftPadding];
         [_decodingPipe addPrefix:VIDEO_ID mappingToOutputSession:_videoOutputController];
 
         // Audio.
         _encodingPipeAudio = [[EncodingPipe alloc] initWithOutputSession:nil prefixId:AUDIO_ID];
 
-        _audioMicrophone = [[AudioMicrophone alloc] init];
+        _audioMicrophone = [[AudioGraph alloc] initWithOutputSession:_encodingPipeAudio leftPadding:leftPadding];
+        [_decodingPipe addPrefix:AUDIO_ID mappingToOutputSession:_audioMicrophone];
         [_audioMicrophone initialize];
-
-        /*_soundEncoder = [[SoundMicrophone alloc] initWithOutputSession:nil numBuffers:numMicrophoneBuffers leftPadding:sizeof(uint8_t)];
-        [_soundEncoder initialize];
-
-        _soundPlayback = [[SoundPlayback alloc] initWithAudioDescription:[_soundEncoder getAudioDescription] numBuffers:numPlaybackAudioBuffers maxPendingAmount:maxPlaybackPendingBuffers soundPlaybackDelegate:self mediaDelayDelegate:_videoOutputController];
-        [_soundPlayback setMagicCookie:[_soundEncoder getMagicCookie] size:[_soundEncoder getMagicCookieSize]];
-        [_decodingPipe addPrefix:AUDIO_ID mappingToOutputSession:_soundPlayback];
-
-        [_soundEncoder setOutputSession:_encodingPipeAudio];
-
-        [_soundPlayback initialize];
-        NSLog(@"Audio microphone and speaker initialized");*/
     }
     return self;
 }
@@ -144,18 +126,6 @@
 - (void)resetSendRate {
     // This gets called when we move to another person, so discard any delayed video from previous person.
     [_delayedPipe reset];
-}
-
-- (void)playbackStopped {
-    if ([_startStopTracker increment]) {
-        NSLog(@"Playback start/stopped frequently in a short space of time, quality of service may be impacted");
-    }
-}
-
-- (void)playbackStarted {
-    if ([_startStopTracker increment]) {
-        NSLog(@"Playback start/stopped frequently in a short space of time, quality of service may be impacted");
-    }
 }
 
 @end

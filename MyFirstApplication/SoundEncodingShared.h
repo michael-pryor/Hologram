@@ -8,11 +8,7 @@
 
 #import <Foundation/Foundation.h>
 #include <AudioToolbox/AudioQueue.h>
-//!pla error; indicates audio no longer playing. i.e. OS paused it.
-#define ERR_NOT_PLAYING 561015905
 
 NSString *NSStringFromOSStatus(OSStatus errCode);
 
 bool HandleResultOSStatus(OSStatus errCode, NSString *performing, bool shouldLogSuccess);
-
-uint calculateBufferSize(AudioStreamBasicDescription *audioDescription);

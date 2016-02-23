@@ -68,6 +68,8 @@
 
 - (uint)addVariableLengthData:(uint8_t *)data withLength:(uint)length;
 
+- (id)getVariableLengthData:(id(^)(uint8_t *data, uint length))dataHandler withLength:(uint)length;
+
 - (void)addByteBuffer:(ByteBuffer *)sourceBuffer includingPrefix:(Boolean)includePrefix atPosition:(uint)position startingFrom:(uint)startFrom;
 
 - (void)addByteBuffer:(ByteBuffer *)sourceBuffer includingPrefix:(Boolean)includePrefix atPosition:(uint)position;

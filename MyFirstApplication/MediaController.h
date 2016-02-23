@@ -11,9 +11,8 @@
 #import "ConnectionGovernorProtocol.h"
 #import "Batch.h"
 #import "VideoOutputController.h"
-#import "SoundPlayback.h"
 
-@interface MediaController : NSObject <NewPacketDelegate, SoundPlaybackDelegate>
+@interface MediaController : NSObject <NewPacketDelegate>
 - (id)initWithImageDelegate:(id <NewImageDelegate>)newImageDelegate mediaDelayNotifier:(id <MediaDelayNotifier>)mediaDelayNotifier;
 
 - (void)resetSendRate;

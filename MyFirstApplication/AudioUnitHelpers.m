@@ -38,6 +38,21 @@ AudioBufferList initializeAudioBufferList() {
     return audioBufferList;
 };
 
+AudioBufferList * initializeAudioBufferListHeap(UInt32 numBuffers) {
+    AudioBufferList * audioBufferList = malloc(getNumBytesForAudioBufferList(numBuffers));
+    audioBufferList->mNumberBuffers = numBuffers;
+    return audioBufferList;
+};
+
+AudioBufferList * initializeAudioBufferListHeapSingle(UInt32 byteSize, UInt32 numberChannels) {
+    AudioBufferList * audioBufferList = initializeAudioBufferListHeap(1);
+    AudioBuffer * audioBuffer = &audioBufferList->mBuffers[0];
+    audioBuffer->mDataByteSize = byteSize;
+    audioBuffer->mData = malloc(byteSize);
+    audioBuffer->mNumberChannels = numberChannels;
+    return audioBufferList;
+}
+
 AudioBufferList *allocateBuffersToAudioBufferList(AudioBufferList *destinationAudioBufferList, UInt32 bytesPerFrame, UInt32 framesPerPacket, UInt32 numBuffers, UInt32 channelsPerBuffer) {
     if (destinationAudioBufferList->mNumberBuffers < numBuffers) {
         NSLog(@"Cannot copy buffers over, destination audio buffer list is too small (allocateBuffersToAudioBufferList)");
