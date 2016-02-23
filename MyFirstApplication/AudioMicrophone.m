@@ -16,6 +16,12 @@
     AUGraph _mainGraph;
 
     AudioStreamBasicDescription _audioFormat;
+
+    // For handling devices producing different sizes of output i.e. they may produce
+    // a different number of frames with each iteration.
+    AudioDataContainer *bufferAvailableContainer;
+    AudioBuffer bufferAvailable;
+    UInt32 amountAvailable;
 }
 
 static OSStatus audioOutputPullCallback(
@@ -55,30 +61,72 @@ static OSStatus audioOutputPullCallback(
         return noErr;
     }
 
-    // Get audio from speaker.
-    // Number of buffer = 1 so we can initialize on stack.
-    AudioBufferList audioBufferList = initializeAudioBufferList();
-    shallowCopyBuffersEx(&audioBufferList, ioData, ABL_BUFFER_ALLOCATE_NEW);
+    {
+        // Get audio from speaker.
+        // Number of buffer = 1 so we can initialize on stack.
+        AudioBufferList audioBufferList = initializeAudioBufferList();
+        shallowCopyBuffersEx(&audioBufferList, ioData, ABL_BUFFER_ALLOCATE_NEW);
 
-    status = AudioUnitRender([audioController getAudioProducer], ioActionFlags, inTimeStamp, 1, inNumberFrames, &audioBufferList);
-    HandleResultOSStatus(status, @"rendering input audio", false);
+        status = AudioUnitRender([audioController getAudioProducer], ioActionFlags, inTimeStamp, 1, inNumberFrames, &audioBufferList);
+        HandleResultOSStatus(status, @"rendering input audio", false);
 
-    // Compress audio and send to network.
-    printAudioBufferList(ioData, @"audio graph");
-    [audioController->_audioCompression onNewAudioData:[[AudioDataContainer alloc] initWithNumFrames:inNumberFrames audioList:&audioBufferList]];
+        // Compress audio and send to network.
+        printAudioBufferList(ioData, @"audio graph");
+        [audioController->_audioCompression onNewAudioData:[[AudioDataContainer alloc] initWithNumFrames:inNumberFrames audioList:&audioBufferList]];
 
-    freeAudioBufferListEx(&audioBufferList, true);
-
-    // Get decompressed data
-    // Data was on network, and then decompressed, and is now ready for PCM consumption.
-    AudioDataContainer *pendingData = [audioController->_audioCompression getPendingDecompressedData];
-    if (pendingData == nil) {
-        // Play silence.
-        *ioActionFlags |= kAudioUnitRenderAction_OutputIsSilence;
-        return noErr;
+        freeAudioBufferListEx(&audioBufferList, true);
     }
-    deepCopyBuffers(ioData, [pendingData audioList], ioData->mBuffers[0].mDataByteSize);
-    [pendingData freeMemory];
+
+    {
+        AudioBuffer bufferToFill = ioData->mBuffers[0];
+        UInt32 amountToFill = bufferToFill.mDataByteSize;
+
+        while (amountToFill > 0) {
+            if (audioController->amountAvailable == 0) {
+                // Cleanup old container. Helps ARC.
+                if (audioController->bufferAvailableContainer != nil) {
+                    [audioController->bufferAvailableContainer freeMemory];
+                }
+
+                // Get decompressed data
+                // Data was on network, and then decompressed, and is now ready for PCM consumption.
+                audioController->bufferAvailableContainer = [audioController->_audioCompression getPendingDecompressedData];
+                if (audioController->bufferAvailableContainer == nil) {
+                    // Play silence.
+                    *ioActionFlags |= kAudioUnitRenderAction_OutputIsSilence;
+                    return noErr;
+                }
+
+                // Validation.
+                AudioBufferList *audioBufferList = [audioController->bufferAvailableContainer audioList];
+                if (audioBufferList->mNumberBuffers != 1) {
+                    NSLog(@"Decompressed audio buffer must have only 1 buffer, actually has: %lu", audioBufferList->mNumberBuffers);
+                    return kAudioConverterErr_UnspecifiedError;
+                }
+
+                // Load in for processing.
+                audioController->bufferAvailable = audioBufferList->mBuffers[0];
+                audioController->amountAvailable = audioController->bufferAvailable.mDataByteSize;
+            }
+
+            // May be larger or smaller than destination buffer.
+            // Copy the data in.
+            UInt32 amountAvailableToUseNow;
+            if (audioController->amountAvailable > amountToFill) {
+                amountAvailableToUseNow = amountToFill;
+            } else {
+                amountAvailableToUseNow = audioController->amountAvailable;
+            }
+
+            UInt32 currentPositionFill = bufferToFill.mDataByteSize - amountToFill;
+            UInt32 currentPositionAvailable = audioController->bufferAvailable.mDataByteSize - audioController->amountAvailable;
+
+            memcpy(bufferToFill.mData + currentPositionFill, audioController->bufferAvailable.mData + currentPositionAvailable, amountAvailableToUseNow);
+
+            amountToFill -= amountAvailableToUseNow;
+            audioController->amountAvailable -= amountAvailableToUseNow;
+        }
+    }
 
     return status;
 }
@@ -255,13 +303,11 @@ static OSStatus audioOutputPullCallback(
     if (self) {
         double sampleRate = [self setupAudioSession];
         _audioFormat = [self prepareAudioFormatWithSampleRate:sampleRate];
-
         _audioCompression = [[AudioCompression alloc] initWithAudioFormat:_audioFormat];
-
         _mainGraph = [self buildIoGraph];
 
-        NSLog(@"LETS GOGOGOGO");
-
+        bufferAvailableContainer = nil;
+        amountAvailable = 0; // trigger read from queue immediately.
     }
     return self;
 }

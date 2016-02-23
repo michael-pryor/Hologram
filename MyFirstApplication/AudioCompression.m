@@ -20,8 +20,10 @@
 }
 
 - (void)freeMemory {
-    freeAudioBufferList(_audioList);
-    _audioList = NULL;
+    if (_audioList != NULL) {
+        freeAudioBufferList(_audioList);
+        _audioList = NULL;
+    }
 }
 
 - (void)dealloc {
@@ -274,10 +276,10 @@ OSStatus pullCompressedDataToAudioConverter(AudioConverterRef inAudioConverter, 
     AudioBufferList audioBufferList = initializeAudioBufferList();
     AudioBufferList audioBufferListStartState = initializeAudioBufferList();
 
-    allocateBuffersToAudioBufferListEx(&audioBufferList, 1, 1024, 1, 1, true);
+    allocateBuffersToAudioBufferListEx(&audioBufferList, 1, 512, 1, 1, true);
     shallowCopyBuffersEx(&audioBufferListStartState, &audioBufferList, ABL_BUFFER_NULL_OUT); // store original state, namely mBuffers[n].mDataByteSize.
     while (isRunning) {
-        const int numFrames = 256;
+        const int numFrames = 128;
         UInt32 numFramesResult = numFrames;
 
         status = AudioConverterFillComplexBuffer(audioConverterDecompression, pullCompressedDataToAudioConverter, (__bridge void *) self, &numFramesResult, &audioBufferList, NULL);
