@@ -23,6 +23,8 @@
     AudioDataContainer *bufferAvailableContainer;
     AudioBuffer bufferAvailable;
     UInt32 amountAvailable;
+
+    bool _loopbackEnabled;
 }
 
 static OSStatus audioOutputPullCallback(
@@ -317,6 +319,8 @@ static OSStatus audioOutputPullCallback(
 - (id)initWithOutputSession:(id <NewPacketDelegate>)outputSession leftPadding:(uint)leftPadding {
     self = [super init];
     if (self) {
+        _loopbackEnabled = outputSession == nil;
+
         double sampleRate = [self setupAudioSession];
         _audioFormat = [self prepareAudioFormatWithSampleRate:sampleRate];
         _audioCompression = [[AudioCompression alloc] initWithAudioFormat:_audioFormat outputSession:outputSession leftPadding:leftPadding];
@@ -333,6 +337,11 @@ static OSStatus audioOutputPullCallback(
 }
 
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
+    // Can only be one user of compression at a time, in loopback we use it directly skipping the network.
+    if (_loopbackEnabled) {
+        return;
+    }
+
     [_audioCompression onNewPacket:packet fromProtocol:protocol];
 }
 

@@ -12,6 +12,7 @@
 #import "EncodingPipe.h"
 #import "DelayedPipe.h"
 #import "VideoCompression.h"
+#import "Timer.h"
 
 @implementation PacketToImageProcessor {
     id <NewImageDelegate> _newImageDelegate;
@@ -40,7 +41,6 @@
 
 @implementation VideoOutputController {
     AVCaptureSession *_captureSession;                       // Link to video input hardware.
-    ThrottledBlock *_throttledBlock;                  // Control rate of video transmission over network.
     BatcherOutput *_batcherOutput;                    // Split up image into multiple packets for network.
     VideoEncoding *_videoEncoder;                     // Convert between network and image formats.
     EncodingPipe *_encodingPipeVideo;                 // Add appropriate prefix for transport over network.
@@ -51,24 +51,25 @@
     id <MediaDelayNotifier> _mediaDelayNotifier;       // Inform upstreams (e.g. GUI) of delay for debugging purposes.
 
     id <NewImageDelegate> _localImageDelegate;         // Display user's own camera to user (so that can see what other people see of them.
-    ThrottledBlock *_localImageUpdateThrottle;
 
     // Does all the image compression/decompression and applying of filters.
     VideoCompression *_videoCompression;
 
     Signal *_isRunning;
 
+    bool _loopbackEnabled;
+    Timer *_fpsTracker;
+    uint _fpsCount;
+
 }
-- (id)initWithUdpNetworkOutputSession:(id <NewPacketDelegate>)udpNetworkOutputSession imageDelegate:(id <NewImageDelegate>)newImageDelegate mediaDelayNotifier:(id <MediaDelayNotifier>)mediaDelayNotifier leftPadding:(uint)leftPadding {
+- (id)initWithUdpNetworkOutputSession:(id <NewPacketDelegate>)udpNetworkOutputSession imageDelegate:(id <NewImageDelegate>)newImageDelegate mediaDelayNotifier:(id <MediaDelayNotifier>)mediaDelayNotifier leftPadding:(uint)leftPadding loopbackEnabled:(bool)loopbackEnabled {
     self = [super init];
     if (self) {
+        _loopbackEnabled = loopbackEnabled;
         _localImageDelegate = nil;
 
-        _throttledBlock = [[ThrottledBlock alloc] initWithDefaultOutputFrequency:0.1 firingInitially:true];
-
-
-        _videoCompression = [[VideoCompression alloc] init];
-        _videoEncoder = [[VideoEncoding alloc] initWithVideoCompression:_videoCompression];
+        _videoCompression = [[VideoCompression alloc] initWithLoopbackEnabled:_loopbackEnabled];
+        _videoEncoder = [[VideoEncoding alloc] initWithVideoCompression:_videoCompression loopbackEnabled:_loopbackEnabled];
 
         PacketToImageProcessor *p = [[PacketToImageProcessor alloc] initWithImageDelegate:newImageDelegate encoder:_videoEncoder];
 
@@ -80,15 +81,16 @@
 
         _encodingPipeVideo = [[EncodingPipe alloc] initWithOutputSession:udpNetworkOutputSession prefixId:VIDEO_ID];
 
-        _batcherOutput = [[BatcherOutput alloc] initWithOutputSession:_encodingPipeVideo leftPadding:leftPadding];
+        _batcherOutput = [[BatcherOutput alloc] initWithOutputSession:_encodingPipeVideo leftPadding:sizeof(uint8_t)];
 
         _captureSession = [_videoEncoder setupCaptureSessionWithDelegate:self];
 
         _mediaDelayNotifier = mediaDelayNotifier;
 
-        _localImageUpdateThrottle = [[ThrottledBlock alloc] initWithDefaultOutputFrequency:0.1 firingInitially:true];
-
         _isRunning = [[Signal alloc] initWithFlag:false];
+
+        _fpsTracker = [[Timer alloc] initWithFrequencySeconds:1 firingInitially:false];
+        _fpsCount = 0;
     }
     return self;
 }
@@ -128,25 +130,26 @@
 // Handle data from camera device and push out to network.
 - (void)captureOutput:(AVCaptureOutput *)captureOutput didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection {
     if (_localImageDelegate != nil) {
-        [_localImageUpdateThrottle runBlock:^{
-            UIImage *localImage = [_videoEncoder convertSampleBufferToUiImage:sampleBuffer];
-            if (localImage != nil) {
-                [_localImageDelegate onNewImage:localImage];
-            }
-        }];
+        UIImage *localImage = [_videoEncoder convertSampleBufferToUiImage:sampleBuffer];
+        if (localImage != nil) {
+            [_localImageDelegate onNewImage:localImage];
+            _fpsCount++;
+        }
+        if ([_fpsTracker getState]) {
+            NSLog(@"Frame rate = %ufps", _fpsCount);
+            _fpsCount = 0;
+        }
     }
 
-    [_throttledBlock runBlock:^{
-        // Send image as packet.
-        ByteBuffer *rawBuffer = [[ByteBuffer alloc] init];
+    // Send image as packet.
+    ByteBuffer *rawBuffer = [[ByteBuffer alloc] init];
 
-        if (![_videoEncoder addImage:sampleBuffer toByteBuffer:rawBuffer]) {
-            return;
-        }
-        rawBuffer.cursorPosition = 0;
+    if (![_videoEncoder addImage:sampleBuffer toByteBuffer:rawBuffer]) {
+        return;
+    }
+    rawBuffer.cursorPosition = 0;
 
-        [_batcherOutput onNewPacket:rawBuffer fromProtocol:UDP];
-    }];
+    [_batcherOutput onNewPacket:rawBuffer fromProtocol:UDP];
 }
 
 // Handle new data received on network to be pushed out to the user.
@@ -156,7 +159,7 @@
 
 - (void)onMediaDelayNotified:(uint)delayMs {
     // NSLog(@"Should delay by %dms", delayMs);
-    [_delayedPipe setMinimumDelay:((float) delayMs / 1000.0)];
+    //[_delayedPipe setMinimumDelay:((float) delayMs / 1000.0)];
 
     if (_mediaDelayNotifier != nil) {
         [_mediaDelayNotifier onMediaDelayNotified:delayMs];

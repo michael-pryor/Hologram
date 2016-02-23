@@ -38,11 +38,15 @@
     float _filterIntensity;
     Timer* _filterIntensityDecreaseTimer;
     float _filterIntensityDecreaseValue;
+
+    bool _loopbackEnabled;
 }
-- (id)init {
+- (id)initWithLoopbackEnabled:(bool)loopbackEnabled {
     self = [super init];
     if (self) {
         int result;
+
+        _loopbackEnabled = loopbackEnabled;
 
         _filterIntensity = 1.0f;
         _filterIntensityDecreaseTimer = [[Timer alloc] initWithFrequencySeconds:1.0f firingInitially:false];
@@ -95,7 +99,7 @@
             // TODO: consider changing below settings.
             codecEncoderContext->width = 640;
             codecEncoderContext->height = 480; // based on settings used when setting up AVCapture (not ffmpeg, but the actual iOS interactions).
-            codecEncoderContext->time_base = (AVRational) {1, 25};
+            codecEncoderContext->time_base = (AVRational) {1, 20};
             codecEncoderContext->gop_size = 10;
             codecEncoderContext->max_b_frames = 1;
             codecEncoderContext->bit_rate = 400000;
@@ -135,7 +139,7 @@
             // TODO: consider changing below settings.
             codecDecoderContext->width = 640;
             codecDecoderContext->height = 480; // based on settings used when setting up AVCapture (not ffmpeg, but the actual iOS interactions).
-            codecDecoderContext->time_base = (AVRational) {1, 25};
+            codecDecoderContext->time_base = (AVRational) {1, 20};
             codecDecoderContext->gop_size = 10;
             codecDecoderContext->max_b_frames = 1;
             codecDecoderContext->bit_rate = 400000;
@@ -473,6 +477,18 @@
 }
 
 - (UIImage *)convertSampleBufferToUiImage:(CMSampleBufferRef)sampleBuffer {
+    if (_loopbackEnabled) {
+        ByteBuffer *buffer = [[ByteBuffer alloc] init];
+        bool result = [self encodeSampleBuffer:sampleBuffer toByteBuffer:buffer];
+        if (!result) {
+            NSLog(@"Failed encodeSampleBuffer");
+            return nil;
+        }
+
+        [buffer setCursorPosition:0];
+        return [self decodeByteBuffer:buffer];
+    }
+
     AVFrame *frame;
     bool success = [self convertSampleBuffer:sampleBuffer toFrame:&frame];
     if (!success) {

@@ -13,7 +13,7 @@
 @class VideoCompression;
 
 @interface VideoEncoding : NSObject
-- (id)initWithVideoCompression:(VideoCompression*)videoCompression;
+- (id)initWithVideoCompression:(VideoCompression*)videoCompression loopbackEnabled:(bool)loopbackEnabled;
 
 - (AVCaptureSession *)setupCaptureSessionWithDelegate:(id <AVCaptureVideoDataOutputSampleBufferDelegate>)delegate;
 

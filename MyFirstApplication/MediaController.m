@@ -29,11 +29,16 @@
 
     // Both audio and video.
     DecodingPipe *_decodingPipe;
+
+
 }
 
 - (id)initWithImageDelegate:(id <NewImageDelegate>)newImageDelegate mediaDelayNotifier:(id <MediaDelayNotifier>)mediaDelayNotifier {
     self = [super init];
     if (self) {
+        // A mode for testing where audio and video is looped round avoiding the network (so we see and hear ourselves immediately).
+        const bool LOOPBACK_ENABLED = true;
+
         _started = false;
 
         Float64 secondsPerBuffer = 0.2; // estimate.
@@ -46,11 +51,16 @@
 
 
         // Video.
-        _videoOutputController = [[VideoOutputController alloc] initWithUdpNetworkOutputSession:_delayedPipe imageDelegate:newImageDelegate mediaDelayNotifier:mediaDelayNotifier leftPadding:leftPadding];
+        _videoOutputController = [[VideoOutputController alloc] initWithUdpNetworkOutputSession:_delayedPipe imageDelegate:newImageDelegate mediaDelayNotifier:mediaDelayNotifier leftPadding:leftPadding loopbackEnabled:LOOPBACK_ENABLED];
         [_decodingPipe addPrefix:VIDEO_ID mappingToOutputSession:_videoOutputController];
 
         // Audio.
         _encodingPipeAudio = [[EncodingPipe alloc] initWithOutputSession:nil prefixId:AUDIO_ID];
+
+        if (LOOPBACK_ENABLED) {
+            // Signal to audio that it should loop back.
+            _encodingPipeAudio = nil;
+        }
 
         _audioMicrophone = [[AudioGraph alloc] initWithOutputSession:_encodingPipeAudio leftPadding:leftPadding];
         [_decodingPipe addPrefix:AUDIO_ID mappingToOutputSession:_audioMicrophone];

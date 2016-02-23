@@ -25,14 +25,6 @@
     return self;
 }
 
-- (void)onTimeoutB:(NSTimer *)timer {
-    NSNumber *batchId = [timer userInfo];
-    //NSLog(@"Removing old batch, with ID: %@l", batchId);
-    @synchronized (_batches) {
-        [_batches removeObjectForKey:batchId];
-    }
-}
-
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
     uint batchId = [packet getUnsignedInteger16];
 
