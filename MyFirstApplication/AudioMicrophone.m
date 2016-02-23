@@ -148,7 +148,7 @@ static OSStatus audioOutputPullCallback(
     // Access microphone (bus 1)
     AudioComponentDescription ioUnitDescription;
     ioUnitDescription.componentType = kAudioUnitType_Output;
-    ioUnitDescription.componentSubType = kAudioUnitSubType_RemoteIO;
+    ioUnitDescription.componentSubType = kAudioUnitSubType_VoiceProcessingIO;
     ioUnitDescription.componentManufacturer = kAudioUnitManufacturer_Apple;
     ioUnitDescription.componentFlags = 0;
     ioUnitDescription.componentFlagsMask = 0;
@@ -187,6 +187,19 @@ static OSStatus audioOutputPullCallback(
                                               error:&audioSessionError];
     if (!result) {
         NSLog(@"Preferred sample rate of %.2f not allowed, reason: %@", sampleRate, [audioSessionError localizedFailureReason]);
+    }
+
+    // Use the device's loud speaker if no headphones are plugged in.
+    // Without this, will use the quiet speaker if available, e.g. on iphone this is for taking calls privately.
+    NSError *error;
+    result = [mySession setCategory:AVAudioSessionCategoryPlayAndRecord withOptions:AVAudioSessionCategoryOptionDefaultToSpeaker error:&error];
+    if (!result) {
+        NSLog(@"Failed to enable AVAudioSessionCategoryOptionDefaultToSpeaker mode: %@", [error localizedDescription]);
+    }
+
+    result = [mySession setMode:AVAudioSessionModeVideoChat error:&error];
+    if (!result) {
+        NSLog(@"Failed to enable AVAudioSessionModeVideoChat mode, reason: %@", [error localizedDescription]);
     }
 
     result = [mySession setActive:YES
