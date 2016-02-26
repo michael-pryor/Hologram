@@ -13,6 +13,9 @@
 @implementation AudioGraph {
     AudioCompression *_audioCompression;
 
+    AudioBufferList _audioInputAudioBufferList;
+    UInt32 _audioInputAudioBufferOriginalSize;
+
     AudioUnit _audioProducer;
     AUGraph _mainGraph;
 
@@ -25,6 +28,33 @@
     UInt32 amountAvailable;
 
     bool _loopbackEnabled;
+}
+
+- (id)initWithOutputSession:(id <NewPacketDelegate>)outputSession leftPadding:(uint)leftPadding {
+    self = [super init];
+    if (self) {
+        _loopbackEnabled = outputSession == nil;
+
+        _audioInputAudioBufferList = initializeAudioBufferListSingle(4096, 1);
+        _audioInputAudioBufferOriginalSize = _audioInputAudioBufferList.mBuffers[0].mDataByteSize;
+
+        double sampleRate = [self setupAudioSession];
+        _audioFormat = [self prepareAudioFormatWithSampleRate:sampleRate];
+        _audioCompression = [[AudioCompression alloc] initWithAudioFormat:_audioFormat outputSession:outputSession leftPadding:leftPadding];
+        _mainGraph = [self buildIoGraph];
+
+        bufferAvailableContainer = nil;
+        amountAvailable = 0; // trigger read from queue immediately.
+    }
+    return self;
+}
+
+- (void)dealloc {
+    freeAudioBufferListEx(&_audioInputAudioBufferList, true);
+}
+
+- (void)initialize {
+    [_audioCompression initialize];
 }
 
 static OSStatus audioOutputPullCallback(
@@ -66,19 +96,16 @@ static OSStatus audioOutputPullCallback(
         }
 
         {
-            // Get audio from speaker.
-            // Number of buffer = 1 so we can initialize on stack.
-            AudioBufferList audioBufferList = initializeAudioBufferList();
-            shallowCopyBuffersEx(&audioBufferList, ioData, ABL_BUFFER_ALLOCATE_NEW);
+            AudioBufferList *audioBufferList = [audioController prepareInputAudioBufferList];
 
-            status = AudioUnitRender([audioController getAudioProducer], ioActionFlags, inTimeStamp, 1, inNumberFrames, &audioBufferList);
-            HandleResultOSStatus(status, @"rendering input audio", false);
+            status = AudioUnitRender([audioController getAudioProducer], ioActionFlags, inTimeStamp, 1, inNumberFrames, audioBufferList);
+            if (!HandleResultOSStatus(status, @"rendering input audio", false)) {
+                NSLog(@"rendering failed, num buffers: %lu, num bytes: %lu, num channels: %lu", audioBufferList->mNumberBuffers, audioBufferList->mBuffers[0].mDataByteSize, audioBufferList->mBuffers[0].mNumberChannels);
+            }
 
             // Compress audio and send to network.
             printAudioBufferList(ioData, @"audio graph");
-            [audioController->_audioCompression onNewAudioData:[[AudioDataContainer alloc] initWithNumFrames:inNumberFrames audioList:&audioBufferList]];
-
-            freeAudioBufferListEx(&audioBufferList, true);
+            [audioController->_audioCompression onNewAudioData:[[AudioDataContainer alloc] initWithNumFrames:inNumberFrames audioList:audioBufferList]];
         }
 
         {
@@ -134,6 +161,11 @@ static OSStatus audioOutputPullCallback(
     }
 
     return status;
+}
+
+- (AudioBufferList *)prepareInputAudioBufferList {
+    _audioInputAudioBufferList.mBuffers[0].mDataByteSize = _audioInputAudioBufferOriginalSize;
+    return &_audioInputAudioBufferList;
 }
 
 - (AudioUnit)getAudioProducer {
@@ -314,26 +346,6 @@ static OSStatus audioOutputPullCallback(
     audioDescription.mFormatFlags = kAudioFormatFlagsAudioUnitCanonical;
 
     return audioDescription;
-}
-
-- (id)initWithOutputSession:(id <NewPacketDelegate>)outputSession leftPadding:(uint)leftPadding {
-    self = [super init];
-    if (self) {
-        _loopbackEnabled = outputSession == nil;
-
-        double sampleRate = [self setupAudioSession];
-        _audioFormat = [self prepareAudioFormatWithSampleRate:sampleRate];
-        _audioCompression = [[AudioCompression alloc] initWithAudioFormat:_audioFormat outputSession:outputSession leftPadding:leftPadding];
-        _mainGraph = [self buildIoGraph];
-
-        bufferAvailableContainer = nil;
-        amountAvailable = 0; // trigger read from queue immediately.
-    }
-    return self;
-}
-
-- (void)initialize {
-    [_audioCompression initialize];
 }
 
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {

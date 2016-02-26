@@ -7,7 +7,6 @@
 //
 
 #import "VideoOutputController.h"
-#import "ThrottledBlock.h"
 #import "BatcherInput.h"
 #import "EncodingPipe.h"
 #import "DelayedPipe.h"
@@ -81,7 +80,7 @@
 
         _encodingPipeVideo = [[EncodingPipe alloc] initWithOutputSession:udpNetworkOutputSession prefixId:VIDEO_ID];
 
-        _batcherOutput = [[BatcherOutput alloc] initWithOutputSession:_encodingPipeVideo leftPadding:sizeof(uint8_t)];
+        _batcherOutput = [[BatcherOutput alloc] initWithOutputSession:_encodingPipeVideo leftPadding:leftPadding];
 
         _captureSession = [_videoEncoder setupCaptureSessionWithDelegate:self];
 
@@ -93,6 +92,10 @@
         _fpsCount = 0;
     }
     return self;
+}
+
+- (void)setOutputSession:(id <NewPacketDelegate>)newPacketDelegate {
+    [_encodingPipeVideo setOutputSession:newPacketDelegate];
 }
 
 - (void)setLocalImageDelegate:(id <NewImageDelegate>)localImageDelegate {

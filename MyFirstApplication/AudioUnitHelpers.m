@@ -38,6 +38,20 @@ AudioBufferList initializeAudioBufferList() {
     return audioBufferList;
 };
 
+void initializeBuffer(AudioBuffer * audioBuffer, UInt32 byteSize, UInt32 numberChannels) {
+    audioBuffer->mDataByteSize = byteSize;
+    audioBuffer->mData = malloc(byteSize);
+    audioBuffer->mNumberChannels = numberChannels;
+}
+
+AudioBufferList initializeAudioBufferListSingle(UInt32 byteSize, UInt32 numberChannels) {
+    AudioBufferList audioBufferList = initializeAudioBufferList();
+    audioBufferList.mNumberBuffers = 1;
+    AudioBuffer * audioBuffer = &audioBufferList.mBuffers[0];
+    initializeBuffer(audioBuffer, byteSize, numberChannels);
+    return audioBufferList;
+}
+
 AudioBufferList * initializeAudioBufferListHeap(UInt32 numBuffers) {
     AudioBufferList * audioBufferList = malloc(getNumBytesForAudioBufferList(numBuffers));
     audioBufferList->mNumberBuffers = numBuffers;
@@ -47,9 +61,7 @@ AudioBufferList * initializeAudioBufferListHeap(UInt32 numBuffers) {
 AudioBufferList * initializeAudioBufferListHeapSingle(UInt32 byteSize, UInt32 numberChannels) {
     AudioBufferList * audioBufferList = initializeAudioBufferListHeap(1);
     AudioBuffer * audioBuffer = &audioBufferList->mBuffers[0];
-    audioBuffer->mDataByteSize = byteSize;
-    audioBuffer->mData = malloc(byteSize);
-    audioBuffer->mNumberChannels = numberChannels;
+    initializeBuffer(audioBuffer, byteSize, numberChannels);
     return audioBufferList;
 }
 

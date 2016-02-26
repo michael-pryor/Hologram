@@ -19,7 +19,6 @@
 
     // Video
     VideoOutputController *_videoOutputController;
-    DelayedPipe *_delayedPipe;
 
     // Audio
     //SoundMicrophone *_soundEncoder;
@@ -29,8 +28,6 @@
 
     // Both audio and video.
     DecodingPipe *_decodingPipe;
-
-
 }
 
 - (id)initWithImageDelegate:(id <NewImageDelegate>)newImageDelegate mediaDelayNotifier:(id <MediaDelayNotifier>)mediaDelayNotifier {
@@ -41,17 +38,11 @@
 
         _started = false;
 
-        Float64 secondsPerBuffer = 0.2; // estimate.
-        Float64 estimatedDelay = 3 * secondsPerBuffer;
-
         const uint leftPadding = sizeof(uint8_t);
 
-        _decodingPipe = [[DecodingPipe alloc] init];
-        _delayedPipe = [[DelayedPipe alloc] initWithMinimumDelay:estimatedDelay outputSession:nil];
-
-
         // Video.
-        _videoOutputController = [[VideoOutputController alloc] initWithUdpNetworkOutputSession:_delayedPipe imageDelegate:newImageDelegate mediaDelayNotifier:mediaDelayNotifier leftPadding:leftPadding loopbackEnabled:LOOPBACK_ENABLED];
+        _videoOutputController = [[VideoOutputController alloc] initWithUdpNetworkOutputSession:nil imageDelegate:newImageDelegate mediaDelayNotifier:mediaDelayNotifier leftPadding:leftPadding loopbackEnabled:LOOPBACK_ENABLED];
+        _decodingPipe = [[DecodingPipe alloc] init];
         [_decodingPipe addPrefix:VIDEO_ID mappingToOutputSession:_videoOutputController];
 
         // Audio.
@@ -121,7 +112,7 @@
 - (void)setNetworkOutputSessionUdp:(id <NewPacketDelegate>)udp {
     NSLog(@"Updating video output session UDP");
     [_encodingPipeAudio setOutputSession:udp];
-    [_delayedPipe setOutputSession:udp];
+    [_videoOutputController setOutputSession:udp];
 }
 
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
@@ -135,7 +126,6 @@
 
 - (void)resetSendRate {
     // This gets called when we move to another person, so discard any delayed video from previous person.
-    [_delayedPipe reset];
 }
 
 @end

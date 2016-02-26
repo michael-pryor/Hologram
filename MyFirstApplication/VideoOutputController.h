@@ -36,4 +36,6 @@
 - (void)setLocalImageDelegate:(id <NewImageDelegate>)localImageDelegate;
 
 - (void)clearLocalImageDelegate;
+
+- (void)setOutputSession:(id <NewPacketDelegate>)newPacketDelegate;
 @end

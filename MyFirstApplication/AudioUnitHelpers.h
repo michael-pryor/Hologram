@@ -44,3 +44,7 @@ OSStatus loadMagicCookieIntoAudioConverter(AudioConverterRef audioConverter, cha
 AudioBufferList * initializeAudioBufferListHeap(UInt32 numBuffers);
 
 AudioBufferList * initializeAudioBufferListHeapSingle(UInt32 byteSize, UInt32 numberChannels);
+
+UInt32 getNumBytesForAudioBufferList(UInt32 numBuffers);
+
+AudioBufferList initializeAudioBufferListSingle(UInt32 byteSize, UInt32 numberChannels);
