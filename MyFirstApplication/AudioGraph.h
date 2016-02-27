@@ -12,4 +12,10 @@
 - (void)initialize;
 
 - (id)initWithOutputSession:(id <NewPacketDelegate>)outputSession leftPadding:(uint)leftPadding;
+
+- (void)stopAudioGraph;
+
+- (void)startAudioGraph;
+
+- (bool)isRunning;
 @end

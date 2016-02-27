@@ -35,4 +35,8 @@ void printAudioBufferList(AudioBufferList *audioList, NSString *description);
 - (AudioDataContainer *)getCompressedItem;
 
 - (void)initialize;
+
+- (void)reset;
+
+- (void)terminate;
 @end

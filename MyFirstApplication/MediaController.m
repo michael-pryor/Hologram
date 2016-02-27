@@ -75,10 +75,8 @@
         }
         _started = true;
 
-        //NSLog(@"Starting video recording and microphone");
-        //[_soundPlayback resetQueue];
-        //[_soundEncoder startCapturing];
-        //[_soundPlayback startPlayback];
+        NSLog(@"Starting video recording and microphone");
+        [_audioMicrophone startAudioGraph];
 
         // We discard out of order batches based on keeping track of the batch ID.
         // We need to reset this when moving to the next person.
@@ -93,9 +91,9 @@
         }
         _started = false;
 
-        //NSLog(@"Stopping video recording and microphone");
-        //[_soundEncoder stopCapturing];
-        //[_soundPlayback stopPlayback];
+        // Don't stop the video because we use that in disconnect screen too.
+        NSLog(@"Stopping microphone and speaker");
+        [_audioMicrophone stopAudioGraph];
     }
 }
 

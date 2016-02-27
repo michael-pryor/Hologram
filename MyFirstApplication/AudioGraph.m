@@ -7,7 +7,7 @@
 
 #import "AudioCompression.h"
 #import "AudioUnitHelpers.h"
-#import "Threading.h"
+#import "Signal.h"
 
 @import AVFoundation;
 
@@ -29,6 +29,8 @@
     UInt32 amountAvailable;
 
     bool _loopbackEnabled;
+
+    Signal *_resetFlag;
 }
 
 - (id)initWithOutputSession:(id <NewPacketDelegate>)outputSession leftPadding:(uint)leftPadding {
@@ -45,6 +47,8 @@
 
         bufferAvailableContainer = nil;
         amountAvailable = 0; // trigger read from queue immediately.
+
+        _resetFlag = [[Signal alloc] initWithFlag:false];
     }
     return self;
 }
@@ -83,6 +87,10 @@ static OSStatus audioOutputPullCallback(
 
     @autoreleasepool {
         AudioGraph *audioController = (__bridge AudioGraph *) inRefCon;
+
+        if ([audioController->_resetFlag clear]) {
+            [audioController doReset];
+        }
 
         // Validation.
         //
@@ -273,7 +281,7 @@ static OSStatus audioOutputPullCallback(
     return actualSampleRate;
 }
 
-- (void)setAudioFormat:(AudioStreamBasicDescription*)format ofAudioUnit:(AudioUnit)audioUnit {
+- (void)setAudioFormat:(AudioStreamBasicDescription *)format ofAudioUnit:(AudioUnit)audioUnit {
     OSStatus status = AudioUnitSetProperty(audioUnit,
             kAudioUnitProperty_StreamFormat,
             kAudioUnitScope_Output,
@@ -352,23 +360,19 @@ static OSStatus audioOutputPullCallback(
 }
 
 - (void)stopAudioGraph {
-    OSStatus status = AUGraphStop(_mainGraph);
-    [self validateResult:status description:@"stopping graph"];
+    while ([self isRunning]) {
+        OSStatus status = AUGraphStop(_mainGraph);
+        [self validateResult:status description:@"stopping graph"];
+    }
 
-    [self waitForAudioGraphToStop];
+    [self reset];
 }
 
-- (void)waitForAudioGraphToStop {
-    Boolean isRunning = true;
-    while(isRunning) {
-        OSStatus status = AUGraphIsRunning(_mainGraph, &isRunning);
-        [self validateResult:status description:@"determining whether graph is running" logSuccess:false];
-        if (isRunning) {
-            NSLog(@"Graph is still running, pausing for 100ms");
-            [NSThread sleepForTimeInterval:0.1f];
-        }
-    }
-    NSLog(@"Graph has finished stopping");
+- (bool)isRunning {
+    Boolean isRunning;
+    OSStatus status = AUGraphIsRunning(_mainGraph, &isRunning);
+    [self validateResult:status description:@"determining whether graph is running" logSuccess:false];
+    return isRunning;
 }
 
 - (void)uninitializeAudioGraph {
@@ -404,6 +408,10 @@ static OSStatus audioOutputPullCallback(
 }
 
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
+    if (![self isRunning]) {
+        return;
+    }
+
     // Can only be one user of compression at a time, in loopback we use it directly skipping the network.
     if (_loopbackEnabled) {
         return;
@@ -413,17 +421,17 @@ static OSStatus audioOutputPullCallback(
 }
 
 - (void)logAudioSessionInformation {
-    AVAudioSession * session = [AVAudioSession sharedInstance];
-    AVAudioSessionRouteDescription* route = [session currentRoute];
-    NSArray<AVAudioSessionPortDescription*> *inputs = [route inputs];
-    NSArray<AVAudioSessionPortDescription*> *outputs = [route outputs];
+    AVAudioSession *session = [AVAudioSession sharedInstance];
+    AVAudioSessionRouteDescription *route = [session currentRoute];
+    NSArray<AVAudioSessionPortDescription *> *inputs = [route inputs];
+    NSArray<AVAudioSessionPortDescription *> *outputs = [route outputs];
 
     NSLog(@"%d inputs, %d outputs", [inputs count], [outputs count]);
-    for (AVAudioSessionPortDescription*input in inputs) {
+    for (AVAudioSessionPortDescription *input in inputs) {
         NSLog(@"Input: %@", input);
     }
 
-    for (AVAudioSessionPortDescription*output in outputs) {
+    for (AVAudioSessionPortDescription *output in outputs) {
         NSLog(@"Output: %@", output);
     }
 
@@ -435,6 +443,16 @@ static OSStatus audioOutputPullCallback(
     NSLog(@"Other audio playing: %i", [session isOtherAudioPlaying]);
 }
 
+
+- (void)doReset {
+    NSLog(@"Clearing audio queues");
+    [_audioCompression reset];
+}
+
+- (void)reset {
+    NSLog(@"Signaling that audio queues should be cleared");
+    [_resetFlag signalAll];
+}
 
 - (void)audioRouteChangeListenerCallback:(NSNotification *)notification {
     NSDictionary *interruptionDict = notification.userInfo;
@@ -451,6 +469,9 @@ static OSStatus audioOutputPullCallback(
     // Empty intermediate buffers.
     OSStatus status = AudioUnitReset(_audioProducer, kAudioUnitScope_Global, 0);
     [self validateResult:status description:@"resetting audio unit"];
+
+    // Empty intermediate queues.
+    [self reset];
 
     // Reconfigure AVAudioSession.
     NSError *error;

@@ -75,8 +75,11 @@
     BlockingQueue *_audioToBeOutputQueue;
 
     NSThread *_compressionThread;
+    bool _isRunningCompression;
 
     NSThread *_decompressionThread;
+    bool _isRunningDecompression;
+
 
     AudioStreamBasicDescription _compressedAudioFormat;
     AudioStreamBasicDescription _uncompressedAudioFormat;
@@ -106,6 +109,9 @@
 - (id)initWithAudioFormat:(AudioStreamBasicDescription)uncompressedAudioFormat outputSession:(id <NewPacketDelegate>)outputSession leftPadding:(uint)leftPadding {
     self = [super init];
     if (self) {
+        _isRunningDecompression = false;
+        _isRunningCompression = false;
+
         _outputSession = outputSession;
         _leftPadding = leftPadding;
 
@@ -156,8 +162,20 @@
     [_compressionThread start];
 }
 
+- (void)terminate {
+    _isRunningDecompression = false;
+    _isRunningCompression = false;
+}
+
 - (void)dealloc {
+    [self terminate];
     free(_magicCookie);
+}
+
+- (void)reset {
+    [_audioToBeCompressedQueue clear];
+    [_audioToBeDecompressedQueue clear];
+    [_audioToBeOutputQueue clear];
 }
 
 // Converting PCM to AAC.
@@ -209,14 +227,14 @@ OSStatus pullUncompressedDataToAudioConverter(AudioConverterRef inAudioConverter
     _magicCookie = getMagicCookieFromAudioConverter(audioConverter, &_magicCookieSize);
     [_magicCookieLoaded signalAll];
 
-    bool isRunning = true;
-
     AudioBufferList audioBufferList = initializeAudioBufferList();
     AudioBufferList audioBufferListStartState = initializeAudioBufferList();
 
     allocateBuffersToAudioBufferListEx(&audioBufferList, 1, _compressedAudioFormat.mFramesPerPacket, 1, 1, true);
     shallowCopyBuffersEx(&audioBufferListStartState, &audioBufferList, ABL_BUFFER_NULL_OUT); // store original state, namely mBuffers[n].mDataByteSize.
-    while (isRunning) {
+
+    _isRunningCompression = true;
+    while (_isRunningCompression) {
         @autoreleasepool {
             const UInt32 maxNumFrames = 1;
             AudioStreamPacketDescription compressedPacketDescription[maxNumFrames] = {0};
@@ -333,15 +351,15 @@ OSStatus pullCompressedDataToAudioConverter(AudioConverterRef inAudioConverter, 
     status = loadMagicCookieIntoAudioConverter(audioConverterDecompression, _magicCookie, _magicCookieSize);
     [self validateResult:status description:@"loading magic cookie into decompression audio converter"];
 
-    bool isRunning = true;
-
     AudioBufferList audioBufferList = initializeAudioBufferList();
     AudioBufferList audioBufferListStartState = initializeAudioBufferList();
 
     const int numFrames = 256;
     allocateBuffersToAudioBufferListEx(&audioBufferList, 1, numFrames * _uncompressedAudioFormat.mBytesPerFrame, 1, 1, true);
     shallowCopyBuffersEx(&audioBufferListStartState, &audioBufferList, ABL_BUFFER_NULL_OUT); // store original state, namely mBuffers[n].mDataByteSize.
-    while (isRunning) {
+
+    _isRunningDecompression = true;
+    while (_isRunningDecompression) {
         @autoreleasepool {
             UInt32 numFramesResult = numFrames;
 
