@@ -7,6 +7,7 @@
 
 #import "AudioCompression.h"
 #import "AudioUnitHelpers.h"
+#import "Threading.h"
 
 @import AVFoundation;
 
@@ -38,8 +39,7 @@
         _audioInputAudioBufferList = initializeAudioBufferListSingle(4096, 1);
         _audioInputAudioBufferOriginalSize = _audioInputAudioBufferList.mBuffers[0].mDataByteSize;
 
-        double sampleRate = [self setupAudioSession];
-        _audioFormat = [self prepareAudioFormatWithSampleRate:sampleRate];
+        [self setupAudioSessionAndUpdateAudioFormat];
         _audioCompression = [[AudioCompression alloc] initWithAudioFormat:_audioFormat outputSession:outputSession leftPadding:leftPadding];
         _mainGraph = [self buildIoGraph];
 
@@ -50,11 +50,25 @@
 }
 
 - (void)dealloc {
+    [self stopAudioGraph];
+    [self uninitializeAudioGraph];
     freeAudioBufferListEx(&_audioInputAudioBufferList, true);
+}
+
+- (void)setupAudioSessionAndUpdateAudioFormat {
+    // Sample rate of audio session must match sample rate of ioUnit.
+    const double sampleRate = [self setupAudioSession];
+    _audioFormat = [self prepareAudioFormatWithSampleRate:sampleRate];
 }
 
 - (void)initialize {
     [_audioCompression initialize];
+
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(audioRouteChangeListenerCallback:)
+                                                 name:AVAudioSessionRouteChangeNotification
+                                               object:nil];
+
+    [self startAudioGraph];
 }
 
 static OSStatus audioOutputPullCallback(
@@ -97,10 +111,10 @@ static OSStatus audioOutputPullCallback(
 
         {
             AudioBufferList *audioBufferList = [audioController prepareInputAudioBufferList];
-
             status = AudioUnitRender([audioController getAudioProducer], ioActionFlags, inTimeStamp, 1, inNumberFrames, audioBufferList);
             if (!HandleResultOSStatus(status, @"rendering input audio", false)) {
-                NSLog(@"rendering failed, num buffers: %lu, num bytes: %lu, num channels: %lu", audioBufferList->mNumberBuffers, audioBufferList->mBuffers[0].mDataByteSize, audioBufferList->mBuffers[0].mNumberChannels);
+                *ioActionFlags |= kAudioUnitRenderAction_OutputIsSilence;
+                return status;
             }
 
             // Compress audio and send to network.
@@ -239,15 +253,6 @@ static OSStatus audioOutputPullCallback(
         NSLog(@"Failed to enable AVAudioSessionModeVideoChat mode, reason: %@", [error localizedDescription]);
     }
 
-    result = [mySession setActive:YES
-                            error:&audioSessionError];
-    if (!result) {
-        NSLog(@"Failed to activate audio session, reason: %@", [audioSessionError localizedFailureReason]);
-    }
-
-    sampleRate = [mySession sampleRate];
-    NSLog(@"Device sample rate is: %.2f", sampleRate);
-
     // Lower latency.
     double ioBufferDuration = 0.005;
     result = [mySession setPreferredIOBufferDuration:ioBufferDuration
@@ -255,24 +260,34 @@ static OSStatus audioOutputPullCallback(
     if (!result) {
         NSLog(@"Failed to set buffer duration to %.5f, reason: %@", ioBufferDuration, [audioSessionError localizedFailureReason]);
     }
-    return sampleRate;
+
+    result = [mySession setActive:YES
+                            error:&audioSessionError];
+    if (!result) {
+        NSLog(@"Failed to activate audio session, reason: %@", [audioSessionError localizedFailureReason]);
+    }
+
+    double actualSampleRate = [mySession sampleRate];
+    NSLog(@"Device sample rate is: %.2f", actualSampleRate);
+
+    return actualSampleRate;
 }
 
-- (void)setAudioFormat:(AudioUnit)audioUnit {
+- (void)setAudioFormat:(AudioStreamBasicDescription*)format ofAudioUnit:(AudioUnit)audioUnit {
     OSStatus status = AudioUnitSetProperty(audioUnit,
             kAudioUnitProperty_StreamFormat,
             kAudioUnitScope_Output,
             1,
-            &_audioFormat,
-            sizeof(_audioFormat));
+            format,
+            sizeof(AudioStreamBasicDescription));
     [self validateResult:status description:@"setting audio format of audio output device"];
 
     status = AudioUnitSetProperty(audioUnit,
             kAudioUnitProperty_StreamFormat,
             kAudioUnitScope_Input,
             0,
-            &_audioFormat,
-            sizeof(_audioFormat));
+            format,
+            sizeof(AudioStreamBasicDescription));
     [self validateResult:status description:@"setting audio format of audio input device"];
 }
 
@@ -318,7 +333,7 @@ static OSStatus audioOutputPullCallback(
     AudioUnit ioUnit = [self getAudioUnitFromGraph:processingGraph fromNode:ioNode];
 
     [self enableInputOnAudioUnit:ioUnit];
-    [self setAudioFormat:ioUnit];
+    [self setAudioFormat:&_audioFormat ofAudioUnit:ioUnit];
 
     [self setAudioPullCallback:ioUnit];
     _audioProducer = ioUnit;
@@ -326,10 +341,50 @@ static OSStatus audioOutputPullCallback(
     status = AUGraphInitialize(processingGraph);
     [self validateResult:status description:@"initializing graph"];
 
-    status = AUGraphStart(processingGraph);
-    [self validateResult:status description:@"starting graph"];
-
     return processingGraph;
+}
+
+- (void)startAudioGraph {
+    [self logAudioSessionInformation];
+
+    OSStatus status = AUGraphStart(_mainGraph);
+    [self validateResult:status description:@"starting graph"];
+}
+
+- (void)stopAudioGraph {
+    OSStatus status = AUGraphStop(_mainGraph);
+    [self validateResult:status description:@"stopping graph"];
+
+    [self waitForAudioGraphToStop];
+}
+
+- (void)waitForAudioGraphToStop {
+    Boolean isRunning = true;
+    while(isRunning) {
+        OSStatus status = AUGraphIsRunning(_mainGraph, &isRunning);
+        [self validateResult:status description:@"determining whether graph is running" logSuccess:false];
+        if (isRunning) {
+            NSLog(@"Graph is still running, pausing for 100ms");
+            [NSThread sleepForTimeInterval:0.1f];
+        }
+    }
+    NSLog(@"Graph has finished stopping");
+}
+
+- (void)uninitializeAudioGraph {
+    OSStatus status;
+
+    status = AUGraphClearConnections(_mainGraph);
+    [self validateResult:status description:@"clearing connections"];
+
+    status = AUGraphUninitialize(_mainGraph);
+    [self validateResult:status description:@"uninitializing graph"];
+
+    status = AUGraphClose(_mainGraph);
+    [self validateResult:status description:@"closing graph"];
+
+    status = DisposeAUGraph(_mainGraph);
+    [self validateResult:status description:@"disposing graph"];
 }
 
 - (AudioStreamBasicDescription)prepareAudioFormatWithSampleRate:(double)sampleRate {
@@ -355,6 +410,71 @@ static OSStatus audioOutputPullCallback(
     }
 
     [_audioCompression onNewPacket:packet fromProtocol:protocol];
+}
+
+- (void)logAudioSessionInformation {
+    AVAudioSession * session = [AVAudioSession sharedInstance];
+    AVAudioSessionRouteDescription* route = [session currentRoute];
+    NSArray<AVAudioSessionPortDescription*> *inputs = [route inputs];
+    NSArray<AVAudioSessionPortDescription*> *outputs = [route outputs];
+
+    NSLog(@"%d inputs, %d outputs", [inputs count], [outputs count]);
+    for (AVAudioSessionPortDescription*input in inputs) {
+        NSLog(@"Input: %@", input);
+    }
+
+    for (AVAudioSessionPortDescription*output in outputs) {
+        NSLog(@"Output: %@", output);
+    }
+
+    NSLog(@"Category: %@, options %u", [session category], [session categoryOptions]);
+    NSLog(@"Sample rate: %lf, options %lf", [session sampleRate], [session IOBufferDuration]);
+
+    NSLog(@"Input number channels: %i, output number channels: %i", [session inputNumberOfChannels], [session outputNumberOfChannels]);
+
+    NSLog(@"Other audio playing: %i", [session isOtherAudioPlaying]);
+}
+
+
+- (void)audioRouteChangeListenerCallback:(NSNotification *)notification {
+    NSDictionary *interruptionDict = notification.userInfo;
+    NSInteger routeChangeReason = [[interruptionDict valueForKey:AVAudioSessionRouteChangeReasonKey] integerValue];
+    NSLog(@"Audio route change, with reason: %d", routeChangeReason);
+
+    if (routeChangeReason != AVAudioSessionRouteChangeReasonNewDeviceAvailable && routeChangeReason != AVAudioSessionRouteChangeReasonOldDeviceUnavailable) {
+        return;
+    }
+
+    // Pause audio graph.
+    [self stopAudioGraph];
+
+    // Empty intermediate buffers.
+    OSStatus status = AudioUnitReset(_audioProducer, kAudioUnitScope_Global, 0);
+    [self validateResult:status description:@"resetting audio unit"];
+
+    // Reconfigure AVAudioSession.
+    NSError *error;
+    BOOL result = [[AVAudioSession sharedInstance] setActive:false error:&error];
+    if (!result) {
+        NSLog(@"Failed to terminate AVAudioSession, reason: %@", error);
+        return;
+    }
+    [self setupAudioSession];
+
+    // Reconfigure IO unit.
+    // Sample rate may have changed.
+    status = AudioUnitUninitialize(_audioProducer);
+    [self validateResult:status description:@"Uninitializing audio IO unit"];
+
+    [self setupAudioSessionAndUpdateAudioFormat];
+    [self setAudioFormat:&_audioFormat ofAudioUnit:_audioProducer];
+
+    // Reinitialize.
+    status = AudioUnitInitialize(_audioProducer);
+    [self validateResult:status description:@"Initializing audio IO unit"];
+
+    // Start audio graph again.
+    [self startAudioGraph];
 }
 
 @end

@@ -124,6 +124,10 @@
 
         _uncompressedAudioFormat = uncompressedAudioFormat;
 
+        // Compression does not care about the PCM sample rate.
+        // This is important because sample rate may change when plugging in earphones, or unplugging them.
+        _uncompressedAudioFormat.mSampleRate = 0;
+
         AudioStreamBasicDescription compressedAudioDescription = {0};
         compressedAudioDescription.mFormatID = kAudioFormatMPEG4AAC;
         compressedAudioDescription.mChannelsPerFrame = 1;
