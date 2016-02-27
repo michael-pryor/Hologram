@@ -13,14 +13,14 @@
 @interface Batch : PipelineProcessor
 @property uint chunksReceived;
 @property(readonly) ByteBuffer *partialPacket;
-@property(readonly) Signal *hasOutput;
 @property(readonly) uint batchId;
 @property uint totalChunks;
 @property bool partialPacketUsedSizeFinalized;
+@property(readonly) bool isComplete;
 
-- (id)initWithOutputSession:(id <NewPacketDelegate>)outputSession timeoutSeconds:(double)timeoutSeconds batchId:(uint)batchId completionSelectorTarget:(id)aSelectorTarget completionSelector:(SEL)aSelector;
+- (id)initWithOutputSession:(id <NewPacketDelegate>)outputSession batchId:(uint)batchId timeoutSeconds:(CFAbsoluteTime)timeoutSeconds;
 
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol;
 
-- (void)reset;
+- (void)blockUntilTimeout;
 @end

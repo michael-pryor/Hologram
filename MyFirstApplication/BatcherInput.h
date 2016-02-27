@@ -11,9 +11,13 @@
 #import "Batch.h"
 
 @interface BatcherInput : PipelineProcessor
-- (id)initWithOutputSession:(id <NewPacketDelegate>)outputSession numChunksThreshold:(float)numChunksThreshold timeoutMs:(uint)timeoutMs;
+- (id)initWithOutputSession:(id <NewPacketDelegate>)outputSession timeoutMs:(uint)timeoutMs;
 
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol;
 
 - (void)reset;
+
+- (void)initialize;
+
+- (void)terminate;
 @end

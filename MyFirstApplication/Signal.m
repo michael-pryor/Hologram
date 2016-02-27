@@ -100,7 +100,6 @@
     return ret;
 }
 
-
 - (int)incrementAndSignalAll {
     [_condition lock];
     int ret = _counter;

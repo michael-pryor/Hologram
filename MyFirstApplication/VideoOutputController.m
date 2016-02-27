@@ -45,7 +45,6 @@
     EncodingPipe *_encodingPipeVideo;                 // Add appropriate prefix for transport over network.
 
     BatcherInput *_batcherInput;                      // Join up networked packets into one image.
-    DelayedPipe *_delayedPipe;                        // Delay video output so that it syncs up with audio.
 
     id <MediaDelayNotifier> _mediaDelayNotifier;       // Inform upstreams (e.g. GUI) of delay for debugging purposes.
 
@@ -72,11 +71,8 @@
 
         PacketToImageProcessor *p = [[PacketToImageProcessor alloc] initWithImageDelegate:newImageDelegate encoder:_videoEncoder];
 
-        // Delay video playback in order to sync up with audio.
-        // Value gets set later based on calculated delay.
-        _delayedPipe = [[DelayedPipe alloc] initWithMinimumDelay:0 outputSession:p];
-
-        _batcherInput = [[BatcherInput alloc] initWithOutputSession:_delayedPipe numChunksThreshold:1 timeoutMs:1000];
+        _batcherInput = [[BatcherInput alloc] initWithOutputSession:p timeoutMs:1000];
+        [_batcherInput initialize];
 
         _encodingPipeVideo = [[EncodingPipe alloc] initWithOutputSession:udpNetworkOutputSession prefixId:VIDEO_ID];
 
