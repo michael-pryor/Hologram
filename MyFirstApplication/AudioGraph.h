@@ -4,9 +4,10 @@
 
 #import <Foundation/Foundation.h>
 #import "InputSessionBase.h"
+#import "AudioShared.h"
 @import AudioToolbox;
 
-@interface AudioGraph : NSObject<NewPacketDelegate>
+@interface AudioGraph : NSObject<NewPacketDelegate, AudioDataPipeline>
 - (AudioUnit)getAudioProducer;
 
 - (void)initialize;
