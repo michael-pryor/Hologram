@@ -36,6 +36,11 @@
     bool _loopbackEnabled;
 
     Signal *_resetFlag;
+
+    NSThread *_microphoneRenderThread;
+
+    UInt32 _pendingFrames;
+    Float64 _pendingSampleTime;
 }
 
 - (id)initWithOutputSession:(id <NewPacketDelegate>)outputSession leftPadding:(uint)leftPadding {
@@ -54,6 +59,8 @@
         amountAvailable = 0; // trigger read from queue immediately.
 
         _resetFlag = [[Signal alloc] initWithFlag:false];
+        _pendingFrames = 0;
+        _pendingSampleTime = 0;
     }
     return self;
 }
@@ -65,7 +72,7 @@
 }
 
 - (double)setupAudioSessionAndUpdateAudioFormat {
-    const double transitSampleRate = 44100;
+    const double transitSampleRate = 8000;
 
     // Sample rate of audio session must match sample rate of ioUnit.
     const double hardwareSampleRate = [self setupAudioSessionWithDesiredHardwareSampleRate:44100];
@@ -85,6 +92,58 @@
                                                object:nil];
 
     [self startAudioGraph];
+
+    _microphoneRenderThread = [[NSThread alloc] initWithTarget:self
+                                                      selector:@selector(microphoneRenderThreadEntryPoint:)
+                                                        object:nil];
+    [_microphoneRenderThread setName:@"AudioGraph Microphone Render Thread"];
+    //[_microphoneRenderThread start];
+}
+
+
+static OSStatus renderNotifyCallback(
+        void *inRefCon,
+        AudioUnitRenderActionFlags *ioActionFlags,
+        const AudioTimeStamp *inTimeStamp,
+        UInt32 inBusNumber,
+        UInt32 inNumberFrames,
+        AudioBufferList *ioData
+) {
+    NSLog(@"RENDER NOTIFY (%lu): Number frames: %lu, mSampleTime: %.4f", inBusNumber, inNumberFrames, inTimeStamp->mSampleTime);
+    return noErr;
+}
+
+
+- (void)microphoneRenderThreadEntryPoint:var {
+    UInt32 microphoneRenderThreadSampleTime = 0;
+    const UInt32 inNumberFrames = 45;
+    bool isRunning = true;
+    while (isRunning) {
+        @autoreleasepool {
+            AudioUnitRenderActionFlags ioActionFlags = 0;
+            AudioTimeStamp inTimeStamp;
+            inTimeStamp.mFlags = kAudioTimeStampSampleTimeValid;
+            inTimeStamp.mSampleTime = microphoneRenderThreadSampleTime;
+
+
+            AudioBufferList *audioBufferList = [self prepareInputAudioBufferList];
+
+            OSStatus status = AudioUnitRender(_audioProducer, &ioActionFlags, &inTimeStamp, 1, inNumberFrames, audioBufferList);
+            if (status == kAUGraphErr_CannotDoInCurrentContext) {
+                microphoneRenderThreadSampleTime += inNumberFrames;
+                continue;
+            }
+
+            if (!HandleResultOSStatus(status, @"rendering input audio", true)) {
+                break;
+            } else {
+                NSLog(@"(Microphone) Number frames: %lu, mSampleTime: %.4f", inNumberFrames, inTimeStamp.mSampleTime);
+                [_audioCompression onNewAudioData:[[AudioDataContainer alloc] initWithNumFrames:inNumberFrames audioList:audioBufferList]];
+            }
+
+            microphoneRenderThreadSampleTime += inNumberFrames;
+        }
+    }
 }
 
 static OSStatus audioOutputPullCallback(
@@ -95,15 +154,19 @@ static OSStatus audioOutputPullCallback(
         UInt32 inNumberFrames,
         AudioBufferList *ioData
 ) {
-    OSStatus status;
+    OSStatus status = noErr;
 
-   // NSLog(@"Number frames: %lu, mSampleTime: %.4f", inNumberFrames, inTimeStamp->mSampleTime);
+    //NSLog(@"(Speaker) Number frames: %lu, mSampleTime: %.4f", inNumberFrames, inTimeStamp->mSampleTime);
 
     @autoreleasepool {
         AudioGraph *audioController = (__bridge AudioGraph *) inRefCon;
 
         if ([audioController->_resetFlag clear]) {
             [audioController doReset];
+        }
+
+        if (ioData == nil) {
+            return noErr;
         }
 
         // Validation.
@@ -133,17 +196,33 @@ static OSStatus audioOutputPullCallback(
 
         {
             AudioBufferList *audioBufferList = [audioController prepareInputAudioBufferList];
-            status = AudioUnitRender([audioController getAudioProducer], ioActionFlags, inTimeStamp, 0, inNumberFrames, audioBufferList);
-            if (!HandleResultOSStatus(status, @"rendering input audio", false)) {
-                // Compress audio and send to network.
-                printAudioBufferList(ioData, @"audio graph");
-                [audioController->_audioCompression onNewAudioData:[[AudioDataContainer alloc] initWithNumFrames:inNumberFrames audioList:audioBufferList]];
-            }
-            if (status == kAUGraphErr_CannotDoInCurrentContext) {
-                status = noErr;
+            audioController->_pendingFrames += inNumberFrames;
+            if (audioController->_pendingSampleTime == 0) {
+                audioController->_pendingSampleTime = inTimeStamp->mSampleTime;
             }
 
-            if (status != noErr) {
+            AudioTimeStamp timestampToUse = {0};
+            timestampToUse.mSampleTime = inTimeStamp->mSampleTime;
+            timestampToUse.mFlags = kAudioTimeStampSampleTimeValid;
+
+            status = AudioUnitRender([audioController getAudioProducer], ioActionFlags, &timestampToUse, 1, inNumberFrames, audioBufferList);
+            if (status == kAUGraphErr_CannotDoInCurrentContext || !HandleResultOSStatus(status, @"rendering input audio", true)) {
+                // Compress audio and send to network.
+                //printAudioBufferList(ioData, @"audio graph");
+                //NSLog(@"AudioUnitRender FAILURE: Number frames: %lu, mSampleTime: %.4f", inNumberFrames, inTimeStamp->mSampleTime);
+                //memset(ioData->mBuffers[0].mData, ioData->mBuffers[0].mDataByteSize, 0);
+                //*ioActionFlags |= kAudioUnitRenderAction_OutputIsSilence;
+            } else {
+                NSLog(@"Successful with %lu frames, size: %lu, sample rate: %.2f", audioController->_pendingFrames, audioBufferList->mBuffers[0].mDataByteSize, timestampToUse.mSampleTime);
+                audioController->_pendingFrames = 0;
+                audioController->_pendingSampleTime = 0;
+                [audioController->_audioCompression onNewAudioData:[[AudioDataContainer alloc] initWithNumFrames:inNumberFrames audioList:audioBufferList]];
+            }
+
+
+            if (status == kAUGraphErr_CannotDoInCurrentContext) {
+                status = noErr;
+            } else if (status != noErr) {
                 return status;
             }
         }
@@ -165,6 +244,7 @@ static OSStatus audioOutputPullCallback(
                     if (audioController->bufferAvailableContainer == nil) {
                         // Play silence.
                         *ioActionFlags |= kAudioUnitRenderAction_OutputIsSilence;
+                        memset(bufferToFill.mData, amountToFill, 0);
                         return noErr;
                     }
 
@@ -240,39 +320,6 @@ static OSStatus audioOutputPullCallback(
     return ioNode;
 };
 
-- (AUNode)addPcmConverterNodeToGraph:(AUGraph)graph {
-    // Access speaker (bus 0)
-    // Access microphone (bus 1)
-    AudioComponentDescription converterDescription;
-    converterDescription.componentType = kAudioUnitType_FormatConverter;
-    converterDescription.componentSubType = kAudioUnitSubType_AUConverter;
-    converterDescription.componentManufacturer = kAudioUnitManufacturer_Apple;
-    converterDescription.componentFlags = 0;
-    converterDescription.componentFlagsMask = 0;
-
-    AUNode converterNode;
-    OSStatus status = AUGraphAddNode(
-            graph,
-            &converterDescription,
-            &converterNode
-    );
-    [self validateResult:status description:@"adding PCM converter node"];
-
-    return converterNode;
-};
-
-- (void)preparePcmConverter:(AudioUnit)audioUnit inputDescription:(AudioStreamBasicDescription*)inputDescription outputDescription:(AudioStreamBasicDescription*)outputDescription {
-    if (inputDescription != nil) {
-        OSStatus status = AudioUnitSetProperty(audioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, inputDescription, sizeof(AudioStreamBasicDescription));
-        [self validateResult:status description:@"setting PCM converter input format"];
-    }
-
-    if (outputDescription != nil) {
-        OSStatus status = AudioUnitSetProperty(audioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, outputDescription, sizeof(AudioStreamBasicDescription));
-        [self validateResult:status description:@"setting PCM converter output format"];
-    }
-}
-
 - (AudioUnit)getAudioUnitFromGraph:(AUGraph)graph fromNode:(AUNode)node {
     AudioUnit audioUnit;
 
@@ -310,7 +357,7 @@ static OSStatus audioOutputPullCallback(
     }
 
     // Lower latency.
-    double ioBufferDuration = 0.005;
+    double ioBufferDuration = 0.01;
     result = [mySession setPreferredIOBufferDuration:ioBufferDuration
                                                error:&audioSessionError];
     if (!result) {
@@ -368,7 +415,7 @@ static OSStatus audioOutputPullCallback(
     OSStatus status = AudioUnitSetProperty(
             audioUnitPulling,
             kAudioUnitProperty_SetRenderCallback,
-            kAudioUnitScope_Input,
+            kAudioUnitScope_Output,
             0,                 // output element
             &ioUnitCallbackStructure,
             sizeof(ioUnitCallbackStructure)
@@ -382,55 +429,60 @@ static OSStatus audioOutputPullCallback(
     [self validateResult:status description:@"creating graph"];
 
     AUNode ioNode = [self addIoNodeToGraph:processingGraph];
-    AUNode microphonePcmConverterNode = [self addPcmConverterNodeToGraph:processingGraph];
-    AUNode speakerPcmConverterNode = [self addPcmConverterNodeToGraph:processingGraph];
 
     status = AUGraphOpen(processingGraph);
     [self validateResult:status description:@"opening graph"];
 
     AudioUnit ioUnit = [self getAudioUnitFromGraph:processingGraph fromNode:ioNode];
 
-    UInt32 sizeASBD = sizeof(AudioStreamBasicDescription);
-    double microphoneSampleRate = _audioFormatMicrophone.mSampleRate;
-    double speakerSampleRate = _audioFormatSpeaker.mSampleRate;
-    AudioUnitGetProperty(ioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 1, &_audioFormatMicrophone, &sizeASBD);
-    AudioUnitGetProperty(ioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &_audioFormatSpeaker, &sizeASBD);
-
-    //_audioFormatMicrophone = _audioFormatSpeaker;
-    _audioFormatSpeaker.mSampleRate = speakerSampleRate;
     _audioFormatMicrophone.mSampleRate = sampleRate;
-
-    AudioUnit microphonePcmConverterAudioUnit = [self getAudioUnitFromGraph:processingGraph fromNode:microphonePcmConverterNode];
-    [self preparePcmConverter:microphonePcmConverterAudioUnit inputDescription:nil outputDescription:&_audioFormatTransit];
-
-    AudioUnit speakerPcmConverterAudioUnit = [self getAudioUnitFromGraph:processingGraph fromNode:speakerPcmConverterNode];
-    [self preparePcmConverter:speakerPcmConverterAudioUnit inputDescription:&_audioFormatTransit outputDescription:&_audioFormatSpeaker];
+    _audioFormatSpeaker.mSampleRate = sampleRate;
 
     [self setMicrophoneAudioFormat:&_audioFormatMicrophone speakerAudioFormat:&_audioFormatSpeaker ofIoAudioUnit:ioUnit];
 
-    status = AUGraphConnectNodeInput (
+    [self setAudioPullCallback:ioUnit];
+    /*status = AUGraphConnectNodeInput (
             processingGraph,
             ioNode,           // source node
             1,  // source node bus
-            microphonePcmConverterNode,              // destination node
-            0  // desinatation node element
-    );
-    [self validateResult:status description:@"connecting microphone converter to microphone"];
-
-    status = AUGraphConnectNodeInput (
-            processingGraph,
-            speakerPcmConverterNode,           // source node
-            0,  // source node bus
             ioNode,              // destination node
             0  // desinatation node element
     );
-    [self validateResult:status description:@"connecting speaker converter to speaker"];
+    [self validateResult:status description:@"connecting microphone to speaker"];*/
+
+    status = AudioUnitAddRenderNotify(ioUnit, renderNotifyCallback, nil);
+    [self validateResult:status description:@"adding render notify to microphone"];
 
     [self enableInputOnAudioUnit:ioUnit];
+    _audioProducer = ioUnit;
 
+    /* UInt32 framesPerSliceIn = 4096*3;
+     status = AudioUnitSetProperty(  microphonePcmConverterAudioUnit,
+             kAudioUnitProperty_MaximumFramesPerSlice,
+             kAudioUnitScope_Global,
+             0,
+             &framesPerSliceIn,
+             sizeof(UInt32));
+     [self validateResult:status description:@"setting frames per slice of microphone PCM converter"];
 
-    [self setAudioPullCallback:speakerPcmConverterAudioUnit];
-    _audioProducer = microphonePcmConverterAudioUnit;
+     status = AudioUnitSetProperty(  speakerPcmConverterAudioUnit,
+             kAudioUnitProperty_MaximumFramesPerSlice,
+             kAudioUnitScope_Global,
+             0,
+             &framesPerSliceIn,
+             sizeof(UInt32));
+     [self validateResult:status description:@"setting frames per slice of speaker PCM converter"];
+
+     UInt32 framesPerSlice;
+     UInt32 framesPerSliceSize = sizeof(framesPerSlice);
+     status = AudioUnitGetProperty(  microphonePcmConverterAudioUnit,
+             kAudioUnitProperty_MaximumFramesPerSlice,
+             kAudioUnitScope_Global,
+             0,
+             &framesPerSlice,
+             &framesPerSliceSize);
+     [self validateResult:status description:@"getting frames per slice of microphone PCM converter"];
+ */
 
     status = AUGraphInitialize(processingGraph);
     [self validateResult:status description:@"initializing graph"];
@@ -481,7 +533,7 @@ static OSStatus audioOutputPullCallback(
 - (AudioStreamBasicDescription)prepareAudioFormatWithSampleRate:(double)sampleRate {
     AudioStreamBasicDescription audioDescription = {0};
 
-    size_t bytesPerSample = sizeof(AudioUnitSampleType);
+    size_t bytesPerSample = sizeof(SInt32);
     audioDescription.mFormatID = kAudioFormatLinearPCM;
     audioDescription.mFramesPerPacket = 1;    // Always 1 for PCM.
     audioDescription.mChannelsPerFrame = 1;   // mono
@@ -489,7 +541,13 @@ static OSStatus audioOutputPullCallback(
     audioDescription.mBitsPerChannel = 8 * bytesPerSample;;
     audioDescription.mBytesPerFrame = bytesPerSample;
     audioDescription.mBytesPerPacket = bytesPerSample;
-    audioDescription.mFormatFlags = kAudioFormatFlagsAudioUnitCanonical;
+
+    // Unsigned integer.
+    // Little endian.
+    // Packed = sample bits occupy the entire available bits for the channel (instead of being high or low aligned).
+    // Non interleaves i.e. separate buffer per channel.
+    // No fractional shift.
+    audioDescription.mFormatFlags = kAudioFormatFlagIsPacked | kAudioFormatFlagIsNonInterleaved | kAudioFormatFlagIsSignedInteger;
 
     return audioDescription;
 }
@@ -534,6 +592,8 @@ static OSStatus audioOutputPullCallback(
 - (void)doReset {
     NSLog(@"Clearing audio queues");
     [_audioCompression reset];
+    _pendingFrames = 0;
+    _pendingSampleTime = 0;
 }
 
 - (void)reset {
@@ -554,8 +614,8 @@ static OSStatus audioOutputPullCallback(
     [self stopAudioGraph];
 
     // Empty intermediate buffers.
-   /* OSStatus status = AudioUnitReset(_audioProducer, kAudioUnitScope_Global, 0);
-    [self validateResult:status description:@"resetting audio unit"];*/
+    /* OSStatus status = AudioUnitReset(_audioProducer, kAudioUnitScope_Global, 0);
+     [self validateResult:status description:@"resetting audio unit"];*/
 
     // Empty intermediate queues.
     [self reset];
@@ -575,15 +635,15 @@ static OSStatus audioOutputPullCallback(
 
     // Reconfigure IO unit.
     // Sample rate may have changed.
-   /* status = AudioUnitUninitialize(_audioProducer);
-    [self validateResult:status description:@"Uninitializing audio IO unit"];
+    /* status = AudioUnitUninitialize(_audioProducer);
+     [self validateResult:status description:@"Uninitializing audio IO unit"];
 
-    [self setupAudioSessionAndUpdateAudioFormat];
-    [self setMicrophoneAudioFormat:&_audioFormat speakerAudioFormat:&_audioFormatTransit ofIoAudioUnit:_audioProducer];
+     [self setupAudioSessionAndUpdateAudioFormat];
+     [self setMicrophoneAudioFormat:&_audioFormat speakerAudioFormat:&_audioFormatTransit ofIoAudioUnit:_audioProducer];
 
-    // Reinitialize.
-    status = AudioUnitInitialize(_audioProducer);
-    [self validateResult:status description:@"Initializing audio IO unit"];*/
+     // Reinitialize.
+     status = AudioUnitInitialize(_audioProducer);
+     [self validateResult:status description:@"Initializing audio IO unit"];*/
 
     // Start audio graph again.
     [self startAudioGraph];
