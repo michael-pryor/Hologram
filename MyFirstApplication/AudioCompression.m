@@ -8,6 +8,7 @@
 #import "AudioUnitHelpers.h"
 #import "Signal.h"
 #import "InputSessionBase.h"
+#import "TimedCounter.h"
 
 
 @implementation AudioCompression {
@@ -48,6 +49,12 @@
 
     // Network keeps some bytes for its protocol.
     UInt32 _leftPadding;
+
+    // Track byte sizes, just for our information.
+    TimedCounter *_compressedInboundSizeCounter;
+    TimedCounter *_compressedOutboundSizeCounter;
+    TimedCounter *_decompressedInboundSizeCounter;
+    TimedCounter *_decompressedOutboundSizeCounter;
 }
 
 - (id)initWithAudioFormat:(AudioStreamBasicDescription)uncompressedAudioFormat outputSession:(id <NewPacketDelegate>)outputSession leftPadding:(uint)leftPadding {
@@ -55,6 +62,12 @@
     if (self) {
         _isRunningDecompression = false;
         _isRunningCompression = false;
+
+        const uint freqSeconds = 60;
+        _compressedInboundSizeCounter = [[TimedCounter alloc] initWithTimer:[[Timer alloc] initWithFrequencySeconds:freqSeconds firingInitially:false]];
+        _compressedOutboundSizeCounter = [[TimedCounter alloc] initWithTimer:[[Timer alloc] initWithFrequencySeconds:freqSeconds firingInitially:false]];
+        _decompressedInboundSizeCounter = [[TimedCounter alloc] initWithTimer:[[Timer alloc] initWithFrequencySeconds:freqSeconds firingInitially:false]];
+        _decompressedOutboundSizeCounter = [[TimedCounter alloc] initWithTimer:[[Timer alloc] initWithFrequencySeconds:freqSeconds firingInitially:false]];
 
         _outputSession = outputSession;
         _leftPadding = leftPadding;
@@ -81,7 +94,7 @@
         AudioStreamBasicDescription compressedAudioDescription = {0};
         compressedAudioDescription.mFormatID = kAudioFormatMPEG4AAC;
         compressedAudioDescription.mChannelsPerFrame = 1;
-        compressedAudioDescription.mSampleRate = 32000.0;
+        compressedAudioDescription.mSampleRate = 8000.0;
         compressedAudioDescription.mFramesPerPacket = 1024;
         compressedAudioDescription.mFormatFlags = 0;
         _compressedAudioFormat = compressedAudioDescription;
@@ -219,6 +232,8 @@ OSStatus pullUncompressedDataToAudioConverter(AudioConverterRef inAudioConverter
             }*/
 
             AudioDataContainer *resultingContainer = [[AudioDataContainer alloc] initWithNumFrames:numFramesResult audioList:&audioBufferList];
+            [AudioDataContainer handleTimedCounter:_compressedOutboundSizeCounter description:@"compressed outbound" incrementContainer:resultingContainer];
+
             if (_outputSession != nil) {
                 // Write out to network callback, in production code we should always do this.
                 ByteBuffer *byteBuffer = [resultingContainer buildByteBufferWithLeftPadding:_leftPadding];
@@ -227,6 +242,7 @@ OSStatus pullUncompressedDataToAudioConverter(AudioConverterRef inAudioConverter
                 // Loopback for testing, we can temporarily for the purposes of testing go straight
                 // to the network inbound queue, so that the data is immediately decompressed
                 // and sent to the speaker.
+                [AudioDataContainer handleTimedCounter:_decompressedInboundSizeCounter description:@"decompressed inbound" incrementContainer:resultingContainer];
                 [_audioToBeDecompressedQueue add:resultingContainer];
             }
 
@@ -340,17 +356,21 @@ OSStatus pullCompressedDataToAudioConverter(AudioConverterRef inAudioConverter, 
 }
 
 - (void)onNewAudioData:(AudioDataContainer *)audioData {
+    [AudioDataContainer handleTimedCounter:_compressedInboundSizeCounter description:@"compressed inbound" incrementContainer:audioData];
     [_audioToBeCompressedQueue add:audioData];
 }
 
 - (AudioDataContainer *)getPendingDecompressedData {
-    return [_audioToBeOutputQueue getImmediate];
+    AudioDataContainer *container =  [_audioToBeOutputQueue getImmediate];
+    [AudioDataContainer handleTimedCounter:_decompressedOutboundSizeCounter description:@"decompressed outbound" incrementContainer:container];
+    return container;
 }
 
 
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
     AudioDataContainer *container = [[AudioDataContainer alloc] initFromByteBuffer:packet audioFormat:&_compressedAudioFormat];
     [_audioToBeDecompressedQueue add:container];
+    [AudioDataContainer handleTimedCounter:_decompressedInboundSizeCounter description:@"decompressed inbound" incrementContainer:container];
 }
 
 

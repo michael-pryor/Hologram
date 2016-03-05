@@ -5,6 +5,7 @@
 #import <Foundation/Foundation.h>
 #import "ByteBuffer.h"
 @import AudioToolbox;
+#include "TimedCounter.h"
 
 void printAudioBufferList(AudioBufferList *audioList, NSString *description);
 
@@ -19,6 +20,8 @@ void printAudioBufferList(AudioBufferList *audioList, NSString *description);
 - (id)initFromByteBuffer:(ByteBuffer *)byteBuffer audioFormat:(AudioStreamBasicDescription *)description;
 
 - (ByteBuffer *)buildByteBufferWithLeftPadding:(uint)leftPadding;
+
++ (void)handleTimedCounter:(TimedCounter *)counter description:(NSString *)description incrementContainer:(AudioDataContainer *)container;
 @end
 
 @protocol AudioDataPipeline

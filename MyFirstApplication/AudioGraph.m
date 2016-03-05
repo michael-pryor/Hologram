@@ -78,9 +78,9 @@
         _audioCompression = [[AudioCompression alloc] initWithAudioFormat:_audioFormatSpeaker outputSession:outputSession leftPadding:leftPadding];
 
         // Converts 44k (or something like that) PCM sample data from microphone into 8K PCM smaple data (transit format), and passes directly to audio compression to convert to AAC.
-        _audioPcmConversionMicrophoneToTransit = [[AudioPcmConversion alloc] initWithInputFormat:&_audioFormatMicrophone outputFormat:&_audioFormatTransit outputResult:[[AudioPcmMicrophoneToTransitConverter alloc] initWithAudioCompression:_audioCompression]];
+        _audioPcmConversionMicrophoneToTransit = [[AudioPcmConversion alloc] initWithDescription:@"microphone to transit" inputFormat:&_audioFormatMicrophone outputFormat:&_audioFormatTransit outputResult:[[AudioPcmMicrophoneToTransitConverter alloc] initWithAudioCompression:_audioCompression] numFramesPerOperation:50];
 
-        _audioPcmConversionTransitToSpeaker = [[AudioPcmConversion alloc] initWithInputFormat:&_audioFormatTransit outputFormat:&_audioFormatMicrophone outputResult:self];
+        _audioPcmConversionTransitToSpeaker = [[AudioPcmConversion alloc] initWithDescription:@"transit to speaker" inputFormat:&_audioFormatTransit outputFormat:&_audioFormatMicrophone outputResult:self numFramesPerOperation:256];
         _mainGraph = [self buildIoGraphWithTransitSampleRate:transitSampleRate];
 
         bufferAvailableContainer = nil;
@@ -98,10 +98,10 @@
 }
 
 - (double)setupAudioSessionAndUpdateAudioFormat {
-    const double transitSampleRate = 8000;
+    const double transitSampleRate = 16000;
 
     // Sample rate of audio session must match sample rate of ioUnit.
-    const double hardwareSampleRate = [self setupAudioSessionWithDesiredHardwareSampleRate:44100];
+    const double hardwareSampleRate = [self setupAudioSessionWithDesiredHardwareSampleRate:16000];
 
     _audioFormatSpeaker = [self prepareAudioFormatWithSampleRate:hardwareSampleRate];
     _audioFormatMicrophone = [self prepareAudioFormatWithSampleRate:hardwareSampleRate];
@@ -149,8 +149,6 @@ static OSStatus audioOutputPullCallback(
         UInt32 inNumberFrames,
         AudioBufferList *ioData
 ) {
-    OSStatus status = noErr;
-
     //NSLog(@"(Speaker) Number frames: %lu, mSampleTime: %.4f", inNumberFrames, inTimeStamp->mSampleTime);
 
     @autoreleasepool {
@@ -189,24 +187,17 @@ static OSStatus audioOutputPullCallback(
             return noErr;
         }
 
+        // Get data from microphone and pass it to PCM converter to convert to 8k.
         {
             AudioBufferList *audioBufferList = [audioController prepareInputAudioBufferList];
 
-            status = AudioUnitRender([audioController getAudioProducer], ioActionFlags, inTimeStamp, 1, inNumberFrames, audioBufferList);
-            if (!HandleResultOSStatus(status, @"rendering input audio", false)) {
-                // Compress audio and send to network.
-                //printAudioBufferList(ioData, @"audio graph");
-                //NSLog(@"AudioUnitRender FAILURE: Number frames: %lu, mSampleTime: %.4f", inNumberFrames, inTimeStamp->mSampleTime);
-                //memset(ioData->mBuffers[0].mData, ioData->mBuffers[0].mDataByteSize, 0);
-                //*ioActionFlags |= kAudioUnitRenderAction_OutputIsSilence;
-            } else {
+            OSStatus status = AudioUnitRender([audioController getAudioProducer], ioActionFlags, inTimeStamp, 1, inNumberFrames, audioBufferList);
+            if (HandleResultOSStatus(status, @"rendering input audio", false)) {
                 //NSLog(@"Successful with %lu frames, size: %lu, sample rate: %.2f", inNumberFrames, audioBufferList->mBuffers[0].mDataByteSize, inTimeStamp->mSampleTime);
                 [audioController->_audioPcmConversionMicrophoneToTransit onNewAudioData:[[AudioDataContainer alloc] initWithNumFrames:inNumberFrames audioList:audioBufferList]];
             }
 
-            if (status == kAUGraphErr_CannotDoInCurrentContext) {
-                status = noErr;
-            } else if (status != noErr) {
+            if (status != noErr) {
                 return status;
             }
         }
@@ -214,7 +205,7 @@ static OSStatus audioOutputPullCallback(
         // Convert PCM from 8k transit to speaker format.
         {
             AudioDataContainer *pendingPcmConversion = nil;
-            while(true) {
+            while (true) {
                 pendingPcmConversion = [audioController->_audioCompression getPendingDecompressedData];
                 if (pendingPcmConversion != nil) {
                     [audioController->_audioPcmConversionTransitToSpeaker onNewAudioData:pendingPcmConversion];
@@ -224,11 +215,14 @@ static OSStatus audioOutputPullCallback(
             }
         }
 
+        // Fill speaker buffer with data.
         {
             AudioBuffer bufferToFill = ioData->mBuffers[0];
             UInt32 amountToFill = bufferToFill.mDataByteSize;
 
             while (amountToFill > 0) {
+                UInt32 currentPositionFill = bufferToFill.mDataByteSize - amountToFill;
+
                 if (audioController->amountAvailable == 0) {
                     // Cleanup old container. Helps ARC.
                     if (audioController->bufferAvailableContainer != nil) {
@@ -239,9 +233,8 @@ static OSStatus audioOutputPullCallback(
                     // Data was on network, and then decompressed, and is now ready for PCM consumption.
                     audioController->bufferAvailableContainer = [audioController->_pendingOutputToSpeaker getImmediate];
                     if (audioController->bufferAvailableContainer == nil) {
-                        // Play silence.
-                        *ioActionFlags |= kAudioUnitRenderAction_OutputIsSilence;
-                        memset(bufferToFill.mData, amountToFill, 0);
+                        // Fill remainder with silence.
+                        memset(bufferToFill.mData + currentPositionFill, amountToFill, 0);
                         return noErr;
                     }
 
@@ -267,7 +260,6 @@ static OSStatus audioOutputPullCallback(
                     amountAvailableToUseNow = audioController->amountAvailable;
                 }
 
-                UInt32 currentPositionFill = bufferToFill.mDataByteSize - amountToFill;
                 UInt32 currentPositionAvailable = audioController->bufferAvailable.mDataByteSize - audioController->amountAvailable;
 
                 memcpy(bufferToFill.mData + currentPositionFill, audioController->bufferAvailable.mData + currentPositionAvailable, amountAvailableToUseNow);
@@ -278,7 +270,7 @@ static OSStatus audioOutputPullCallback(
         }
     }
 
-    return status;
+    return noErr;
 }
 
 - (AudioBufferList *)prepareInputAudioBufferList {

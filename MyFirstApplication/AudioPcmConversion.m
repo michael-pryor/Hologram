@@ -18,17 +18,32 @@
 
     id <AudioDataPipeline> _callback;
 
+    uint _numFramesPerOperation;
     bool _isRunning;
+
+    TimedCounter *_pcmConversionInboundCounter;
+    TimedCounter *_pcmConversionOutboundCounter;
+
+    NSString * _humanDescription;
+    NSString * _inboundDescription;
+    NSString *_outboundDescription;
 }
 
-- (id)initWithInputFormat:(AudioStreamBasicDescription *)inputFormat outputFormat:(AudioStreamBasicDescription *)outputFormat outputResult:(id <AudioDataPipeline>)callback {
+- (id)initWithDescription:(NSString*)humanDescription inputFormat:(AudioStreamBasicDescription *)inputFormat outputFormat:(AudioStreamBasicDescription *)outputFormat outputResult:(id <AudioDataPipeline>)callback numFramesPerOperation:(UInt32)numFrames {
     self = [super init];
     if (self) {
+        const uint freqSeconds = 60;
+        _pcmConversionInboundCounter = [[TimedCounter alloc] initWithTimer:[[Timer alloc] initWithFrequencySeconds:freqSeconds firingInitially:false]];
+        _pcmConversionOutboundCounter = [[TimedCounter alloc] initWithTimer:[[Timer alloc] initWithFrequencySeconds:freqSeconds firingInitially:false]];
         _audioToBeConvertedQueue = [[BlockingQueue alloc] initWithMaxQueueSize:100];
         _inputAudioFormat = *inputFormat;
         _outputAudioFormat = *outputFormat;
         _isRunning = false;
         _callback = callback;
+        _numFramesPerOperation = numFrames;
+        _humanDescription = humanDescription;
+        _inboundDescription = [NSString stringWithFormat:@"PCM conversion inbound %@", _humanDescription];
+        _outboundDescription = [NSString stringWithFormat:@"PCM conversion outbound %@", _humanDescription];
     }
     return self;
 }
@@ -94,7 +109,7 @@ OSStatus pullPcmDataToBeConverted(AudioConverterRef inAudioConverter, UInt32 *io
     AudioBufferList audioBufferList = initializeAudioBufferList();
     AudioBufferList audioBufferListStartState = initializeAudioBufferList();
 
-    const int numFrames = 1;
+    const UInt32 numFrames = _numFramesPerOperation;
     allocateBuffersToAudioBufferListEx(&audioBufferList, 1, numFrames * _outputAudioFormat.mBytesPerFrame, 1, 1, true);
     shallowCopyBuffersEx(&audioBufferListStartState, &audioBufferList, ABL_BUFFER_NULL_OUT); // store original state, namely mBuffers[n].mDataByteSize.
 
@@ -105,7 +120,9 @@ OSStatus pullPcmDataToBeConverted(AudioConverterRef inAudioConverter, UInt32 *io
             status = AudioConverterFillComplexBuffer(audioConverter, pullPcmDataToBeConverted, (__bridge void *) self, &numFramesResult, &audioBufferList, NULL);
             [self validateResult:status description:@"converting PCM audio data" logSuccess:false];
 
-            [_callback onNewAudioData:[[AudioDataContainer alloc] initWithNumFrames:numFramesResult audioList:&audioBufferList]];
+            AudioDataContainer *container = [[AudioDataContainer alloc] initWithNumFrames:numFramesResult audioList:&audioBufferList];
+            [AudioDataContainer handleTimedCounter:_pcmConversionOutboundCounter description:_outboundDescription incrementContainer:container];
+            [_callback onNewAudioData:container];
 
             // Reset mBuffers[n].mDataByteSize so that buffer can be reused.
             resetBuffers(&audioBufferList, &audioBufferListStartState);
@@ -122,6 +139,7 @@ OSStatus pullPcmDataToBeConverted(AudioConverterRef inAudioConverter, UInt32 *io
 }
 
 - (void)onNewAudioData:(AudioDataContainer *)audioData {
+    [AudioDataContainer handleTimedCounter:_pcmConversionInboundCounter description:_inboundDescription incrementContainer:audioData];
     [_audioToBeConvertedQueue add:audioData];
 }
 
