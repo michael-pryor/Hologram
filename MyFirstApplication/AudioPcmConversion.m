@@ -66,9 +66,11 @@ OSStatus pullPcmDataToBeConverted(AudioConverterRef inAudioConverter, UInt32 *io
     AudioPcmConversion *audioCompression = (__bridge AudioPcmConversion *) inUserData;
 
     AudioDataContainer *item = [audioCompression getItemToBeConverted];
-    if (item == nil) {
-        return kAudioConverterErr_UnspecifiedError;
-    }
+    do {
+        if (item == nil) {
+            return kAudioConverterErr_UnspecifiedError;
+        }
+    } while (![item isValid]);
 
     // Normally 1 frame per packet.
     *ioNumberDataPackets = item.numFrames / audioCompression->_inputAudioFormat.mFramesPerPacket;

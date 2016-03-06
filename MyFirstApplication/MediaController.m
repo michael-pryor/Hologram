@@ -34,7 +34,7 @@
     self = [super init];
     if (self) {
         // A mode for testing where audio and video is looped round avoiding the network (so we see and hear ourselves immediately).
-        const bool LOOPBACK_ENABLED = true;
+        const bool LOOPBACK_ENABLED = false;
 
         _started = false;
 

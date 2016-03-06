@@ -56,7 +56,7 @@
     NSLog(@"Device sample rate is: %.2f", _hardwareSampleRate);
 
     _hardwareBufferDuration = [mySession IOBufferDuration];
-    NSLog(@"Buffer duration: %.2f", _hardwareBufferDuration);
+    NSLog(@"Buffer duration: %.8f", _hardwareBufferDuration);
 }
 
 - (struct AudioFormatProcessResult)processAudioFormat:(AudioStreamBasicDescription)description {

@@ -7,7 +7,6 @@
 #import "AudioUnitHelpers.h"
 #import "Signal.h"
 #import "TimedCounterLogging.h"
-#import "AudioSessionInteractions.h"
 
 
 @implementation AudioCompression {
@@ -125,6 +124,7 @@
 }
 
 - (void)terminate {
+    NSLog(@"Terminating audio compression");
     _isRunningDecompression = false;
     _isRunningCompression = false;
     [_audioToBeCompressedQueue shutdown];
@@ -146,10 +146,13 @@
 OSStatus pullUncompressedDataToAudioConverter(AudioConverterRef inAudioConverter, UInt32 *ioNumberDataPackets, AudioBufferList *ioData, AudioStreamPacketDescription **outDataPacketDescription, void *inUserData) {
     AudioCompression *audioCompression = (__bridge AudioCompression *) inUserData;
 
-    AudioDataContainer *item = [audioCompression getUncompressedItem];
-    if (item == nil) {
-        return kAudioConverterErr_UnspecifiedError;
-    }
+    AudioDataContainer *item;
+    do {
+        item = [audioCompression getUncompressedItem];
+        if (item == nil) {
+            return kAudioConverterErr_UnspecifiedError;
+        }
+    } while (![item isValid]);
 
     // Normally 1 frame per packet.
     *ioNumberDataPackets = item.numFrames / audioCompression->_uncompressedAudioFormat.mFramesPerPacket;
@@ -271,10 +274,13 @@ OSStatus pullUncompressedDataToAudioConverter(AudioConverterRef inAudioConverter
 OSStatus pullCompressedDataToAudioConverter(AudioConverterRef inAudioConverter, UInt32 *ioNumberDataPackets, AudioBufferList *ioData, AudioStreamPacketDescription **outDataPacketDescription, void *inUserData) {
     AudioCompression *audioCompression = (__bridge AudioCompression *) inUserData;
 
-    AudioDataContainer *item = [audioCompression getCompressedItem];
-    if (item == nil) {
-        return kAudioConverterErr_UnspecifiedError;
-    }
+    AudioDataContainer *item;
+    do {
+        item = [audioCompression getCompressedItem];
+        if (item == nil) {
+            return kAudioConverterErr_UnspecifiedError;
+        }
+    } while (![item isValid]);
 
     *ioNumberDataPackets = 1;
 
@@ -339,9 +345,9 @@ OSStatus pullCompressedDataToAudioConverter(AudioConverterRef inAudioConverter, 
             UInt32 numFramesResult = numFramesToDecompressPerOperation;
 
             status = AudioConverterFillComplexBuffer(audioConverterDecompression, pullCompressedDataToAudioConverter, (__bridge void *) self, &numFramesResult, &audioBufferList, NULL);
-            [self validateResult:status description:@"decompressing audio data" logSuccess:false];
-
-            [_audioToBeOutputQueue add:[[AudioDataContainer alloc] initWithNumFrames:numFramesResult audioList:&audioBufferList]];
+            if ([self validateResult:status description:@"decompressing audio data" logSuccess:false]) {
+                [_audioToBeOutputQueue add:[[AudioDataContainer alloc] initWithNumFrames:numFramesResult audioList:&audioBufferList]];
+            }
 
             // Reset mBuffers[n].mDataByteSize so that buffer can be reused.
             resetBuffers(&audioBufferList, &audioBufferListStartState);
@@ -382,7 +388,7 @@ OSStatus pullCompressedDataToAudioConverter(AudioConverterRef inAudioConverter, 
 
 
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
-    AudioDataContainer *audioData = [[AudioDataContainer alloc] initFromByteBuffer:packet audioFormat:&_compressedAudioFormat];
+    AudioDataContainer *audioData = [[AudioDataContainer alloc] initWithNumFrames:1 fromByteBuffer:packet audioFormat:&_compressedAudioFormat];
     [_audioToBeDecompressedQueue add:audioData];
     [audioData incrementCounter:_decompressedInboundSizeCounter];
 }

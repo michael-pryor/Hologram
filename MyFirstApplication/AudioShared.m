@@ -19,9 +19,10 @@
     return self;
 }
 
-- (id)initFromByteBuffer:(ByteBuffer *)byteBuffer audioFormat:(AudioStreamBasicDescription *)description {
+- (id)initWithNumFrames:(UInt32)numFrames fromByteBuffer:(ByteBuffer *)byteBuffer audioFormat:(AudioStreamBasicDescription *)description {
     self = [super init];
     if (self) {
+        _numFrames = numFrames;
         UInt32 bytesToCopy = [byteBuffer getUnreadDataFromCursor];
 
         // Takes into account cursor position.
@@ -67,5 +68,9 @@
 
 - (void)dealloc {
     [self freeMemory];
+}
+
+- (bool)isValid {
+    return _audioList != nil && _numFrames > 0;
 }
 @end

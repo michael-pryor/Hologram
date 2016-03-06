@@ -17,11 +17,13 @@ void printAudioBufferList(AudioBufferList *audioList, NSString *description);
 
 - (id)initWithNumFrames:(UInt32)numFrames audioList:(AudioBufferList *)audioList;
 
-- (id)initFromByteBuffer:(ByteBuffer *)byteBuffer audioFormat:(AudioStreamBasicDescription *)description;
+- (id)initWithNumFrames:(UInt32)numFrames fromByteBuffer:(ByteBuffer *)byteBuffer audioFormat:(AudioStreamBasicDescription *)description;
 
 - (ByteBuffer *)buildByteBufferWithLeftPadding:(uint)leftPadding;
 
 - (void)incrementCounter:(TimedCounter *)counter;
+
+- (bool)isValid;
 @end
 
 @protocol AudioDataPipeline
