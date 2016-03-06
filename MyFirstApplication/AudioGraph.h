@@ -14,9 +14,9 @@
 
 - (id)initWithOutputSession:(id <NewPacketDelegate>)outputSession leftPadding:(uint)leftPadding;
 
-- (void)stopAudioGraph;
+- (void)stop;
 
-- (void)startAudioGraph;
+- (void)start;
 
 - (bool)isRunning;
 @end
