@@ -40,10 +40,6 @@
 
     AudioClassDescription *_compressionClass;
 
-    char *_magicCookie;
-    UInt32 _magicCookieSize;
-    Signal *_magicCookieLoaded;
-
     // Push compressed packets out to this session.
     id <NewPacketDelegate> _outputSession;
 
@@ -73,10 +69,6 @@
 
         _uncompressedAudioDataContainer = nil;
         _compressedAudioDataContainer = nil;
-        _magicCookie = NULL;
-        _magicCookieSize = 0;
-
-        _magicCookieLoaded = [[Signal alloc] initWithFlag:false];
 
         // Get about half a second 1 second delay at worst.
         // TODO: Consider impact of these values.
@@ -133,7 +125,6 @@
 
 - (void)dealloc {
     [self terminate];
-    free(_magicCookie);
 }
 
 - (void)reset {
@@ -193,9 +184,6 @@ OSStatus pullUncompressedDataToAudioConverter(AudioConverterRef inAudioConverter
 
     OSStatus status = AudioConverterNewSpecific(&_uncompressedAudioFormat, &_compressedAudioFormat, 1, _compressionClass, &audioConverter);
     [self validateResult:status description:@"setting up audio converter"];
-
-    _magicCookie = getMagicCookieFromAudioConverter(audioConverter, &_magicCookieSize);
-    [_magicCookieLoaded signalAll];
 
     AudioBufferList audioBufferList = initializeAudioBufferList();
     AudioBufferList audioBufferListStartState = initializeAudioBufferList();
@@ -328,10 +316,6 @@ OSStatus pullCompressedDataToAudioConverter(AudioConverterRef inAudioConverter, 
 
     OSStatus status = AudioConverterNewSpecific(&_compressedAudioFormat, &_uncompressedAudioFormat, 1, _compressionClass, &audioConverterDecompression);
     [self validateResult:status description:@"setting up audio converter"];
-
-    [_magicCookieLoaded wait];
-    status = loadMagicCookieIntoAudioConverter(audioConverterDecompression, _magicCookie, _magicCookieSize);
-    [self validateResult:status description:@"loading magic cookie into decompression audio converter"];
 
     AudioBufferList audioBufferList = initializeAudioBufferList();
     AudioBufferList audioBufferListStartState = initializeAudioBufferList();
