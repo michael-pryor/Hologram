@@ -11,8 +11,6 @@ enum AudioBufferListBufferHandling {
     ABL_BUFFER_ALLOCATE_NEW
 };
 
-void printAudioBufferList(AudioBufferList *audioList, NSString *description);
-
 AudioBufferList initializeAudioBufferList();
 
 AudioBufferList *allocateBuffersToAudioBufferList(AudioBufferList *destinationAudioBufferList, UInt32 bytesPerFrame, UInt32 framesPerPacket, UInt32 numBuffers, UInt32 channelsPerBuffer);
@@ -37,13 +35,9 @@ bool deepCopyBuffers(AudioBufferList *destinationAudioBufferList, AudioBufferLis
 
 AudioClassDescription *getAudioClassDescriptionWithType(UInt32 type, UInt32 manufacturer);
 
-char *getMagicCookieFromAudioConverter(AudioConverterRef audioConverter, UInt32 *cookieSizeOut);
+AudioBufferList *initializeAudioBufferListHeap(UInt32 numBuffers);
 
-OSStatus loadMagicCookieIntoAudioConverter(AudioConverterRef audioConverter, char *magicCookie, UInt32 cookieSize);
-
-AudioBufferList * initializeAudioBufferListHeap(UInt32 numBuffers);
-
-AudioBufferList * initializeAudioBufferListHeapSingle(UInt32 byteSize, UInt32 numberChannels);
+AudioBufferList *initializeAudioBufferListHeapSingle(UInt32 byteSize, UInt32 numberChannels);
 
 UInt32 getNumBytesForAudioBufferList(UInt32 numBuffers);
 

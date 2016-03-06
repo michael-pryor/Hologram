@@ -7,7 +7,7 @@
 #import "AudioShared.h"
 @import AudioToolbox;
 
-@interface AudioGraph : NSObject<NewPacketDelegate, AudioDataPipeline>
+@interface AudioGraph : NSObject <NewPacketDelegate, AudioDataPipeline>
 - (AudioUnit)getAudioProducer;
 
 - (void)initialize;

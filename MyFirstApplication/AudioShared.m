@@ -14,7 +14,6 @@
         if (audioList != nil) {
             _audioList = cloneAudioBufferList(audioList);
         }
-        printAudioBufferList(_audioList, @"container init");
     }
     return self;
 }

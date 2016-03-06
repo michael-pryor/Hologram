@@ -5,7 +5,6 @@
 #import "AudioCompression.h"
 #import "SoundEncodingShared.h"
 #import "AudioUnitHelpers.h"
-#import "Signal.h"
 #import "TimedCounterLogging.h"
 
 
@@ -101,26 +100,33 @@
 }
 
 - (void)initialize {
-    _decompressionThread = [[NSThread alloc] initWithTarget:self
-                                                   selector:@selector(decompressionThreadEntryPoint:)
-                                                     object:nil];
-    [_decompressionThread setName:@"Audio Decompression"];
-    [_decompressionThread start];
+    @synchronized (self) {
+        NSLog(@"Initializing AAC audio compression and decompression");
+        _isRunningDecompression = true;
+        _isRunningCompression = true;
+        _decompressionThread = [[NSThread alloc] initWithTarget:self
+                                                       selector:@selector(decompressionThreadEntryPoint:)
+                                                         object:nil];
+        [_decompressionThread setName:@"Audio Decompression"];
+        [_decompressionThread start];
 
 
-    _compressionThread = [[NSThread alloc] initWithTarget:self
-                                                 selector:@selector(compressionThreadEntryPoint:)
-                                                   object:nil];
-    [_compressionThread setName:@"Audio Compression"];
-    [_compressionThread start];
+        _compressionThread = [[NSThread alloc] initWithTarget:self
+                                                     selector:@selector(compressionThreadEntryPoint:)
+                                                       object:nil];
+        [_compressionThread setName:@"Audio Compression"];
+        [_compressionThread start];
+    }
 }
 
 - (void)terminate {
-    NSLog(@"Terminating audio compression");
-    _isRunningDecompression = false;
-    _isRunningCompression = false;
-    [_audioToBeCompressedQueue shutdown];
-    [_audioToBeDecompressedQueue shutdown];
+    @synchronized (self) {
+        NSLog(@"Terminating AAC audio compression and decompression");
+        _isRunningDecompression = false;
+        _isRunningCompression = false;
+        [_audioToBeCompressedQueue shutdown];
+        [_audioToBeDecompressedQueue shutdown];
+    }
 }
 
 - (void)dealloc {
@@ -175,7 +181,6 @@ OSStatus pullUncompressedDataToAudioConverter(AudioConverterRef inAudioConverter
         return kAudioConverterErr_UnspecifiedError;
     }
 
-    printAudioBufferList(ioData, @"compression callback");
     return noErr;
 }
 
@@ -191,7 +196,6 @@ OSStatus pullUncompressedDataToAudioConverter(AudioConverterRef inAudioConverter
     allocateBuffersToAudioBufferListEx(&audioBufferList, 1, _compressedAudioFormat.mFramesPerPacket, 1, 1, true);
     shallowCopyBuffersEx(&audioBufferListStartState, &audioBufferList, ABL_BUFFER_NULL_OUT); // store original state, namely mBuffers[n].mDataByteSize.
 
-    _isRunningCompression = true;
     while (_isRunningCompression) {
         @autoreleasepool {
             const UInt32 maxNumFrames = 1;
@@ -227,10 +231,6 @@ OSStatus pullUncompressedDataToAudioConverter(AudioConverterRef inAudioConverter
             if (problemDetected) {
                 continue;
             }
-
-            /*for (int n = 0; n < audioBufferList.mNumberBuffers; n++) {
-                NSLog(@"Compressed buffer size: %lu, pd size: %lu, pd variable frames %lu", audioBufferList.mBuffers[n].mDataByteSize, compressedPacketDescription[0].mDataByteSize, compressedPacketDescription[0].mStartOffset, compressedPacketDescription[0].mVariableFramesInPacket);
-            }*/
 
             AudioDataContainer *resultingContainer = [[AudioDataContainer alloc] initWithNumFrames:numFramesResult audioList:&audioBufferList];
             [resultingContainer incrementCounter:_compressedOutboundSizeCounter];
@@ -307,7 +307,6 @@ OSStatus pullCompressedDataToAudioConverter(AudioConverterRef inAudioConverter, 
         return kAudioConverterErr_UnspecifiedError;
     }
 
-    printAudioBufferList(ioData, @"decompression callback");
     return noErr;
 }
 
@@ -323,7 +322,6 @@ OSStatus pullCompressedDataToAudioConverter(AudioConverterRef inAudioConverter, 
     allocateBuffersToAudioBufferListEx(&audioBufferList, 1, numFramesToDecompressPerOperation * _uncompressedAudioFormat.mBytesPerFrame, 1, 1, true);
     shallowCopyBuffersEx(&audioBufferListStartState, &audioBufferList, ABL_BUFFER_NULL_OUT); // store original state, namely mBuffers[n].mDataByteSize.
 
-    _isRunningDecompression = true;
     while (_isRunningDecompression) {
         @autoreleasepool {
             UInt32 numFramesResult = numFramesToDecompressPerOperation;

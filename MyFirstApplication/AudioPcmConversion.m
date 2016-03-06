@@ -6,7 +6,6 @@
 #import "SoundEncodingShared.h"
 #import "AudioUnitHelpers.h"
 #import "TimedCounterLogging.h"
-#import "AudioSessionInteractions.h"
 
 @implementation AudioPcmConversion {
     AudioStreamBasicDescription _outputAudioFormat;
@@ -52,14 +51,26 @@
 }
 
 - (void)initialize {
-    _isRunning = true;
-    _conversionThread = [[NSThread alloc] initWithTarget:self
-                                                selector:@selector(pcmConversionThreadEntryPoint:)
-                                                  object:nil];
-    [_conversionThread setName:@"Audio PCM Conversion"];
-    [_conversionThread start];
+    @synchronized (self) {
+        _isRunning = true;
+        _conversionThread = [[NSThread alloc] initWithTarget:self
+                                                    selector:@selector(pcmConversionThreadEntryPoint:)
+                                                      object:nil];
+        [_conversionThread setName:@"Audio PCM Conversion"];
+        [_conversionThread start];
+    }
 }
 
+- (void)terminate {
+    @synchronized (self) {
+        _isRunning = false;
+        [_audioToBeConvertedQueue shutdown];
+    }
+}
+
+- (void)reset {
+    [_audioToBeConvertedQueue clear];
+}
 
 // Converting PCM to PCM (different sample rate).
 OSStatus pullPcmDataToBeConverted(AudioConverterRef inAudioConverter, UInt32 *ioNumberDataPackets, AudioBufferList *ioData, AudioStreamPacketDescription **outDataPacketDescription, void *inUserData) {
@@ -100,7 +111,6 @@ OSStatus pullPcmDataToBeConverted(AudioConverterRef inAudioConverter, UInt32 *io
         return kAudioConverterErr_UnspecifiedError;
     }
 
-    printAudioBufferList(ioData, @"PCM conversion callback");
     return noErr;
 }
 
@@ -153,14 +163,5 @@ OSStatus pullPcmDataToBeConverted(AudioConverterRef inAudioConverter, UInt32 *io
 
 - (AudioDataContainer *)getItemToBeConverted {
     return [_audioToBeConvertedQueue get];
-}
-
-- (void)terminate {
-    _isRunning = false;
-    [_audioToBeConvertedQueue shutdown];
-}
-
-- (void)reset {
-    [_audioToBeConvertedQueue clear];
 }
 @end

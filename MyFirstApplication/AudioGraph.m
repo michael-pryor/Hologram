@@ -9,7 +9,6 @@
 #import "AudioUnitHelpers.h"
 #import "Signal.h"
 #import "AudioPcmConversion.h"
-#import "AudioSessionInteractions.h"
 
 static OSStatus audioOutputPullCallback(
         void *inRefCon,

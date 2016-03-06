@@ -4,13 +4,6 @@
 
 #import "AudioUnitHelpers.h"
 
-void printAudioBufferList(AudioBufferList *audioList, NSString *description) {
-    //for (int n = 0; n < audioList->mNumberBuffers; n++) {
-    //NSData *data = [NSData dataWithBytes:audioList->mBuffers[n].mData length:audioList->mBuffers[n].mDataByteSize];
-    // NSLog(@"[ABL %@] buffer index %d (/%lu), channels %lu, size %lu, contents: %@", description, n, audioList->mNumberBuffers, audioList->mBuffers[n].mNumberChannels, audioList->mBuffers[n].mDataByteSize, data);
-    //}
-}
-
 // Neat trick to get around the seemingly non resizable audioList->mBuffers[1].
 // Because mBuffers is at the end of the struct, we can add more memory to the structure and resize freely.
 // This is by design; by Apple.
@@ -38,7 +31,7 @@ AudioBufferList initializeAudioBufferList() {
     return audioBufferList;
 };
 
-void initializeBuffer(AudioBuffer * audioBuffer, UInt32 byteSize, UInt32 numberChannels) {
+void initializeBuffer(AudioBuffer *audioBuffer, UInt32 byteSize, UInt32 numberChannels) {
     audioBuffer->mDataByteSize = byteSize;
     audioBuffer->mData = malloc(byteSize);
     audioBuffer->mNumberChannels = numberChannels;
@@ -47,20 +40,20 @@ void initializeBuffer(AudioBuffer * audioBuffer, UInt32 byteSize, UInt32 numberC
 AudioBufferList initializeAudioBufferListSingle(UInt32 byteSize, UInt32 numberChannels) {
     AudioBufferList audioBufferList = initializeAudioBufferList();
     audioBufferList.mNumberBuffers = 1;
-    AudioBuffer * audioBuffer = &audioBufferList.mBuffers[0];
+    AudioBuffer *audioBuffer = &audioBufferList.mBuffers[0];
     initializeBuffer(audioBuffer, byteSize, numberChannels);
     return audioBufferList;
 }
 
-AudioBufferList * initializeAudioBufferListHeap(UInt32 numBuffers) {
-    AudioBufferList * audioBufferList = malloc(getNumBytesForAudioBufferList(numBuffers));
+AudioBufferList *initializeAudioBufferListHeap(UInt32 numBuffers) {
+    AudioBufferList *audioBufferList = malloc(getNumBytesForAudioBufferList(numBuffers));
     audioBufferList->mNumberBuffers = numBuffers;
     return audioBufferList;
 };
 
-AudioBufferList * initializeAudioBufferListHeapSingle(UInt32 byteSize, UInt32 numberChannels) {
-    AudioBufferList * audioBufferList = initializeAudioBufferListHeap(1);
-    AudioBuffer * audioBuffer = &audioBufferList->mBuffers[0];
+AudioBufferList *initializeAudioBufferListHeapSingle(UInt32 byteSize, UInt32 numberChannels) {
+    AudioBufferList *audioBufferList = initializeAudioBufferListHeap(1);
+    AudioBuffer *audioBuffer = &audioBufferList->mBuffers[0];
     initializeBuffer(audioBuffer, byteSize, numberChannels);
     return audioBufferList;
 }
@@ -180,8 +173,6 @@ bool resetBuffers(AudioBufferList *destinationAudioBufferList, AudioBufferList *
     return true;
 }
 
-
-
 // Include destinationBufferMemorySize because otherwise our sanity checks are based on mDataByteSize which may
 // be less than the size of the actual buffer which mData points to.
 bool deepCopyBuffers(AudioBufferList *destinationAudioBufferList, AudioBufferList *sourceAudioBufferList, UInt32 destinationBufferMemorySize) {
@@ -241,31 +232,4 @@ AudioClassDescription *getAudioClassDescriptionWithType(UInt32 type, UInt32 manu
     }
 
     return nil;
-}
-
-
-char *getMagicCookieFromAudioConverter(AudioConverterRef audioConverter, UInt32 *cookieSizeOut) {
-    *cookieSizeOut = 0;
-    OSStatus error = AudioConverterGetPropertyInfo(audioConverter, kAudioConverterCompressionMagicCookie, cookieSizeOut, NULL);
-
-    // if there is an error here, then the format doesn't have a cookie - this is perfectly fine as some formats do not
-    if (error != noErr || *cookieSizeOut == 0) {
-        NSLog(@"No magic cookie found on audio converter");
-        return NULL;
-    }
-
-    char *cookie = malloc(*cookieSizeOut);
-
-    error = AudioConverterGetProperty(audioConverter, kAudioConverterCompressionMagicCookie, cookieSizeOut, cookie);
-    if (error != noErr) {
-        NSLog(@"Failed to retrieve magic cookie");
-        free(cookie);
-        return NULL;
-    }
-
-    return cookie;
-}
-
-OSStatus loadMagicCookieIntoAudioConverter(AudioConverterRef audioConverter, char *magicCookie, UInt32 cookieSize) {
-    return AudioConverterSetProperty(audioConverter, kAudioConverterDecompressionMagicCookie, cookieSize, magicCookie);
 }
