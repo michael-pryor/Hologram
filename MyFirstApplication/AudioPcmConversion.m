@@ -41,7 +41,7 @@
         _pcmConversionOutboundCounter = [[TimedCounter alloc] initWithTimer:[[Timer alloc] initWithFrequencySeconds:freqSeconds firingInitially:false]];
 
         if (queue == nil) {
-            _audioToBeConvertedQueue = [[BlockingQueue alloc] initWithName:[NSString stringWithFormat:@"conversion %@", _inboundDescription] maxQueueSize:100];
+            _audioToBeConvertedQueue = [[BlockingQueue alloc] initWithName:_inboundDescription maxQueueSize:100];
         } else {
             _audioToBeConvertedQueue = queue;
         }

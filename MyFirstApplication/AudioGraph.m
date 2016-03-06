@@ -10,15 +10,18 @@
 #import "Signal.h"
 #import "AudioPcmConversion.h"
 #import "BlockingQueue.h"
+#import "AudioSessionInteractions.h"
 
 @import AVFoundation;
 
 @interface AudioPcmMicrophoneToTransitConverter : NSObject <AudioDataPipeline>
-
+- (id)initWithAudioCompression:(AudioCompression *)audioCompression queue:(BlockingQueue*)queue compressionEnabled:(bool)compressionEnabled;
 @end
 
 @implementation AudioPcmMicrophoneToTransitConverter {
     AudioCompression *_audioCompression;
+
+    BlockingQueue *_queue;
 }
 - (id)initWithAudioCompression:(AudioCompression *)audioCompression {
     self = [super init];
@@ -28,8 +31,27 @@
     return self;
 }
 
+- (id)initWithAudioCompression:(AudioCompression *)audioCompression queue:(BlockingQueue*)queue compressionEnabled:(bool)compressionEnabled {
+    if (compressionEnabled) {
+        return [self initWithAudioCompression:audioCompression];
+    }
+    return [self initWithQueue:queue];
+}
+
+- (id)initWithQueue:(BlockingQueue *)queue {
+    self = [super init];
+    if (self) {
+        _queue = queue;
+    }
+    return self;
+}
+
 - (void)onNewAudioData:(AudioDataContainer *)audioData {
-    [_audioCompression onNewAudioData:audioData];
+    if (_audioCompression != nil) {
+        [_audioCompression onNewAudioData:audioData];
+    } else if (_queue != nil) {
+        [_queue add:audioData];
+    }
 }
 
 @end
@@ -48,10 +70,15 @@
 
     // PCM audio format of IO device.
     AudioStreamBasicDescription _audioFormatSpeaker;
+    struct AudioFormatProcessResult _audioFormatSpeakerEx;
+
+    // Generally will be same as speaker, but just for flexibility.
     AudioStreamBasicDescription _audioFormatMicrophone;
+    struct AudioFormatProcessResult _audioFormatMicrophoneEx;
 
     // PCM audio format for transit over network.
     AudioStreamBasicDescription _audioFormatTransit;
+    struct AudioFormatProcessResult _audioFormatTransitEx;
 
     // For handling devices producing different sizes of output i.e. they may produce
     // a different number of frames with each iteration.
@@ -68,23 +95,30 @@
     self = [super init];
     if (self) {
         _loopbackEnabled = outputSession == nil;
+        bool compressionEnabled;
+        const bool enableCompressionInTesting = true;
+        if (!_loopbackEnabled) {
+            compressionEnabled = true;
+        } else {
+            compressionEnabled = enableCompressionInTesting;
+        }
 
         _pendingOutputToSpeaker = [[BlockingQueue alloc] initWithName:@"conversion PCM transit to speaker outbound" maxQueueSize:100000];
 
         _audioInputAudioBufferList = initializeAudioBufferListSingle(4096, 1);
         _audioInputAudioBufferOriginalSize = _audioInputAudioBufferList.mBuffers[0].mDataByteSize;
 
-        const double transitSampleRate = [self setupAudioSessionAndUpdateAudioFormat];
+        [self setupAudioSessionAndUpdateAudioFormat];
 
-        BlockingQueue * sharedDecompressionOutboundPcmInboundQueue = [[BlockingQueue alloc] initWithName:@"Decompression AAC outbound" maxQueueSize:100];
+        BlockingQueue * sharedDecompressionOutboundPcmInboundQueue = [[BlockingQueue alloc] initWithName:@"Decompression AAC outbound / PCM conversion inbound transit to speaker" maxQueueSize:1000];
 
         _audioCompression = [[AudioCompression alloc] initWithAudioFormat:_audioFormatSpeaker outputSession:outputSession leftPadding:leftPadding outboundQueue:sharedDecompressionOutboundPcmInboundQueue];
 
-        // Converts 44k (or something like that) PCM sample data from microphone into 8K PCM smaple data (transit format), and passes directly to audio compression to convert to AAC.
-        _audioPcmConversionMicrophoneToTransit = [[AudioPcmConversion alloc] initWithDescription:@"microphone to transit" inputFormat:&_audioFormatMicrophone outputFormat:&_audioFormatTransit outputResult:[[AudioPcmMicrophoneToTransitConverter alloc] initWithAudioCompression:_audioCompression] numFramesPerOperation:50 inboundQueue:nil];
+        // Converts 44k (or something like that) PCM sample data from microphone into 8K PCM sample data (transit format), and passes directly to audio compression to convert to AAC.
+        _audioPcmConversionMicrophoneToTransit = [[AudioPcmConversion alloc] initWithDescription:@"microphone to transit" inputFormat:&_audioFormatMicrophone outputFormat:&_audioFormatTransit outputResult:[[AudioPcmMicrophoneToTransitConverter alloc] initWithAudioCompression:_audioCompression queue:sharedDecompressionOutboundPcmInboundQueue compressionEnabled:compressionEnabled] numFramesPerOperation:50 inboundQueue:nil];
 
         _audioPcmConversionTransitToSpeaker = [[AudioPcmConversion alloc] initWithDescription:@"transit to speaker" inputFormat:&_audioFormatTransit outputFormat:&_audioFormatMicrophone outputResult:self numFramesPerOperation:256 inboundQueue:(BlockingQueue*)sharedDecompressionOutboundPcmInboundQueue];
-        _mainGraph = [self buildIoGraphWithTransitSampleRate:transitSampleRate];
+        _mainGraph = [self buildIoGraph];
 
         bufferAvailableContainer = nil;
         amountAvailable = 0; // trigger read from queue immediately.
@@ -100,18 +134,37 @@
     freeAudioBufferListEx(&_audioInputAudioBufferList, true);
 }
 
-- (double)setupAudioSessionAndUpdateAudioFormat {
+- (void)setupAudioSessionAndUpdateAudioFormat {
     const double transitSampleRate = 8000;
 
     // Sample rate of audio session must match sample rate of ioUnit.
-    const double hardwareSampleRate = [self setupAudioSessionWithDesiredHardwareSampleRate:16000];
+    AudioSessionInteractions* audioSession = [AudioSessionInteractions instance];
+    [audioSession setupAudioSessionWithDesiredHardwareSampleRate:16000 desiredBufferDuration:0.005];
 
+    // Speaker and microphone must match hardware sample rate.
+    //
+    // There is a converter built into the IO audio unit, but it does not work well
+    // when used with AudioUnitRender calls directly. It only works as expected as part of a closed
+    // audio graph i.e. not for our use purposes.
+    //
+    // If the audio sample rates match the hardware then no sample rate conversion needs to be done
+    // by the converter, and our AudioUnitRender calls will work as expected.
+    const double hardwareSampleRate = [audioSession hardwareSampleRate];
     _audioFormatSpeaker = [self prepareAudioFormatWithSampleRate:hardwareSampleRate];
     _audioFormatMicrophone = [self prepareAudioFormatWithSampleRate:hardwareSampleRate];
+
+    // For transit across the network we need a standardized sample rate. Not all iOS devices
+    // will have the same hardware sample rate, and also we would be better off using a
+    // lower sample rate in order to use less bandwidth.
     _audioFormatTransit = [self prepareAudioFormatWithSampleRate:transitSampleRate];
 
-    return hardwareSampleRate;
+    // Extra information deduced from the formats.
+    _audioFormatSpeakerEx = [audioSession processAudioFormat:_audioFormatSpeaker];
+    _audioFormatMicrophoneEx = [audioSession processAudioFormat:_audioFormatMicrophone];
+    _audioFormatTransitEx = [audioSession processAudioFormat:_audioFormatTransit];
 }
+
+
 
 - (void)initialize {
     [_audioCompression initialize];
@@ -124,20 +177,6 @@
 
     [self startAudioGraph];
 }
-
-
-static OSStatus renderNotifyCallback(
-        void *inRefCon,
-        AudioUnitRenderActionFlags *ioActionFlags,
-        const AudioTimeStamp *inTimeStamp,
-        UInt32 inBusNumber,
-        UInt32 inNumberFrames,
-        AudioBufferList *ioData
-) {
-    //  NSLog(@"RENDER NOTIFY (%lu): Number frames: %lu, mSampleTime: %.4f", inBusNumber, inNumberFrames, inTimeStamp->mSampleTime);
-    return noErr;
-}
-
 
 - (void)onNewAudioData:(AudioDataContainer *)audioData {
     [_pendingOutputToSpeaker add:audioData];
@@ -196,7 +235,7 @@ static OSStatus audioOutputPullCallback(
 
             OSStatus status = AudioUnitRender([audioController getAudioProducer], ioActionFlags, inTimeStamp, 1, inNumberFrames, audioBufferList);
             if (HandleResultOSStatus(status, @"rendering input audio", false)) {
-                NSLog(@"Successful with %lu frames, size: %lu, sample rate: %.2f", inNumberFrames, audioBufferList->mBuffers[0].mDataByteSize, inTimeStamp->mSampleTime);
+               // NSLog(@"Successful with %lu frames, size: %lu, sample rate: %.2f", inNumberFrames, audioBufferList->mBuffers[0].mDataByteSize, inTimeStamp->mSampleTime);
                 [audioController->_audioPcmConversionMicrophoneToTransit onNewAudioData:[[AudioDataContainer alloc] initWithNumFrames:inNumberFrames audioList:audioBufferList]];
             }
 
@@ -204,19 +243,6 @@ static OSStatus audioOutputPullCallback(
                 return status;
             }
         }
-
-        // Convert PCM from 8k transit to speaker format.
-       /* {
-            AudioDataContainer *pendingPcmConversion = nil;
-            while (true) {
-                pendingPcmConversion = [audioController->_audioCompression getPendingDecompressedData];
-                if (pendingPcmConversion != nil) {
-                    [audioController->_audioPcmConversionTransitToSpeaker onNewAudioData:pendingPcmConversion];
-                } else {
-                    break;
-                }
-            }
-        }*/
 
         // Fill speaker buffer with data.
         {
@@ -328,47 +354,6 @@ static OSStatus audioOutputPullCallback(
     return audioUnit;
 }
 
-- (double)setupAudioSessionWithDesiredHardwareSampleRate:(double)sampleRate {
-    NSError *audioSessionError = nil;
-    AVAudioSession *mySession = [AVAudioSession sharedInstance];
-    BOOL result = [mySession setPreferredSampleRate:sampleRate
-                                              error:&audioSessionError];
-    if (!result) {
-        NSLog(@"Preferred sample rate of %.2f not allowed, reason: %@", sampleRate, [audioSessionError localizedFailureReason]);
-    }
-
-    // Use the device's loud speaker if no headphones are plugged in.
-    // Without this, will use the quiet speaker if available, e.g. on iphone this is for taking calls privately.
-    NSError *error;
-    result = [mySession setCategory:AVAudioSessionCategoryPlayAndRecord withOptions:AVAudioSessionCategoryOptionDefaultToSpeaker error:&error];
-    if (!result) {
-        NSLog(@"Failed to enable AVAudioSessionCategoryOptionDefaultToSpeaker mode: %@", [error localizedDescription]);
-    }
-
-    result = [mySession setMode:AVAudioSessionModeVideoChat error:&error];
-    if (!result) {
-        NSLog(@"Failed to enable AVAudioSessionModeVideoChat mode, reason: %@", [error localizedDescription]);
-    }
-
-    // Lower latency.
-    double ioBufferDuration = 0.005;
-    result = [mySession setPreferredIOBufferDuration:ioBufferDuration
-                                               error:&audioSessionError];
-    if (!result) {
-        NSLog(@"Failed to set buffer duration to %.5f, reason: %@", ioBufferDuration, [audioSessionError localizedFailureReason]);
-    }
-
-    result = [mySession setActive:YES
-                            error:&audioSessionError];
-    if (!result) {
-        NSLog(@"Failed to activate audio session, reason: %@", [audioSessionError localizedFailureReason]);
-    }
-
-    double actualSampleRate = [mySession sampleRate];
-    NSLog(@"Device sample rate is: %.2f", actualSampleRate);
-
-    return actualSampleRate;
-}
 
 - (void)setMicrophoneAudioFormat:(AudioStreamBasicDescription *)format speakerAudioFormat:(AudioStreamBasicDescription *)formatSpeaker ofIoAudioUnit:(AudioUnit)audioUnit {
     OSStatus status = AudioUnitSetProperty(audioUnit,
@@ -417,7 +402,7 @@ static OSStatus audioOutputPullCallback(
     [self validateResult:status description:@"adding audio output pull callback"];
 }
 
-- (AUGraph)buildIoGraphWithTransitSampleRate:(double)sampleRate {
+- (AUGraph)buildIoGraph {
     AUGraph processingGraph;
     OSStatus status = NewAUGraph(&processingGraph);
     [self validateResult:status description:@"creating graph"];
@@ -429,54 +414,12 @@ static OSStatus audioOutputPullCallback(
 
     AudioUnit ioUnit = [self getAudioUnitFromGraph:processingGraph fromNode:ioNode];
 
-    _audioFormatMicrophone.mSampleRate = sampleRate;
-    _audioFormatSpeaker.mSampleRate = sampleRate;
-
     [self setMicrophoneAudioFormat:&_audioFormatMicrophone speakerAudioFormat:&_audioFormatSpeaker ofIoAudioUnit:ioUnit];
 
     [self setAudioPullCallback:ioUnit];
-    /*status = AUGraphConnectNodeInput (
-            processingGraph,
-            ioNode,           // source node
-            1,  // source node bus
-            ioNode,              // destination node
-            0  // desinatation node element
-    );
-    [self validateResult:status description:@"connecting microphone to speaker"];*/
-
-    status = AudioUnitAddRenderNotify(ioUnit, renderNotifyCallback, nil);
-    [self validateResult:status description:@"adding render notify to microphone"];
 
     [self enableInputOnAudioUnit:ioUnit];
     _audioProducer = ioUnit;
-
-    /* UInt32 framesPerSliceIn = 4096*3;
-     status = AudioUnitSetProperty(  microphonePcmConverterAudioUnit,
-             kAudioUnitProperty_MaximumFramesPerSlice,
-             kAudioUnitScope_Global,
-             0,
-             &framesPerSliceIn,
-             sizeof(UInt32));
-     [self validateResult:status description:@"setting frames per slice of microphone PCM converter"];
-
-     status = AudioUnitSetProperty(  speakerPcmConverterAudioUnit,
-             kAudioUnitProperty_MaximumFramesPerSlice,
-             kAudioUnitScope_Global,
-             0,
-             &framesPerSliceIn,
-             sizeof(UInt32));
-     [self validateResult:status description:@"setting frames per slice of speaker PCM converter"];
-
-     UInt32 framesPerSlice;
-     UInt32 framesPerSliceSize = sizeof(framesPerSlice);
-     status = AudioUnitGetProperty(  microphonePcmConverterAudioUnit,
-             kAudioUnitProperty_MaximumFramesPerSlice,
-             kAudioUnitScope_Global,
-             0,
-             &framesPerSlice,
-             &framesPerSliceSize);
-     [self validateResult:status description:@"getting frames per slice of microphone PCM converter"];
- */
 
     status = AUGraphInitialize(processingGraph);
     [self validateResult:status description:@"initializing graph"];
@@ -486,8 +429,6 @@ static OSStatus audioOutputPullCallback(
 }
 
 - (void)startAudioGraph {
-    [self logAudioSessionInformation];
-
     OSStatus status = AUGraphStart(_mainGraph);
     [self validateResult:status description:@"starting graph"];
 }
@@ -559,30 +500,6 @@ static OSStatus audioOutputPullCallback(
     [_audioCompression onNewPacket:packet fromProtocol:protocol];
 }
 
-- (void)logAudioSessionInformation {
-    AVAudioSession *session = [AVAudioSession sharedInstance];
-    AVAudioSessionRouteDescription *route = [session currentRoute];
-    NSArray<AVAudioSessionPortDescription *> *inputs = [route inputs];
-    NSArray<AVAudioSessionPortDescription *> *outputs = [route outputs];
-
-    NSLog(@"%d inputs, %d outputs", [inputs count], [outputs count]);
-    for (AVAudioSessionPortDescription *input in inputs) {
-        NSLog(@"Input: %@", input);
-    }
-
-    for (AVAudioSessionPortDescription *output in outputs) {
-        NSLog(@"Output: %@", output);
-    }
-
-    NSLog(@"Category: %@, options %u", [session category], [session categoryOptions]);
-    NSLog(@"Sample rate: %lf, options %lf", [session sampleRate], [session IOBufferDuration]);
-
-    NSLog(@"Input number channels: %i, output number channels: %i", [session inputNumberOfChannels], [session outputNumberOfChannels]);
-
-    NSLog(@"Other audio playing: %i", [session isOtherAudioPlaying]);
-}
-
-
 - (void)doReset {
     NSLog(@"Clearing audio queues");
     [_audioCompression reset];
@@ -622,8 +539,8 @@ static OSStatus audioOutputPullCallback(
 
     [self uninitializeAudioGraph];
 
-    const double transitSampleRate = [self setupAudioSessionAndUpdateAudioFormat];
-    _mainGraph = [self buildIoGraphWithTransitSampleRate:transitSampleRate];
+    [self setupAudioSessionAndUpdateAudioFormat];
+    _mainGraph = [self buildIoGraph];
 
     // Reconfigure IO unit.
     // Sample rate may have changed.

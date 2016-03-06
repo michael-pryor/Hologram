@@ -318,7 +318,7 @@ OSStatus pullCompressedDataToAudioConverter(AudioConverterRef inAudioConverter, 
     AudioBufferList audioBufferList = initializeAudioBufferList();
     AudioBufferList audioBufferListStartState = initializeAudioBufferList();
 
-    const int numFrames = 50;
+    const int numFrames = 10;
     allocateBuffersToAudioBufferListEx(&audioBufferList, 1, numFrames * _uncompressedAudioFormat.mBytesPerFrame, 1, 1, true);
     shallowCopyBuffersEx(&audioBufferListStartState, &audioBufferList, ABL_BUFFER_NULL_OUT); // store original state, namely mBuffers[n].mDataByteSize.
 
