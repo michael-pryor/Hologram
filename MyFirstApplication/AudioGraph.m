@@ -127,7 +127,7 @@ static OSStatus audioOutputPullCallback(
         _audioCompression = nil;
         _audioPcmConversionMicrophoneToTransit = nil;
         _audioPcmConversionTransitToSpeaker = nil;
-        _pendingOutputToSpeaker = [[BlockingQueue alloc] initWithName:@"conversion PCM transit to speaker outbound" maxQueueSize:100];
+        _pendingOutputToSpeaker = buildAudioQueue(@"conversion PCM transit to speaker outbound");
 
         _audioInputAudioBufferList = initializeAudioBufferListSingle(4096, 1);
         _audioInputAudioBufferOriginalSize = _audioInputAudioBufferList.mBuffers[0].mDataByteSize;
@@ -293,7 +293,7 @@ static OSStatus audioOutputPullCallback(
 
 - (void)initializeConverters {
     // Prepare converters.
-    BlockingQueue *sharedDecompressionOutboundPcmInboundQueue = [[BlockingQueue alloc] initWithName:@"Decompression AAC outbound / PCM conversion inbound transit to speaker" maxQueueSize:100];
+    BlockingQueue *sharedDecompressionOutboundPcmInboundQueue = buildAudioQueue(@"Decompression AAC outbound / PCM conversion inbound transit to speaker");
     _audioCompression = [[AudioCompression alloc] initWithUncompressedAudioFormat:_audioFormatTransit uncompressedAudioFormatEx:_audioFormatSpeakerEx outputSession:_outputSession leftPadding:_leftPadding outboundQueue:sharedDecompressionOutboundPcmInboundQueue];
     _audioPcmConversionMicrophoneToTransit = [[AudioPcmConversion alloc] initWithDescription:@"microphone to transit" inputFormat:_audioFormatMicrophone outputFormat:_audioFormatTransit outputFormatEx:_audioFormatTransitEx outputResult:[[AudioPcmMicrophoneToTransitConverter alloc] initWithAudioCompression:_audioCompression queue:sharedDecompressionOutboundPcmInboundQueue compressionEnabled:_aacCompressionEnabled] inboundQueue:nil];
     _audioPcmConversionTransitToSpeaker = [[AudioPcmConversion alloc] initWithDescription:@"transit to speaker" inputFormat:_audioFormatTransit outputFormat:_audioFormatSpeaker outputFormatEx:_audioFormatSpeakerEx outputResult:self inboundQueue:sharedDecompressionOutboundPcmInboundQueue];
@@ -441,21 +441,29 @@ static OSStatus audioOutputPullCallback(
 
                     // Get decompressed data
                     // Data was on network, and then decompressed, and is now ready for PCM consumption.
-                    audioController->bufferAvailableContainer = [audioController->_pendingOutputToSpeaker getImmediate];
-                    if (audioController->bufferAvailableContainer == nil) {
-                        // Fill remainder with silence.
-                        *ioActionFlags |= kAudioUnitRenderAction_OutputIsSilence;
-                        memset(bufferToFill.mData + currentPositionFill, amountToFill, 0);
-                        return noErr;
-                    }
+                    AudioBufferList *audioBufferList = nil;
+                    do {
+                        audioController->bufferAvailableContainer = [audioController->_pendingOutputToSpeaker getImmediate];
+                        if (audioController->bufferAvailableContainer == nil) {
+                            // Fill remainder with silence.
+                            *ioActionFlags |= kAudioUnitRenderAction_OutputIsSilence;
+                            memset(bufferToFill.mData + currentPositionFill, amountToFill, 0);
+                            return noErr;
+                        }
 
 
-                    // Validation.
-                    AudioBufferList *audioBufferList = [audioController->bufferAvailableContainer audioList];
-                    if (audioBufferList->mNumberBuffers != 1) {
-                        NSLog(@"Decompressed audio buffer must have only 1 buffer, actually has: %lu", audioBufferList->mNumberBuffers);
-                        return kAudioConverterErr_UnspecifiedError;
-                    }
+                        // Validation.
+                        audioBufferList = [audioController->bufferAvailableContainer audioList];
+                        if (audioBufferList->mNumberBuffers != 1) {
+                            NSLog(@"Decompressed audio buffer must have only 1 buffer, actually has: %lu", audioBufferList->mNumberBuffers);
+                            return kAudioConverterErr_UnspecifiedError;
+                        }
+
+                        // Safety precaution.
+                        if (audioBufferList->mBuffers[0].mData == nil || audioBufferList->mBuffers[0].mDataByteSize == 0) {
+                            audioBufferList = nil;
+                        }
+                    } while (audioBufferList == nil);
 
                     // Load in for processing.
                     audioController->bufferAvailable = audioBufferList->mBuffers[0];

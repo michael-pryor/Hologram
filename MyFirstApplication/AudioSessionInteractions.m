@@ -65,8 +65,8 @@
 
 - (struct AudioFormatProcessResult)processAudioFormat:(AudioStreamBasicDescription)description bufferDuration:(double)bufferDuration {
     struct AudioFormatProcessResult result;
-    result.framesPerBuffer = (uint)ceil(description.mSampleRate * bufferDuration);
-    result.bytesPerBuffer = (uint)ceil(result.framesPerBuffer * description.mBytesPerFrame);
+    result.framesPerBuffer = (uint)round(description.mSampleRate * bufferDuration);
+    result.bytesPerBuffer = (uint)round(result.framesPerBuffer * description.mBytesPerFrame);
     return result;
 }
 @end

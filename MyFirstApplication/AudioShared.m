@@ -5,6 +5,8 @@
 #import "AudioUnitHelpers.h"
 #import "ByteBuffer.h"
 #import "AudioShared.h"
+#import "BlockingQueue.h"
+#import "BlockingQueueTemporal.h"
 
 @implementation AudioDataContainer
 - (id)initWithNumFrames:(UInt32)numFrames audioList:(AudioBufferList *)audioList {
@@ -73,3 +75,7 @@
     return _audioList != nil && _numFrames > 0;
 }
 @end
+
+BlockingQueue* buildAudioQueue(NSString* name) {
+    return [[BlockingQueueTemporal alloc] initWithName:name maxQueueSize:100 trackerResetFrequencySeconds:5 minimumThreshold:3];
+}

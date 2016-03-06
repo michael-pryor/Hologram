@@ -9,6 +9,8 @@
 #import <Foundation/Foundation.h>
 
 @interface BlockingQueue : NSObject
+@property(readonly) NSString *name;
+
 - (id)init;
 
 - (id)initWithName:(NSString *)humanName maxQueueSize:(unsigned long)maxSize;

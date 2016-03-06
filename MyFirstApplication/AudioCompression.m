@@ -71,10 +71,10 @@
 
         // Get about half a second 1 second delay at worst.
         // TODO: Consider impact of these values.
-        _audioToBeCompressedQueue = [[BlockingQueue alloc] initWithName:@"compression AAC inbound" maxQueueSize:100];
-        _audioToBeDecompressedQueue = [[BlockingQueue alloc] initWithName:@"decompression AAC inbound" maxQueueSize:100];
+        _audioToBeCompressedQueue = buildAudioQueue(@"compression AAC inbound");
+        _audioToBeDecompressedQueue = buildAudioQueue(@"decompression AAC inbound");
         if (outboundQueue == nil) {
-            _audioToBeOutputQueue = [[BlockingQueue alloc] initWithName:@"decompression AAC outbound" maxQueueSize:100];
+            _audioToBeOutputQueue = buildAudioQueue(@"decompression AAC outbound");
         } else {
             _audioToBeOutputQueue = outboundQueue;
         }

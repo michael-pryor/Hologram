@@ -7,6 +7,8 @@
 @import AudioToolbox;
 #include "TimedCounter.h"
 
+@class BlockingQueue;
+
 void printAudioBufferList(AudioBufferList *audioList, NSString *description);
 
 @interface AudioDataContainer : NSObject
@@ -29,3 +31,5 @@ void printAudioBufferList(AudioBufferList *audioList, NSString *description);
 @protocol AudioDataPipeline
 - (void)onNewAudioData:(AudioDataContainer *)audioData;
 @end
+
+BlockingQueue* buildAudioQueue(NSString* name);

@@ -20,8 +20,6 @@
     TimedGapEventTracker *_eventTracker;
 
     bool _uniqueConstraintEnabled;
-
-    NSString *_humanName;
 }
 - (id)initWithName:(NSString *)humanName maxQueueSize:(unsigned long)maxSize {
     return [self initWithName:humanName maxQueueSize:maxSize minQueueSizeLowerBound:0 minQueueSizeUpperBound:0];
@@ -38,7 +36,7 @@
         _minQueueSizeUpper = minSizeUpper;
         _eventTracker = nil;
         _uniqueConstraintEnabled = false;
-        _humanName = humanName;
+        _name = humanName;
     }
     return self;
 }
@@ -57,7 +55,7 @@
 
 - (uint)addObject:(id)obj atPosition:(int)position {
     if (_queueShutdown) {
-        NSLog(@"(%@) Queue is shutdown, discarding insertion attempt", _humanName);
+        NSLog(@"(%@) Queue is shutdown, discarding insertion attempt", _name);
         return 0;
     }
 
@@ -70,10 +68,10 @@
     }
 
     if (_uniqueConstraintEnabled && [_queue containsObject:obj]) {
-        NSLog(@"(%@) Ignored duplicate insertion due to unique constraint being enabled", _humanName);
+        NSLog(@"(%@) Ignored duplicate insertion due to unique constraint being enabled", _name);
     } else {
         if (_maxQueueSize > 0 && [_queue count] >= _maxQueueSize) {
-            NSLog(@"(%@) Removing item from queue, breached maximum queue size of: %lu", _humanName, _maxQueueSize);
+            NSLog(@"(%@) Removing item from queue, breached maximum queue size of: %lu", _name, _maxQueueSize);
 
             // Remove object from start of array.
             [_queue removeObjectAtIndex:0];
@@ -91,6 +89,7 @@
             }
         }
 
+        [self onSizeChange:[_queue count]];
         if ([_queue count] >= _minQueueSizeUpper) {
             [_lock signal];
         }
@@ -113,7 +112,7 @@
 
 - (id)getImmediate:(double)timeoutSeconds {
     if (_queueShutdown) {
-        NSLog(@"(%@) Queue is shutdown, rejecting receive attempt", _humanName);
+        NSLog(@"(%@) Queue is shutdown, rejecting receive attempt", _name);
         return nil;
     }
 
@@ -137,7 +136,7 @@
     if (retVal == [NSNull null]) {
         retVal = nil;
     }
-
+    [self onSizeChange:[_queue count]];
     [_queue removeObjectAtIndex:0];
 
     [_lock unlock];
@@ -150,7 +149,7 @@
 
     id returnVal;
     if ([_queue count] > 0) {
-        returnVal = [_queue objectAtIndex:0];
+        returnVal = _queue[0];
     } else {
         returnVal = nil;
     }
@@ -165,6 +164,10 @@
 
 - (id)get {
     return [self getImmediate:-1];
+}
+
+- (void)onSizeChange:(uint)size {
+    // option to override and respond to change in queue size.
 }
 
 - (id)getWithTimeout:(double)timeoutSeconds {

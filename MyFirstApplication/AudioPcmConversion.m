@@ -35,7 +35,7 @@
         _pcmConversionOutboundCounter = [[TimedCounterLogging alloc] initWithDescription:outboundDescription];
 
         if (queue == nil) {
-            _audioToBeConvertedQueue = [[BlockingQueue alloc] initWithName:inboundDescription maxQueueSize:100];
+            _audioToBeConvertedQueue = buildAudioQueue(inboundDescription);
         } else {
             _audioToBeConvertedQueue = queue;
         }
