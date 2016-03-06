@@ -8,7 +8,11 @@
 
 
 @interface TimedCounter : NSObject
-@property (readonly) uint lastTotal;
+@property(readonly) uint lastTotal;
+
 - (bool)incrementBy:(uint)amount;
-- (id)initWithTimer:(Timer*)timer;
+
+- (id)initWithFrequencySeconds:(CFAbsoluteTime)frequencySeconds;
+
+- (id)initWithTimer:(Timer *)timer;
 @end

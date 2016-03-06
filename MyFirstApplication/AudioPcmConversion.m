@@ -6,6 +6,7 @@
 #import "BlockingQueue.h"
 #import "SoundEncodingShared.h"
 #import "AudioUnitHelpers.h"
+#import "TimedCounterLogging.h"
 
 @implementation AudioPcmConversion {
     AudioStreamBasicDescription _outputAudioFormat;
@@ -21,27 +22,21 @@
     uint _numFramesPerOperation;
     bool _isRunning;
 
-    TimedCounter *_pcmConversionInboundCounter;
-    TimedCounter *_pcmConversionOutboundCounter;
-
-    NSString * _humanDescription;
-    NSString * _inboundDescription;
-    NSString *_outboundDescription;
+    TimedCounterLogging *_pcmConversionInboundCounter;
+    TimedCounterLogging *_pcmConversionOutboundCounter;
 }
 
 - (id)initWithDescription:(NSString*)humanDescription inputFormat:(AudioStreamBasicDescription *)inputFormat outputFormat:(AudioStreamBasicDescription *)outputFormat outputResult:(id <AudioDataPipeline>)callback numFramesPerOperation:(UInt32)numFrames inboundQueue:(BlockingQueue*)queue{
     self = [super init];
     if (self) {
-        _humanDescription = humanDescription;
-        _inboundDescription = [NSString stringWithFormat:@"PCM conversion inbound %@", _humanDescription];
-        _outboundDescription = [NSString stringWithFormat:@"PCM conversion outbound %@", _humanDescription];
+        NSString * inboundDescription = [NSString stringWithFormat:@"PCM conversion inbound %@", humanDescription];
+        NSString * outboundDescription = [NSString stringWithFormat:@"PCM conversion outbound %@", humanDescription];
 
-        const uint freqSeconds = 60;
-        _pcmConversionInboundCounter = [[TimedCounter alloc] initWithTimer:[[Timer alloc] initWithFrequencySeconds:freqSeconds firingInitially:false]];
-        _pcmConversionOutboundCounter = [[TimedCounter alloc] initWithTimer:[[Timer alloc] initWithFrequencySeconds:freqSeconds firingInitially:false]];
+        _pcmConversionInboundCounter =  [[TimedCounterLogging alloc] initWithDescription:inboundDescription];
+        _pcmConversionOutboundCounter = [[TimedCounterLogging alloc] initWithDescription:outboundDescription];
 
         if (queue == nil) {
-            _audioToBeConvertedQueue = [[BlockingQueue alloc] initWithName:_inboundDescription maxQueueSize:100];
+            _audioToBeConvertedQueue = [[BlockingQueue alloc] initWithName:inboundDescription maxQueueSize:100];
         } else {
             _audioToBeConvertedQueue = queue;
         }
@@ -128,9 +123,9 @@ OSStatus pullPcmDataToBeConverted(AudioConverterRef inAudioConverter, UInt32 *io
             status = AudioConverterFillComplexBuffer(audioConverter, pullPcmDataToBeConverted, (__bridge void *) self, &numFramesResult, &audioBufferList, NULL);
             [self validateResult:status description:@"converting PCM audio data" logSuccess:false];
 
-            AudioDataContainer *container = [[AudioDataContainer alloc] initWithNumFrames:numFramesResult audioList:&audioBufferList];
-            [AudioDataContainer handleTimedCounter:_pcmConversionOutboundCounter description:_outboundDescription incrementContainer:container];
-            [_callback onNewAudioData:container];
+            AudioDataContainer *audioData = [[AudioDataContainer alloc] initWithNumFrames:numFramesResult audioList:&audioBufferList];
+            [audioData incrementCounter:_pcmConversionOutboundCounter];
+            [_callback onNewAudioData:audioData];
 
             // Reset mBuffers[n].mDataByteSize so that buffer can be reused.
             resetBuffers(&audioBufferList, &audioBufferListStartState);
@@ -147,7 +142,7 @@ OSStatus pullPcmDataToBeConverted(AudioConverterRef inAudioConverter, UInt32 *io
 }
 
 - (void)onNewAudioData:(AudioDataContainer *)audioData {
-    [AudioDataContainer handleTimedCounter:_pcmConversionInboundCounter description:_inboundDescription incrementContainer:audioData];
+    [audioData incrementCounter:_pcmConversionInboundCounter];
     [_audioToBeConvertedQueue add:audioData];
 }
 

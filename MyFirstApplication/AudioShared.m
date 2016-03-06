@@ -50,22 +50,12 @@
     return byteBuffer;
 }
 
-+ (void)handleTimedCounter:(TimedCounter *)counter description:(NSString *)description increment:(uint)increment {
-    if ([counter incrementBy:increment]) {
-        NSLog(@"Counter [%@] has total of [%u] in last minute", description, [counter lastTotal]);
-    }
-}
-
-+ (void)handleTimedCounter:(TimedCounter *)counter description:(NSString *)description incrementContainer:(AudioDataContainer *)container {
-    if (container == nil) {
+- (void)incrementCounter:(TimedCounter *)counter {
+    if ([self audioList] == nil || [self audioList]->mNumberBuffers != 1) {
         return;
     }
 
-    if ([container audioList] == nil || [container audioList]->mNumberBuffers != 1) {
-        return;
-    }
-
-    [self handleTimedCounter:counter description:description increment:container.audioList->mBuffers[0].mDataByteSize];
+    [counter incrementBy:[self audioList]->mBuffers[0].mDataByteSize];
 }
 
 - (void)freeMemory {

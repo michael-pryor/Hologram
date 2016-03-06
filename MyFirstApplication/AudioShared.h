@@ -21,7 +21,7 @@ void printAudioBufferList(AudioBufferList *audioList, NSString *description);
 
 - (ByteBuffer *)buildByteBufferWithLeftPadding:(uint)leftPadding;
 
-+ (void)handleTimedCounter:(TimedCounter *)counter description:(NSString *)description incrementContainer:(AudioDataContainer *)container;
+- (void)incrementCounter:(TimedCounter *)counter;
 @end
 
 @protocol AudioDataPipeline

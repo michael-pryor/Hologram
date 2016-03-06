@@ -20,6 +20,10 @@
     return self;
 }
 
+- (id)initWithFrequencySeconds:(CFAbsoluteTime)frequencySeconds {
+    return [self initWithTimer:[[Timer alloc] initWithFrequencySeconds:frequencySeconds firingInitially:false]];
+}
+
 - (bool)incrementBy:(uint)amount {
     @synchronized(_timer) {
         _amount += amount;
