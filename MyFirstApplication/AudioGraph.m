@@ -127,7 +127,7 @@ static OSStatus audioOutputPullCallback(
         _audioCompression = nil;
         _audioPcmConversionMicrophoneToTransit = nil;
         _audioPcmConversionTransitToSpeaker = nil;
-        _pendingOutputToSpeaker = [[BlockingQueue alloc] initWithName:@"conversion PCM transit to speaker outbound" maxQueueSize:100000];
+        _pendingOutputToSpeaker = [[BlockingQueue alloc] initWithName:@"conversion PCM transit to speaker outbound" maxQueueSize:100];
 
         _audioInputAudioBufferList = initializeAudioBufferListSingle(4096, 1);
         _audioInputAudioBufferOriginalSize = _audioInputAudioBufferList.mBuffers[0].mDataByteSize;
@@ -170,10 +170,10 @@ static OSStatus audioOutputPullCallback(
     audioDescription.mBytesPerFrame = bytesPerSample;
     audioDescription.mBytesPerPacket = bytesPerSample;
 
-    // Unsigned integer.
-    // Little endian.
+    // Signed integer.
+    // Little endian (set by clearing big endian).
     // Packed = sample bits occupy the entire available bits for the channel (instead of being high or low aligned).
-    // Non interleaves i.e. separate buffer per channel.
+    // Non interleaved i.e. separate buffer per channel. We only have one channel so this doesn't matter.
     // No fractional shift.
     audioDescription.mFormatFlags = kAudioFormatFlagIsPacked | kAudioFormatFlagIsNonInterleaved | kAudioFormatFlagIsSignedInteger;
 
@@ -293,7 +293,7 @@ static OSStatus audioOutputPullCallback(
 
 - (void)initializeConverters {
     // Prepare converters.
-    BlockingQueue *sharedDecompressionOutboundPcmInboundQueue = [[BlockingQueue alloc] initWithName:@"Decompression AAC outbound / PCM conversion inbound transit to speaker" maxQueueSize:1000];
+    BlockingQueue *sharedDecompressionOutboundPcmInboundQueue = [[BlockingQueue alloc] initWithName:@"Decompression AAC outbound / PCM conversion inbound transit to speaker" maxQueueSize:100];
     _audioCompression = [[AudioCompression alloc] initWithUncompressedAudioFormat:_audioFormatTransit uncompressedAudioFormatEx:_audioFormatSpeakerEx outputSession:_outputSession leftPadding:_leftPadding outboundQueue:sharedDecompressionOutboundPcmInboundQueue];
     _audioPcmConversionMicrophoneToTransit = [[AudioPcmConversion alloc] initWithDescription:@"microphone to transit" inputFormat:_audioFormatMicrophone outputFormat:_audioFormatTransit outputFormatEx:_audioFormatTransitEx outputResult:[[AudioPcmMicrophoneToTransitConverter alloc] initWithAudioCompression:_audioCompression queue:sharedDecompressionOutboundPcmInboundQueue compressionEnabled:_aacCompressionEnabled] inboundQueue:nil];
     _audioPcmConversionTransitToSpeaker = [[AudioPcmConversion alloc] initWithDescription:@"transit to speaker" inputFormat:_audioFormatTransit outputFormat:_audioFormatSpeaker outputFormatEx:_audioFormatSpeakerEx outputResult:self inboundQueue:sharedDecompressionOutboundPcmInboundQueue];
