@@ -125,6 +125,8 @@
 - (void)terminate {
     _isRunningDecompression = false;
     _isRunningCompression = false;
+    [_audioToBeCompressedQueue shutdown];
+    [_audioToBeDecompressedQueue shutdown];
 }
 
 - (void)dealloc {
@@ -143,6 +145,9 @@ OSStatus pullUncompressedDataToAudioConverter(AudioConverterRef inAudioConverter
     AudioCompression *audioCompression = (__bridge AudioCompression *) inUserData;
 
     AudioDataContainer *item = [audioCompression getUncompressedItem];
+    if (item == nil) {
+        return kAudioConverterErr_UnspecifiedError;
+    }
 
     // Normally 1 frame per packet.
     *ioNumberDataPackets = item.numFrames / audioCompression->_uncompressedAudioFormat.mFramesPerPacket;
@@ -254,6 +259,9 @@ OSStatus pullUncompressedDataToAudioConverter(AudioConverterRef inAudioConverter
         }
     }
     freeAudioBufferListEx(&audioBufferList, true);
+
+    status = AudioConverterDispose(audioConverter);
+    [self validateResult:status description:@"disposing of compression audio converter"];
 }
 
 
@@ -262,6 +270,9 @@ OSStatus pullCompressedDataToAudioConverter(AudioConverterRef inAudioConverter, 
     AudioCompression *audioCompression = (__bridge AudioCompression *) inUserData;
 
     AudioDataContainer *item = [audioCompression getCompressedItem];
+    if (item == nil) {
+        return kAudioConverterErr_UnspecifiedError;
+    }
 
     *ioNumberDataPackets = 1;
 
@@ -329,10 +340,6 @@ OSStatus pullCompressedDataToAudioConverter(AudioConverterRef inAudioConverter, 
             status = AudioConverterFillComplexBuffer(audioConverterDecompression, pullCompressedDataToAudioConverter, (__bridge void *) self, &numFramesResult, &audioBufferList, NULL);
             [self validateResult:status description:@"decompressing audio data" logSuccess:false];
 
-            /*for (int n = 0; n < audioBufferList.mNumberBuffers; n++) {
-                NSLog(@"Decompressed buffer size: %lu", audioBufferList.mBuffers[n].mDataByteSize);
-            }*/
-
             [_audioToBeOutputQueue add:[[AudioDataContainer alloc] initWithNumFrames:numFramesResult audioList:&audioBufferList]];
 
             // Reset mBuffers[n].mDataByteSize so that buffer can be reused.
@@ -340,6 +347,9 @@ OSStatus pullCompressedDataToAudioConverter(AudioConverterRef inAudioConverter, 
         }
     }
     freeAudioBufferListEx(&audioBufferList, true);
+
+    status = AudioConverterDispose(audioConverterDecompression);
+    [self validateResult:status description:@"disposing of decompression audio converter"];
 }
 
 - (AudioDataContainer *)getUncompressedItem {

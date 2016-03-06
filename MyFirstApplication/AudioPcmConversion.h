@@ -13,4 +13,8 @@
 - (void)initialize;
 
 - (void)onNewAudioData:(AudioDataContainer *)audioData;
+
+- (void)terminate;
+
+- (void)reset;
 @end

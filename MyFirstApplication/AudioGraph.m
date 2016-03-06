@@ -102,6 +102,8 @@ static OSStatus audioOutputPullCallback(
     Signal *_resetFlag;
     Signal *_isRunning;
     Signal *_isRegisteredWithNotificationCentre;
+
+    bool _isInitialized;
 }
 
 - (id)initWithOutputSession:(id <NewPacketDelegate>)outputSession leftPadding:(uint)leftPadding {
@@ -121,6 +123,8 @@ static OSStatus audioOutputPullCallback(
         }
 
         // Initialize data structures.
+        _isInitialized = false;
+
         _audioCompression = nil;
         _audioPcmConversionMicrophoneToTransit = nil;
         _audioPcmConversionTransitToSpeaker = nil;
@@ -135,6 +139,8 @@ static OSStatus audioOutputPullCallback(
         _resetFlag = [[Signal alloc] initWithFlag:false];
         _isRunning = [[Signal alloc] initWithFlag:false];
         _isRegisteredWithNotificationCentre = [[Signal alloc] initWithFlag:false];
+
+        [self buildAudioUnit];
     }
     return self;
 }
@@ -253,7 +259,17 @@ static OSStatus audioOutputPullCallback(
     [self validateResult:status description:@"adding audio output pull callback"];
 }
 
+// One can change the audio format of an IO unit simply by uninitializing and initializing,
+// do not need to rebuild the entire thing as buildAudioUnit does.
 - (void)initializeAudioUnit {
+    [self setMicrophoneAudioFormat:&_audioFormatMicrophone speakerAudioFormat:&_audioFormatSpeaker ofIoAudioUnit:_ioAudioUnit];
+
+    OSStatus status = AudioUnitInitialize(_ioAudioUnit);
+    [self validateResult:status description:@"Initializing audio IO unit"];
+}
+
+// Build a complete IO audio unit.
+- (void)buildAudioUnit {
     // Access speaker (bus 0)
     // Access microphone (bus 1)
     AudioComponentDescription ioUnitDescription;
@@ -272,16 +288,8 @@ static OSStatus audioOutputPullCallback(
             &_ioAudioUnit
     );
 
-    // open call here.
-
-    [self setMicrophoneAudioFormat:&_audioFormatMicrophone speakerAudioFormat:&_audioFormatSpeaker ofIoAudioUnit:_ioAudioUnit];
-
     [self setAudioPullCallback:_ioAudioUnit];
-
     [self enableInputOnAudioUnit:_ioAudioUnit];
-
-    OSStatus status = AudioUnitInitialize(_ioAudioUnit);
-    [self validateResult:status description:@"Initializing audio IO unit"];
 }
 
 - (void)initializeConverters {
@@ -299,6 +307,11 @@ static OSStatus audioOutputPullCallback(
 
 - (void)initialize {
     @synchronized (self) {
+        if (_isInitialized) {
+            return;
+        }
+
+        _isInitialized = true;
         [self setupAudioSessionAndUpdateAudioFormat];
 
         // We don't need to reregister.
@@ -316,9 +329,31 @@ static OSStatus audioOutputPullCallback(
     }
 }
 
-- (void)uninitialize {
-    OSStatus status;
+- (void)terminateConverters {
+    [_audioCompression terminate];
+    [_audioPcmConversionMicrophoneToTransit terminate];
+    [_audioPcmConversionTransitToSpeaker terminate];
+}
 
+- (void)uninitializeAudioUnit {
+    OSStatus status = AudioUnitUninitialize(_ioAudioUnit);
+    [self validateResult:status description:@"uninitializing IO audio unit"];
+}
+
+- (void)uninitialize {
+    @synchronized(self) {
+        if (!_isInitialized) {
+            return;
+        }
+
+        _isInitialized = false;
+        [self stop];
+
+        [self terminateConverters];
+        [self uninitializeAudioUnit];
+
+        [self reset];
+    }
 }
 
 - (AudioBufferList *)prepareInputAudioBufferList {
@@ -500,6 +535,9 @@ static OSStatus audioOutputPullCallback(
 - (void)doReset {
     NSLog(@"Clearing audio queues");
     [_audioCompression reset];
+    [_pendingOutputToSpeaker clear];
+    [_audioPcmConversionTransitToSpeaker reset];
+    [_audioPcmConversionMicrophoneToTransit reset];
 }
 
 - (void)reset {

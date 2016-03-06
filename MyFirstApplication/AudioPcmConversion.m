@@ -131,6 +131,9 @@ OSStatus pullPcmDataToBeConverted(AudioConverterRef inAudioConverter, UInt32 *io
             resetBuffers(&audioBufferList, &audioBufferListStartState);
         }
     }
+
+    status = AudioConverterDispose(audioConverter);
+    [self validateResult:status description:@"disposing of PCM audio converter"];
 }
 
 - (bool)validateResult:(OSStatus)result description:(NSString *)description logSuccess:(bool)logSuccess {
@@ -148,5 +151,14 @@ OSStatus pullPcmDataToBeConverted(AudioConverterRef inAudioConverter, UInt32 *io
 
 - (AudioDataContainer *)getItemToBeConverted {
     return [_audioToBeConvertedQueue get];
+}
+
+- (void)terminate {
+    _isRunning = false;
+    [_audioToBeConvertedQueue shutdown];
+}
+
+- (void)reset {
+    [_audioToBeConvertedQueue clear];
 }
 @end
