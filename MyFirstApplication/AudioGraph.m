@@ -69,18 +69,21 @@
     if (self) {
         _loopbackEnabled = outputSession == nil;
 
-        _pendingOutputToSpeaker = [[BlockingQueue alloc] initWithMaxQueueSize:100000];
+        _pendingOutputToSpeaker = [[BlockingQueue alloc] initWithName:@"conversion PCM transit to speaker outbound" maxQueueSize:100000];
 
         _audioInputAudioBufferList = initializeAudioBufferListSingle(4096, 1);
         _audioInputAudioBufferOriginalSize = _audioInputAudioBufferList.mBuffers[0].mDataByteSize;
 
         const double transitSampleRate = [self setupAudioSessionAndUpdateAudioFormat];
-        _audioCompression = [[AudioCompression alloc] initWithAudioFormat:_audioFormatSpeaker outputSession:outputSession leftPadding:leftPadding];
+
+        BlockingQueue * sharedDecompressionOutboundPcmInboundQueue = [[BlockingQueue alloc] initWithName:@"Decompression AAC outbound" maxQueueSize:100];
+
+        _audioCompression = [[AudioCompression alloc] initWithAudioFormat:_audioFormatSpeaker outputSession:outputSession leftPadding:leftPadding outboundQueue:sharedDecompressionOutboundPcmInboundQueue];
 
         // Converts 44k (or something like that) PCM sample data from microphone into 8K PCM smaple data (transit format), and passes directly to audio compression to convert to AAC.
-        _audioPcmConversionMicrophoneToTransit = [[AudioPcmConversion alloc] initWithDescription:@"microphone to transit" inputFormat:&_audioFormatMicrophone outputFormat:&_audioFormatTransit outputResult:[[AudioPcmMicrophoneToTransitConverter alloc] initWithAudioCompression:_audioCompression] numFramesPerOperation:50];
+        _audioPcmConversionMicrophoneToTransit = [[AudioPcmConversion alloc] initWithDescription:@"microphone to transit" inputFormat:&_audioFormatMicrophone outputFormat:&_audioFormatTransit outputResult:[[AudioPcmMicrophoneToTransitConverter alloc] initWithAudioCompression:_audioCompression] numFramesPerOperation:50 inboundQueue:nil];
 
-        _audioPcmConversionTransitToSpeaker = [[AudioPcmConversion alloc] initWithDescription:@"transit to speaker" inputFormat:&_audioFormatTransit outputFormat:&_audioFormatMicrophone outputResult:self numFramesPerOperation:256];
+        _audioPcmConversionTransitToSpeaker = [[AudioPcmConversion alloc] initWithDescription:@"transit to speaker" inputFormat:&_audioFormatTransit outputFormat:&_audioFormatMicrophone outputResult:self numFramesPerOperation:256 inboundQueue:(BlockingQueue*)sharedDecompressionOutboundPcmInboundQueue];
         _mainGraph = [self buildIoGraphWithTransitSampleRate:transitSampleRate];
 
         bufferAvailableContainer = nil;
@@ -98,7 +101,7 @@
 }
 
 - (double)setupAudioSessionAndUpdateAudioFormat {
-    const double transitSampleRate = 16000;
+    const double transitSampleRate = 8000;
 
     // Sample rate of audio session must match sample rate of ioUnit.
     const double hardwareSampleRate = [self setupAudioSessionWithDesiredHardwareSampleRate:16000];
@@ -193,7 +196,7 @@ static OSStatus audioOutputPullCallback(
 
             OSStatus status = AudioUnitRender([audioController getAudioProducer], ioActionFlags, inTimeStamp, 1, inNumberFrames, audioBufferList);
             if (HandleResultOSStatus(status, @"rendering input audio", false)) {
-                //NSLog(@"Successful with %lu frames, size: %lu, sample rate: %.2f", inNumberFrames, audioBufferList->mBuffers[0].mDataByteSize, inTimeStamp->mSampleTime);
+                NSLog(@"Successful with %lu frames, size: %lu, sample rate: %.2f", inNumberFrames, audioBufferList->mBuffers[0].mDataByteSize, inTimeStamp->mSampleTime);
                 [audioController->_audioPcmConversionMicrophoneToTransit onNewAudioData:[[AudioDataContainer alloc] initWithNumFrames:inNumberFrames audioList:audioBufferList]];
             }
 
@@ -203,7 +206,7 @@ static OSStatus audioOutputPullCallback(
         }
 
         // Convert PCM from 8k transit to speaker format.
-        {
+       /* {
             AudioDataContainer *pendingPcmConversion = nil;
             while (true) {
                 pendingPcmConversion = [audioController->_audioCompression getPendingDecompressedData];
@@ -213,7 +216,7 @@ static OSStatus audioOutputPullCallback(
                     break;
                 }
             }
-        }
+        }*/
 
         // Fill speaker buffer with data.
         {
@@ -234,6 +237,7 @@ static OSStatus audioOutputPullCallback(
                     audioController->bufferAvailableContainer = [audioController->_pendingOutputToSpeaker getImmediate];
                     if (audioController->bufferAvailableContainer == nil) {
                         // Fill remainder with silence.
+                        *ioActionFlags |= kAudioUnitRenderAction_OutputIsSilence;
                         memset(bufferToFill.mData + currentPositionFill, amountToFill, 0);
                         return noErr;
                     }

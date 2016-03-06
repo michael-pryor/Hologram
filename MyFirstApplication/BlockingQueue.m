@@ -20,12 +20,14 @@
     TimedGapEventTracker *_eventTracker;
 
     bool _uniqueConstraintEnabled;
+
+    NSString *_humanName;
 }
-- (id)initWithMaxQueueSize:(unsigned long)maxSize {
-    return [self initWithMaxQueueSize:maxSize minQueueSizeLowerBound:0 minQueueSizeUpperBound:0];
+- (id)initWithName:(NSString *)humanName maxQueueSize:(unsigned long)maxSize {
+    return [self initWithName:humanName maxQueueSize:maxSize minQueueSizeLowerBound:0 minQueueSizeUpperBound:0];
 }
 
-- (id)initWithMaxQueueSize:(unsigned long)maxSize minQueueSizeLowerBound:(unsigned long)minSizeLower minQueueSizeUpperBound:(unsigned long)minSizeUpper {
+- (id)initWithName:(NSString *)humanName maxQueueSize:(unsigned long)maxSize minQueueSizeLowerBound:(unsigned long)minSizeLower minQueueSizeUpperBound:(unsigned long)minSizeUpper {
     self = [super init];
     if (self) {
         _queue = [[NSMutableArray alloc] init];
@@ -36,6 +38,7 @@
         _minQueueSizeUpper = minSizeUpper;
         _eventTracker = nil;
         _uniqueConstraintEnabled = false;
+        _humanName = humanName;
     }
     return self;
 }
@@ -49,12 +52,12 @@
 }
 
 - (id)init {
-    return [self initWithMaxQueueSize:0];
+    return [self initWithName:@"queue" maxQueueSize:0];
 }
 
 - (uint)addObject:(id)obj atPosition:(int)position {
     if (_queueShutdown) {
-        NSLog(@"Queue is shutdown, discarding insertion attempt");
+        NSLog(@"(%@) Queue is shutdown, discarding insertion attempt", _humanName);
         return 0;
     }
 
@@ -67,10 +70,10 @@
     }
 
     if (_uniqueConstraintEnabled && [_queue containsObject:obj]) {
-        NSLog(@"Ignored duplicate insertion due to unique constraint being enabled");
+        NSLog(@"(%@) Ignored duplicate insertion due to unique constraint being enabled", _humanName);
     } else {
         if (_maxQueueSize > 0 && [_queue count] >= _maxQueueSize) {
-            NSLog(@"Removing item from queue, breached maximum queue size of: %lu", _maxQueueSize);
+            NSLog(@"(%@) Removing item from queue, breached maximum queue size of: %lu", _humanName, _maxQueueSize);
 
             // Remove object from start of array.
             [_queue removeObjectAtIndex:0];
@@ -110,7 +113,7 @@
 
 - (id)getImmediate:(double)timeoutSeconds {
     if (_queueShutdown) {
-        NSLog(@"Queue is shutdown, rejecting receive attempt");
+        NSLog(@"(%@) Queue is shutdown, rejecting receive attempt", _humanName);
         return nil;
     }
 

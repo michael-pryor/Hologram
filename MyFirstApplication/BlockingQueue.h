@@ -11,9 +11,9 @@
 @interface BlockingQueue : NSObject
 - (id)init;
 
-- (id)initWithMaxQueueSize:(unsigned long)maxSize;
+- (id)initWithName:(NSString *)humanName maxQueueSize:(unsigned long)maxSize;
 
-- (id)initWithMaxQueueSize:(unsigned long)maxSize minQueueSizeLowerBound:(unsigned long)minSizeLower minQueueSizeUpperBound:(unsigned long)minSizeUpper;
+- (id)initWithName:(NSString *)humanName maxQueueSize:(unsigned long)maxSize minQueueSizeLowerBound:(unsigned long)minSizeLower minQueueSizeUpperBound:(unsigned long)minSizeUpper;
 
 - (uint)add:(id)obj;
 

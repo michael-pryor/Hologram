@@ -29,21 +29,29 @@
     NSString *_outboundDescription;
 }
 
-- (id)initWithDescription:(NSString*)humanDescription inputFormat:(AudioStreamBasicDescription *)inputFormat outputFormat:(AudioStreamBasicDescription *)outputFormat outputResult:(id <AudioDataPipeline>)callback numFramesPerOperation:(UInt32)numFrames {
+- (id)initWithDescription:(NSString*)humanDescription inputFormat:(AudioStreamBasicDescription *)inputFormat outputFormat:(AudioStreamBasicDescription *)outputFormat outputResult:(id <AudioDataPipeline>)callback numFramesPerOperation:(UInt32)numFrames inboundQueue:(BlockingQueue*)queue{
     self = [super init];
     if (self) {
+        _humanDescription = humanDescription;
+        _inboundDescription = [NSString stringWithFormat:@"PCM conversion inbound %@", _humanDescription];
+        _outboundDescription = [NSString stringWithFormat:@"PCM conversion outbound %@", _humanDescription];
+
         const uint freqSeconds = 60;
         _pcmConversionInboundCounter = [[TimedCounter alloc] initWithTimer:[[Timer alloc] initWithFrequencySeconds:freqSeconds firingInitially:false]];
         _pcmConversionOutboundCounter = [[TimedCounter alloc] initWithTimer:[[Timer alloc] initWithFrequencySeconds:freqSeconds firingInitially:false]];
-        _audioToBeConvertedQueue = [[BlockingQueue alloc] initWithMaxQueueSize:100];
+
+        if (queue == nil) {
+            _audioToBeConvertedQueue = [[BlockingQueue alloc] initWithName:[NSString stringWithFormat:@"conversion %@", _inboundDescription] maxQueueSize:100];
+        } else {
+            _audioToBeConvertedQueue = queue;
+        }
+
         _inputAudioFormat = *inputFormat;
         _outputAudioFormat = *outputFormat;
         _isRunning = false;
         _callback = callback;
         _numFramesPerOperation = numFrames;
-        _humanDescription = humanDescription;
-        _inboundDescription = [NSString stringWithFormat:@"PCM conversion inbound %@", _humanDescription];
-        _outboundDescription = [NSString stringWithFormat:@"PCM conversion outbound %@", _humanDescription];
+
     }
     return self;
 }
