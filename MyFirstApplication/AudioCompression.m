@@ -3,12 +3,11 @@
 //
 
 #import "AudioCompression.h"
-#import "BlockingQueue.h"
 #import "SoundEncodingShared.h"
 #import "AudioUnitHelpers.h"
 #import "Signal.h"
-#import "InputSessionBase.h"
 #import "TimedCounterLogging.h"
+#import "AudioSessionInteractions.h"
 
 
 @implementation AudioCompression {
@@ -28,6 +27,8 @@
 
     AudioStreamBasicDescription _compressedAudioFormat;
     AudioStreamBasicDescription _uncompressedAudioFormat;
+    uint numFramesToDecompressPerOperation;
+
 
     // To decompress, we need a description for each AAC packet.
     AudioStreamPacketDescription _compressedDescription;
@@ -57,7 +58,7 @@
     TimedCounterLogging *_decompressedOutboundSizeCounter;
 }
 
-- (id)initWithAudioFormat:(AudioStreamBasicDescription)uncompressedAudioFormat outputSession:(id <NewPacketDelegate>)outputSession leftPadding:(uint)leftPadding outboundQueue:(BlockingQueue*)outboundQueue {
+- (id)initWithUncompressedAudioFormat:(AudioStreamBasicDescription)uncompressedAudioFormat uncompressedAudioFormatEx:(AudioFormatProcessResult)uncompressedAudioFormatEx outputSession:(id <NewPacketDelegate>)outputSession leftPadding:(uint)leftPadding outboundQueue:(BlockingQueue *)outboundQueue {
     self = [super init];
     if (self) {
         _isRunningDecompression = false;
@@ -89,6 +90,7 @@
         }
 
         _uncompressedAudioFormat = uncompressedAudioFormat;
+        numFramesToDecompressPerOperation = uncompressedAudioFormatEx.framesPerBuffer;
 
         // Compression does not care about the PCM sample rate.
         // This is important because sample rate may change when plugging in earphones, or unplugging them.
@@ -97,7 +99,7 @@
         AudioStreamBasicDescription compressedAudioDescription = {0};
         compressedAudioDescription.mFormatID = kAudioFormatMPEG4AAC;
         compressedAudioDescription.mChannelsPerFrame = 1;
-        compressedAudioDescription.mSampleRate = 8000.0;
+        compressedAudioDescription.mSampleRate = uncompressedAudioFormat.mSampleRate;
         compressedAudioDescription.mFramesPerPacket = 1024;
         compressedAudioDescription.mFormatFlags = 0;
         _compressedAudioFormat = compressedAudioDescription;
@@ -328,14 +330,13 @@ OSStatus pullCompressedDataToAudioConverter(AudioConverterRef inAudioConverter, 
     AudioBufferList audioBufferList = initializeAudioBufferList();
     AudioBufferList audioBufferListStartState = initializeAudioBufferList();
 
-    const int numFrames = 10;
-    allocateBuffersToAudioBufferListEx(&audioBufferList, 1, numFrames * _uncompressedAudioFormat.mBytesPerFrame, 1, 1, true);
+    allocateBuffersToAudioBufferListEx(&audioBufferList, 1, numFramesToDecompressPerOperation * _uncompressedAudioFormat.mBytesPerFrame, 1, 1, true);
     shallowCopyBuffersEx(&audioBufferListStartState, &audioBufferList, ABL_BUFFER_NULL_OUT); // store original state, namely mBuffers[n].mDataByteSize.
 
     _isRunningDecompression = true;
     while (_isRunningDecompression) {
         @autoreleasepool {
-            UInt32 numFramesResult = numFrames;
+            UInt32 numFramesResult = numFramesToDecompressPerOperation;
 
             status = AudioConverterFillComplexBuffer(audioConverterDecompression, pullCompressedDataToAudioConverter, (__bridge void *) self, &numFramesResult, &audioBufferList, NULL);
             [self validateResult:status description:@"decompressing audio data" logSuccess:false];
@@ -374,7 +375,7 @@ OSStatus pullCompressedDataToAudioConverter(AudioConverterRef inAudioConverter, 
 }
 
 - (AudioDataContainer *)getPendingDecompressedData {
-    AudioDataContainer *audioData =  [_audioToBeOutputQueue getImmediate];
+    AudioDataContainer *audioData = [_audioToBeOutputQueue getImmediate];
     [audioData incrementCounter:_decompressedOutboundSizeCounter];
     return audioData;
 }

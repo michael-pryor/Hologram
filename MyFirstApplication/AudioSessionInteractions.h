@@ -9,6 +9,7 @@ struct AudioFormatProcessResult {
     uint framesPerBuffer;
     uint bytesPerBuffer;
 };
+typedef struct AudioFormatProcessResult  AudioFormatProcessResult;
 
 @interface AudioSessionInteractions : NSObject
 @property(readonly) double hardwareSampleRate;

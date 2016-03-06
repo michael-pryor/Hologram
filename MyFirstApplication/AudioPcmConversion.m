@@ -3,10 +3,10 @@
 //
 
 #import "AudioPcmConversion.h"
-#import "BlockingQueue.h"
 #import "SoundEncodingShared.h"
 #import "AudioUnitHelpers.h"
 #import "TimedCounterLogging.h"
+#import "AudioSessionInteractions.h"
 
 @implementation AudioPcmConversion {
     AudioStreamBasicDescription _outputAudioFormat;
@@ -26,13 +26,13 @@
     TimedCounterLogging *_pcmConversionOutboundCounter;
 }
 
-- (id)initWithDescription:(NSString*)humanDescription inputFormat:(AudioStreamBasicDescription *)inputFormat outputFormat:(AudioStreamBasicDescription *)outputFormat outputResult:(id <AudioDataPipeline>)callback numFramesPerOperation:(UInt32)numFrames inboundQueue:(BlockingQueue*)queue{
+- (id)initWithDescription:(NSString *)humanDescription inputFormat:(AudioStreamBasicDescription)inputFormat outputFormat:(AudioStreamBasicDescription)outputFormat outputFormatEx:(AudioFormatProcessResult)outputFormatEx outputResult:(id <AudioDataPipeline>)callback inboundQueue:(BlockingQueue *)queue {
     self = [super init];
     if (self) {
-        NSString * inboundDescription = [NSString stringWithFormat:@"PCM conversion inbound %@", humanDescription];
-        NSString * outboundDescription = [NSString stringWithFormat:@"PCM conversion outbound %@", humanDescription];
+        NSString *inboundDescription = [NSString stringWithFormat:@"PCM conversion inbound %@", humanDescription];
+        NSString *outboundDescription = [NSString stringWithFormat:@"PCM conversion outbound %@", humanDescription];
 
-        _pcmConversionInboundCounter =  [[TimedCounterLogging alloc] initWithDescription:inboundDescription];
+        _pcmConversionInboundCounter = [[TimedCounterLogging alloc] initWithDescription:inboundDescription];
         _pcmConversionOutboundCounter = [[TimedCounterLogging alloc] initWithDescription:outboundDescription];
 
         if (queue == nil) {
@@ -41,11 +41,11 @@
             _audioToBeConvertedQueue = queue;
         }
 
-        _inputAudioFormat = *inputFormat;
-        _outputAudioFormat = *outputFormat;
+        _inputAudioFormat = inputFormat;
+        _outputAudioFormat = outputFormat;
         _isRunning = false;
         _callback = callback;
-        _numFramesPerOperation = numFrames;
+        _numFramesPerOperation = outputFormatEx.framesPerBuffer;
 
     }
     return self;

@@ -6,9 +6,10 @@
 @import AudioToolbox;
 #import "AudioShared.h"
 #import "BlockingQueue.h"
+#import "AudioSessionInteractions.h"
 
 @interface AudioPcmConversion : NSObject
-- (id)initWithDescription:(NSString*)humanDescription inputFormat:(AudioStreamBasicDescription *)inputFormat outputFormat:(AudioStreamBasicDescription *)outputFormat outputResult:(id <AudioDataPipeline>)callback numFramesPerOperation:(UInt32)numFrames inboundQueue:(BlockingQueue*)queue;
+- (id)initWithDescription:(NSString *)humanDescription inputFormat:(AudioStreamBasicDescription)inputFormat outputFormat:(AudioStreamBasicDescription)outputFormat outputFormatEx:(AudioFormatProcessResult)outputFormatEx outputResult:(id <AudioDataPipeline>)callback inboundQueue:(BlockingQueue *)queue;
 
 - (void)initialize;
 
