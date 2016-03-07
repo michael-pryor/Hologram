@@ -38,15 +38,11 @@
     float _filterIntensity;
     Timer* _filterIntensityDecreaseTimer;
     float _filterIntensityDecreaseValue;
-
-    bool _loopbackEnabled;
 }
-- (id)initWithLoopbackEnabled:(bool)loopbackEnabled {
+- (id)init {
     self = [super init];
     if (self) {
         int result;
-
-        _loopbackEnabled = loopbackEnabled;
 
         _filterIntensity = 1.0f;
         _filterIntensityDecreaseTimer = [[Timer alloc] initWithFrequencySeconds:1.0f firingInitially:false];
@@ -477,18 +473,6 @@
 }
 
 - (UIImage *)convertSampleBufferToUiImage:(CMSampleBufferRef)sampleBuffer {
-    if (_loopbackEnabled) {
-        ByteBuffer *buffer = [[ByteBuffer alloc] init];
-        bool result = [self encodeSampleBuffer:sampleBuffer toByteBuffer:buffer];
-        if (!result) {
-            NSLog(@"Failed encodeSampleBuffer");
-            return nil;
-        }
-
-        [buffer setCursorPosition:0];
-        return [self decodeByteBuffer:buffer];
-    }
-
     AVFrame *frame;
     bool success = [self convertSampleBuffer:sampleBuffer toFrame:&frame];
     if (!success) {

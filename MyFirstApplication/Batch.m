@@ -62,7 +62,7 @@
     if (_normalChunkSize == 0) {
         // We don't know where to store the last chunk yet,
         // so all we can do is drop the data :(
-        if (chunkId == _totalChunks - 1) {
+        if (chunkId == _totalChunks - 1 && _totalChunks != 1) {
             // NSLog(@"Failed to process chunk, received last chunk prior to other chunks");
             return;
         }
@@ -75,7 +75,7 @@
         if (!_partialPacketUsedSizeFinalized && _lastChunkSize != 0 && _totalChunks != 0 && _normalChunkSize != 0) {
             // Last chunk can be smaller, invalidating chunkSize.
             bool isLastChunkId = (_totalChunks - 1) == chunkId;
-            if (!isLastChunkId) {
+            if (!isLastChunkId || _totalChunks == 1) {
                 uint partialPacketSize = ((_totalChunks - 1) * _normalChunkSize) + _lastChunkSize;
                 [_partialPacket setUsedSize:partialPacketSize];
                 _partialPacketUsedSizeFinalized = true;

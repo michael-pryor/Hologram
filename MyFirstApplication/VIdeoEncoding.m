@@ -17,14 +17,10 @@
 
     VideoCompression *_compression;
     AVCaptureConnection *_connection;
-
-    bool _loopbackEnabled;
 }
-- (id)initWithVideoCompression:(VideoCompression *)videoCompression loopbackEnabled:(bool)loopbackEnabled {
+- (id)initWithVideoCompression:(VideoCompression *)videoCompression {
     self = [super init];
     if (self) {
-        _loopbackEnabled = loopbackEnabled;
-
         _sessionPreset = AVCaptureSessionPreset640x480;
 
         _compression = videoCompression;
@@ -131,21 +127,11 @@
 }
 
 - (bool)addImage:(CMSampleBufferRef)image toByteBuffer:(ByteBuffer *)buffer {
-    // Can only have one user of encoder, loopback is happening directly in compression module.
-    if (_loopbackEnabled) {
-        return nil;
-    }
-
     return [_compression encodeSampleBuffer:(CMSampleBufferRef) image toByteBuffer:buffer];
 }
 
 
 - (UIImage *)getImageFromByteBuffer:(ByteBuffer *)byteBuffer {
-    // Can only have one user of encoder, loopback is happening directly in compression module.
-    if (_loopbackEnabled) {
-        return nil;
-    }
-
     return [_compression decodeByteBuffer:byteBuffer];
 }
 

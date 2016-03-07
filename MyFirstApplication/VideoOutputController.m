@@ -12,6 +12,7 @@
 #import "DelayedPipe.h"
 #import "VideoCompression.h"
 #import "Timer.h"
+#import "DecodingPipe.h"
 
 @implementation PacketToImageProcessor {
     id <NewImageDelegate> _newImageDelegate;
@@ -28,12 +29,20 @@
 }
 
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
+    if (_newImageDelegate == nil) {
+        return;
+    }
+
     UIImage *image = [_videoEncoder getImageFromByteBuffer:packet];
     if (image == nil) {
         return;
     }
 
     [_newImageDelegate onNewImage:image];
+}
+
+- (void)setNewImageDelegate:(id <NewImageDelegate>)newImageDelegate {
+    _newImageDelegate = newImageDelegate;
 }
 @end
 
@@ -43,6 +52,7 @@
     BatcherOutput *_batcherOutput;                    // Split up image into multiple packets for network.
     VideoEncoding *_videoEncoder;                     // Convert between network and image formats.
     EncodingPipe *_encodingPipeVideo;                 // Add appropriate prefix for transport over network.
+    PacketToImageProcessor *_packetToImageProcessor; // Convert compressed network packets into UIImage objects.
 
     BatcherInput *_batcherInput;                      // Join up networked packets into one image.
 
@@ -66,13 +76,32 @@
         _loopbackEnabled = loopbackEnabled;
         _localImageDelegate = nil;
 
-        _videoCompression = [[VideoCompression alloc] initWithLoopbackEnabled:_loopbackEnabled];
-        _videoEncoder = [[VideoEncoding alloc] initWithVideoCompression:_videoCompression loopbackEnabled:_loopbackEnabled];
+        if (_loopbackEnabled) {
+            // Use the local image delegate, when that is loaded.
+            newImageDelegate = nil;
 
-        PacketToImageProcessor *p = [[PacketToImageProcessor alloc] initWithImageDelegate:newImageDelegate encoder:_videoEncoder];
+            // Set later on in this constructor, null out now to avoid risk of using accidently.
+            udpNetworkOutputSession = nil;
+        }
 
-        _batcherInput = [[BatcherInput alloc] initWithOutputSession:p timeoutMs:1000];
+        _videoCompression = [[VideoCompression alloc] init];
+        _videoEncoder = [[VideoEncoding alloc] initWithVideoCompression:_videoCompression];
+
+        _packetToImageProcessor = [[PacketToImageProcessor alloc] initWithImageDelegate:newImageDelegate encoder:_videoEncoder];
+
+        DelayedPipe *_syncWithAudio = [[DelayedPipe alloc] initWithMinimumDelay:0.1 outputSession:_packetToImageProcessor];
+
+        _batcherInput = [[BatcherInput alloc] initWithOutputSession:_syncWithAudio timeoutMs:1000];
         [_batcherInput initialize];
+
+        if (_loopbackEnabled) {
+            // Handle the prefix which network would normally process at a higher level than this.
+            DecodingPipe *loopbackDecodingPipe = [[DecodingPipe alloc] init];
+            [loopbackDecodingPipe addPrefix:VIDEO_ID mappingToOutputSession:_batcherInput];
+
+            // Loop back around.
+            udpNetworkOutputSession = loopbackDecodingPipe;
+        }
 
         _encodingPipeVideo = [[EncodingPipe alloc] initWithOutputSession:udpNetworkOutputSession prefixId:VIDEO_ID];
 
@@ -96,6 +125,9 @@
 
 - (void)setLocalImageDelegate:(id <NewImageDelegate>)localImageDelegate {
     _localImageDelegate = localImageDelegate;
+    if (_loopbackEnabled) {
+        [_packetToImageProcessor setNewImageDelegate:localImageDelegate];
+    }
 }
 
 - (void)clearLocalImageDelegate {
@@ -128,7 +160,7 @@
 
 // Handle data from camera device and push out to network.
 - (void)captureOutput:(AVCaptureOutput *)captureOutput didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection {
-    if (_localImageDelegate != nil) {
+    if (_localImageDelegate != nil && !_loopbackEnabled) {
         UIImage *localImage = [_videoEncoder convertSampleBufferToUiImage:sampleBuffer];
         if (localImage != nil) {
             [_localImageDelegate onNewImage:localImage];

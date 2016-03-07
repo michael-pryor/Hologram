@@ -13,7 +13,7 @@
 @class ByteBuffer;
 
 @interface VideoCompression : NSObject
-- (id)initWithLoopbackEnabled:(bool)loopbackEnabled;
+- (id)init;
 
 - (bool)encodeSampleBuffer:(CMSampleBufferRef)sampleBuffer toByteBuffer:(ByteBuffer *)buffer;
 
