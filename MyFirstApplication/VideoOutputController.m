@@ -13,10 +13,12 @@
 #import "VideoCompression.h"
 #import "Timer.h"
 #import "DecodingPipe.h"
+#import "TimedCounterLogging.h"
 
 @implementation PacketToImageProcessor {
     id <NewImageDelegate> _newImageDelegate;
     VideoEncoding *_videoEncoder;
+    TimedCounterLogging *_videoDataUsageCounter;
 }
 
 - (id)initWithImageDelegate:(id <NewImageDelegate>)newImageDelegate encoder:(VideoEncoding *)videoEncoder {
@@ -24,6 +26,7 @@
     if (self) {
         _newImageDelegate = newImageDelegate;
         _videoEncoder = videoEncoder;
+        _videoDataUsageCounter = [[TimedCounterLogging alloc] initWithDescription:@"Video Compressed Inbound"];
     }
     return self;
 }
@@ -33,6 +36,7 @@
         return;
     }
 
+    [_videoDataUsageCounter incrementBy:[packet bufferUsedSize]];
     UIImage *image = [_videoEncoder getImageFromByteBuffer:packet];
     if (image == nil) {
         return;

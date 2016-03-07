@@ -98,7 +98,10 @@
             codecEncoderContext->time_base = (AVRational) {1, 20};
             codecEncoderContext->gop_size = 10;
             codecEncoderContext->max_b_frames = 1;
-            codecEncoderContext->bit_rate = 400000;
+
+            // Bit rate = bits per second.
+            // 65536 is 8KB per sec.
+            codecEncoderContext->bit_rate = 65536*2;
             codecEncoderContext->pix_fmt = AV_PIX_FMT_YUV420P;
 
 
@@ -138,7 +141,11 @@
             codecDecoderContext->time_base = (AVRational) {1, 20};
             codecDecoderContext->gop_size = 10;
             codecDecoderContext->max_b_frames = 1;
-            codecDecoderContext->bit_rate = 400000;
+
+            // Bit rate = bits per second.
+            // 65536 is 8KB per sec.
+            codecDecoderContext->bit_rate = 65536*2;
+
             codecDecoderContext->pix_fmt = AV_PIX_FMT_YUV420P;
 
 
@@ -266,7 +273,7 @@
 
     CIImage *coreImage = [CIImage imageWithCVPixelBuffer:pixelBuffer];
 
-    coreImage = [self applyFilter:coreImage];
+    //coreImage = [self applyFilter:coreImage];
 
     CGImageRef videoImage = [_context
             createCGImage:coreImage
