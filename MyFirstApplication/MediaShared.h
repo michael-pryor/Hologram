@@ -5,6 +5,12 @@
 #import <Foundation/Foundation.h>
 #import "ByteBuffer.h"
 
+enum MediaType {
+    VIDEO,
+    AUDIO
+};
+typedef enum MediaType MediaType;
+
 @protocol MediaDelayNotifier
-- (void)onMediaDelayNotified:(uint)delayMs;
+- (void)onMediaDataLossFromSender:(MediaType)mediaType;
 @end

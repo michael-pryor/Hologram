@@ -31,6 +31,9 @@
     }
 
     [packet addUnsignedInteger8:_prefix atPosition:_position];
+    if (_position == [packet cursorPosition]) {
+        [packet moveCursorForwards:sizeof(uint8_t)];
+    }
     [_outputSession onNewPacket:packet fromProtocol:protocol];
 }
 

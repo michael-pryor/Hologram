@@ -466,9 +466,13 @@
     }
 }
 
-- (void)onMediaDelayNotified:(uint)delayMs {
+- (void)onMediaDataLossFromSender:(MediaType)mediaType {
     dispatch_sync_main(^{
-        [_frameRate setText:[NSString stringWithFormat:@"%d", delayMs]];
+        if (mediaType == VIDEO) {
+            NSLog(@"Data loss for video!");
+        } else {
+            NSLog(@"Data loss for audio!");
+        }
     });
 }
 

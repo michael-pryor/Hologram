@@ -13,6 +13,8 @@
 #import "DecodingPipe.h"
 #import "DelayedPipe.h"
 #import "AudioGraph.h"
+#import "SequenceEncodingPipe.h"
+#import "SequenceDecodingPipe.h"
 
 @implementation MediaController {
     Boolean _started;
@@ -21,21 +23,25 @@
     VideoOutputController *_videoOutputController;
 
     // Audio
-    //SoundMicrophone *_soundEncoder;
-    //SoundPlayback *_soundPlayback;
     EncodingPipe *_encodingPipeAudio;
     AudioGraph *_audioMicrophone;
 
+    SequenceEncodingPipe * _audioSequenceEncodingPipe;
+    SequenceDecodingPipe * _audioSequenceDecodingPipe;
+
     // Both audio and video.
     DecodingPipe *_decodingPipe;
+
+    id <MediaDelayNotifier> _mediaDelayNotifier;
 }
 
 - (id)initWithImageDelegate:(id <NewImageDelegate>)newImageDelegate mediaDelayNotifier:(id <MediaDelayNotifier>)mediaDelayNotifier {
     self = [super init];
     if (self) {
         // A mode for testing where audio and video is looped round avoiding the network (so we see and hear ourselves immediately).
-        const bool LOOPBACK_ENABLED = true;
+        const bool LOOPBACK_ENABLED = false;
 
+        _mediaDelayNotifier = mediaDelayNotifier;
         _started = false;
 
         const uint leftPadding = sizeof(uint8_t);
@@ -46,15 +52,17 @@
         [_decodingPipe addPrefix:VIDEO_ID mappingToOutputSession:_videoOutputController];
 
         // Audio.
-        _encodingPipeAudio = [[EncodingPipe alloc] initWithOutputSession:nil prefixId:AUDIO_ID];
+        _audioSequenceEncodingPipe = [[SequenceEncodingPipe alloc] initWithOutputSession:nil];
+        _encodingPipeAudio = [[EncodingPipe alloc] initWithOutputSession:_audioSequenceEncodingPipe prefixId:AUDIO_ID];
 
         if (LOOPBACK_ENABLED) {
             // Signal to audio that it should loop back.
             _encodingPipeAudio = nil;
         }
 
-        _audioMicrophone = [[AudioGraph alloc] initWithOutputSession:_encodingPipeAudio leftPadding:leftPadding];
-        [_decodingPipe addPrefix:AUDIO_ID mappingToOutputSession:_audioMicrophone];
+        _audioMicrophone = [[AudioGraph alloc] initWithOutputSession:_encodingPipeAudio leftPadding:leftPadding+ sizeof(uint16_t)];
+        _audioSequenceDecodingPipe = [[SequenceDecodingPipe alloc] initWithOutputSession:_audioMicrophone sequenceGapNotification:self];
+        [_decodingPipe addPrefix:AUDIO_ID mappingToOutputSession:_audioSequenceDecodingPipe];
         [_audioMicrophone initialize];
     }
     return self;
@@ -109,7 +117,7 @@
 
 - (void)setNetworkOutputSessionUdp:(id <NewPacketDelegate>)udp {
     NSLog(@"Updating video output session UDP");
-    [_encodingPipeAudio setOutputSession:udp];
+    [_audioSequenceEncodingPipe setOutputSession:udp];
     [_videoOutputController setOutputSession:udp];
 }
 
@@ -125,5 +133,15 @@
 - (void)resetSendRate {
     // This gets called when we move to another person, so discard any delayed video from previous person.
 }
+
+- (void)onSequenceGap:(uint)gapSize fromSender:(id)sender {
+    NSLog(@"Gap size of %u", gapSize);
+    if (sender == _audioSequenceDecodingPipe) {
+        [_mediaDelayNotifier onMediaDataLossFromSender:AUDIO];
+    } else {
+        [_mediaDelayNotifier onMediaDataLossFromSender:VIDEO];
+    }
+}
+
 
 @end

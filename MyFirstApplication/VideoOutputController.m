@@ -192,13 +192,8 @@
     [_batcherInput onNewPacket:packet fromProtocol:protocol];
 }
 
-- (void)onMediaDelayNotified:(uint)delayMs {
-    // NSLog(@"Should delay by %dms", delayMs);
-    //[_delayedPipe setMinimumDelay:((float) delayMs / 1000.0)];
-
-    if (_mediaDelayNotifier != nil) {
-        [_mediaDelayNotifier onMediaDelayNotified:delayMs];
-    }
+- (void)onMediaDataLossFromSender:(MediaType)mediaType {
+    NSLog(@"Video data loss");
 }
 
 
