@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="9531" systemVersion="14F27" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="0oT-De-dHC">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="9532" systemVersion="14F27" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="0oT-De-dHC">
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="9529"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="9530"/>
         <capability name="Alignment constraints with different attributes" minToolsVersion="5.1"/>
         <capability name="Aspect ratio constraints" minToolsVersion="5.1"/>
         <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
@@ -216,21 +216,57 @@
                                 <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="calibratedRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
+                            <view userInteractionEnabled="NO" alpha="0.0" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="lBB-D8-uea" userLabel="DC Video">
+                                <rect key="frame" x="13" y="13" width="15" height="15"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <accessibility key="accessibilityConfiguration">
+                                    <accessibilityTraits key="traits" notEnabled="YES"/>
+                                </accessibility>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="15" id="ARJ-MU-zqD"/>
+                                    <constraint firstAttribute="height" constant="15" id="odh-yd-hQJ"/>
+                                </constraints>
+                            </view>
+                            <view userInteractionEnabled="NO" alpha="0.0" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="0Z4-8y-t8q" userLabel="DC Audio">
+                                <rect key="frame" x="33" y="13" width="15" height="15"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <accessibility key="accessibilityConfiguration">
+                                    <accessibilityTraits key="traits" notEnabled="YES"/>
+                                </accessibility>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="15" id="88n-Mt-3nR"/>
+                                    <constraint firstAttribute="height" constant="15" id="May-Vr-X0w"/>
+                                </constraints>
+                            </view>
                             <label opaque="NO" userInteractionEnabled="NO" alpha="0.0" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="&lt;= Swipe to change settings " textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="pgN-Gq-UFL">
                                 <rect key="frame" x="8" y="269" width="223" height="21"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                 <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="calibratedRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
+                            <view userInteractionEnabled="NO" alpha="0.0" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="F1S-Hc-p7x" userLabel="DC Audio Clear">
+                                <rect key="frame" x="53" y="13" width="15" height="15"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <accessibility key="accessibilityConfiguration">
+                                    <accessibilityTraits key="traits" notEnabled="YES"/>
+                                </accessibility>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="15" id="746-ct-e7A"/>
+                                    <constraint firstAttribute="height" constant="15" id="Oy8-NW-aaO"/>
+                                </constraints>
+                            </view>
                         </subviews>
                         <color key="backgroundColor" red="0.081339869195487968" green="0.22745098039215686" blue="0.0041172287612304863" alpha="1" colorSpace="calibratedRGB"/>
                         <gestureRecognizers/>
                         <constraints>
                             <constraint firstItem="cd6-78-3Jp" firstAttribute="width" secondItem="11e-ce-u2V" secondAttribute="width" id="129-tY-iJC"/>
                             <constraint firstItem="11e-ce-u2V" firstAttribute="leading" secondItem="BlS-3L-w4D" secondAttribute="leading" constant="10" id="14O-dE-heh" userLabel="RemoteName left"/>
+                            <constraint firstItem="F1S-Hc-p7x" firstAttribute="leading" secondItem="0Z4-8y-t8q" secondAttribute="trailing" constant="5" id="1B8-ye-em3" userLabel="DC Audio Clear left"/>
                             <constraint firstItem="rhH-1x-tXl" firstAttribute="centerY" secondItem="GLg-2U-XhO" secondAttribute="centerY" constant="10" id="1iz-hb-eV5"/>
                             <constraint firstItem="UGl-Rn-eIt" firstAttribute="leading" secondItem="BlS-3L-w4D" secondAttribute="leading" constant="10" id="3cP-hX-Qpd" userLabel="OwnerName left"/>
+                            <constraint firstItem="0Z4-8y-t8q" firstAttribute="leading" secondItem="lBB-D8-uea" secondAttribute="trailing" constant="5" id="4gW-8m-5W7" userLabel="DC audio left"/>
                             <constraint firstItem="EFB-GX-YTW" firstAttribute="bottom" secondItem="cd6-78-3Jp" secondAttribute="top" id="69U-pC-jNg"/>
+                            <constraint firstItem="0Z4-8y-t8q" firstAttribute="top" secondItem="lBB-D8-uea" secondAttribute="top" id="A3U-fn-3H1" userLabel="DC audio top"/>
                             <constraint firstItem="EFB-GX-YTW" firstAttribute="height" secondItem="11e-ce-u2V" secondAttribute="height" id="BF4-W3-nvJ" userLabel="RemoteAge height"/>
                             <constraint firstItem="EFB-GX-YTW" firstAttribute="top" secondItem="11e-ce-u2V" secondAttribute="bottom" id="CWZ-oK-XL5" userLabel="RemoteAge top"/>
                             <constraint firstItem="EFB-GX-YTW" firstAttribute="leading" secondItem="11e-ce-u2V" secondAttribute="leading" id="ESk-QL-c9T" userLabel="RemoteAge left"/>
@@ -239,6 +275,7 @@
                             <constraint firstItem="GLg-2U-XhO" firstAttribute="top" secondItem="BlS-3L-w4D" secondAttribute="top" id="LLn-1G-xya" userLabel="CameraView top"/>
                             <constraint firstItem="XkH-QK-TQM" firstAttribute="trailing" secondItem="Wt1-7M-iep" secondAttribute="leading" constant="-5" id="PSV-yj-g6B" userLabel="FrameRate right"/>
                             <constraint firstItem="cd6-78-3Jp" firstAttribute="trailing" secondItem="11e-ce-u2V" secondAttribute="trailing" id="PgC-Sn-GCh"/>
+                            <constraint firstItem="GLg-2U-XhO" firstAttribute="leadingMargin" secondItem="lBB-D8-uea" secondAttribute="leading" constant="-5" id="PuJ-G2-qs3" userLabel="DC video left"/>
                             <constraint firstItem="EFB-GX-YTW" firstAttribute="width" secondItem="11e-ce-u2V" secondAttribute="width" id="QaP-Dn-mcp" userLabel="RemoteAge width"/>
                             <constraint firstItem="11e-ce-u2V" firstAttribute="trailing" secondItem="BlS-3L-w4D" secondAttribute="trailing" constant="-10" id="UCc-UT-0Ht" userLabel="RemoteName right"/>
                             <constraint firstItem="pgN-Gq-UFL" firstAttribute="bottom" secondItem="rhH-1x-tXl" secondAttribute="top" constant="-10" id="WIe-YY-Xlg"/>
@@ -250,7 +287,9 @@
                             <constraint firstItem="Wt1-7M-iep" firstAttribute="trailing" secondItem="BlS-3L-w4D" secondAttribute="trailing" constant="-5" id="hFh-B7-HaM" userLabel="NAT right"/>
                             <constraint firstAttribute="bottom" secondItem="GLg-2U-XhO" secondAttribute="bottom" id="hrJ-L3-rnv" userLabel="CameraView bottom"/>
                             <constraint firstItem="Wt1-7M-iep" firstAttribute="top" secondItem="XkH-QK-TQM" secondAttribute="top" constant="-2" id="iDK-Jl-BIL" userLabel="NAT top"/>
+                            <constraint firstItem="GLg-2U-XhO" firstAttribute="topMargin" secondItem="lBB-D8-uea" secondAttribute="top" constant="-5" id="nEZ-Vv-ThX" userLabel="DC video right"/>
                             <constraint firstItem="cbc-sf-j5j" firstAttribute="height" secondItem="UGl-Rn-eIt" secondAttribute="height" id="nHK-nP-fLn" userLabel="OwnerAge height"/>
+                            <constraint firstItem="F1S-Hc-p7x" firstAttribute="top" secondItem="0Z4-8y-t8q" secondAttribute="top" id="p9I-4s-bYp" userLabel="DC Audio Clear top"/>
                             <constraint firstItem="cd6-78-3Jp" firstAttribute="height" secondItem="11e-ce-u2V" secondAttribute="height" id="qIi-jI-5f7"/>
                             <constraint firstItem="pgN-Gq-UFL" firstAttribute="leading" secondItem="GLg-2U-XhO" secondAttribute="leadingMargin" id="qW3-Tj-2mk"/>
                             <constraint firstItem="XkH-QK-TQM" firstAttribute="leading" secondItem="UGl-Rn-eIt" secondAttribute="trailing" priority="750" id="tuS-mt-9ZJ" userLabel="FrameRate left"/>
@@ -266,6 +305,9 @@
                     <navigationItem key="navigationItem" id="iKF-7l-wXc"/>
                     <connections>
                         <outlet property="_cameraView" destination="GLg-2U-XhO" id="IQu-bq-HZF"/>
+                        <outlet property="_dcAudio" destination="0Z4-8y-t8q" id="fE9-Fk-cwr"/>
+                        <outlet property="_dcAudioClear" destination="F1S-Hc-p7x" id="qnS-NM-tpu"/>
+                        <outlet property="_dcVideo" destination="lBB-D8-uea" id="GLE-q5-PFF"/>
                         <outlet property="_frameRate" destination="XkH-QK-TQM" id="iLH-bq-8YX"/>
                         <outlet property="_natPunchthroughIndicator" destination="Wt1-7M-iep" id="QkT-gO-Zx1"/>
                         <outlet property="_ownerAge" destination="cbc-sf-j5j" id="cmb-cr-zqc"/>

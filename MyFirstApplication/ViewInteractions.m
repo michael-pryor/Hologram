@@ -9,7 +9,7 @@
 @implementation ViewInteractions {
 
 }
-+ (void)fadeInOutLabel:(UILabel *)label completion:(void (^)(BOOL))block {
++ (void)fadeInOutLabel:(UIView *)label completion:(void (^)(BOOL))block {
     dispatch_sync_main(^{
         [UIView animateWithDuration:1.0f animations:^{
             [label setAlpha:1.0f];

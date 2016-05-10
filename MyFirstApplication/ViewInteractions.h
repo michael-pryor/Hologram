@@ -6,7 +6,7 @@
 
 
 @interface ViewInteractions : NSObject
-+ (void)fadeInOutLabel:(UILabel *)label completion:(void (^)(BOOL))block;
++ (void)fadeInOutLabel:(UIView *)label completion:(void (^)(BOOL))block;
 
 + (void)fadeIn:(UIView *)label completion:(void (^)(BOOL))block duration:(float)duration;
 

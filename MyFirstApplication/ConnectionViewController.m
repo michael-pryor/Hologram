@@ -37,6 +37,12 @@
     IBOutlet UILabel *_remoteName;
     IBOutlet UILabel *_remoteAge;
     IBOutlet UILabel *_remoteDistance;
+    
+    // UI - show connectivity issues.
+    __weak IBOutlet UIView *_dcVideo;
+    __weak IBOutlet UIView *_dcAudio;
+    __weak IBOutlet UIView *_dcAudioClear;
+    
 
     // State
     volatile bool _waitingForNewEndPoint;
@@ -472,6 +478,7 @@
             NSLog(@"Data loss for video!");
         } else {
             NSLog(@"Data loss for audio!");
+            [ViewInteractions fadeInOutLabel:_dcAudio completion:nil];
         }
     });
 }

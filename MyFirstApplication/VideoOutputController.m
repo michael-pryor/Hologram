@@ -107,7 +107,7 @@
             udpNetworkOutputSession = loopbackDecodingPipe;
         }
 
-        _encodingPipeVideo = [[EncodingPipe alloc] initWithOutputSession:udpNetworkOutputSession prefixId:VIDEO_ID];
+        _encodingPipeVideo = [[EncodingPipe alloc] initWithOutputSession:udpNetworkOutputSession prefixId:VIDEO_ID position:0];
 
         _batcherOutput = [[BatcherOutput alloc] initWithOutputSession:_encodingPipeVideo leftPadding:leftPadding];
 
@@ -128,14 +128,19 @@
 }
 
 - (void)setLocalImageDelegate:(id <NewImageDelegate>)localImageDelegate {
-    _localImageDelegate = localImageDelegate;
+    @synchronized (self) {
+        _localImageDelegate = localImageDelegate;
+    }
     if (_loopbackEnabled) {
         [_packetToImageProcessor setNewImageDelegate:localImageDelegate];
     }
+
 }
 
 - (void)clearLocalImageDelegate {
-    _localImageDelegate = nil;
+    @synchronized (self) {
+        _localImageDelegate = nil;
+    }
 }
 
 - (void)startCapturing {
@@ -164,18 +169,20 @@
 
 // Handle data from camera device and push out to network.
 - (void)captureOutput:(AVCaptureOutput *)captureOutput didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection {
-    if (_localImageDelegate != nil && !_loopbackEnabled) {
-        UIImage *localImage = [_videoEncoder convertSampleBufferToUiImage:sampleBuffer];
-        if (localImage != nil) {
-            [_localImageDelegate onNewImage:localImage];
-            _fpsCount++;
-        }
-        if ([_fpsTracker getState]) {
-            NSLog(@"Frame rate = %ufps", _fpsCount);
-            _fpsCount = 0;
+    // Protect _localImageDelegate, we don't want to clean it up while using it.
+    @synchronized (self) {
+        if (_localImageDelegate != nil && !_loopbackEnabled) {
+            UIImage *localImage = [_videoEncoder convertSampleBufferToUiImage:sampleBuffer];
+            if (localImage != nil) {
+                [_localImageDelegate onNewImage:localImage];
+                _fpsCount++;
+            }
+            if ([_fpsTracker getState]) {
+                NSLog(@"Frame rate = %ufps", _fpsCount);
+                _fpsCount = 0;
+            }
         }
     }
-
     // Send image as packet.
     ByteBuffer *rawBuffer = [[ByteBuffer alloc] init];
 

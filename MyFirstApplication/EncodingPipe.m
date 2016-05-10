@@ -1,43 +1,38 @@
 #import "EncodingPipe.h"
 
 @implementation EncodingPipe {
-    uint _prefix;
+    uint8_t _prefix;
     uint _position;
-    bool _doLogging;
+    bool _insertAtCursor;
 }
-- (id)initWithOutputSession:(id <NewPacketDelegate>)outputSession prefixId:(uint)prefix {
-    self = [self initWithOutputSession:outputSession prefixId:prefix position:0];
+
+- (id)initWithOutputSession:(id <NewPacketDelegate>)outputSession prefixId:(uint8_t)prefix {
+    self = [super initWithOutputSession:outputSession];
+    if (self) {
+        _prefix = prefix;
+        _position = 0; // ignored.
+        _insertAtCursor = true;
+    }
     return self;
 }
 
-- (id)initWithOutputSession:(id <NewPacketDelegate>)outputSession prefixId:(uint)prefix position:(uint)position {
-    self = [self initWithOutputSession:outputSession prefixId:prefix position:position doLogging:false];
-    return self;
-}
-
-- (id)initWithOutputSession:(id <NewPacketDelegate>)outputSession prefixId:(uint)prefix position:(uint)position doLogging:(bool)doLogging {
+- (id)initWithOutputSession:(id <NewPacketDelegate>)outputSession prefixId:(uint8_t)prefix position:(uint)position {
     self = [super initWithOutputSession:outputSession];
     if (self) {
         _prefix = prefix;
         _position = position;
-        _doLogging = doLogging;
+        _insertAtCursor = false;
     }
     return self;
 }
 
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
-    if (_doLogging) {
-        //NSLog(@"Writing prefix of %d", _prefix);
-    }
-
-    [packet addUnsignedInteger8:_prefix atPosition:_position];
-    if (_position == [packet cursorPosition]) {
-        [packet moveCursorForwards:sizeof(uint8_t)];
+    if (!_insertAtCursor) {
+        [packet addUnsignedInteger8:_prefix atPosition:_position];
+    } else {
+        // Will move cursor.
+        [packet addUnsignedInteger8:_prefix];
     }
     [_outputSession onNewPacket:packet fromProtocol:protocol];
-}
-
-- (void)setPrefix:(uint)prefix {
-    _prefix = prefix;
 }
 @end

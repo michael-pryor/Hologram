@@ -135,10 +135,11 @@
 }
 
 - (void)onSequenceGap:(uint)gapSize fromSender:(id)sender {
-    NSLog(@"Gap size of %u", gapSize);
     if (sender == _audioSequenceDecodingPipe) {
+        NSLog(@"Gap size of %u for audio", gapSize);
         [_mediaDelayNotifier onMediaDataLossFromSender:AUDIO];
     } else {
+        NSLog(@"Gap size of %u for video", gapSize);
         [_mediaDelayNotifier onMediaDataLossFromSender:VIDEO];
     }
 }
