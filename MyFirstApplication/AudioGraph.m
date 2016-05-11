@@ -181,7 +181,7 @@ static OSStatus audioOutputPullCallback(
 }
 
 - (void)setupAudioSessionAndUpdateAudioFormat {
-    const double transitSampleRate = 16000;
+    const double transitSampleRate = 44100;
 
     // Sample rate of audio session must match sample rate of ioUnit.
     AudioSessionInteractions *audioSession = [AudioSessionInteractions instance];

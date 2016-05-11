@@ -37,12 +37,12 @@
     IBOutlet UILabel *_remoteName;
     IBOutlet UILabel *_remoteAge;
     IBOutlet UILabel *_remoteDistance;
-    
+
     // UI - show connectivity issues.
     __weak IBOutlet UIView *_dcVideo;
     __weak IBOutlet UIView *_dcAudio;
     __weak IBOutlet UIView *_dcAudioClear;
-    
+
 
     // State
     volatile bool _waitingForNewEndPoint;

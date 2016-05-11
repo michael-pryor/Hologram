@@ -128,19 +128,15 @@
 }
 
 - (void)setLocalImageDelegate:(id <NewImageDelegate>)localImageDelegate {
-    @synchronized (self) {
-        _localImageDelegate = localImageDelegate;
-    }
+    _localImageDelegate = localImageDelegate;
+
     if (_loopbackEnabled) {
         [_packetToImageProcessor setNewImageDelegate:localImageDelegate];
     }
-
 }
 
 - (void)clearLocalImageDelegate {
-    @synchronized (self) {
-        _localImageDelegate = nil;
-    }
+    _localImageDelegate = nil;
 }
 
 - (void)startCapturing {
@@ -169,20 +165,20 @@
 
 // Handle data from camera device and push out to network.
 - (void)captureOutput:(AVCaptureOutput *)captureOutput didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection {
-    // Protect _localImageDelegate, we don't want to clean it up while using it.
-    @synchronized (self) {
-        if (_localImageDelegate != nil && !_loopbackEnabled) {
-            UIImage *localImage = [_videoEncoder convertSampleBufferToUiImage:sampleBuffer];
-            if (localImage != nil) {
-                [_localImageDelegate onNewImage:localImage];
-                _fpsCount++;
-            }
-            if ([_fpsTracker getState]) {
-                NSLog(@"Frame rate = %ufps", _fpsCount);
-                _fpsCount = 0;
-            }
+    if (_localImageDelegate != nil && !_loopbackEnabled) {
+        UIImage *localImage = [_videoEncoder convertSampleBufferToUiImage:sampleBuffer];
+        if (localImage != nil) {
+            // Make a copy, incase reference count goes to 0 mid way through operation.
+            id<NewImageDelegate> delegate = _localImageDelegate;
+            [delegate onNewImage:localImage];
+            _fpsCount++;
+        }
+        if ([_fpsTracker getState]) {
+            NSLog(@"Frame rate = %ufps", _fpsCount);
+            _fpsCount = 0;
         }
     }
+
     // Send image as packet.
     ByteBuffer *rawBuffer = [[ByteBuffer alloc] init];
 
