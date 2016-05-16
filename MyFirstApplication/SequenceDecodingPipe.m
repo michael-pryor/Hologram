@@ -8,21 +8,33 @@
 @implementation SequenceDecodingPipe {
     uint _lastId;
     bool _receivedFirstId;
+    bool _moveCursor;
 
     id <SequenceGapNotification> _sequenceGapNotification;
 }
 - (id)initWithOutputSession:(id <NewPacketDelegate>)outputSession sequenceGapNotification:(id <SequenceGapNotification>)sequenceGapNotification {
+    return [self initWithOutputSession:outputSession sequenceGapNotification:sequenceGapNotification shouldMoveCursor:true];
+}
+
+- (id)initWithOutputSession:(id <NewPacketDelegate>)outputSession sequenceGapNotification:(id <SequenceGapNotification>)sequenceGapNotification shouldMoveCursor:(bool)moveCursor {
     self = [super initWithOutputSession:outputSession];
     if (self) {
         _lastId = 0;
         _receivedFirstId = false;
         _sequenceGapNotification = sequenceGapNotification;
+        _moveCursor = moveCursor;
     }
     return self;
 }
 
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
-    uint packetSequenceId = [packet getUnsignedInteger16];
+    uint packetSequenceId;
+    if (_moveCursor) {
+        packetSequenceId = [packet getUnsignedInteger16];
+    } else {
+        // Read without moving the cursor forwards, we are just inspecting without changing the state of the packet.
+        packetSequenceId = [packet getUnsignedIntegerAtPosition16:[packet cursorPosition]];
+    }
 
     [_outputSession onNewPacket:packet fromProtocol:protocol];
 
@@ -47,7 +59,7 @@
 
 
     // No packet loss.
-    if (diff == 1) {
+    if (diff <= 1) {
         return;
     }
 

@@ -62,6 +62,8 @@
 }
 
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
+    // Note: do not change the format of the batch ID (it must be a 16 bit unsigned integer), because
+    // this data is inspected for packet loss by a SequenceDecodingPipe, prior to hitting this point.
     uint batchId = [packet getUnsignedInteger16];
 
     Batch *batch;

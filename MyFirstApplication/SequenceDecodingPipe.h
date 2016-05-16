@@ -11,4 +11,6 @@
 
 @interface SequenceDecodingPipe : PipelineProcessor
 - (id)initWithOutputSession:(id <NewPacketDelegate>)outputSession sequenceGapNotification:(id <SequenceGapNotification>)sequenceGapNotification;
+
+- (id)initWithOutputSession:(id <NewPacketDelegate>)outputSession sequenceGapNotification:(id <SequenceGapNotification>)sequenceGapNotification shouldMoveCursor:(bool)moveCursor;
 @end

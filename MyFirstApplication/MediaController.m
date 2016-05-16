@@ -32,22 +32,22 @@
     // Both audio and video.
     DecodingPipe *_decodingPipe;
 
-    id <MediaDelayNotifier> _mediaDelayNotifier;
+    id <MediaDataLossNotifier> _mediaDelayNotifier;
 }
 
-- (id)initWithImageDelegate:(id <NewImageDelegate>)newImageDelegate mediaDelayNotifier:(id <MediaDelayNotifier>)mediaDelayNotifier {
+- (id)initWithImageDelegate:(id <NewImageDelegate>)newImageDelegate mediaDataLossNotifier:(id <MediaDataLossNotifier>)mediaDataLossNotifier {
     self = [super init];
     if (self) {
         // A mode for testing where audio and video is looped round avoiding the network (so we see and hear ourselves immediately).
         const bool LOOPBACK_ENABLED = false;
 
-        _mediaDelayNotifier = mediaDelayNotifier;
+        _mediaDelayNotifier = mediaDataLossNotifier;
         _started = false;
 
         const uint leftPadding = sizeof(uint8_t);
 
         // Video.
-        _videoOutputController = [[VideoOutputController alloc] initWithUdpNetworkOutputSession:nil imageDelegate:newImageDelegate mediaDelayNotifier:mediaDelayNotifier leftPadding:leftPadding loopbackEnabled:LOOPBACK_ENABLED];
+        _videoOutputController = [[VideoOutputController alloc] initWithUdpNetworkOutputSession:nil imageDelegate:newImageDelegate mediaDataLossNotifier:mediaDataLossNotifier leftPadding:leftPadding loopbackEnabled:LOOPBACK_ENABLED];
         _decodingPipe = [[DecodingPipe alloc] init];
         [_decodingPipe addPrefix:VIDEO_ID mappingToOutputSession:_videoOutputController];
 

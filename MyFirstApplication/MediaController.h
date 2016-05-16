@@ -14,7 +14,7 @@
 #import "SequenceDecodingPipe.h"
 
 @interface MediaController : NSObject <NewPacketDelegate, SequenceGapNotification>
-- (id)initWithImageDelegate:(id <NewImageDelegate>)newImageDelegate mediaDelayNotifier:(id <MediaDelayNotifier>)mediaDelayNotifier;
+- (id)initWithImageDelegate:(id <NewImageDelegate>)newImageDelegate mediaDataLossNotifier:(id <MediaDataLossNotifier>)mediaDataLossNotifier;
 
 - (void)resetSendRate;
 

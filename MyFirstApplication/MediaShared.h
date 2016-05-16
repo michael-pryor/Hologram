@@ -11,6 +11,6 @@ enum MediaType {
 };
 typedef enum MediaType MediaType;
 
-@protocol MediaDelayNotifier
+@protocol MediaDataLossNotifier
 - (void)onMediaDataLossFromSender:(MediaType)mediaType;
 @end

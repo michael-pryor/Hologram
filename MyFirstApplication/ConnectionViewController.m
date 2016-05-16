@@ -164,7 +164,7 @@
         // This step can take a few seconds (particularly on older devices).
         [self setDisconnectStateWithShortDescription:@"Initializing" longDescription:@"Initializing media controller"];
         if (_mediaController == nil) {
-            _mediaController = [[MediaController alloc] initWithImageDelegate:self mediaDelayNotifier:self];
+            _mediaController = [[MediaController alloc] initWithImageDelegate:self mediaDataLossNotifier:self];
         }
         [_mediaController startVideo];
 

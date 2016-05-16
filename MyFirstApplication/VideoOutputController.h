@@ -15,6 +15,7 @@
 #import "NetworkOperations.h"
 #import "BatcherOutput.h"
 #import "MediaShared.h"
+#import "SequenceDecodingPipe.h"
 
 @protocol NewImageDelegate
 - (void)onNewImage:(UIImage *)image;
@@ -24,8 +25,8 @@
 @end
 
 
-@interface VideoOutputController : NSObject <AVCaptureVideoDataOutputSampleBufferDelegate, NewPacketDelegate, MediaDelayNotifier>
-- (id)initWithUdpNetworkOutputSession:(id <NewPacketDelegate>)udpNetworkOutputSession imageDelegate:(id <NewImageDelegate>)newImageDelegate mediaDelayNotifier:(id <MediaDelayNotifier>)mediaDelayNotifier leftPadding:(uint)leftPadding loopbackEnabled:(bool)loopbackEnabled;
+@interface VideoOutputController : NSObject <AVCaptureVideoDataOutputSampleBufferDelegate, NewPacketDelegate, SequenceGapNotification>
+- (id)initWithUdpNetworkOutputSession:(id <NewPacketDelegate>)udpNetworkOutputSession imageDelegate:(id <NewImageDelegate>)newImageDelegate mediaDataLossNotifier:(id <MediaDataLossNotifier>)mediaDataLossNotifier leftPadding:(uint)leftPadding loopbackEnabled:(bool)loopbackEnabled;
 
 - (void)startCapturing;
 

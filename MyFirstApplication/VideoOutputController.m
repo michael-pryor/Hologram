@@ -52,15 +52,18 @@
 
 
 @implementation VideoOutputController {
-    AVCaptureSession *_captureSession;                       // Link to video input hardware.
-    BatcherOutput *_batcherOutput;                    // Split up image into multiple packets for network.
-    VideoEncoding *_videoEncoder;                     // Convert between network and image formats.
-    EncodingPipe *_encodingPipeVideo;                 // Add appropriate prefix for transport over network.
-    PacketToImageProcessor *_packetToImageProcessor; // Convert compressed network packets into UIImage objects.
+    AVCaptureSession *_captureSession;                 // Link to video input hardware.
+    BatcherOutput *_batcherOutput;                     // Split up image into multiple packets for network.
+    VideoEncoding *_videoEncoder;                      // Convert between network and image formats.
+    EncodingPipe *_encodingPipeVideo;                  // Add appropriate prefix for transport over network.
+    PacketToImageProcessor *_packetToImageProcessor;   // Convert compressed network packets into UIImage objects.
 
-    BatcherInput *_batcherInput;                      // Join up networked packets into one image.
+    BatcherInput *_batcherInput;                       // Join up networked packets into one image.
 
-    id <MediaDelayNotifier> _mediaDelayNotifier;       // Inform upstreams (e.g. GUI) of delay for debugging purposes.
+    SequenceDecodingPipe *_dataLossDetector;          // Inspects the batch ID (without moving the cursor),
+    // in order to detect data loss i.e. missing batches.
+
+    id <MediaDataLossNotifier> _mediaDataLossNotifier; // Inform upstreams (e.g. GUI) of media data loss for debugging purposes.
 
     id <NewImageDelegate> _localImageDelegate;         // Display user's own camera to user (so that can see what other people see of them.
 
@@ -74,7 +77,7 @@
     uint _fpsCount;
 
 }
-- (id)initWithUdpNetworkOutputSession:(id <NewPacketDelegate>)udpNetworkOutputSession imageDelegate:(id <NewImageDelegate>)newImageDelegate mediaDelayNotifier:(id <MediaDelayNotifier>)mediaDelayNotifier leftPadding:(uint)leftPadding loopbackEnabled:(bool)loopbackEnabled {
+- (id)initWithUdpNetworkOutputSession:(id <NewPacketDelegate>)udpNetworkOutputSession imageDelegate:(id <NewImageDelegate>)newImageDelegate mediaDataLossNotifier:(id <MediaDataLossNotifier>)mediaDataLossNotifier leftPadding:(uint)leftPadding loopbackEnabled:(bool)loopbackEnabled {
     self = [super init];
     if (self) {
         _loopbackEnabled = loopbackEnabled;
@@ -96,6 +99,7 @@
         DelayedPipe *_syncWithAudio = [[DelayedPipe alloc] initWithMinimumDelay:0.1 outputSession:_packetToImageProcessor];
 
         _batcherInput = [[BatcherInput alloc] initWithOutputSession:_syncWithAudio timeoutMs:1000];
+        _dataLossDetector = [[SequenceDecodingPipe alloc] initWithOutputSession:_batcherInput sequenceGapNotification:self shouldMoveCursor:false];
         [_batcherInput initialize];
 
         if (_loopbackEnabled) {
@@ -113,7 +117,7 @@
 
         _captureSession = [_videoEncoder setupCaptureSessionWithDelegate:self];
 
-        _mediaDelayNotifier = mediaDelayNotifier;
+        _mediaDataLossNotifier = mediaDataLossNotifier;
 
         _isRunning = [[Signal alloc] initWithFlag:false];
 
@@ -169,7 +173,7 @@
         UIImage *localImage = [_videoEncoder convertSampleBufferToUiImage:sampleBuffer];
         if (localImage != nil) {
             // Make a copy, incase reference count goes to 0 mid way through operation.
-            id<NewImageDelegate> delegate = _localImageDelegate;
+            id <NewImageDelegate> delegate = _localImageDelegate;
             [delegate onNewImage:localImage];
             _fpsCount++;
         }
@@ -192,11 +196,12 @@
 
 // Handle new data received on network to be pushed out to the user.
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
-    [_batcherInput onNewPacket:packet fromProtocol:protocol];
+    [_dataLossDetector onNewPacket:packet fromProtocol:protocol];
 }
 
-- (void)onMediaDataLossFromSender:(MediaType)mediaType {
-    NSLog(@"Video data loss");
+- (void)onSequenceGap:(uint)gapSize fromSender:(id)sender {
+    NSLog(@"Video data loss detected with gap size: %u", gapSize);
+    [_mediaDataLossNotifier onMediaDataLossFromSender:VIDEO];
 }
 
 
