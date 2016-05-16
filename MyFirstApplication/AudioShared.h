@@ -8,6 +8,7 @@
 #include "TimedCounter.h"
 
 @class BlockingQueue;
+@protocol SequenceGapNotification;
 
 void printAudioBufferList(AudioBufferList *audioList, NSString *description);
 
@@ -32,4 +33,4 @@ void printAudioBufferList(AudioBufferList *audioList, NSString *description);
 - (void)onNewAudioData:(AudioDataContainer *)audioData;
 @end
 
-BlockingQueue* buildAudioQueue(NSString* name);
+BlockingQueue *buildAudioQueue(NSString *name, id <SequenceGapNotification> sequenceGapNotifier);

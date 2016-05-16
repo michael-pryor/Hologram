@@ -9,7 +9,7 @@
 #import "AudioSessionInteractions.h"
 
 @interface AudioPcmConversion : NSObject
-- (id)initWithDescription:(NSString *)humanDescription inputFormat:(AudioStreamBasicDescription)inputFormat outputFormat:(AudioStreamBasicDescription)outputFormat outputFormatEx:(AudioFormatProcessResult)outputFormatEx outputResult:(id <AudioDataPipeline>)callback inboundQueue:(BlockingQueue *)queue;
+- (id)initWithDescription:(NSString *)humanDescription inputFormat:(AudioStreamBasicDescription)inputFormat outputFormat:(AudioStreamBasicDescription)outputFormat outputFormatEx:(AudioFormatProcessResult)outputFormatEx outputResult:(id <AudioDataPipeline>)callback inboundQueue:(BlockingQueue *)queue  sequenceGapNotifier:(id <SequenceGapNotification>)sequenceGapNotifier;
 
 - (void)initialize;
 

@@ -52,7 +52,7 @@
     TimedCounterLogging *_decompressedOutboundSizeCounter;
 }
 
-- (id)initWithUncompressedAudioFormat:(AudioStreamBasicDescription)uncompressedAudioFormat uncompressedAudioFormatEx:(AudioFormatProcessResult)uncompressedAudioFormatEx outputSession:(id <NewPacketDelegate>)outputSession leftPadding:(uint)leftPadding outboundQueue:(BlockingQueue *)outboundQueue {
+- (id)initWithUncompressedAudioFormat:(AudioStreamBasicDescription)uncompressedAudioFormat uncompressedAudioFormatEx:(AudioFormatProcessResult)uncompressedAudioFormatEx outputSession:(id <NewPacketDelegate>)outputSession leftPadding:(uint)leftPadding outboundQueue:(BlockingQueue *)outboundQueue sequenceGapNotifier:(id <SequenceGapNotification>)sequenceGapNotifier {
     self = [super init];
     if (self) {
         _isRunningDecompression = false;
@@ -71,10 +71,10 @@
 
         // Get about half a second 1 second delay at worst.
         // TODO: Consider impact of these values.
-        _audioToBeCompressedQueue = buildAudioQueue(@"compression AAC inbound");
-        _audioToBeDecompressedQueue = buildAudioQueue(@"decompression AAC inbound");
+        _audioToBeCompressedQueue = buildAudioQueue(@"compression AAC inbound", sequenceGapNotifier);
+        _audioToBeDecompressedQueue = buildAudioQueue(@"decompression AAC inbound", sequenceGapNotifier);
         if (outboundQueue == nil) {
-            _audioToBeOutputQueue = buildAudioQueue(@"decompression AAC outbound");
+            _audioToBeOutputQueue = buildAudioQueue(@"decompression AAC outbound", sequenceGapNotifier);
         } else {
             _audioToBeOutputQueue = outboundQueue;
         }

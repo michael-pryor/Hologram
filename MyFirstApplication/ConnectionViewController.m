@@ -476,9 +476,15 @@
     dispatch_sync_main(^{
         if (mediaType == VIDEO) {
             NSLog(@"Data loss for video!");
-        } else {
+            [ViewInteractions fadeInOutLabel:_dcVideo completion:nil];
+        } else if (mediaType == AUDIO){
             NSLog(@"Data loss for audio!");
             [ViewInteractions fadeInOutLabel:_dcAudio completion:nil];
+        } else if (mediaType == AUDIO_QUEUE_RESET) {
+            NSLog(@"Extreme audio data loss (audio queue reset)!");
+            [ViewInteractions fadeInOutLabel:_dcAudioClear completion:nil];
+        } else {
+            NSLog(@"Unknown data loss type");
         }
     });
 }

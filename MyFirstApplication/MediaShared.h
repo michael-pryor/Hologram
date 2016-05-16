@@ -6,8 +6,14 @@
 #import "ByteBuffer.h"
 
 enum MediaType {
+    // Video heavy packet loss (we don't count chunks missing from batches).
     VIDEO,
-    AUDIO
+
+    // Audio packet loss.
+    AUDIO,
+
+    // Queues which stay too full for an extended period are cleared, to prevent audio delay (like a clearing cars out of a traffic jam).
+    AUDIO_QUEUE_RESET
 };
 typedef enum MediaType MediaType;
 

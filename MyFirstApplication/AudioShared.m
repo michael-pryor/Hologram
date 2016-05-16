@@ -7,6 +7,7 @@
 #import "AudioShared.h"
 #import "BlockingQueue.h"
 #import "BlockingQueueTemporal.h"
+#import "SequenceDecodingPipe.h"
 
 @implementation AudioDataContainer
 - (id)initWithNumFrames:(UInt32)numFrames audioList:(AudioBufferList *)audioList {
@@ -76,6 +77,6 @@
 }
 @end
 
-BlockingQueue* buildAudioQueue(NSString* name) {
-    return [[BlockingQueueTemporal alloc] initWithName:name maxQueueSize:100 trackerResetFrequencySeconds:5 minimumThreshold:3];
+BlockingQueue *buildAudioQueue(NSString *name, id <SequenceGapNotification> sequenceGapNotifier) {
+    return [[BlockingQueueTemporal alloc] initWithName:name maxQueueSize:100 trackerResetFrequencySeconds:5 minimumThreshold:3 sequenceGapNotifier:sequenceGapNotifier];
 }

@@ -11,10 +11,8 @@
 #import "MediaController.h"
 #import "EncodingPipe.h"
 #import "DecodingPipe.h"
-#import "DelayedPipe.h"
 #import "AudioGraph.h"
 #import "SequenceEncodingPipe.h"
-#import "SequenceDecodingPipe.h"
 
 @implementation MediaController {
     Boolean _started;
@@ -26,8 +24,8 @@
     EncodingPipe *_encodingPipeAudio;
     AudioGraph *_audioMicrophone;
 
-    SequenceEncodingPipe * _audioSequenceEncodingPipe;
-    SequenceDecodingPipe * _audioSequenceDecodingPipe;
+    SequenceEncodingPipe *_audioSequenceEncodingPipe;
+    SequenceDecodingPipe *_audioSequenceDecodingPipe;
 
     // Both audio and video.
     DecodingPipe *_decodingPipe;
@@ -60,7 +58,7 @@
             _encodingPipeAudio = nil;
         }
 
-        _audioMicrophone = [[AudioGraph alloc] initWithOutputSession:_encodingPipeAudio leftPadding:leftPadding+ sizeof(uint16_t)];
+        _audioMicrophone = [[AudioGraph alloc] initWithOutputSession:_encodingPipeAudio leftPadding:leftPadding + sizeof(uint16_t) sequenceGapNotifier:self];
         _audioSequenceDecodingPipe = [[SequenceDecodingPipe alloc] initWithOutputSession:_audioMicrophone sequenceGapNotification:self];
         [_decodingPipe addPrefix:AUDIO_ID mappingToOutputSession:_audioSequenceDecodingPipe];
         [_audioMicrophone initialize];
@@ -138,6 +136,9 @@
     if (sender == _audioSequenceDecodingPipe) {
         NSLog(@"Gap size of %u for audio", gapSize);
         [_mediaDelayNotifier onMediaDataLossFromSender:AUDIO];
+    } else if (sender == _audioMicrophone) {
+        NSLog(@"Audio reset detected of approximately %d items", gapSize);
+        [_mediaDelayNotifier onMediaDataLossFromSender:AUDIO_QUEUE_RESET];
     } else {
         NSLog(@"Gap size of %u for video", gapSize);
         [_mediaDelayNotifier onMediaDataLossFromSender:VIDEO];

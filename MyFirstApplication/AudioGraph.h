@@ -7,12 +7,12 @@
 #import "AudioShared.h"
 @import AudioToolbox;
 
-@interface AudioGraph : NSObject <NewPacketDelegate, AudioDataPipeline>
+@interface AudioGraph : NSObject <NewPacketDelegate, AudioDataPipeline, SequenceGapNotification>
 - (AudioUnit)getAudioProducer;
 
 - (void)initialize;
 
-- (id)initWithOutputSession:(id <NewPacketDelegate>)outputSession leftPadding:(uint)leftPadding;
+- (id)initWithOutputSession:(id <NewPacketDelegate>)outputSession leftPadding:(uint)leftPadding sequenceGapNotifier:(id <SequenceGapNotification>)sequenceGapNotifier;
 
 - (void)stop;
 

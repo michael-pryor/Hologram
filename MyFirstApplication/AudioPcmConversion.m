@@ -25,7 +25,7 @@
     TimedCounterLogging *_pcmConversionOutboundCounter;
 }
 
-- (id)initWithDescription:(NSString *)humanDescription inputFormat:(AudioStreamBasicDescription)inputFormat outputFormat:(AudioStreamBasicDescription)outputFormat outputFormatEx:(AudioFormatProcessResult)outputFormatEx outputResult:(id <AudioDataPipeline>)callback inboundQueue:(BlockingQueue *)queue {
+- (id)initWithDescription:(NSString *)humanDescription inputFormat:(AudioStreamBasicDescription)inputFormat outputFormat:(AudioStreamBasicDescription)outputFormat outputFormatEx:(AudioFormatProcessResult)outputFormatEx outputResult:(id <AudioDataPipeline>)callback inboundQueue:(BlockingQueue *)queue sequenceGapNotifier:(id <SequenceGapNotification>)sequenceGapNotifier {
     self = [super init];
     if (self) {
         NSString *inboundDescription = [NSString stringWithFormat:@"PCM conversion inbound %@", humanDescription];
@@ -35,7 +35,7 @@
         _pcmConversionOutboundCounter = [[TimedCounterLogging alloc] initWithDescription:outboundDescription];
 
         if (queue == nil) {
-            _audioToBeConvertedQueue = buildAudioQueue(inboundDescription);
+            _audioToBeConvertedQueue = buildAudioQueue(inboundDescription, sequenceGapNotifier);
         } else {
             _audioToBeConvertedQueue = queue;
         }

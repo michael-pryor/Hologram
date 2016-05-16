@@ -10,7 +10,7 @@
 #import "AudioSessionInteractions.h"
 
 @interface AudioCompression : NSObject <AudioDataPipeline, NewPacketDelegate>
-- (id)initWithUncompressedAudioFormat:(AudioStreamBasicDescription)uncompressedAudioFormat uncompressedAudioFormatEx:(AudioFormatProcessResult)uncompressedAudioFormatEx outputSession:(id <NewPacketDelegate>)outputSession leftPadding:(uint)leftPadding outboundQueue:(BlockingQueue *)outboundQueue;
+- (id)initWithUncompressedAudioFormat:(AudioStreamBasicDescription)uncompressedAudioFormat uncompressedAudioFormatEx:(AudioFormatProcessResult)uncompressedAudioFormatEx outputSession:(id <NewPacketDelegate>)outputSession leftPadding:(uint)leftPadding outboundQueue:(BlockingQueue *)outboundQueue sequenceGapNotifier:(id <SequenceGapNotification>)sequenceGapNotifier;
 
 - (AudioDataContainer *)getPendingDecompressedData;
 
