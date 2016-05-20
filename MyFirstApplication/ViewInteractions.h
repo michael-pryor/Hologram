@@ -6,9 +6,13 @@
 
 
 @interface ViewInteractions : NSObject
-+ (void)fadeInOutLabel:(UIView *)label completion:(void (^)(BOOL))block;
++ (void)fadeInOut:(UIView *)entity completion:(void (^)(BOOL))block options:(UIViewAnimationOptions)options;
+
++ (void)fadeInOut:(UIView *)label completion:(void (^)(BOOL))block;
 
 + (void)fadeIn:(UIView *)label completion:(void (^)(BOOL))block duration:(float)duration;
 
 + (void)fadeOut:(UIView *)label completion:(void (^)(BOOL))block duration:(float)duration;
+
+
 @end

@@ -279,6 +279,12 @@
         }
     });
 }
+- (IBAction)onActionWithTempButton:(id)sender {
+    [self onMediaDataLossFromSender:VIDEO];
+    [self onMediaDataLossFromSender:AUDIO];
+    [self onMediaDataLossFromSender:AUDIO_QUEUE_RESET];
+    [self prepareTutorials];
+}
 
 - (void)handleUserName:(NSString *)name age:(uint)age distance:(uint)distance {
     dispatch_sync_main(^{
@@ -476,13 +482,13 @@
     dispatch_sync_main(^{
         if (mediaType == VIDEO) {
             NSLog(@"Data loss for video!");
-            [ViewInteractions fadeInOutLabel:_dcVideo completion:nil];
+            [ViewInteractions fadeInOut:_dcVideo completion:nil options: UIViewAnimationOptionBeginFromCurrentState];
         } else if (mediaType == AUDIO){
             NSLog(@"Data loss for audio!");
-            [ViewInteractions fadeInOutLabel:_dcAudio completion:nil];
+            [ViewInteractions fadeInOut:_dcAudio completion:nil options: UIViewAnimationOptionBeginFromCurrentState];
         } else if (mediaType == AUDIO_QUEUE_RESET) {
             NSLog(@"Extreme audio data loss (audio queue reset)!");
-            [ViewInteractions fadeInOutLabel:_dcAudioClear completion:nil];
+            [ViewInteractions fadeInOut:_dcAudioClear completion:nil options: UIViewAnimationOptionBeginFromCurrentState];
         } else {
             NSLog(@"Unknown data loss type");
         }
@@ -503,26 +509,26 @@
     if (difference < tutorialInactivityFrequency || difference < 0) {
         NSLog(@"Time since last tutorial prepare is: %.0f seconds, not showing tutorial", difference);
         [storage setDouble:currentEpochSeconds forKey:tutorialLastPreparedEpochSecondsKey];
-        return;
+        //return;
     }
 
     NSLog(@"Time since last tutorial prepare is: %.0f seconds, showing tutorial", difference);
 
     // Once per application run.
-    [ViewInteractions fadeInOutLabel:_swipeTutorialSkip completion:^void(BOOL finishedSkip) {
+    [ViewInteractions fadeInOut:_swipeTutorialSkip completion:^void(BOOL finishedSkip) {
         if (!finishedSkip) {
             return;
         }
 
-        [ViewInteractions fadeInOutLabel:_swipeTutorialChangeSettings completion:^void(BOOL finishedChangeSettings) {
+        [ViewInteractions fadeInOut:_swipeTutorialChangeSettings completion:^void(BOOL finishedChangeSettings) {
             if (!finishedChangeSettings) {
                 return;
             }
 
             // Update only after tutorial has completed successfully.
             [storage setDouble:currentEpochSeconds forKey:tutorialLastPreparedEpochSecondsKey];
-        }];
-    }];
+        } options: UIViewAnimationOptionOverrideInheritedCurve | UIViewAnimationOptionOverrideInheritedDuration];
+    } options:UIViewAnimationOptionOverrideInheritedCurve | UIViewAnimationOptionOverrideInheritedDuration];
 }
 
 - (void)preprepareRuntimeView {
