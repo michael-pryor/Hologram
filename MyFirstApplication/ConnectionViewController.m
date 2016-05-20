@@ -30,8 +30,7 @@
     // UI
     volatile AlertViewController *_disconnectViewController;
     IBOutlet UIImageView *_cameraView;
-    IBOutlet UILabel *_frameRate;
-    IBOutlet UIView *_natPunchthroughIndicator;
+    IBOutlet UIImageView *_natPunchthroughIndicator;
     IBOutlet UILabel *_ownerName;
     IBOutlet UILabel *_ownerAge;
     IBOutlet UILabel *_remoteName;
@@ -266,10 +265,10 @@
     dispatch_sync_main(^{
         if (state == ROUTED) {
             NSLog(@"Regressed to routing mode");
-            [_natPunchthroughIndicator setBackgroundColor:[UIColor greenColor]];
+            [_natPunchthroughIndicator setImage:[UIImage imageNamed:@"nat_routing_through_server"]];
         } else if (state == PUNCHED_THROUGH) {
             NSLog(@"Punched through successfully");
-            [_natPunchthroughIndicator setBackgroundColor:[UIColor blueColor]];
+            [_natPunchthroughIndicator setImage:[UIImage imageNamed:@"nat_punched_through"]];
         } else if (state == ADDRESS_RECEIVED) {
             NSLog(@"New end point received");
             _waitingForNewEndPoint = false;
@@ -278,12 +277,6 @@
             NSLog(@"Unsupported punchthrough state received");
         }
     });
-}
-- (IBAction)onActionWithTempButton:(id)sender {
-    [self onMediaDataLossFromSender:VIDEO];
-    [self onMediaDataLossFromSender:AUDIO];
-    [self onMediaDataLossFromSender:AUDIO_QUEUE_RESET];
-    [self prepareTutorials];
 }
 
 - (void)handleUserName:(NSString *)name age:(uint)age distance:(uint)distance {
@@ -509,7 +502,7 @@
     if (difference < tutorialInactivityFrequency || difference < 0) {
         NSLog(@"Time since last tutorial prepare is: %.0f seconds, not showing tutorial", difference);
         [storage setDouble:currentEpochSeconds forKey:tutorialLastPreparedEpochSecondsKey];
-        //return;
+        return;
     }
 
     NSLog(@"Time since last tutorial prepare is: %.0f seconds, showing tutorial", difference);

@@ -172,15 +172,15 @@
                                 <color key="textColor" red="0.0" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Wt1-7M-iep">
-                                <rect key="frame" x="580" y="579" width="15" height="15"/>
-                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                            <imageView opaque="NO" userInteractionEnabled="NO" contentMode="scaleAspectFit" translatesAutoresizingMaskIntoConstraints="NO" id="Wt1-7M-iep">
+                                <rect key="frame" x="565" y="564" width="30" height="30"/>
+                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                 <accessibility key="accessibilityConfiguration">
                                     <accessibilityTraits key="traits" notEnabled="YES"/>
                                 </accessibility>
                                 <constraints>
-                                    <constraint firstAttribute="height" constant="15" id="9ZN-F0-jXK"/>
-                                    <constraint firstAttribute="width" constant="15" id="Wct-jJ-BxB"/>
+                                    <constraint firstAttribute="height" constant="30" id="9ZN-F0-jXK"/>
+                                    <constraint firstAttribute="width" constant="30" id="Wct-jJ-BxB"/>
                                 </constraints>
                             </imageView>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="cbc-sf-j5j">
@@ -210,33 +210,33 @@
                                 <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="calibratedRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <imageView opaque="NO" userInteractionEnabled="NO" alpha="0.0" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="video_icon" translatesAutoresizingMaskIntoConstraints="NO" id="5yT-Gv-8LY" userLabel="DC Video Image">
-                                <rect key="frame" x="8" y="20" width="15" height="15"/>
+                            <imageView opaque="NO" userInteractionEnabled="NO" alpha="0.0" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="video_problem" translatesAutoresizingMaskIntoConstraints="NO" id="5yT-Gv-8LY" userLabel="DC Video Image">
+                                <rect key="frame" x="8" y="20" width="30" height="30"/>
                                 <constraints>
-                                    <constraint firstAttribute="width" constant="15" id="SIK-ed-fsi"/>
-                                    <constraint firstAttribute="height" constant="15" id="pp6-jM-Nen"/>
+                                    <constraint firstAttribute="width" constant="30" id="SIK-ed-fsi"/>
+                                    <constraint firstAttribute="height" constant="30" id="pp6-jM-Nen"/>
                                 </constraints>
                             </imageView>
-                            <imageView userInteractionEnabled="NO" alpha="0.0" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="0Z4-8y-t8q" userLabel="DC Audio">
-                                <rect key="frame" x="28" y="20" width="15" height="15"/>
-                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                            <imageView opaque="NO" userInteractionEnabled="NO" alpha="0.0" contentMode="scaleAspectFit" image="audio_problem" translatesAutoresizingMaskIntoConstraints="NO" id="0Z4-8y-t8q" userLabel="DC Audio">
+                                <rect key="frame" x="43" y="20" width="30" height="30"/>
+                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                 <accessibility key="accessibilityConfiguration">
                                     <accessibilityTraits key="traits" notEnabled="YES"/>
                                 </accessibility>
                                 <constraints>
-                                    <constraint firstAttribute="width" constant="15" id="88n-Mt-3nR"/>
-                                    <constraint firstAttribute="height" constant="15" id="May-Vr-X0w"/>
+                                    <constraint firstAttribute="width" constant="30" id="88n-Mt-3nR"/>
+                                    <constraint firstAttribute="height" constant="30" id="May-Vr-X0w"/>
                                 </constraints>
                             </imageView>
-                            <imageView userInteractionEnabled="NO" alpha="0.0" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="F1S-Hc-p7x" userLabel="DC Audio Clear">
-                                <rect key="frame" x="48" y="20" width="15" height="15"/>
-                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                            <imageView opaque="NO" userInteractionEnabled="NO" alpha="0.0" contentMode="scaleAspectFit" image="fast_forward_audio" translatesAutoresizingMaskIntoConstraints="NO" id="F1S-Hc-p7x" userLabel="DC Audio Clear">
+                                <rect key="frame" x="78" y="20" width="30" height="30"/>
+                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                 <accessibility key="accessibilityConfiguration">
                                     <accessibilityTraits key="traits" notEnabled="YES"/>
                                 </accessibility>
                                 <constraints>
-                                    <constraint firstAttribute="width" constant="15" id="746-ct-e7A"/>
-                                    <constraint firstAttribute="height" constant="15" id="Oy8-NW-aaO"/>
+                                    <constraint firstAttribute="width" constant="30" id="746-ct-e7A"/>
+                                    <constraint firstAttribute="height" constant="30" id="Oy8-NW-aaO"/>
                                 </constraints>
                             </imageView>
                             <label opaque="NO" userInteractionEnabled="NO" alpha="0.0" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="&lt;= Swipe to change settings " textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="pgN-Gq-UFL">
@@ -245,13 +245,6 @@
                                 <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="calibratedRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="TM4-eO-K4N">
-                                <rect key="frame" x="0.0" y="0.0" width="46" height="30"/>
-                                <state key="normal" title="Button"/>
-                                <connections>
-                                    <action selector="onActionWithTempButton:" destination="tQC-hy-qbI" eventType="touchDown" id="a6h-GQ-L0f"/>
-                                </connections>
-                            </button>
                         </subviews>
                         <color key="backgroundColor" red="0.081339869195487968" green="0.22745098039215686" blue="0.0041172287612304863" alpha="1" colorSpace="calibratedRGB"/>
                         <gestureRecognizers/>
@@ -280,9 +273,9 @@
                             <constraint firstItem="SN4-gs-A3A" firstAttribute="top" secondItem="UGl-Rn-eIt" secondAttribute="bottom" constant="5" id="cHA-bh-crm" userLabel="OwnerName bottom"/>
                             <constraint firstAttribute="trailing" secondItem="GLg-2U-XhO" secondAttribute="trailing" id="e0w-kQ-nDF" userLabel="CameraView right"/>
                             <constraint firstItem="cd6-78-3Jp" firstAttribute="leading" secondItem="11e-ce-u2V" secondAttribute="leading" id="gA1-lr-dfa"/>
-                            <constraint firstItem="5yT-Gv-8LY" firstAttribute="leading" secondItem="GLg-2U-XhO" secondAttribute="leadingMargin" id="ghv-XS-sXj" userLabel="DC Video left"/>
                             <constraint firstItem="Wt1-7M-iep" firstAttribute="trailing" secondItem="BlS-3L-w4D" secondAttribute="trailing" constant="-5" id="hFh-B7-HaM" userLabel="NAT right"/>
                             <constraint firstAttribute="bottom" secondItem="GLg-2U-XhO" secondAttribute="bottom" id="hrJ-L3-rnv" userLabel="CameraView bottom"/>
+                            <constraint firstItem="5yT-Gv-8LY" firstAttribute="leading" secondItem="GLg-2U-XhO" secondAttribute="leadingMargin" id="lct-cm-ncm" userLabel="DC Video left"/>
                             <constraint firstItem="cbc-sf-j5j" firstAttribute="height" secondItem="UGl-Rn-eIt" secondAttribute="height" id="nHK-nP-fLn" userLabel="OwnerAge height"/>
                             <constraint firstItem="5yT-Gv-8LY" firstAttribute="top" secondItem="11e-ce-u2V" secondAttribute="top" id="nxx-hi-cx6" userLabel="DC Video top"/>
                             <constraint firstItem="F1S-Hc-p7x" firstAttribute="top" secondItem="0Z4-8y-t8q" secondAttribute="top" id="p9I-4s-bYp" userLabel="DC Audio Clear top"/>
@@ -324,7 +317,7 @@
                     </connections>
                 </swipeGestureRecognizer>
             </objects>
-            <point key="canvasLocation" x="834" y="-484"/>
+            <point key="canvasLocation" x="829" y="-495"/>
         </scene>
         <!--Alert View Controller-->
         <scene sceneID="bwh-xN-V9T">
@@ -386,6 +379,8 @@
         </scene>
     </scenes>
     <resources>
-        <image name="video_icon" width="128" height="128"/>
+        <image name="audio_problem" width="2482" height="2420"/>
+        <image name="fast_forward_audio" width="2440" height="2482"/>
+        <image name="video_problem" width="2482" height="1860"/>
     </resources>
 </document>
