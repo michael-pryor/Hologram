@@ -2,8 +2,9 @@ from twisted.internet.protocol import ClientFactory
 from twisted.internet import reactor, defer, ssl
 from protocol_client import ClientTcp
 from byte_buffer import ByteBuffer
-from utility import inet_addr
+from utility import inet_addr, Throttle
 from twisted.internet.endpoints import TCP4ServerEndpoint, SSL4ServerEndpoint
+from threading import RLock
 
 import logging
 import argparse
@@ -31,6 +32,7 @@ class CommanderGovernor(object):
         self.forwardPortUdp = None
         self.forwardPacket = None
         self.governorHost = governorHost
+        self.current_load = 0
 
     def onDisconnect(self):
         self.connection_status = CommanderGovernor.ConnectionStatus.DISCONNECTED
@@ -67,7 +69,9 @@ class CommanderGovernor(object):
 
             self.connection_status = CommanderGovernor.ConnectionStatus.CONNECTED
         elif self.connection_status == CommanderGovernor.ConnectionStatus.CONNECTED:
-            logger.error("Received packet from governor while connected")
+            load = packet.getUnsignedInteger()
+            logger.info("Received load of [%d] from governor [%s]" % (load, self))
+            self.current_load = load
         elif self.connection_status == CommanderGovernor.ConnectionStatus.DISCONNECTED:
             logger.error("Received packet from governor while disconnected")
         else:
@@ -86,32 +90,64 @@ class CommanderGovernor(object):
 class CommanderGovernorController(ClientFactory):
     def __init__(self, governorHost = None):
         self.sub_servers = list()
-        self.round_robin = 0
+        self.sub_servers_lock = RLock()
         self.governor_host = governorHost
 
-    def getNextSubServer(self):
-        for index, value in enumerate(self.sub_servers):
-            try:
-                result = self.sub_servers[self.round_robin % len(self.sub_servers)]
-                self.round_robin += 1
-                if result.connection_status == CommanderGovernor.ConnectionStatus.CONNECTED:
-                    return result
-            except KeyError:
-                pass
+        self.best_sub_server = None
 
-        return None
+    @Throttle(2)
+    def updateBestSubServer(self):
+        self.sub_servers_lock.acquire()
+        try:
+            lowest_load = -1;
+            lowestSubServer = None
+            for subServer in self.sub_servers:
+                assert isinstance(subServer, CommanderGovernor)
+                currentLoad = subServer.current_load
+                if currentLoad < lowest_load or lowestSubServer is None:
+                    lowest_load = currentLoad
+                    lowestSubServer = subServer
+
+            if lowestSubServer is self.best_sub_server:
+                logger.info("Recalculated best sub server, remains unchanged with load of [%d], and server: [%s]" % (lowest_load, self.best_sub_server))
+            else:
+                self.best_sub_server = lowestSubServer
+                logger.info("Recalculated best sub server, changed with load of [%d], and new server: [%s]" % (lowest_load, self.best_sub_server))
+        finally:
+            self.sub_servers_lock.release()
+
+
+    def getNextSubServer(self):
+        self.sub_servers_lock.acquire()
+        try:
+            self.updateBestSubServer()
+            if self.best_sub_server is None and len(self.sub_servers) > 0:
+                return self.sub_servers[0]
+
+            return self.best_sub_server
+        finally:
+            self.sub_servers_lock.release()
 
     def clientDisconnected(self, client):
         assert isinstance(client, CommanderGovernor)
-        logger.info("Governor disconnected, deleting [%s]" % client)
-        self.sub_servers.remove(client)
+        self.sub_servers_lock.acquire()
+        try:
+            logger.info("Governor disconnected, deleting [%s]" % client)
+            self.sub_servers.remove(client)
+        finally:
+            self.sub_servers_lock.release()
 
 
     def buildProtocol(self, addr):
         logger.info('A new governor server has connected with details [%s]' % addr)
         tcp = ClientTcp(addr)
         subServer = CommanderGovernor(tcp, self.clientDisconnected, self.governor_host)
-        self.sub_servers.append(subServer)
+        self.sub_servers_lock.acquire()
+        try:
+            self.sub_servers.append(subServer)
+        finally:
+            self.sub_servers_lock.release()
+
         return tcp
 
 class CommanderClientRouting(ClientFactory):

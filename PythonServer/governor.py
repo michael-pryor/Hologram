@@ -41,6 +41,10 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
         self.reactor = reactor
         self.house = House(database)
 
+    # Higher = under more stress, handling more traffic, lower = handling less.
+    def getLoad(self):
+        return 50
+
     def startedConnecting(self, connector):
         logger.info('Started to connect.')
 
@@ -251,11 +255,15 @@ class CommanderConnection(ReconnectingClientFactory):
     factor=1.25
     jitter=0.25
 
+    ping_frequency=5
+
     class RouterCodes:
         SUCCESS = 1
         FAILURE = 2
 
-    def __init__(self, commanderHost, commanderPort, ourGovernorTcpPort, ourGovernorUdpPort):
+    def __init__(self, commanderHost, commanderPort, ourGovernorTcpPort, ourGovernorUdpPort, governor):
+        assert isinstance(governor, Governor)
+
         self.governorPacket = ByteBuffer()
         passwordEnvVariable = os.environ['HOLOGRAM_PASSWORD']
         if len(passwordEnvVariable) == 0:
@@ -263,6 +271,9 @@ class CommanderConnection(ReconnectingClientFactory):
         self.governorPacket.addString(passwordEnvVariable)
         self.governorPacket.addUnsignedInteger(ourGovernorTcpPort)
         self.governorPacket.addUnsignedInteger(ourGovernorUdpPort)
+
+        self.governor = governor
+        self.isConnected = False
 
     def buildProtocol(self, addr):
         logger.info('TCP connection initiated with new client [%s]' % addr)
@@ -275,19 +286,35 @@ class CommanderConnection(ReconnectingClientFactory):
         logger.info("Attempting to connect to commander...")
 
     def clientConnectionFailed(self, connector, reason):
+        self.isConnected = False
         logger.warn("Failed to connect to commander, reason: [%s]" % reason.getErrorMessage())
         self.retry(connector)
 
+    def doPing(self):
+        if not self.isConnected:
+            return
+
+        pingPacket = ByteBuffer()
+        pingPacket.addUnsignedInteger(self.governor.getLoad())
+        self.tcp.sendByteBuffer(pingPacket)
+        self.schedulePing()
+
+    def schedulePing(self):
+        self.governor.reactor.callLater(CommanderConnection.ping_frequency, self.doPing)
+
     def onConnectionMade(self):
+        self.isConnected = True
         logger.info("Connection to commander made, sending governor information")
         self.resetDelay()
         self.tcp.sendByteBuffer(self.governorPacket)
+        self.schedulePing()
 
     def handleTcpPacket(self, packet):
         assert isinstance(packet, ByteBuffer)
         logger.warn("Received a packet from the commander, size: %d" % packet.used_size)
 
     def clientConnectionLost(self, connector, reason):
+        self.isConnected = False
         logger.warn("Connection with commander lost, reason [%s]" % reason.getErrorMessage())
         self.retry(connector)
 
@@ -324,13 +351,12 @@ if __name__ == "__main__":
     commanderHost = args.commander_host
     commanderPort = int(args.commander_port)
 
-    commanderConnection = CommanderConnection(commanderHost, commanderPort, tcpPort, udpPort)
+    database = Database(governorName, "localhost", 27017)
+    server = Governor(reactor, database)
+
+    commanderConnection = CommanderConnection(commanderHost, commanderPort, tcpPort, udpPort, server)
     logger.info("Connecting to commander via TCP with address: [%s:%d]" % (commanderHost, commanderPort))
     reactor.connectSSL(commanderHost, commanderPort, commanderConnection, ssl.ClientContextFactory())
-
-    database = Database(governorName, "localhost", 27017)
-
-    server = Governor(reactor, database)
 
     # TCP server.
     endpoint = TCP4ServerEndpoint(reactor, tcpPort)
