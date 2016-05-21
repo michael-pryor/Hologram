@@ -12,6 +12,7 @@ from house import House
 import logging
 import argparse
 import os
+from stat_tracker import StatTracker
 
 from database import Database
 
@@ -41,9 +42,13 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
         self.reactor = reactor
         self.house = House(database)
 
+        # Track kilobytes per second averaged over last 30 seconds.
+        self.kilobyte_per_second_tracker = StatTracker(1,30)
+
     # Higher = under more stress, handling more traffic, lower = handling less.
     def getLoad(self):
-        return 50
+        self.kilobyte_per_second_tracker.soft_tick()
+        return self.kilobyte_per_second_tracker.average_tick_rate
 
     def startedConnecting(self, connector):
         logger.info('Started to connect.')
@@ -193,6 +198,8 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
         logger.info('Connection failed. Reason:')
 
     def datagramReceived(self, data, remoteAddress):
+        self.kilobyte_per_second_tracker.tick(float(len(data)) / 1024.0)
+
         self._lockClm()
         try:
             #logger.info('UDP packet received with size %d from host [%s], port [%s]' % (len(data), remoteAddress[0], remoteAddress[1]))
@@ -296,7 +303,7 @@ class CommanderConnection(ReconnectingClientFactory):
 
         pingPacket = ByteBuffer()
         pingPacket.addUnsignedInteger(self.governor.getLoad())
-        #self.tcp.sendByteBuffer(pingPacket)
+        self.tcp.sendByteBuffer(pingPacket)
         self.schedulePing()
 
     def schedulePing(self):
