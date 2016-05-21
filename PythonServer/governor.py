@@ -7,7 +7,7 @@ from handshaking import UdpConnectionLinker
 from protocol_client import ClientTcp, ClientUdp
 from threading import RLock;
 from twisted.internet.error import AlreadyCalled, AlreadyCancelled
-from utility import getRemainingTimeOnAction
+from utility import getRemainingTimeOnAction, Throttle
 from house import House
 import logging
 import argparse
@@ -145,6 +145,10 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
                 # Already disconnected.
                 return
 
+            logger.info("Cleaning up TCP: %s" % origClient.tcp)
+            del self.clients_by_tcp_address[origClient.tcp.remote_address]
+            logger.info("Client has disconnected: %s" % origClient)
+
             # There is the possibility that client reconnected, creating new
             # Client object, but there was a delay in the original client
             # objects disconnection, so they appeared out of order.
@@ -161,10 +165,6 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
                 else:
                     # No reconnect concerns, cleanup the client normally.
                     self._cleanupUdp(origClient)
-
-            logger.info("Cleaning up TCP: %s" % origClient.tcp)
-            del self.clients_by_tcp_address[origClient.tcp.remote_address]
-            logger.info("Client has disconnected: %s" % origClient)
         finally:
             self._unlockClm()
 
@@ -202,13 +202,17 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
         else:
             knownClient.handleUdpPacket(data)
 
+    @Throttle(1)
+    def _onMalformed(self):
+        logger.debug("Malformed hash received in unknown UDP packet, discarding")
+
     def onUnknownData(self, data, remoteAddress):
         assert isinstance(data, ByteBuffer)
 
         theHash = data.getString()
         if theHash is None or len(theHash) == 0:
             # This can happen because of UDP ordering or client sending video frames before fully connected.
-            logger.debug("Malformed hash received in unknown UDP packet, discarding")
+            self._onMalformed()
             return
 
         registeredClient = self.udp_connection_linker.registerCompletion(theHash, ClientUdp(remoteAddress, self.transport.write))

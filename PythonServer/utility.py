@@ -2,6 +2,7 @@ import calendar
 import time
 import struct
 import socket
+from functools import wraps, partial
 
 __author__ = 'pryormic'
 
@@ -31,6 +32,29 @@ def inet_addr(address):
 
 def htons(port):
     return socket.htons(port)
+
+class ThrottleDecorator(object):
+    def __init__(self,func,interval):
+        self.func = func
+        self.interval = interval
+        self.last_run = 0
+
+    def __get__(self,obj,objtype=None):
+        if obj is None:
+            return self.func
+        return partial(self,obj)
+
+    def __call__(self,*args,**kwargs):
+        now = time.time()
+        if now - self.last_run >= self.interval:
+            self.last_run = now
+            return self.func(*args,**kwargs)
+
+def Throttle(interval):
+    def applyDecorator(func):
+        decorator = ThrottleDecorator(func=func,interval=interval)
+        return wraps(func)(decorator)
+    return applyDecorator
 
 if __name__ == '__main__':
     print inet_addr("192.168.1.119")
