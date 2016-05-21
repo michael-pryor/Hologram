@@ -16,6 +16,8 @@ __author__ = 'pryormic'
 logger = logging.getLogger(__name__)
 
 class CommanderGovernor(object):
+    TIMEOUT=15
+
     class ConnectionStatus:
         WAITING_FOR_CONNECTION_DETAILS = 1
         CONNECTED = 2
@@ -33,6 +35,16 @@ class CommanderGovernor(object):
         self.forwardPacket = None
         self.governorHost = governorHost
         self.current_load = 0
+        self.disconnect_timeout = reactor.callLater(CommanderGovernor.TIMEOUT, self.forceDisconnect)
+
+    def forceDisconnect(self):
+        logger.warn("Forcefully disconnecting governor, not received ping within timeout: [%s]", self)
+        if self.tcp.transport is not None:
+            self.tcp.transport.loseConnection()
+        else:
+            logger.error("Attempted to forcefully disconnect governor, due to ping timeout, but TCP transport not setup yet: [%s]", self)
+
+        self.onDisconnect()
 
     def onDisconnect(self):
         self.connection_status = CommanderGovernor.ConnectionStatus.DISCONNECTED
@@ -40,6 +52,8 @@ class CommanderGovernor(object):
 
     def handleTcpPacket(self, packet):
         assert isinstance(packet, ByteBuffer)
+
+        self.disconnect_timeout.reset(CommanderGovernor.TIMEOUT)
 
         if self.connection_status == CommanderGovernor.ConnectionStatus.WAITING_FOR_CONNECTION_DETAILS:
             passwordEnvVariable = os.environ['HOLOGRAM_PASSWORD']
@@ -134,6 +148,9 @@ class CommanderGovernorController(ClientFactory):
         try:
             logger.info("Governor disconnected, deleting [%s]" % client)
             self.sub_servers.remove(client)
+            if client is self.best_sub_server:
+                self.best_sub_server = None
+                logger.info("Cleared best sub server: [%s]" % client)
         finally:
             self.sub_servers_lock.release()
 

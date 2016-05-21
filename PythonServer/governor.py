@@ -296,7 +296,7 @@ class CommanderConnection(ReconnectingClientFactory):
 
         pingPacket = ByteBuffer()
         pingPacket.addUnsignedInteger(self.governor.getLoad())
-        self.tcp.sendByteBuffer(pingPacket)
+        #self.tcp.sendByteBuffer(pingPacket)
         self.schedulePing()
 
     def schedulePing(self):
