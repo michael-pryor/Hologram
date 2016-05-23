@@ -10,6 +10,7 @@
 #import "Timer.h"
 #import "Threading.h"
 #import "ViewInteractions.h"
+#import <Google/Analytics.h>
 
 @implementation AlertViewController {
     IBOutlet UILabel *_alertShortText;
@@ -53,6 +54,10 @@
     NSLog(@"Alert view loaded, unhiding banner advert and setting delegate");
     _bannerView.delegate = self;
     [_bannerView setHidden:false];
+    
+    id<GAITracker> tracker = [[GAI sharedInstance] defaultTracker];
+    [tracker set:kGAIScreenName value:@"ConnectingScreen"];
+    [tracker send:[[GAIDictionaryBuilder createScreenView] build]];
 }
 
 - (void)viewDidDisappear:(BOOL)animated {
