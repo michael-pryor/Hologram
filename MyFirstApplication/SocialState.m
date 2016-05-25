@@ -109,7 +109,7 @@ typedef void (^Block)(id);
 
     if (_isBasicDataLoaded) {
         NSLog(@"Loaded social details: Full name = [%@], Short name: [%@], Facebook URL: [%@], Facebook ID: [%@]", _humanFullName, _humanShortName, _facebookUrl, _facebookId);
-        [self _updateAnalyticsUser:_facebookId];
+        [self _updateAnalyticsUser];
     } else {
         NSLog(@"Failed to load social details");
         [self reset];
@@ -142,11 +142,13 @@ typedef void (^Block)(id);
     return UUID;
 }
 
-- (void)_updateAnalyticsUser:(NSString*)facebookID {
-    NSString* UUID = [self _retrieveUserUUID:facebookID];
+- (void)_updateAnalyticsUser {
+    NSString* UUID = [self _retrieveUserUUID:_facebookId];
     NSLog(@"Prepared Google analytics tracker with UUID: %@", UUID);
 
     id <GAITracker> tracker = [[GAI sharedInstance] defaultTracker];
+
+    // User tracking must be enabled in Google analytics.
     [tracker set:kGAIUserId value:UUID];
 }
 
@@ -277,17 +279,25 @@ typedef void (^Block)(id);
                 return;
             }
 
+            id <GAITracker> tracker = [[GAI sharedInstance] defaultTracker];
+
             _dob = [result objectForKey:@"birthday"];
             if (_dob == nil) {
                 NSLog(@"Failed to retrieve date of birth from Facebook API, defaulting to 0 - server will handle this");
                 _age = 0;
             } else {
                 _age = [self getAgeFromDateOfBirth:_dob];
+
+                // The dimension index must be setup in Google analytics.
+                [tracker set:[GAIFields customDimensionForIndex:1] value:[[NSString alloc] initWithFormat:@"%d", _age]];
             }
 
             _gender = [result objectForKey:@"gender"];
             if (_gender == nil) {
                 NSLog(@"Failed to retrieve gender from Facebook API, defaulting to nil which will equate to BOTH - server will handle this");
+            } else {
+                // The dimension index must be setup in Google analytics.
+                [tracker set:[GAIFields customDimensionForIndex:2] value:_gender];
             }
             _genderI = [self parseGenderFromFacebookApi:_gender];
 
