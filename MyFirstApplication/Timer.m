@@ -12,6 +12,11 @@
     CFAbsoluteTime _secondsEpoch;
 }
 
+// Use this if all we want to use is getSecondsSinceLastTick, none of the tick logic.
+- (id)init {
+    return [self initWithFrequencySeconds:0 firingInitially:false];
+}
+
 - (id)initWithFrequencySeconds:(CFAbsoluteTime)frequency firingInitially:(Boolean)initialFire {
     self = [super init];
     if (self) {

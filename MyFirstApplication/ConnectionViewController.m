@@ -53,7 +53,6 @@
     ByteBuffer *_permDisconnectPacket;
 
     bool _inFacebookLoginView;
-    bool _resentScreenChangeNotification;
 
     // Special case where we want user to be able to skip, even if not currently talking
     // with somebody. Current special cases include:
@@ -69,6 +68,8 @@
 
     // For Google analytics.
     NSString *_screenName;
+    Timer *_connectionStateTimer;
+    NatState previousState;
 }
 
 // View initially load; happens once per process.
@@ -77,7 +78,7 @@
     [super viewDidLoad];
 
     _screenName = @"VideoChat";
-    _resentScreenChangeNotification = false;
+    _connectionStateTimer = [[Timer alloc] init];
 
     [self setDisconnectStateWithShortDescription:@"Initializing" longDescription:@"Initializing media controller"];
 
@@ -154,8 +155,17 @@
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
 
+    // Start off in routed mode.
+    previousState = ROUTED;
+    [self onNatPunchthrough:nil stateChange:ROUTED];
+
     _inFacebookLoginView = false;
     _isSkippableDespiteNoMatch = false;
+
+    // Will probably already be there if we have already loaded previously.
+    if (_disconnectViewController != nil) {
+        [self onScreenChange:[_disconnectViewController getScreenName]];
+    }
 
     // Important that we don't validate access to video/microphone before Facebook
     // login is complete, because its in that view controller that the dialog box about
@@ -267,10 +277,26 @@
     });
 }
 
+- (void)pushTiming:(NSTimeInterval)timeSinceLastStateChangeSeconds toAnalyticsWithCategory:(NSString *)category name:(NSString *)name label:(NSString *)label {
+    id tracker = [[GAI sharedInstance] defaultTracker];
+    [tracker send:[[GAIDictionaryBuilder createTimingWithCategory:category
+                                                         interval:@((NSUInteger) (timeSinceLastStateChangeSeconds * 1000.0))
+                                                             name:name
+                                                            label:label] build]];
+}
+
 // Called when we receive a change in connection state regarding NAT punchthrough.
 // Important to update the display so that we know how we are connected.
 - (void)onNatPunchthrough:(ConnectionGovernorNatPunchthrough *)connection stateChange:(NatState)state {
     dispatch_sync_main(^{
+        if (previousState == state) {
+            return;
+        }
+        NatState previousStateLocal = previousState;
+        previousState = state;
+        NSTimeInterval secondsTimed = [_connectionStateTimer getSecondsSinceLastTick];
+        [_connectionStateTimer reset];
+
         if (state == ROUTED) {
             NSLog(@"Regressed to routing mode");
             [_natPunchthroughIndicator setImage:[UIImage imageNamed:@"nat_routing_through_server"]];
@@ -283,6 +309,30 @@
             [_mediaController start];
         } else {
             NSLog(@"Unsupported punchthrough state received");
+        }
+
+        // How long we spent routed through server vs peer to peer, across lifetime of chat.
+        if (state != ADDRESS_RECEIVED) {
+            if (previousStateLocal == ROUTED || previousStateLocal == ADDRESS_RECEIVED) {
+                [self pushTiming:secondsTimed toAnalyticsWithCategory:@"conversation_duration" name:@"via_server" label:@"routing"];
+            } else if (previousStateLocal == PUNCHED_THROUGH) {
+                [self pushTiming:secondsTimed toAnalyticsWithCategory:@"conversation_duration" name:@"peer_to_peer" label:@"routing"];
+            }
+
+            // Time it took to punch through NAT and establish peer to peer connection.
+            if (previousStateLocal == ADDRESS_RECEIVED && state == PUNCHED_THROUGH) {
+                [self pushTiming:secondsTimed toAnalyticsWithCategory:@"setup_duration" name:@"punch_through" label:nil];
+            }
+
+            // Total time spent in conversation.
+            if ((previousStateLocal == ADDRESS_RECEIVED || previousStateLocal == PUNCHED_THROUGH) && state == ROUTED) {
+                [self pushTiming:secondsTimed toAnalyticsWithCategory:@"conversation_duration" name:@"duration" label:@"total"];
+            }
+        } else {
+            // Time it took to complete matching process on server side.
+            // In theory, can only be ROUTED prior to this, but shouldn't matter either way.
+            // If server sends us an address, then we need to interact with the client at that address.
+            [self pushTiming:secondsTimed toAnalyticsWithCategory:@"setup_duration" name:@"finding_match" label:nil];
         }
     });
 }
@@ -407,11 +457,6 @@
 - (void)setDisconnectStateWithShortDescription:(NSString *)shortDescription longDescription:(NSString *)longDescription {
     void (^block)() = ^{
         dispatch_sync_main(^{
-            // Important so that we don't notify google analytics of screen change, whilst inside FB view.
-            if (_inFacebookLoginView) {
-                return;
-            }
-
             // Show the disconnect storyboard.
             UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Storyboard" bundle:nil];
 
@@ -440,7 +485,10 @@
                 _waitingForNewEndPoint = true;
                 [_mediaController stop];
 
-                [self onScreenChange:[_disconnectViewController getScreenName]];
+                // Important so that we don't notify google analytics of screen change, whilst inside FB view.
+                if (!_inFacebookLoginView) {
+                    [self onScreenChange:[_disconnectViewController getScreenName]];
+                }
             }
         });
     };

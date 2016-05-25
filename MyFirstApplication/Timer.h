@@ -12,6 +12,8 @@
 @property(atomic) CFAbsoluteTime secondsFrequency;
 @property(readonly) CFAbsoluteTime defaultSecondsFrequency;
 
+- (id)init;
+
 - (id)initWithFrequencySeconds:(CFAbsoluteTime)frequency firingInitially:(Boolean)initialFire;
 
 - (Boolean)getState;

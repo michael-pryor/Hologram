@@ -97,6 +97,9 @@ class Client(object):
 
         logger.info("New client connected, awaiting logon message")
 
+    def isConnectedTcp(self):
+        return self.connection_status != Client.ConnectionStatus.NOT_CONNECTED
+
     # Just a way of passing the TCP disconnection to the governor, do not use directly.
     def onTcpSocketDisconnect(self):
         self.timeout_check.stop()

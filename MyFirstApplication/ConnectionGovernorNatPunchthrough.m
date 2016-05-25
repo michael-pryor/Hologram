@@ -109,10 +109,12 @@
 }
 
 - (void)clearNatPunchthrough {
-    _routeThroughPunchthroughAddress = false;
-    _punchthroughAddress = 0;
-    _punchthroughPort = 0;
-    [_notifier onNatPunchthrough:self stateChange:ROUTED];
+    if (_punchthroughAddress != 0) {
+        _routeThroughPunchthroughAddress = false;
+        _punchthroughAddress = 0;
+        _punchthroughPort = 0;
+        [_notifier onNatPunchthrough:self stateChange:ROUTED];
+    }
 }
 
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {

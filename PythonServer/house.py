@@ -139,7 +139,6 @@ class House:
         finally:
             self.house_lock.release()
 
-
     # The session has been completely shutdown because a client has
     # permanently disconnected and we don't think they're coming back.
     def releaseRoom(self, client, notification = None):
@@ -153,6 +152,9 @@ class House:
                 del self.room_participant[clientB]
 
                 self.adviseAbortNatPunchthrough(clientB)
+                if client.isConnectedTcp():
+                    self.adviseAbortNatPunchthrough(client)
+
                 if notification is not None:
                     assert isinstance(notification, ByteBuffer)
                     clientB.tcp.sendByteBuffer(notification)
