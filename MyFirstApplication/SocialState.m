@@ -8,6 +8,7 @@
 
 #import "SocialState.h"
 #import <FBSDKCoreKit/FBSDKCoreKit.h>
+#import <Google/Analytics.h>
 
 const NSString* selectedGenderPreferenceKey = @"selectedGenderPreference";
 
@@ -108,10 +109,45 @@ typedef void (^Block)(id);
 
     if (_isBasicDataLoaded) {
         NSLog(@"Loaded social details: Full name = [%@], Short name: [%@], Facebook URL: [%@], Facebook ID: [%@]", _humanFullName, _humanShortName, _facebookUrl, _facebookId);
+        [self _updateAnalyticsUser:_facebookId];
     } else {
         NSLog(@"Failed to load social details");
         [self reset];
     }
+}
+
+- (NSString*)_retrieveUserUUID: (NSString*)facebookID {
+    // Unique ID used to identify this user going forwards.
+    NSString *UUID = [[NSUUID UUID] UUIDString];
+    NSString *masterKey = @"trackedFacebookUUIDs";
+
+    NSDictionary *result = [[NSUserDefaults standardUserDefaults] dictionaryForKey:masterKey];
+    if (result == nil) {
+        // This is the first item, so add it and we're done.
+        [[NSUserDefaults standardUserDefaults] setObject:@{facebookID : UUID} forKey:masterKey];
+        NSLog(@"Associated first facebook ID [%@] with UUID [%@]", facebookID, UUID);
+    } else {
+        NSString * existingId = result[facebookID];
+        if (existingId == nil) {
+            NSMutableDictionary *mutableDict = [result mutableCopy];
+            mutableDict[facebookID] = UUID;
+            [[NSUserDefaults standardUserDefaults] setObject:mutableDict forKey:masterKey];
+            NSLog(@"Associated another facebook ID [%@] with UUID [%@]", facebookID, UUID);
+        } else {
+            UUID = existingId;
+            NSLog(@"Retrieved existing facebook ID [%@] with UUID [%@]", facebookID, UUID);
+        }
+    }
+
+    return UUID;
+}
+
+- (void)_updateAnalyticsUser:(NSString*)facebookID {
+    NSString* UUID = [self _retrieveUserUUID:facebookID];
+    NSLog(@"Prepared Google analytics tracker with UUID: %@", UUID);
+
+    id <GAITracker> tracker = [[GAI sharedInstance] defaultTracker];
+    [tracker set:kGAIUserId value:UUID];
 }
 
 - (void)reset {
