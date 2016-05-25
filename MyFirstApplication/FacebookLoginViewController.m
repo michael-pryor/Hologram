@@ -23,6 +23,8 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
 
+    self.screenName = @"FacebookLogin";
+
     _desiredGenderChooser.selectedSegmentIndex = [[SocialState getFacebookInstance] interestedInSegmentIndex];
 
     [_facebookAskLabel setText:@"Please allow this application to access your name and age (date of birth) from your Facebook account. This application uses only this information, and absolutely nothing else."];

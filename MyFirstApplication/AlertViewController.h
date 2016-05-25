@@ -18,4 +18,6 @@
 - (Boolean)hideIfVisibleAndReady;
 
 - (void)hideNow;
+
+- (NSString*)getScreenName;
 @end

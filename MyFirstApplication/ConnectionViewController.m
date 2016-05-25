@@ -15,6 +15,7 @@
 #import "AccessDialog.h"
 #import "ViewInteractions.h"
 #import "Timer.h"
+#import <Google/Analytics.h>
 
 @implementation ConnectionViewController {
     // Connection
@@ -52,6 +53,7 @@
     ByteBuffer *_permDisconnectPacket;
 
     bool _inFacebookLoginView;
+    bool _resentScreenChangeNotification;
 
     // Special case where we want user to be able to skip, even if not currently talking
     // with somebody. Current special cases include:
@@ -64,12 +66,18 @@
     // Temporary tutorial labels.
     __weak IBOutlet UILabel *_swipeTutorialChangeSettings;
     __weak IBOutlet UILabel *_swipeTutorialSkip;
+
+    // For Google analytics.
+    NSString *_screenName;
 }
 
 // View initially load; happens once per process.
 // Essentially this is the constructor.
 - (void)viewDidLoad {
     [super viewDidLoad];
+
+    _screenName = @"VideoChat";
+    _resentScreenChangeNotification = false;
 
     [self setDisconnectStateWithShortDescription:@"Initializing" longDescription:@"Initializing media controller"];
 
@@ -308,23 +316,25 @@
 // Received a new image from network.
 // Update the UI.
 - (void)onNewImage:(UIImage *)image {
-    if (_disconnectViewController != nil) {
-        // Waiting for server to match us with somebody new.
-        if (_waitingForNewEndPoint) {
-            return;
-        }
+    dispatch_sync_main(^{
+        if (_disconnectViewController != nil) {
+            // Waiting for server to match us with somebody new.
+            if (_waitingForNewEndPoint) {
+                return;
+            }
 
-        if (![_disconnectViewController hideIfVisibleAndReady]) {
-            return;
-        } else {
-            _disconnectViewController = nil;
-            _isSkippableDespiteNoMatch = false;
-            [_mediaController clearLocalImageDelegate];
-            [self prepareRuntimeView];
+            if (![_disconnectViewController hideIfVisibleAndReady]) {
+                return;
+            } else {
+                _disconnectViewController = nil;
+                _isSkippableDespiteNoMatch = false;
+                [_mediaController clearLocalImageDelegate];
+                [self prepareRuntimeView];
+                [self onScreenChange:_screenName];
+            }
         }
-    }
-
-    [_cameraView performSelectorOnMainThread:@selector(setImage:) withObject:image waitUntilDone:YES];
+        [_cameraView setImage:image];
+    });
 }
 
 // User swiped right -> skip person.
@@ -397,12 +407,18 @@
 - (void)setDisconnectStateWithShortDescription:(NSString *)shortDescription longDescription:(NSString *)longDescription {
     void (^block)() = ^{
         dispatch_sync_main(^{
+            // Important so that we don't notify google analytics of screen change, whilst inside FB view.
+            if (_inFacebookLoginView) {
+                return;
+            }
+
             // Show the disconnect storyboard.
             UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Storyboard" bundle:nil];
 
             Boolean alreadyPresented = _disconnectViewController != nil;
             if (!alreadyPresented) {
                 [self preprepareRuntimeView];
+
                 _disconnectViewController = (AlertViewController *) [storyboard instantiateViewControllerWithIdentifier:@"DisconnectAlertView"];
                 _disconnectViewController.view.frame = self.view.bounds;
                 if (_mediaController != nil) {
@@ -423,6 +439,8 @@
                 [_disconnectViewController didMoveToParentViewController:self];
                 _waitingForNewEndPoint = true;
                 [_mediaController stop];
+
+                [self onScreenChange:[_disconnectViewController getScreenName]];
             }
         });
     };
@@ -434,6 +452,14 @@
     } else {
         block();
     }
+}
+
+- (void)onScreenChange:(NSString *)newScreenName {
+    // Manually notify Google analytics that we are now on this screen.
+    // Have to do manually, because we overlay this view on top of ours rather than moving directly to it.
+    id tracker = [[GAI sharedInstance] defaultTracker];
+    [tracker set:kGAIScreenName value:newScreenName];
+    [tracker send:[[GAIDictionaryBuilder createScreenView] build]];
 }
 
 // Handle data and pass to relevant parts of application.
@@ -475,13 +501,13 @@
     dispatch_sync_main(^{
         if (mediaType == VIDEO) {
             NSLog(@"Data loss for video!");
-            [ViewInteractions fadeInOut:_dcVideo completion:nil options: UIViewAnimationOptionBeginFromCurrentState];
-        } else if (mediaType == AUDIO){
+            [ViewInteractions fadeInOut:_dcVideo completion:nil options:UIViewAnimationOptionBeginFromCurrentState];
+        } else if (mediaType == AUDIO) {
             NSLog(@"Data loss for audio!");
-            [ViewInteractions fadeInOut:_dcAudio completion:nil options: UIViewAnimationOptionBeginFromCurrentState];
+            [ViewInteractions fadeInOut:_dcAudio completion:nil options:UIViewAnimationOptionBeginFromCurrentState];
         } else if (mediaType == AUDIO_QUEUE_RESET) {
             NSLog(@"Extreme audio data loss (audio queue reset)!");
-            [ViewInteractions fadeInOut:_dcAudioClear completion:nil options: UIViewAnimationOptionBeginFromCurrentState];
+            [ViewInteractions fadeInOut:_dcAudioClear completion:nil options:UIViewAnimationOptionBeginFromCurrentState];
         } else {
             NSLog(@"Unknown data loss type");
         }
@@ -520,8 +546,8 @@
 
             // Update only after tutorial has completed successfully.
             [storage setDouble:currentEpochSeconds forKey:tutorialLastPreparedEpochSecondsKey];
-        } options: UIViewAnimationOptionOverrideInheritedCurve | UIViewAnimationOptionOverrideInheritedDuration];
-    } options:UIViewAnimationOptionOverrideInheritedCurve | UIViewAnimationOptionOverrideInheritedDuration];
+        }                   options:UIViewAnimationOptionOverrideInheritedCurve | UIViewAnimationOptionOverrideInheritedDuration];
+    }                   options:UIViewAnimationOptionOverrideInheritedCurve | UIViewAnimationOptionOverrideInheritedDuration];
 }
 
 - (void)preprepareRuntimeView {

@@ -19,6 +19,9 @@
     __weak IBOutlet ADBannerView *_bannerView;
     Signal *_localImageViewVisible;
     volatile Timer *_localImageFadeInDelayTimer;
+
+    // For google analytics.
+    NSString * _screenName;
 }
 
 - (void)setAlertShortText:(NSString *)shortText longText:(NSString *)longText {
@@ -44,6 +47,10 @@
     [_localImageView setAlpha:0.0f];
 }
 
+- (NSString*)getScreenName {
+    return @"Connecting";
+}
+
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
     [_timerSinceAdvertCreated reset];
@@ -54,10 +61,6 @@
     NSLog(@"Alert view loaded, unhiding banner advert and setting delegate");
     _bannerView.delegate = self;
     [_bannerView setHidden:false];
-    
-    id<GAITracker> tracker = [[GAI sharedInstance] defaultTracker];
-    [tracker set:kGAIScreenName value:@"ConnectingScreen"];
-    [tracker send:[[GAIDictionaryBuilder createScreenView] build]];
 }
 
 - (void)viewDidDisappear:(BOOL)animated {

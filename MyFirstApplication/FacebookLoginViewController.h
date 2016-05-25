@@ -9,8 +9,9 @@
 #import <Foundation/Foundation.h>
 #import <FBSDKLoginKit/FBSDKLoginKit.h>
 #import <FBSDKCoreKit/FBSDKCoreKit.h>
+#import "GAITrackedViewController.h"
 
-@interface FacebookLoginViewController : UIViewController <FBSDKLoginButtonDelegate, UIAlertViewDelegate>
+@interface FacebookLoginViewController : GAITrackedViewController <FBSDKLoginButtonDelegate, UIAlertViewDelegate>
 @property(weak, nonatomic) IBOutlet FBSDKLoginButton *loginButton;
 @property(strong, nonatomic) IBOutlet UILabel *displayName;
 @property(strong, nonatomic) IBOutlet UIButton *buttonFinished;
