@@ -1,0 +1,15 @@
+import requests
+
+
+if __name__ == '__main__':
+    result = requests.post("https://www.google-analytics.com/collect",{
+    'v': 1, # Protocol version (required)
+    'tid': 'UA-78124726-1', # Identify our instance in google analytics (required)
+    'cid': '6662432423', # ID of user (required)
+    't': 'event', # Type of event, must be one of 'pageview', 'screenview', 'event', 'transaction', 'item', 'social', 'exception', 'timing'.
+    'ec': 'BlaCategoryq', # Event category
+    'ea': 'blaActionq', # Event action
+    'ev' : 5123, # Event value, must be >=0.
+})
+
+    print result.content

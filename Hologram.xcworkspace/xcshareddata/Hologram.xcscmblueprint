@@ -1,0 +1,37 @@
+{
+  "DVTSourceControlWorkspaceBlueprintPrimaryRemoteRepositoryKey" : "A6E7937991BB4BB856F49B3B5EA05896194A9223",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyRepositoryLocationsKey" : {
+
+  },
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyStatesKey" : {
+    "A6E7937991BB4BB856F49B3B5EA05896194A9223" : 0,
+    "1BF19058C9B814F8BA3C3075BCECA7739FE75020" : 0,
+    "F1E7AAEDD5DB54E364BACEA365A6AFE2F2B30457" : 0
+  },
+  "DVTSourceControlWorkspaceBlueprintIdentifierKey" : "1D0D02EF-127E-424C-A37F-692FFD35E569",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyPathsKey" : {
+    "A6E7937991BB4BB856F49B3B5EA05896194A9223" : "MyFirstApplication\/",
+    "1BF19058C9B814F8BA3C3075BCECA7739FE75020" : "MyFirstApplication\/FFmpeg-iOS-build-script\/",
+    "F1E7AAEDD5DB54E364BACEA365A6AFE2F2B30457" : "MyFirstApplication\/x264-ios\/"
+  },
+  "DVTSourceControlWorkspaceBlueprintNameKey" : "Hologram",
+  "DVTSourceControlWorkspaceBlueprintVersion" : 204,
+  "DVTSourceControlWorkspaceBlueprintRelativePathToProjectKey" : "Hologram.xcworkspace",
+  "DVTSourceControlWorkspaceBlueprintRemoteRepositoriesKey" : [
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/kewlbear\/FFmpeg-iOS-build-script.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "1BF19058C9B814F8BA3C3075BCECA7739FE75020"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/bitbucket.org\/watfordxp\/app_dev.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "A6E7937991BB4BB856F49B3B5EA05896194A9223"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/kewlbear\/x264-ios.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "F1E7AAEDD5DB54E364BACEA365A6AFE2F2B30457"
+    }
+  ]
+}
