@@ -51,11 +51,13 @@ typedef void (^Block)(id);
 }
 
 + (SocialState *)getFacebookInstance {
-    if (instance == nil) {
-        instance = [[SocialState alloc] init];
-    }
+    @synchronized (self) {
+        if (instance == nil) {
+            instance = [[SocialState alloc] init];
+        }
 
-    return instance;
+        return instance;
+    }
 }
 
 - (void)loadStateFromFirstName:(NSString *)firstName middleName:(NSString *)middleName lastName:(NSString *)lastName facebookUrl:(NSURL *)facebookUrl facebookId:(NSString *)facebookId {

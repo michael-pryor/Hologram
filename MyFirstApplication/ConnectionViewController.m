@@ -15,7 +15,7 @@
 #import "AccessDialog.h"
 #import "ViewInteractions.h"
 #import "Timer.h"
-#import <Google/Analytics.h>
+#import "Analytics.h"
 
 @implementation ConnectionViewController {
     // Connection
@@ -164,7 +164,7 @@
 
     // Will probably already be there if we have already loaded previously.
     if (_disconnectViewController != nil) {
-        [self onScreenChange:[_disconnectViewController getScreenName]];
+        [[Analytics getInstance] pushScreenChange:[_disconnectViewController getScreenName]];
     }
 
     // Important that we don't validate access to video/microphone before Facebook
@@ -277,13 +277,6 @@
     });
 }
 
-- (void)pushTiming:(NSTimeInterval)timeSinceLastStateChangeSeconds toAnalyticsWithCategory:(NSString *)category name:(NSString *)name label:(NSString *)label {
-    id tracker = [[GAI sharedInstance] defaultTracker];
-    [tracker send:[[GAIDictionaryBuilder createTimingWithCategory:category
-                                                         interval:@((NSUInteger) (timeSinceLastStateChangeSeconds * 1000.0))
-                                                             name:name
-                                                            label:label] build]];
-}
 
 // Called when we receive a change in connection state regarding NAT punchthrough.
 // Important to update the display so that we know how we are connected.
@@ -314,25 +307,25 @@
         // How long we spent routed through server vs peer to peer, across lifetime of chat.
         if (state != ADDRESS_RECEIVED) {
             if (previousStateLocal == ROUTED || previousStateLocal == ADDRESS_RECEIVED) {
-                [self pushTiming:secondsTimed toAnalyticsWithCategory:@"conversation_duration" name:@"via_server" label:@"routing"];
+                [[Analytics getInstance] pushTimingSeconds:secondsTimed toAnalyticsWithCategory:@"conversation_duration" name:@"via_server" label:@"routing"];
             } else if (previousStateLocal == PUNCHED_THROUGH) {
-                [self pushTiming:secondsTimed toAnalyticsWithCategory:@"conversation_duration" name:@"peer_to_peer" label:@"routing"];
+                [[Analytics getInstance] pushTimingSeconds:secondsTimed toAnalyticsWithCategory:@"conversation_duration" name:@"peer_to_peer" label:@"routing"];
             }
 
             // Time it took to punch through NAT and establish peer to peer connection.
             if (previousStateLocal == ADDRESS_RECEIVED && state == PUNCHED_THROUGH) {
-                [self pushTiming:secondsTimed toAnalyticsWithCategory:@"setup_duration" name:@"punch_through" label:nil];
+                [[Analytics getInstance] pushTimingSeconds:secondsTimed toAnalyticsWithCategory:@"setup_duration" name:@"punch_through" label:@"routing"];
             }
 
             // Total time spent in conversation.
             if ((previousStateLocal == ADDRESS_RECEIVED || previousStateLocal == PUNCHED_THROUGH) && state == ROUTED) {
-                [self pushTiming:secondsTimed toAnalyticsWithCategory:@"conversation_duration" name:@"duration" label:@"total"];
+                [[Analytics getInstance] pushTimingSeconds:secondsTimed toAnalyticsWithCategory:@"conversation_duration" name:@"duration" label:@"total"];
             }
         } else {
             // Time it took to complete matching process on server side.
             // In theory, can only be ROUTED prior to this, but shouldn't matter either way.
             // If server sends us an address, then we need to interact with the client at that address.
-            [self pushTiming:secondsTimed toAnalyticsWithCategory:@"setup_duration" name:@"finding_match" label:nil];
+            [[Analytics getInstance] pushTimingSeconds:secondsTimed toAnalyticsWithCategory:@"setup_duration" name:@"finding_match"];
         }
     });
 }
@@ -380,7 +373,7 @@
                 _isSkippableDespiteNoMatch = false;
                 [_mediaController clearLocalImageDelegate];
                 [self prepareRuntimeView];
-                [self onScreenChange:_screenName];
+                [[Analytics getInstance] pushScreenChange:_screenName];
             }
         }
         [_cameraView setImage:image];
@@ -487,7 +480,7 @@
 
                 // Important so that we don't notify google analytics of screen change, whilst inside FB view.
                 if (!_inFacebookLoginView) {
-                    [self onScreenChange:[_disconnectViewController getScreenName]];
+                    [[Analytics getInstance] pushScreenChange:[_disconnectViewController getScreenName]];
                 }
             }
         });
@@ -502,13 +495,6 @@
     }
 }
 
-- (void)onScreenChange:(NSString *)newScreenName {
-    // Manually notify Google analytics that we are now on this screen.
-    // Have to do manually, because we overlay this view on top of ours rather than moving directly to it.
-    id tracker = [[GAI sharedInstance] defaultTracker];
-    [tracker set:kGAIScreenName value:newScreenName];
-    [tracker send:[[GAIDictionaryBuilder createScreenView] build]];
-}
 
 // Handle data and pass to relevant parts of application.
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
