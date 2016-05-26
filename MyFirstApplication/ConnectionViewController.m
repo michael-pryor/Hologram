@@ -318,25 +318,25 @@
         // How long we spent routed through server vs peer to peer, across lifetime of chat.
         if (state != ADDRESS_RECEIVED) {
             if (previousStateLocal == ROUTED || previousStateLocal == ADDRESS_RECEIVED) {
-                [[Analytics getInstance] pushTimingSeconds:secondsTimed toAnalyticsWithCategory:@"conversation_duration" name:@"via_server" label:@"routing"];
+                [[Analytics getInstance] pushTimingSeconds:secondsTimed withCategory:@"conversation_duration" name:@"via_server" label:@"routing"];
             } else if (previousStateLocal == PUNCHED_THROUGH) {
-                [[Analytics getInstance] pushTimingSeconds:secondsTimed toAnalyticsWithCategory:@"conversation_duration" name:@"peer_to_peer" label:@"routing"];
+                [[Analytics getInstance] pushTimingSeconds:secondsTimed withCategory:@"conversation_duration" name:@"peer_to_peer" label:@"routing"];
             }
 
             // Time it took to punch through NAT and establish peer to peer connection.
             if (previousStateLocal == ADDRESS_RECEIVED && state == PUNCHED_THROUGH) {
-                [[Analytics getInstance] pushTimingSeconds:secondsTimed toAnalyticsWithCategory:@"setup_duration" name:@"punch_through" label:@"routing"];
+                [[Analytics getInstance] pushTimingSeconds:secondsTimed withCategory:@"setup_duration" name:@"punch_through" label:@"routing"];
             }
 
             // Total time spent in conversation.
             if ((previousStateLocal == ADDRESS_RECEIVED || previousStateLocal == PUNCHED_THROUGH) && state == ROUTED) {
-                [[Analytics getInstance] pushTimingSeconds:secondsTimed toAnalyticsWithCategory:@"conversation_duration" name:@"duration" label:@"total"];
+                [[Analytics getInstance] pushTimingSeconds:secondsTimed withCategory:@"conversation_duration" name:@"duration" label:@"total"];
             }
         } else {
             // Time it took to complete matching process on server side.
             // In theory, can only be ROUTED prior to this, but shouldn't matter either way.
             // If server sends us an address, then we need to interact with the client at that address.
-            [[Analytics getInstance] pushTimingSeconds:secondsTimed toAnalyticsWithCategory:@"setup_duration" name:@"finding_match"];
+            [[Analytics getInstance] pushTimingSeconds:secondsTimed withCategory:@"setup_duration" name:@"finding_match"];
         }
     });
 }
@@ -402,10 +402,13 @@
 
         _isSkippableDespiteNoMatch = false;
 
+        [[Analytics getInstance] pushEventWithCategory:@"conversation_ending" action:@"skip" label:@"initiated"];
+
         NSLog(@"Sending skip request");
         [_connection sendTcpPacket:_skipPersonPacket];
         [self setDisconnectStateWithShortDescription:@"Connecting to new session\nYou skipped the other person" longDescription:@"Searching for somebody else suitable for you to talk with"];
     } else {
+        [[Analytics getInstance] pushEventWithCategory:@"conversation_ending" action:@"facebook_screen"];
         [self switchToFacebookLogonView];
     }
 }
@@ -436,20 +439,21 @@
             if (_mediaController != nil) {
                 [_mediaController resetSendRate];
             }
-            [[Analytics getInstance] pushTimer:_connectingNetworkTimer toAnalyticsWithCategory:@"setup_duration" name:@"network_connecting" label:@"new_session"];
+            [[Analytics getInstance] pushTimer:_connectingNetworkTimer withCategory:@"setup_duration" name:@"network_connecting" label:@"new_session"];
             break;
 
         case P_CONNECTED_TO_EXISTING:
             [self setDisconnectStateWithShortDescription:@"Reconnected to existing session" longDescription:@"Resuming previous conversation or finding a new match"];
-            [[Analytics getInstance] pushTimer:_connectingNetworkTimer toAnalyticsWithCategory:@"setup_duration" name:@"network_connecting" label:@"resumed_session"];
+            [[Analytics getInstance] pushTimer:_connectingNetworkTimer withCategory:@"setup_duration" name:@"network_connecting" label:@"resumed_session"];
 
             // How long were we disconnected for?
-            [[Analytics getInstance] pushTimer:_connectionTemporarilyDisconnectTimer toAnalyticsWithCategory:@"conversation_duration" name:@"disconnected" label:@"routing"];
+            [[Analytics getInstance] pushTimer:_connectionTemporarilyDisconnectTimer withCategory:@"conversation_duration" name:@"disconnected" label:@"routing"];
             break;
 
         case P_NOT_CONNECTED:
             [self setDisconnectStateWithShortDescription:@"Disconnected" longDescription:description];
             [_connectionTemporarilyDisconnectTimer reset];
+            [[Analytics getInstance] pushEventWithCategory:@"conversation_ending" action:@"network_disconnect"];
             break;
 
         case P_NOT_CONNECTED_HASH_REJECTED:
@@ -554,12 +558,15 @@
         if (mediaType == VIDEO) {
             NSLog(@"Data loss for video!");
             [ViewInteractions fadeInOut:_dcVideo completion:nil options:UIViewAnimationOptionBeginFromCurrentState];
+            [[Analytics getInstance] pushEventWithCategory:@"network_jitter" action:@"video_loss"];
         } else if (mediaType == AUDIO) {
             NSLog(@"Data loss for audio!");
             [ViewInteractions fadeInOut:_dcAudio completion:nil options:UIViewAnimationOptionBeginFromCurrentState];
+            [[Analytics getInstance] pushEventWithCategory:@"network_jitter" action:@"audio_loss"];
         } else if (mediaType == AUDIO_QUEUE_RESET) {
             NSLog(@"Extreme audio data loss (audio queue reset)!");
             [ViewInteractions fadeInOut:_dcAudioClear completion:nil options:UIViewAnimationOptionBeginFromCurrentState];
+            [[Analytics getInstance] pushEventWithCategory:@"network_jitter" action:@"audio_reset"];
         } else {
             NSLog(@"Unknown data loss type");
         }

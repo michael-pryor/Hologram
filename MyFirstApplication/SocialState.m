@@ -309,7 +309,7 @@ typedef void (^Block)(id);
 
             NSLog(@"Loaded DOB: [%@], gender: [%@] from Facebook graph API", _dob, _gender);
             _isGraphDataLoaded = true;
-            [[Analytics getInstance] pushTimer:fbGraphRequestTimer toAnalyticsWithCategory:@"setup_duration" name:@"facebook_graph"];
+            [[Analytics getInstance] pushTimer:fbGraphRequestTimer withCategory:@"setup_duration" name:@"facebook_graph"];
             if (_notifier != nil) {
                 [_notifier onSocialDataLoaded:self];
             }

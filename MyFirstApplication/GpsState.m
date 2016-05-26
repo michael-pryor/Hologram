@@ -82,7 +82,7 @@ GpsState *state;
     NSLog(@"Loaded GPS location (%.2f seconds old): %.2f,%.2f / %.2f with accuracy %.2f,%.2f - description: %@", age, _longitude, _latitude, altitude, horizontalAccuracy, verticalAccuracy, description);
 
     if ([_loaded signalAll]) {
-        [[Analytics getInstance] pushTimer:_loadingTimer toAnalyticsWithCategory:@"setup_duration" name:@"gps"];
+        [[Analytics getInstance] pushTimer:_loadingTimer withCategory:@"setup_duration" name:@"gps"];
         [self notifySuccess];
     }
 }
