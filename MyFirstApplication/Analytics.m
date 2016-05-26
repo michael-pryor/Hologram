@@ -5,7 +5,7 @@
 #import "Analytics.h"
 #import <Google/Analytics.h>
 
-Analytics *instance;
+static Analytics *instance = nil;
 
 @implementation Analytics {
 

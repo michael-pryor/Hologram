@@ -80,6 +80,9 @@
     _screenName = @"VideoChat";
     _connectionStateTimer = [[Timer alloc] init];
 
+    _inFacebookLoginView = false;
+    _isSkippableDespiteNoMatch = false;
+
     [self setDisconnectStateWithShortDescription:@"Initializing" longDescription:@"Initializing media controller"];
 
     // If failure action is triggered, application is guaranteed to be terminated by
@@ -159,13 +162,13 @@
     previousState = ROUTED;
     [self onNatPunchthrough:nil stateChange:ROUTED];
 
-    _inFacebookLoginView = false;
-    _isSkippableDespiteNoMatch = false;
-
     // Will probably already be there if we have already loaded previously.
-    if (_disconnectViewController != nil) {
+    if (_disconnectViewController != nil && _inFacebookLoginView) {
         [[Analytics getInstance] pushScreenChange:[_disconnectViewController getScreenName]];
     }
+
+    _inFacebookLoginView = false;
+    _isSkippableDespiteNoMatch = false;
 
     // Important that we don't validate access to video/microphone before Facebook
     // login is complete, because its in that view controller that the dialog box about

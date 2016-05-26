@@ -12,7 +12,7 @@
 
 const NSString* selectedGenderPreferenceKey = @"selectedGenderPreference";
 
-SocialState *instance;
+static SocialState *instance = nil;
 typedef void (^Block)(id);
 
 #define INTERESTED_IN_BOTH_SEGMENT_ID 2
