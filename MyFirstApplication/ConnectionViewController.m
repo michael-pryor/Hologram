@@ -70,6 +70,12 @@
     NSString *_screenName;
     Timer *_connectionStateTimer;
     NatState previousState;
+
+    // Track how long took to connect to network.
+    Timer *_connectingNetworkTimer;
+
+    // Track how long we were disconnected for, before reconnecting.
+    Timer *_connectionTemporarilyDisconnectTimer;
 }
 
 // View initially load; happens once per process.
@@ -79,6 +85,8 @@
 
     _screenName = @"VideoChat";
     _connectionStateTimer = [[Timer alloc] init];
+    _connectingNetworkTimer = [[Timer alloc] init];
+    _connectionTemporarilyDisconnectTimer = [[Timer alloc] init];
 
     _inFacebookLoginView = false;
     _isSkippableDespiteNoMatch = false;
@@ -420,6 +428,7 @@
     switch (status) {
         case P_CONNECTING:
             [self setDisconnectStateWithShortDescription:@"Connecting" longDescription:description];
+            [_connectingNetworkTimer reset];
             break;
 
         case P_CONNECTED:
@@ -427,14 +436,20 @@
             if (_mediaController != nil) {
                 [_mediaController resetSendRate];
             }
+            [[Analytics getInstance] pushTimer:_connectingNetworkTimer toAnalyticsWithCategory:@"setup_duration" name:@"network_connecting" label:@"new_session"];
             break;
 
         case P_CONNECTED_TO_EXISTING:
             [self setDisconnectStateWithShortDescription:@"Reconnected to existing session" longDescription:@"Resuming previous conversation or finding a new match"];
+            [[Analytics getInstance] pushTimer:_connectingNetworkTimer toAnalyticsWithCategory:@"setup_duration" name:@"network_connecting" label:@"resumed_session"];
+
+            // How long were we disconnected for?
+            [[Analytics getInstance] pushTimer:_connectionTemporarilyDisconnectTimer toAnalyticsWithCategory:@"conversation_duration" name:@"disconnected" label:@"routing"];
             break;
 
         case P_NOT_CONNECTED:
             [self setDisconnectStateWithShortDescription:@"Disconnected" longDescription:description];
+            [_connectionTemporarilyDisconnectTimer reset];
             break;
 
         case P_NOT_CONNECTED_HASH_REJECTED:

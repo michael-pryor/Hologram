@@ -7,6 +7,8 @@
 //
 
 #import "SocialState.h"
+#import "Timer.h"
+#import "Analytics.h"
 #import <FBSDKCoreKit/FBSDKCoreKit.h>
 #import <Google/Analytics.h>
 
@@ -260,6 +262,8 @@ typedef void (^Block)(id);
     NSDictionary *parameters = @{@"fields" : @"id,name,birthday,gender"};
     FBSDKGraphRequest *fbGraphRequest = [[FBSDKGraphRequest alloc] initWithGraphPath:@"me" parameters:parameters];
 
+    __block Timer * fbGraphRequestTimer = [[Timer alloc] init];
+
     // Repeatedly runs block (polling graph API) until successful.
     // This is useful if there are network issues temporarily, ensures we don't get stuck loading Facebook data.
     Block block = ^(Block blockParam) {
@@ -305,6 +309,7 @@ typedef void (^Block)(id);
 
             NSLog(@"Loaded DOB: [%@], gender: [%@] from Facebook graph API", _dob, _gender);
             _isGraphDataLoaded = true;
+            [[Analytics getInstance] pushTimer:fbGraphRequestTimer toAnalyticsWithCategory:@"setup_duration" name:@"facebook_graph"];
             if (_notifier != nil) {
                 [_notifier onSocialDataLoaded:self];
             }

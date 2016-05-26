@@ -8,6 +8,8 @@
 
 #import "GpsState.h"
 #import "Signal.h"
+#import "Timer.h"
+#import "Analytics.h"
 
 GpsState *state;
 
@@ -15,6 +17,8 @@ GpsState *state;
     CLLocationManager *_locationManager;
     id <GpsStateDataLoadNotification> _notifier;
     Signal *_loaded;
+
+    Timer *_loadingTimer;
 }
 
 - (id)initWithNotifier:(id <GpsStateDataLoadNotification>)notifier {
@@ -22,6 +26,7 @@ GpsState *state;
     if (self) {
         _notifier = notifier;
         _loaded = [[Signal alloc] initWithFlag:false];
+        _loadingTimer = [[Timer alloc] init];
     }
     return self;
 }
@@ -48,6 +53,7 @@ GpsState *state;
         }
 
         // Now we receive updates initially, and every time we change location.
+        [_loadingTimer reset];
         [_locationManager startUpdatingLocation];
     } else {
         if ([_loaded isSignaled]) {
@@ -76,6 +82,7 @@ GpsState *state;
     NSLog(@"Loaded GPS location (%.2f seconds old): %.2f,%.2f / %.2f with accuracy %.2f,%.2f - description: %@", age, _longitude, _latitude, altitude, horizontalAccuracy, verticalAccuracy, description);
 
     if ([_loaded signalAll]) {
+        [[Analytics getInstance] pushTimer:_loadingTimer toAnalyticsWithCategory:@"setup_duration" name:@"gps"];
         [self notifySuccess];
     }
 }
