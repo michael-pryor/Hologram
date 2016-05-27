@@ -13,6 +13,7 @@ import logging
 import argparse
 import os
 from stat_tracker import StatTracker
+from analytics import Analytics
 
 from database import Database
 
@@ -26,7 +27,7 @@ logger = logging.getLogger(__name__)
 #
 # ClientFactory encapsulates the TCP listening socket.
 class Governor(ClientFactory, protocol.DatagramProtocol):
-    def __init__(self, reactor, database):
+    def __init__(self, reactor, database, governorName):
         # All connected clients.
         self.client_mappings_lock = RLock()
 
@@ -44,6 +45,8 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
 
         # Track kilobytes per second averaged over last 30 seconds.
         self.kilobyte_per_second_tracker = StatTracker(1,30)
+
+        self.governor_name = governorName
 
     # Higher = under more stress, handling more traffic, lower = handling less.
     def getLoad(self):
@@ -268,7 +271,7 @@ class CommanderConnection(ReconnectingClientFactory):
         SUCCESS = 1
         FAILURE = 2
 
-    def __init__(self, commanderHost, commanderPort, ourGovernorTcpPort, ourGovernorUdpPort, governor):
+    def __init__(self, commanderHost, commanderPort, ourGovernorTcpPort, ourGovernorUdpPort, governor, analytics):
         assert isinstance(governor, Governor)
 
         self.governorPacket = ByteBuffer()
@@ -280,6 +283,7 @@ class CommanderConnection(ReconnectingClientFactory):
         self.governorPacket.addUnsignedInteger(ourGovernorUdpPort)
 
         self.governor = governor
+        self.analytics = analytics
         self.isConnected = False
 
     def buildProtocol(self, addr):
@@ -301,10 +305,16 @@ class CommanderConnection(ReconnectingClientFactory):
         if not self.isConnected:
             return
 
+        load = self.governor.getLoad()
+
+        # Tell commander how much load we are handling so that it can load balance.
         pingPacket = ByteBuffer()
-        pingPacket.addUnsignedInteger(self.governor.getLoad())
+        pingPacket.addUnsignedInteger(load)
         self.tcp.sendByteBuffer(pingPacket)
         self.schedulePing()
+
+        # Tell Google analytics how much load we are handling
+        analytics.pushEvent(load, "governor_load", "bandwidth", self.governor.governor_name)
 
     def schedulePing(self):
         self.governor.reactor.callLater(CommanderConnection.ping_frequency, self.doPing)
@@ -359,9 +369,11 @@ if __name__ == "__main__":
     commanderPort = int(args.commander_port)
 
     database = Database(governorName, "localhost", 27017)
-    server = Governor(reactor, database)
+    server = Governor(reactor, database, governorName)
 
-    commanderConnection = CommanderConnection(commanderHost, commanderPort, tcpPort, udpPort, server)
+    analytics = Analytics(100, governorName)
+
+    commanderConnection = CommanderConnection(commanderHost, commanderPort, tcpPort, udpPort, server, analytics)
     logger.info("Connecting to commander via TCP with address: [%s:%d]" % (commanderHost, commanderPort))
     reactor.connectSSL(commanderHost, commanderPort, commanderConnection, ssl.ClientContextFactory())
 
