@@ -30,11 +30,9 @@ class Client(object):
         OP_ACCEPT_UDP = 3
 
     class TcpOperationCodes:
-        OP_SLOW_DOWN_SEND_RATE = 1
         OP_NAT_PUNCHTHROUGH_ADDRESS = 2
         OP_NAT_PUNCHTHROUGH_CLIENT_DISCONNECT = 3
         OP_SKIP_PERSON = 4  # Client tells server that they want to skip
-        OP_RESET_SEND_RATE = 5
 
         OP_TEMP_DISCONNECT = 6
         OP_PERM_DISCONNECT = 7 # Indicate to client that its end point permanently disconnected (from server to client)
@@ -260,11 +258,6 @@ class Client(object):
                 self.match_skip_history.addMatch(otherClient.udp_hash)
 
             self.house.attemptTakeRoom(self)
-        elif opCode == Client.TcpOperationCodes.OP_SLOW_DOWN_SEND_RATE:
-            endPoint = self.house.room_participant.get(self)
-            logger.debug("Forwarding slow down request to client [%s]" % endPoint)
-            if endPoint is not None:
-                endPoint.tcp.sendByteBuffer(packet)
         elif opCode == Client.TcpOperationCodes.OP_PERM_DISCONNECT:
             logger.debug("Client [%s] has permanently disconnected with immediate impact" % self)
             self.house.releaseRoom(self, self.house.disconnected_permanent)
