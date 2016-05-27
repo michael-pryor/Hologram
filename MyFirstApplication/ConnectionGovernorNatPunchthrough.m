@@ -110,9 +110,13 @@
 
 - (void)clearNatPunchthrough {
     if (_punchthroughAddress != 0) {
-        _routeThroughPunchthroughAddress = false;
         _punchthroughAddress = 0;
         _punchthroughPort = 0;
+
+        // Important to clear addresses before clearing this flag, to avoid
+        // picking up late packets comparing against old address and resetting the flag prematurely.
+        _routeThroughPunchthroughAddress = false;
+
         [_notifier onNatPunchthrough:self stateChange:ROUTED];
     }
 }
@@ -129,6 +133,11 @@
     } else if (protocol == TCP) {
         unsigned int prefix = [packet getUnsignedInteger8];
         if (prefix == NAT_PUNCHTHROUGH_ADDRESS) {
+            // If we are reconnecting, we may already have an old address.
+            // We need to switch back to routing temporarily in case this address is now invalid.
+            [self clearNatPunchthrough];
+
+            // Load in the new address.
             _punchthroughAddress = [packet getUnsignedInteger];
             _punchthroughPort = [packet getUnsignedInteger];
             NSString *humanAddress = [NetworkUtility convertPreparedAddress:_punchthroughAddress port:_punchthroughPort];

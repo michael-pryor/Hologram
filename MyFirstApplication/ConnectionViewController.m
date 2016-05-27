@@ -76,6 +76,8 @@
 
     // Track how long we were disconnected for, before reconnecting.
     Timer *_connectionTemporarilyDisconnectTimer;
+
+    bool _isInBackground;
 }
 
 // View initially load; happens once per process.
@@ -118,6 +120,8 @@
 
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(appWillResignActive:) name:UIApplicationWillResignActiveNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(appWillRetakeActive:) name:UIApplicationDidBecomeActiveNotification object:nil];
+
+    _isInBackground = false;
 }
 
 // Permanently close our session on the server, disconnect and stop media input/output.
@@ -153,10 +157,12 @@
 // down the usual disconnection logic).
 - (void)appWillResignActive:(NSNotification *)note {
     [_mediaController stop];
+    _isInBackground = true;
 }
 
 - (void)appWillRetakeActive:(NSNotification *)note {
     [_mediaController start];
+    _isInBackground = false;
 }
 
 // View appears; happens if user switches app or moves from a different view controller.
@@ -548,7 +554,8 @@
             return;
         }
 
-        if (_mediaController != nil) {
+        // Do not update screen in background, because its expensive and we get warnings about GPU in the logs.
+        if (_mediaController != nil && !_isInBackground) {
             [_mediaController onNewPacket:packet fromProtocol:protocol];
         }
     }
