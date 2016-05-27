@@ -4,6 +4,7 @@ from byte_buffer import ByteBuffer
 from protocol_client import ClientTcp, ClientUdp
 from utility import getEpoch
 from twisted.internet import task
+from special_collections import OrderedSet
 
 __author__ = 'pryormic'
 
@@ -12,6 +13,10 @@ logger = logging.getLogger(__name__)
 # Representation of client from server's perspective.
 class Client(object):
     MINIMUM_VERSION = 1
+
+    # Don't rematch with a previously skipped client for first x seconds while we
+    # wait for a more suitable match, after x seconds give up and match anyways.
+    PRIOR_MATCH_LIST_TIMEOUT_SECONDS = 10
 
     class ConnectionStatus:
         WAITING_LOGON = 1
@@ -43,8 +48,9 @@ class Client(object):
         REJECT_HASH_TIMEOUT = 1
         REJECT_VERSION = 2
 
-    class LoginDetails:
+    class LoginDetails(object):
         def __init__(self, uniqueId, name, shortName, age, gender, interestedIn, longitude, latitude):
+            super(Client.LoginDetails, self).__init__()
             self.unique_id = uniqueId
             self.name = name
             self.short_name = shortName
@@ -62,6 +68,26 @@ class Client(object):
 
         def __str__(self):
             return "[Name: %s, age: %d, gender: %d, interested_in: %d, longitude: %.2f, latitude: %.2f]" % (self.name, self.age, self.gender, self.interested_in, self.longitude, self.latitude)
+
+    # Designed to prevent immediately rematching with person that the client skipped.
+    class HistoryTracking(object):
+        def __init__(self, maxSize=10):
+            super(Client.HistoryTracking, self).__init__()
+            self.prior_matches = OrderedSet()
+            self.max_size = maxSize
+
+        def addMatch(self, identifier):
+            if len(self.prior_matches) >= self.max_size:
+                self.prior_matches.pop(False)
+
+            self.prior_matches.add(identifier)
+
+        def isPriorMatch(self, identifier):
+            return identifier in self.prior_matches
+
+        def __str__(self):
+            return str(self.prior_matches)
+
 
     def __init__(self, tcp, onCloseFunc, udpConnectionLinker, house):
         super(Client, self).__init__()
@@ -92,8 +118,14 @@ class Client(object):
         self.timeout_check = task.LoopingCall(timeoutCheck)
         self.timeout_check.start(2.0)
 
-
+        # Track time between queries to database.
         self.house_match_timer = None
+
+        # Track previous matches which we have skipped
+        self.match_skip_history = Client.HistoryTracking()
+
+        # Track time of last successful match, so we know if we've been waiting a while to ignore the skip list.
+        self.started_waiting_for_match_timer = getEpoch()
 
         logger.info("New client connected, awaiting logon message")
 
@@ -214,14 +246,19 @@ class Client(object):
 
     def onFriendlyPacketTcp(self, packet):
         assert isinstance(packet, ByteBuffer)
-        # logger.info("Received a friendly TCP packet with length: %d" % packet.used_size)
 
         opCode = packet.getUnsignedInteger8()
         if opCode == Client.TcpOperationCodes.OP_PING:
             self.last_received_data = getEpoch()
         elif opCode == Client.TcpOperationCodes.OP_SKIP_PERSON:
             logger.debug("Client [%s] asked to skip person, honouring request" % self)
-            self.house.releaseRoom(self, self.house.disconnected_skip)
+            otherClient = self.house.releaseRoom(self, self.house.disconnected_skip)
+
+            # Record that we skipped this client, so that we don't rematch immediately.
+            if otherClient is not None:
+                assert isinstance(otherClient, Client)
+                self.match_skip_history.addMatch(otherClient.udp_hash)
+
             self.house.attemptTakeRoom(self)
         elif opCode == Client.TcpOperationCodes.OP_SLOW_DOWN_SEND_RATE:
             endPoint = self.house.room_participant.get(self)
@@ -234,6 +271,36 @@ class Client(object):
             self.closeConnection()
         else:
             logger.error("Unknown TCP packet received from client [%s]" % self)
+
+    # Must be protected by house lock.
+    def shouldMatch(self, client, recurse=True):
+        assert isinstance(client, Client)
+
+        # It is a two way relationship.
+        if recurse and not client.shouldMatch(self, False):
+            return False
+
+        if self.started_waiting_for_match_timer is None:
+            secondsWaitingForMatch = 0
+        else:
+            secondsWaitingForMatch = getEpoch() - self.started_waiting_for_match_timer
+
+        isPriorMatch = self.match_skip_history.isPriorMatch(client.udp_hash)
+
+        result = (not isPriorMatch)  or secondsWaitingForMatch >= Client.PRIOR_MATCH_LIST_TIMEOUT_SECONDS
+        logger.debug("Client [%s] has been waiting %.2f seconds for a match; is prior match [%s], match successful: [%s]" % (self, secondsWaitingForMatch, isPriorMatch, result))
+
+        return result
+
+    # Must be protected by house lock.
+    def onWaitingForMatch(self):
+        if self.started_waiting_for_match_timer is None:
+            self.started_waiting_for_match_timer = getEpoch()
+
+    # Must be protected by house lock.
+    def onSuccessfulMatch(self):
+        self.started_waiting_for_match_timer = None
+
 
     def onFriendlyPacketUdp(self, packet):
         self.house.handleUdpPacket(self, packet)

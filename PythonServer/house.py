@@ -55,6 +55,9 @@ class House:
 
             self.room_participant[clientA] = clientB
             self.room_participant[clientB] = clientA
+
+            clientA.onSuccessfulMatch()
+            clientB.onSuccessfulMatch()
         finally:
             self.house_lock.release()
 
@@ -161,6 +164,9 @@ class House:
 
                 self.attemptTakeRoom(clientB)
                 logger.info("Permanent closure of session between client [%s] and [%s] due to disconnect of client [%s]" % (client, clientB, client))
+
+                # Return the other client.
+                return clientB
         finally:
             self.house_lock.release()
 
@@ -188,6 +194,8 @@ class House:
             if doQuery:
                 client.house_match_timer = getEpoch()
 
+                client.onWaitingForMatch()
+
                 # This loop allows us to clean up the database quickly if there are alot of inconsistencies.
                 while True:
                     try:
@@ -211,10 +219,13 @@ class House:
 
                     break # exit the loop because we succeeded
 
-                self.takeRoom(client, clientMatch)
+                # Avoid recently skipped clients, unless we've timed out.
+                if clientMatch is not None and client.shouldMatch(clientMatch):
+                    self.takeRoom(client, clientMatch)
+                    return clientMatch
+                else:
+                    return None
 
-                # Return match if one found, or None if not.
-                return clientMatch
         finally:
             self.house_lock.release()
 
