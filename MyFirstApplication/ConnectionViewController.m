@@ -83,6 +83,7 @@
     bool _isScreenInUse;
 
     DnsResolver *_dnsResolver;
+    NSString *_cachedResolvedDns;
 }
 
 // View initially load; happens once per process.
@@ -91,6 +92,8 @@
     [super viewDidLoad];
 
     _backgroundCounter = 0;
+    _cachedResolvedDns = nil;
+
     _screenName = @"VideoChat";
     _connectionStateTimer = [[Timer alloc] init];
     _connectingNetworkTimer = [[Timer alloc] init];
@@ -299,6 +302,11 @@
     HologramLogin *loginProvider = [[HologramLogin alloc] initWithGpsState:state];
     _connectionCommander = [[ConnectionCommander alloc] initWithRecvDelegate:self connectionStatusDelegate:self governorSetupDelegate:self loginProvider:loginProvider punchthroughNotifier:self];
 
+    if (_cachedResolvedDns != nil) {
+        [self connectToCommander:_cachedResolvedDns];
+        return;
+    }
+
     [self setDisconnectStateWithShortDescription:@"Resolving DNS" longDescription:@"Waiting for DNS resolution to complete"];
     [_dnsResolver startResolvingDns];
 }
@@ -307,7 +315,7 @@
     if (!_isScreenInUse) {
         return;
     }
-
+    _cachedResolvedDns = resolvedHostName;
     [self connectToCommander:resolvedHostName];
 }
 
