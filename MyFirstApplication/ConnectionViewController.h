@@ -13,8 +13,9 @@
 #import "ConnectionCommander.h"
 #import "GpsState.h"
 #import "SocialState.h"
+#import "DnsResolver.h"
 
 @import AVFoundation;
 
-@interface ConnectionViewController : UIViewController <ConnectionStatusDelegateProtocol, NewPacketDelegate, UITextFieldDelegate, UIImagePickerControllerDelegate, NewImageDelegate, GovernorSetupProtocol, GpsStateDataLoadNotification, SocialStateDataLoadNotification, NatPunchthroughNotifier, MediaDataLossNotifier>
+@interface ConnectionViewController : UIViewController <ConnectionStatusDelegateProtocol, NewPacketDelegate, UITextFieldDelegate, UIImagePickerControllerDelegate, NewImageDelegate, GovernorSetupProtocol, GpsStateDataLoadNotification, SocialStateDataLoadNotification, NatPunchthroughNotifier, MediaDataLossNotifier, DnsResultNotifier>
 @end

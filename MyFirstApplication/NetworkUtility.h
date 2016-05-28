@@ -16,4 +16,6 @@
 + (NSString *)convertPreparedAddress:(uint)address port:(ushort)port;
 
 + (NSString *)convertPreparedHostName:(uint)address;
+
++ (NSString*)retrieveHostFromAddress:(const struct sockaddr*)address;
 @end

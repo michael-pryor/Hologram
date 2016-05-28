@@ -33,4 +33,10 @@
     NSString *description = [NSString localizedStringWithFormat:@"%s:%d", convertedAddress, convertedPort];
     return description;
 }
+
++ (NSString *)retrieveHostFromAddress:(const struct sockaddr *)address {
+    const struct sockaddr_in* addressNice = (const struct sockaddr_in *) address;
+    char *convertedAddress = inet_ntoa(addressNice->sin_addr);
+    return [NSString localizedStringWithFormat:@"%s", convertedAddress];
+}
 @end

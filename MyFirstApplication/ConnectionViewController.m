@@ -16,6 +16,7 @@
 #import "ViewInteractions.h"
 #import "Timer.h"
 #import "Analytics.h"
+#import "DnsResolver.h"
 
 @implementation ConnectionViewController {
     // Connection
@@ -78,6 +79,8 @@
     Timer *_connectionTemporarilyDisconnectTimer;
 
     bool _isInBackground;
+
+    DnsResolver *_dnsResolver;
 }
 
 // View initially load; happens once per process.
@@ -122,6 +125,8 @@
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(appWillRetakeActive:) name:UIApplicationDidBecomeActiveNotification object:nil];
 
     _isInBackground = false;
+
+    _dnsResolver = [[DnsResolver alloc] initWithDnsHost:@"app.commander.thehologram.org" timeout:5 resultNotifier:self];
 }
 
 // Permanently close our session on the server, disconnect and stop media input/output.
@@ -239,27 +244,19 @@
 - (void)onGpsDataLoaded:(GpsState *)state {
     HologramLogin *loginProvider = [[HologramLogin alloc] initWithGpsState:state];
     _connectionCommander = [[ConnectionCommander alloc] initWithRecvDelegate:self connectionStatusDelegate:self governorSetupDelegate:self loginProvider:loginProvider punchthroughNotifier:self];
-    [self connectToCommander];
+
+    [self setDisconnectStateWithShortDescription:@"Resolving DNS" longDescription:@"Waiting for DNS resolution to complete"];
+    [_dnsResolver startResolvingDns];
 }
 
-// Connect to the remote server.
-- (void)connectToRemoteCommander {
-    static NSString *const CONNECT_IP = @"212.227.84.229"; // remote machine (paid hosting).
+- (void)onDnsSuccess:(NSString *)resolvedHostName {
+    [self connectToCommander:resolvedHostName];
+}
+
+- (void)connectToCommander:(NSString*)hostName {
     static const int CONNECT_PORT_TCP = 12241;
-    [_connectionCommander connectToTcpHost:CONNECT_IP tcpPort:CONNECT_PORT_TCP];
+    [_connectionCommander connectToTcpHost:hostName tcpPort:CONNECT_PORT_TCP];
     _isConnectionActive = true;
-}
-
-// Connect to the local server (on same network).
-- (void)connectToLocalCommander {
-    static NSString *const CONNECT_IP = @"192.168.1.92"; // local arden crescent network.
-    static const int CONNECT_PORT_TCP = 12241;
-    [_connectionCommander connectToTcpHost:CONNECT_IP tcpPort:CONNECT_PORT_TCP];
-    _isConnectionActive = true;
-}
-
-- (void)connectToCommander {
-    [self connectToLocalCommander];
 }
 
 // On failure retrieving GPS failure, retry every 2 seconds.
@@ -465,7 +462,10 @@
 
         case P_NOT_CONNECTED_HASH_REJECTED:
             [self setDisconnectStateWithShortDescription:@"Disconnected\nPrevious session timed out" longDescription:description];
-            [self connectToCommander];
+
+            // This will trigger a new commander connection, without having to wait for
+            // another DNS resolution; we'll just use the last one we did.
+            [_dnsResolver lookupWithoutNetwork];
             break;
 
         default:
@@ -643,4 +643,5 @@
         [ViewInteractions fadeIn:_remoteAge completion:nil duration:2.0f];
     }               duration:2.0f];
 }
+
 @end
