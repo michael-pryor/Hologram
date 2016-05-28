@@ -79,6 +79,7 @@
     Timer *_connectionTemporarilyDisconnectTimer;
 
     bool _isInBackground;
+    bool _isScreenInUse;
 
     DnsResolver *_dnsResolver;
 }
@@ -119,14 +120,15 @@
     _waitingForNewEndPoint = true;
     _isConnectionActive = false;
 
-    _gpsState = [[GpsState alloc] initWithNotifier:self];
+    _gpsState = [[GpsState alloc] initWithNotifier:self timeout:5];
 
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(appWillResignActive:) name:UIApplicationWillResignActiveNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(appWillRetakeActive:) name:UIApplicationDidBecomeActiveNotification object:nil];
 
     _isInBackground = false;
+    _isScreenInUse = false;
 
-    _dnsResolver = [[DnsResolver alloc] initWithDnsHost:@"app.commander.thehologram.org" timeout:5 resultNotifier:self];
+    _dnsResolver = [[DnsResolver alloc] initWithNotifier:self dnsHost:@"app.commander.thehologram.org" timeout:5];
 }
 
 // Permanently close our session on the server, disconnect and stop media input/output.
@@ -154,6 +156,12 @@
 // View disappears; happens if user switches app or moves from a different view controller.
 - (void)viewDidDisappear:(BOOL)animated {
     [super viewDidDisappear:animated];
+    // Put in main thread so we have guarenteed ordering with isScreenInUse.
+    // I don't want to start the commander when not in this view; this
+    // prevents a race conditon.
+    dispatch_sync_main(^{
+        _isScreenInUse = false;
+    });
     [self terminateCurrentSession];
 }
 
@@ -177,6 +185,11 @@
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
 
+    // A sanity call, in case anything was left running while we went away.
+    [self terminateCurrentSession];
+
+    _isScreenInUse = true;
+
     // Start off in routed mode.
     previousState = ROUTED;
     [self onNatPunchthrough:nil stateChange:ROUTED];
@@ -199,24 +212,22 @@
         return;
     }
 
-    [_accessDialog validateAuthorization:^{
-        // This step can take a few seconds (particularly on older devices).
-        [self setDisconnectStateWithShortDescription:@"Initializing" longDescription:@"Initializing media controller"];
-        if (_mediaController == nil) {
-            _mediaController = [[MediaController alloc] initWithImageDelegate:self mediaDataLossNotifier:self];
-        }
-        [_mediaController startVideo];
+    // This step can take a few seconds (particularly on older devices).
+    [self setDisconnectStateWithShortDescription:@"Initializing" longDescription:@"Initializing media controller"];
+    if (_mediaController == nil) {
+        _mediaController = [[MediaController alloc] initWithImageDelegate:self mediaDataLossNotifier:self];
+    }
+    [_mediaController startVideo];
 
-        if (![socialState isDataLoaded]) {
-            [socialState registerNotifier:self];
-            [self setDisconnectStateWithShortDescription:@"Loading Facebook details" longDescription:@"Waiting for Facebook details to load"];
-            if (![socialState updateGraphFacebookInformation]) {
-                [self switchToFacebookLogonView];
-            }
-        } else {
-            [self onSocialDataLoaded:socialState];
+    if (![socialState isDataLoaded]) {
+        [socialState registerNotifier:self];
+        [self setDisconnectStateWithShortDescription:@"Loading Facebook details" longDescription:@"Waiting for Facebook details to load"];
+        if (![socialState updateGraphFacebookInformation]) {
+            [self switchToFacebookLogonView];
         }
-    }];
+    } else {
+        [self onSocialDataLoaded:socialState];
+    }
 }
 
 // Callback for social data (Facebook).
@@ -234,14 +245,18 @@
             [_ownerAge setHidden:true];
         }
 
-        [_gpsState update];
         [self setDisconnectStateWithShortDescription:@"Loading GPS details" longDescription:@"Waiting for GPS information to load"];
+        [_gpsState update];
     });
 }
 
 // Callback for GPS data.
 // Starts connection.
 - (void)onGpsDataLoaded:(GpsState *)state {
+    if (!_isScreenInUse) {
+        return;
+    }
+
     HologramLogin *loginProvider = [[HologramLogin alloc] initWithGpsState:state];
     _connectionCommander = [[ConnectionCommander alloc] initWithRecvDelegate:self connectionStatusDelegate:self governorSetupDelegate:self loginProvider:loginProvider punchthroughNotifier:self];
 
@@ -250,13 +265,24 @@
 }
 
 - (void)onDnsSuccess:(NSString *)resolvedHostName {
+    if (!_isScreenInUse) {
+        return;
+    }
+
     [self connectToCommander:resolvedHostName];
 }
 
 - (void)connectToCommander:(NSString*)hostName {
-    static const int CONNECT_PORT_TCP = 12241;
-    [_connectionCommander connectToTcpHost:hostName tcpPort:CONNECT_PORT_TCP];
-    _isConnectionActive = true;
+    // Put in main thread so we have guarenteed ordering when looking at _isScreenInUse.
+    dispatch_sync_main(^{
+        static const int CONNECT_PORT_TCP = 12241;
+
+        if (!_isScreenInUse) {
+            return;
+        }
+        [_connectionCommander connectToTcpHost:hostName tcpPort:CONNECT_PORT_TCP];
+        _isConnectionActive = true;
+    });
 }
 
 // On failure retrieving GPS failure, retry every 2 seconds.

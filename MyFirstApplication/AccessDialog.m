@@ -5,17 +5,21 @@
 #import "AccessDialog.h"
 #import "Threading.h"
 #import "CoreLocation/CoreLocation.h"
+#import "Signal.h"
 
 @import AVFoundation;
 
 @implementation AccessDialog {
     void (^_failureAction)(void);
+
+    Signal *_dialogShown;
 }
 
 - (id)initWithFailureAction:(void (^)(void))failureAction {
     self = [super init];
     if (self) {
         _failureAction = failureAction;
+        _dialogShown = [[Signal alloc] initWithFlag:false];
     }
     return self;
 }
@@ -29,6 +33,10 @@
 
     UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title message:explanation delegate:self cancelButtonTitle:@"Exit" otherButtonTitles:nil, nil];
     dispatch_sync_main(^{
+        // Only show once, we know we have to exit app after this.
+        if (![_dialogShown signalAll]) {
+            return;
+        }
         [alert show];
     });
     return;

@@ -25,5 +25,5 @@
 
 - (bool)isLoaded;
 
-- (id)initWithNotifier:(id <GpsStateDataLoadNotification>)notifier;
+- (id)initWithNotifier:(id <GpsStateDataLoadNotification>)notifier timeout:(NSTimeInterval)gpsUpdateTimeout;
 @end

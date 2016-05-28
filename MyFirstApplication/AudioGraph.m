@@ -334,8 +334,6 @@ static OSStatus audioOutputPullCallback(
 
         [self initializeConverters];
         [self initializeAudioUnit];
-
-        [self start];
     }
 }
 

@@ -9,7 +9,7 @@
 @end
 
 @interface DnsResolver : NSObject
-- (id)initWithDnsHost:(NSString *)dnsHost timeout:(NSTimeInterval)dnsUpdateTimeout resultNotifier:(id <DnsResultNotifier>)resultNotifier;
+- (id)initWithNotifier:(id <DnsResultNotifier>)resultNotifier dnsHost:(NSString *)dnsHost timeout:(NSTimeInterval)dnsUpdateTimeout;
 
 - (void)startResolvingDns;
 

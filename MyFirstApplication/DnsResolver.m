@@ -20,7 +20,7 @@ static NSString *lastResortResolution = @"192.168.1.92";
     id <DnsResultNotifier> _resultNotifier;
     Timer* _dnsResolutionTimer;
 }
-- (id)initWithDnsHost:(NSString *)dnsHost timeout:(NSTimeInterval)dnsUpdateTimeout resultNotifier:(id <DnsResultNotifier>)resultNotifier {
+- (id)initWithNotifier:(id <DnsResultNotifier>)resultNotifier dnsHost:(NSString *)dnsHost timeout:(NSTimeInterval)dnsUpdateTimeout {
     self = [super init];
     if (self) {
         _dnsHost = dnsHost;
@@ -40,7 +40,7 @@ void getAddrInfoCallBack(DNSServiceRef sdRef, DNSServiceFlags flags, uint32_t in
 
     NSString *host = [NetworkUtility retrieveHostFromAddress:address];
 
-    [[Analytics getInstance] pushTimer:resolverObject->_dnsResolutionTimer withCategory:@"setup" name:@"dns_resolution" label:@"network_lookup"];
+    [[Analytics getInstance] pushTimer:resolverObject->_dnsResolutionTimer withCategory:@"setup" name:@"dns_resolution" label:@"normal_lookup"];
 
     DNSServiceRefDeallocate(resolverObject->_serviceRef);
     [resolverObject storePreviousHostName:host];
