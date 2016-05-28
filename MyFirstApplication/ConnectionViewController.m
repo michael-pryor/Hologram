@@ -657,7 +657,7 @@
 - (void)prepareRuntimeView {
     [self prepareTutorials];
 
-    [ViewInteractions fadeIn:_cameraView completion:nil duration:4.0f];
+    [ViewInteractions fadeIn:_cameraView completion:nil duration:1.0f];
 
     [ViewInteractions fadeIn:_ownerName completion:^(BOOL completed) {
         [ViewInteractions fadeIn:_ownerAge completion:^(BOOL completed) {

@@ -18,7 +18,6 @@
     __weak IBOutlet UIImageView *_localImageView;
     __weak IBOutlet ADBannerView *_bannerView;
     Signal *_localImageViewVisible;
-    volatile Timer *_localImageFadeInDelayTimer;
 
     // For google analytics.
     NSString * _screenName;
@@ -56,7 +55,6 @@
     [_timerSinceAdvertCreated reset];
     [_localImageViewVisible clear];
     [_localImageView setAlpha:0.0f];
-    _localImageFadeInDelayTimer = [[Timer alloc] initWithFrequencySeconds:1 firingInitially:false];
 
     NSLog(@"Alert view loaded, unhiding banner advert and setting delegate");
     _bannerView.delegate = self;
@@ -66,7 +64,6 @@
 - (void)viewDidDisappear:(BOOL)animated {
     dispatch_sync_main(^{
         [_localImageView setAlpha:0.0f];
-        _localImageFadeInDelayTimer = nil;
 
         // Pause the banner view, stop it loading new adverts.
         NSLog(@"Alert view hidden, hiding banner advert and removing delegate");
@@ -96,7 +93,7 @@
 - (void)bannerViewDidLoadAd:(ADBannerView *)banner {
     dispatch_sync_main(^{
         NSLog(@"Banner has loaded, unhiding it");
-        [ViewInteractions fadeIn:_bannerView completion:nil duration:1.0f];
+        [ViewInteractions fadeIn:_bannerView completion:nil duration:0.5f];
 
         // User must wait a minimum of 2 seconds extra while the advert is visible
         // (giving them a chance to see it and click it).
@@ -118,8 +115,8 @@
 - (void)onNewImage:(UIImage *)image {
     [_localImageView performSelectorOnMainThread:@selector(setImage:) withObject:image waitUntilDone:YES];
 
-    if (_localImageFadeInDelayTimer != nil && [_localImageFadeInDelayTimer getState] && [_localImageViewVisible signalAll]) {
-        [ViewInteractions fadeIn:_localImageView completion:nil duration:1.0f];
+    if ([_localImageViewVisible signalAll]) {
+        [ViewInteractions fadeIn:_localImageView completion:nil duration:0.75f];
     }
 }
 
