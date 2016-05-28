@@ -16,7 +16,6 @@
 #import "ViewInteractions.h"
 #import "Timer.h"
 #import "Analytics.h"
-#import "DnsResolver.h"
 
 @implementation ConnectionViewController {
     // Connection
@@ -79,6 +78,8 @@
     Timer *_connectionTemporarilyDisconnectTimer;
 
     bool _isInBackground;
+    Signal *_resumeAfterBecomeActive;
+    uint _backgroundCounter;
     bool _isScreenInUse;
 
     DnsResolver *_dnsResolver;
@@ -89,6 +90,7 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
 
+    _backgroundCounter = 0;
     _screenName = @"VideoChat";
     _connectionStateTimer = [[Timer alloc] init];
     _connectingNetworkTimer = [[Timer alloc] init];
@@ -96,6 +98,7 @@
 
     _inFacebookLoginView = false;
     _isSkippableDespiteNoMatch = false;
+    _resumeAfterBecomeActive = [[Signal alloc] initWithFlag:false];
 
     [self setDisconnectStateWithShortDescription:@"Initializing" longDescription:@"Initializing media controller"];
 
@@ -108,7 +111,7 @@
     // But because we know the application is going to be terminated, we don't care
     // about recovering.
     _accessDialog = [[AccessDialog alloc] initWithFailureAction:^{
-        [self terminateCurrentSession];
+        [self terminateCurrentSession:true];
     }];
 
     _skipPersonPacket = [[ByteBuffer alloc] init];
@@ -133,7 +136,7 @@
 
 // Permanently close our session on the server, disconnect and stop media input/output.
 // In order to resume, we need to reconnect to commander and get a brand new session.
-- (void)terminateCurrentSession {
+- (void)terminateCurrentSession:(bool)stopVideo {
     // Notify server that we want to fully disconnect; server will close connection when it receives
     // notification. This prevents end point from thinking this could be a temporary disconnect.
     if (_connection != nil && _isConnectionActive) {
@@ -150,7 +153,9 @@
 
     // Terminate microphone and video.
     [_mediaController stop];
-    [_mediaController stopVideo];
+    if (stopVideo) {
+        [_mediaController stopVideo];
+    }
 }
 
 // View disappears; happens if user switches app or moves from a different view controller.
@@ -162,20 +167,47 @@
     dispatch_sync_main(^{
         _isScreenInUse = false;
     });
-    [self terminateCurrentSession];
+
+    [self stop:true];
 }
 
 // Doesn't terminate the session, remains connected but pauses media input/output
 // Once reconnecting, this resumes and hopefully we're still connected (if not we recover
 // down the usual disconnection logic).
 - (void)appWillResignActive:(NSNotification *)note {
-    [_mediaController stop];
     _isInBackground = true;
+
+    // After 10 seconds, disconnect. iOS may let app run in background for a long time, don't want to
+    // match with somebody if this is the case.
+    __block uint backgroundCounterOriginal = _backgroundCounter;
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t) 10 * NSEC_PER_SEC), dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        @synchronized (_resumeAfterBecomeActive) {
+            if (_backgroundCounter != backgroundCounterOriginal) {
+                NSLog(@"Not pausing operations, we have resumed since then");
+                return;
+            }
+
+            NSLog(@"Pausing operation because inactive for too long");
+            [_resumeAfterBecomeActive signalAll];
+
+            // Don't terminate video, we were having problems with this...
+            [self stop:false];
+
+            NSLog(@"Returned");
+        }
+    });
 }
 
 - (void)appWillRetakeActive:(NSNotification *)note {
-    [_mediaController start];
     _isInBackground = false;
+
+    @synchronized (_resumeAfterBecomeActive) {
+        _backgroundCounter++;
+        if ([_resumeAfterBecomeActive clear]) {
+            NSLog(@"Resuming operation after becoming active again");
+            [self start];
+        }
+    }
 }
 
 // View appears; happens if user switches app or moves from a different view controller.
@@ -186,10 +218,13 @@
     [super viewDidAppear:animated];
 
     // A sanity call, in case anything was left running while we went away.
-    [self terminateCurrentSession];
+    [self terminateCurrentSession:true];
 
     _isScreenInUse = true;
+    [self start];
+}
 
+- (void)start {
     // Start off in routed mode.
     previousState = ROUTED;
     [self onNatPunchthrough:nil stateChange:ROUTED];
@@ -228,6 +263,10 @@
     } else {
         [self onSocialDataLoaded:socialState];
     }
+}
+
+- (void)stop:(bool)stopVideo {
+    [self terminateCurrentSession:stopVideo];
 }
 
 // Callback for social data (Facebook).
@@ -272,7 +311,7 @@
     [self connectToCommander:resolvedHostName];
 }
 
-- (void)connectToCommander:(NSString*)hostName {
+- (void)connectToCommander:(NSString *)hostName {
     // Put in main thread so we have guarenteed ordering when looking at _isScreenInUse.
     dispatch_sync_main(^{
         static const int CONNECT_PORT_TCP = 12241;
@@ -644,14 +683,17 @@
 }
 
 - (void)preprepareRuntimeView {
-    [_swipeTutorialSkip setAlpha:0.0f];
-    [_swipeTutorialChangeSettings setAlpha:0.0f];
-    [_ownerAge setAlpha:0.0f];
-    [_ownerName setAlpha:0.0f];
-    [_remoteAge setAlpha:0.0f];
-    [_remoteName setAlpha:0.0f];
-    [_cameraView setAlpha:0.0f];
-    [_remoteDistance setAlpha:0.0f];
+    dispatch_sync_main(^{
+        [_cameraView.layer removeAllAnimations];
+        [_swipeTutorialSkip setAlpha:0.0f];
+        [_swipeTutorialChangeSettings setAlpha:0.0f];
+        [_ownerAge setAlpha:0.0f];
+        [_ownerName setAlpha:0.0f];
+        [_remoteAge setAlpha:0.0f];
+        [_remoteName setAlpha:0.0f];
+        [_cameraView setAlpha:0.0f];
+        [_remoteDistance setAlpha:0.0f];
+    });
 }
 
 - (void)prepareRuntimeView {
@@ -660,12 +702,22 @@
     [ViewInteractions fadeIn:_cameraView completion:nil duration:1.0f];
 
     [ViewInteractions fadeIn:_ownerName completion:^(BOOL completed) {
-        [ViewInteractions fadeIn:_ownerAge completion:^(BOOL completed) {
+        if (!completed) {
+            return;
+        }
+
+        [ViewInteractions fadeIn:_ownerAge completion:^(BOOL completedNext) {
+            if (!completedNext) {
+                return;
+            }
             [ViewInteractions fadeIn:_remoteDistance completion:nil duration:2.0f];
         }               duration:2.0f];
     }               duration:2.0f];
 
     [ViewInteractions fadeIn:_remoteName completion:^(BOOL completed) {
+        if (!completed) {
+            return;
+        }
         [ViewInteractions fadeIn:_remoteAge completion:nil duration:2.0f];
     }               duration:2.0f];
 }
