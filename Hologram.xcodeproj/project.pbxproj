@@ -1151,7 +1151,7 @@
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				COPY_PHASE_STRIP = YES;
+				COPY_PHASE_STRIP = NO;
 				DEPLOYMENT_LOCATION = YES;
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -1160,6 +1160,7 @@
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "MyFirstApplication/Hologram-Prefix.pch";
+				GCC_UNROLL_LOOPS = YES;
 				GENERATE_PROFILING_CODE = YES;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)/**",
@@ -1184,6 +1185,7 @@
 				PROVISIONING_PROFILE = "";
 				STRIP_STYLE = debugging;
 				TARGETED_DEVICE_FAMILY = 1;
+				VALIDATE_PRODUCT = YES;
 				VALID_ARCHS = "arm64 x86_64 i386 armv7s armv7";
 				WRAPPER_EXTENSION = app;
 			};
@@ -1204,10 +1206,12 @@
 					"$(inherited)",
 					/Users/pryormic/Documents/FacebookSDK,
 				);
+				GCC_OPTIMIZATION_LEVEL = s;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "MyFirstApplication/Hologram-Prefix.pch";
-				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
-				GENERATE_PROFILING_CODE = YES;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_UNROLL_LOOPS = YES;
+				GENERATE_PROFILING_CODE = NO;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)/**",
 					"/Users/pryormic/Desktop/MyFirstApplication/ffmpeg/FFmpeg-iOS/include/**",
@@ -1228,7 +1232,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "mike.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = Hologram;
 				PROVISIONING_PROFILE = "";
-				STRIP_STYLE = debugging;
+				STRIP_STYLE = all;
 				TARGETED_DEVICE_FAMILY = 1;
 				VALID_ARCHS = "arm64 x86_64 i386 armv7s armv7";
 				WRAPPER_EXTENSION = app;
