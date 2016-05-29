@@ -18,6 +18,14 @@ fi
 
 ACTION="${1}"
 
+case $ACTION in
+tail)
+  tail -f "${LOG_DIR}"/*.log
+  exit 0
+;;
+esac
+
+
 for entityFile in "${ENTITY_DIR}"/*
 do
   # Strip file path, now we just have e.g. governor.sh
