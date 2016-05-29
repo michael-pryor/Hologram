@@ -14,6 +14,13 @@ fi
 
 ACTION="$1"
 ENTITY="$2"
+SILENCE_ECHO="$3"
+
+echoEx() {
+   if [ -z ${SILENCE_ECHO} ]; then
+      echo $@
+   fi
+}
 
 ENTITY_DIR="${DIR}/apps"
 ENTITY_FILE="${ENTITY_DIR}/${ENTITY}.sh"
@@ -44,13 +51,18 @@ if [ ! -d "${LOG_DIR}" ]; then
 fi
 
 echoPrefix() {
-  echo "[${1} - ${ENTITY} ($JOB_NAME)] -"
+  echoEx "[${1} - ${ENTITY} ($JOB_NAME)] -"
 }
 
 LOG_FILE="${LOG_DIR}/${JOB_NAME}_${ENTITY}.log"
 
 callSelf() {
-   "$0" "${1}" "${ENTITY}"
+   SILENCE_ECHO_TO_PASS="${2}"
+   if [ -z ${SILENCE_ECHO_TO_PASS} ]; then
+       SILENCE_ECHO_TO_PASS=$SILENCE_ECHO
+   fi
+
+   "$0" "${1}" "${ENTITY}" "${SILENCE_ECHO_TO_PASS}"
 }
 
 isRunning() { 
@@ -68,32 +80,32 @@ processUpTime() {
   upTime="$(ps -p "${PID}" -o etime=)"
   
   # Strip white space.
-  upTime=$(echo -e "${upTime}" | tr -d '[[:space:]]')
+  upTime=$(echoEx -e "${upTime}" | tr -d '[[:space:]]')
 
-  echo ${upTime}  
+  echoEx ${upTime}  
 }
 
 case $ACTION in
 stop)
    if ! isRunning
    then
-       echo "$(echoPrefix STOP) not running, no action taken"
+       echoEx "$(echoPrefix STOP) not running, no action taken"
        exit 0
    fi
  
    pkill -9 -f "${JOB}"
-   echo "$(echoPrefix STOP) success"
+   echoEx "$(echoPrefix STOP) success"
 ;;
 
 start)
    if isRunning
    then
-       echo "$(echoPrefix START) already running, no action taken"
+       echoEx "$(echoPrefix START) already running, no action taken"
        exit 0
    fi
 
    ${JOB} >> "${LOG_FILE}" 2>&1 &
-   echo "$(echoPrefix START) started]"
+   echoEx "$(echoPrefix START) started]"
 ;;
 
 startl)
@@ -114,13 +126,30 @@ state)
    if isRunning
     then
        pidVal="$(pid)"
-       echo "$(echoPrefix STATE) is RUNNING (pid = ${pidVal}, uptime = $(processUpTime ${pidVal}))"
+       echoEx "$(echoPrefix STATE) is RUNNING (pid = ${pidVal}, uptime = $(processUpTime ${pidVal}))"
     else
-       echo "$(echoPrefix STATE) is DOWN"
+       echoEx "$(echoPrefix STATE) is DOWN"
     fi
 ;;
 
+audit_regular)
+   AUDIT_REGULAR_LOCK="${DIR}/${JOB_NAME}_${ENTITY}.restart_lock"
+
+   if ! isRunning
+   then
+      if [ ! -f "$AUDIT_REGULAR_LOCK" ] ; then
+          echoEx "$(echoPrefix AUDIT) is NOT RUNNING! Attempting to restart."
+          echoEx "Note that you will not receive further email notification about the state of this job, or about further restarts. Clear the lock at [$AUDIT_REGULAR_LOCK] to re-enable email notification for this job"
+	  echo "Delete this lock to re-enable email on the service ${ENTITY} (${JOB_NAME})" > ${AUDIT_REGULAR_LOCK}
+          callSelf restart
+      else
+          # Don't echo anything, since anything we echo gets emailed.
+          callSelf restart 1
+      fi
+   fi
+;;
+
 *)
-   echo FAIL: available commands are: stop, start, restart, lesslog.
+   echoEx FAIL: available commands are: stop, start, restart, lesslog.
 ;;
 esac
