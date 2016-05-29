@@ -1,0 +1,28 @@
+#!/bin/sh -e
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+ENTITY_DIR="${DIR}/apps"
+
+# Individual entity manipulated
+if [ "$#" -eq 2 ]; then
+   exec "$DIR/run" $@
+   exit $?
+fi
+
+if [ "$#" -ne 1 ]; then
+   echo "Must have one or two arguments e.g:"
+   echo "${0} governor start <-- starts the governor"
+   echo "${0} start <-- starts all processes"
+   exit 1
+fi
+
+for entityFile in "${ENTITY_DIR}"/*
+do
+  # Strip file path, now we just have e.g. governor.sh
+  entityFile=${entityFile##*/}
+
+  # Strip ending so now we just have governor.
+  entityName=${entityFile%.*}
+  
+  "${DIR}/run" "${entityName}" $@
+done

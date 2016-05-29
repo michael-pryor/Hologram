@@ -78,7 +78,11 @@ start)
 
    ${JOB} >> "${LOG_FILE}" 2>&1 &
    echo "[START - ${JOB_NAME} started]"
-   callSelf lesslog
+;;
+
+startl)
+   callSelf start
+   callSelf lesslog 
 ;;
 
 restart)
