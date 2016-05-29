@@ -1,9 +1,28 @@
 #!/bin/sh -e
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-packages_path="${DIR}/../builds"
-latest_package=$(ls -t ${packages_path} | head -1)
+destination_hosts=( "pryormic@s18315587.onlinehome-server.info" )
 
-command="scp ${packages_path}/${latest_package} pryormic@s18315587.onlinehome-server.info:~/packages"
-echo $command
-$command
+PACKAGE_DIR="${DIR}/../builds"
+
+SOURCE_FILE="${2}"
+if [ -z ${SOURCE_FILE} ]; then
+  # Pick the newest archive.
+  SOURCE_FILE=$(ls -t ${PACKAGE_DIR} | head -1)
+  if [ -z ${SOURCE_FILE} ]; then
+    echo "No packages found"
+    exit 1
+  fi
+fi
+
+for host in "${destination_hosts[@]}"
+do
+  command="scp ${PACKAGE_DIR}/${SOURCE_FILE} ${host}:~/packages"
+  echo $command
+  $command
+
+  SHOULD_INSTALL=${1}
+  if [ ! -z "${SHOULD_INSTALL}" ] && [ "${SHOULD_INSTALL}" -eq 1 ]; then
+   ssh ${host} "source ~/.bashrc; ~/hologram/bin/install ${SOURCE_FILE}"
+  fi
+done
