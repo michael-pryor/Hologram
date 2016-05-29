@@ -1,0 +1,9 @@
+#!/bin/sh -e
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+packages_path="${DIR}/../builds"
+latest_package=$(ls -t ${packages_path} | head -1)
+
+command="scp ${packages_path}/${latest_package} pryormic@s18315587.onlinehome-server.info:~/packages"
+echo $command
+$command
