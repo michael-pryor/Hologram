@@ -12,8 +12,8 @@ if [ "$#" -lt 1 ]; then
     echo "2. Action, start/stop etc"
 fi
 
-ENTITY="$1"
-ACTION="$2"
+ACTION="$1"
+ENTITY="$2"
 
 ENTITY_DIR="${DIR}/apps"
 ENTITY_FILE="${ENTITY_DIR}/${ENTITY}.sh"
@@ -50,7 +50,7 @@ echoPrefix() {
 LOG_FILE="${LOG_DIR}/${JOB_NAME}_${ENTITY}.log"
 
 callSelf() {
-   "$0" "${ENTITY}" "${1}"
+   "$0" "${1}" "${ENTITY}"
 }
 
 isRunning() { 
@@ -59,6 +59,18 @@ isRunning() {
 
 pid() {
    pgrep -f "${JOB}"
+}
+
+processUpTime() {
+  PID=${1}
+  
+  # Get up time.
+  upTime="$(ps -p "${PID}" -o etime=)"
+  
+  # Strip white space.
+  upTime=$(echo -e "${upTime}" | tr -d '[[:space:]]')
+
+  echo ${upTime}  
 }
 
 case $ACTION in
@@ -101,7 +113,8 @@ lesslog)
 state)
    if isRunning
     then
-       echo "$(echoPrefix STATE) is RUNNING (pid = $(pid))"
+       pidVal="$(pid)"
+       echo "$(echoPrefix STATE) is RUNNING (pid = ${pidVal}, uptime = $(processUpTime ${pidVal}))"
     else
        echo "$(echoPrefix STATE) is DOWN"
     fi

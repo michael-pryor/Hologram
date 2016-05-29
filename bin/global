@@ -24,5 +24,5 @@ do
   # Strip ending so now we just have governor.
   entityName=${entityFile%.*}
   
-  "${DIR}/run" "${entityName}" $@
+  "${DIR}/run" $@ "${entityName}"
 done
