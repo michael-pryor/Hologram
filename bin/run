@@ -43,7 +43,11 @@ if [ ! -d "${LOG_DIR}" ]; then
    exit 1
 fi
 
-LOG_FILE="${LOG_DIR}/${JOB_NAME}.log"
+echoPrefix() {
+  echo "[${1} - ${ENTITY} ($JOB_NAME)] -"
+}
+
+LOG_FILE="${LOG_DIR}/${JOB_NAME}_${ENTITY}.log"
 
 callSelf() {
    "$0" "${ENTITY}" "${1}"
@@ -61,28 +65,28 @@ case $ACTION in
 stop)
    if ! isRunning
    then
-       echo "[STOP - ${JOB_NAME} not running, no action taken]"
+       echo "$(echoPrefix STOP) not running, no action taken"
        exit 0
    fi
  
-   pkill -f "${JOB}"
-   echo "[STOP - ${JOB_NAME} killed]"
+   pkill -9 -f "${JOB}"
+   echo "$(echoPrefix STOP) success"
 ;;
 
 start)
    if isRunning
    then
-       echo "[START - ${JOB_NAME} already running, no action taken]"
+       echo "$(echoPrefix START) already running, no action taken"
        exit 0
    fi
 
    ${JOB} >> "${LOG_FILE}" 2>&1 &
-   echo "[START - ${JOB_NAME} started]"
+   echo "$(echoPrefix START) started]"
 ;;
 
 startl)
    callSelf start
-   callSelf lesslog 
+   callSelf lesslog
 ;;
 
 restart)
@@ -97,9 +101,9 @@ lesslog)
 state)
    if isRunning
     then
-       echo "[${JOB_NAME}] is RUNNING (pid = $(pid))"
+       echo "$(echoPrefix STATE) is RUNNING (pid = $(pid))"
     else
-       echo "[${JOB_NAME}] is DOWN"
+       echo "$(echoPrefix STATE) is DOWN"
     fi
 ;;
 
