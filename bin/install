@@ -30,8 +30,16 @@ fi
 DESTINATION_PATH="${DIR%/*}"
 
 # Remove old directories
-rm -r "${DESTINATION_PATH}/PythonServer"
-rm -r "${DESTINATION_PATH}/bin"
+pythonServerPath="${DESTINATION_PATH}/PythonServer"
+
+if [ -d "${pythonServerPath}" ] ; then
+  rm -r "${pythonServerPath}"
+fi
+
+binPath="${DESTINATION_PATH}/bin"
+if [ -d "${binPath}" ] ; then
+  rm -r "${binPath}"/*
+fi
 
 echo "Installing package ${SOURCE_FILE} (${SOURCE_PATH}) to [${DESTINATION_PATH}]..."
 tar -xvzf "${SOURCE_PATH}" -C "${DESTINATION_PATH}"
