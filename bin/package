@@ -1,0 +1,18 @@
+#!/bin/sh -e
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+SOURCE_PATH="${DIR}/.."
+DEST_PATH="${DIR}/../builds"
+
+if [ ! -d "${DEST_PATH}" ]; then
+  mkdir "${DEST_PATH}"
+fi
+
+cd "${SOURCE_PATH}"
+
+now=$(date +"%d_%m_%Y_%H_%M_%S")
+DEST_FULL_PATH="${DEST_PATH}/hologram_server_${now}.tgz"
+tar czvf "${DEST_FULL_PATH}" PythonServer bin
+echo "Resulting package written to: ${DEST_FULL_PATH}"
+
+exit 0
