@@ -1,0 +1,38 @@
+#!/bin/sh -e
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+if [ -z ${PACKAGE_DIR} ] ; then
+  echo "PACKAGE_DIR variable not set, we need to know where to get packages from"
+  exit 1
+fi
+
+if [ ! -d ${PACKAGE_DIR} ] ; then
+  echo "Packaging directory does not exist: [${PACKAGE_DIR}]"
+  exit 1
+fi
+
+SOURCE_FILE="${1}"
+if [ -z ${SOURCE_FILE} ]; then
+  # Pick the newest archive.
+  SOURCE_FILE=$(ls -t ${PACKAGE_DIR} | head -1)
+  if [ -z ${SOURCE_FILE} ]; then
+    echo "No packages found"
+    exit 1
+  fi
+fi
+
+SOURCE_PATH="${PACKAGE_DIR}/${SOURCE_FILE}"
+if [ ! -f ${SOURCE_PATH} ] ; then
+  echo "Could not find package ${SOURCE_FILE} at path [${SOURCE_PATH}]"
+  exit 1
+fi
+  
+DESTINATION_PATH="${DIR}/.."
+
+# Remove old directories
+# rm -r "${DESTINATION_PATH}/PythonServer"
+# rm -r "${DESTINATION_PATH}/bin"
+
+echo "Installing package ${SOURCE_FILE} (${SOURCE_PATH})..."
+tar -xvzf "${SOURCE_PATH}" -C "${DESTINATION_PATH}"
+echo "Installed package ${SOURCE_FILE}"
