@@ -6,11 +6,10 @@ if [ ! -d "$LOG_DIR" ]; then
    exit 1
 fi
 
-if [ "$#" -lt 2 ]; then
+if [ "$#" -lt 1 ]; then
     echo "Incorrect number of arguments:"
-    echo "1. Command to run."
-    echo "2. Script name, used to terminate process in pkill"
-    echo "3. Script called to start the process"
+    echo "1. Entity name, so we know what file to source."
+    echo "2. Action, start/stop etc"
 fi
 
 ENTITY="$1"
@@ -34,13 +33,17 @@ if [ -z "${JOB}" ]; then
    exit 1
 fi
 
+if [ -z "${LOG_DIR}" ]; then
+   echo "LOG_DIR variable not set, suggest setting it in ~/.bashrc, we need to know where we should store log files"
+   exit 1
+fi
 
-KILL_JOB="pkill -f \"$JOB_NAME\""
+if [ ! -d "${LOG_DIR}" ]; then
+   echo "LOG_DIR directory not found (${LOG_DIR})"
+   exit 1
+fi
+
 LOG_FILE="${LOG_DIR}/${JOB_NAME}.log"
-
-runItem() {
-    ${JOB} >> "${LOG_FILE}" 2>&1 &
-}
 
 callSelf() {
    "$0" "${ENTITY}" "${1}"
@@ -56,11 +59,25 @@ pid() {
 
 case $ACTION in
 stop)
-   pkill -f "${JOB_NAME}"
+   if ! isRunning
+   then
+       echo "[STOP - ${JOB_NAME} not running, no action taken]"
+       exit 0
+   fi
+ 
+   pkill -f "${JOB}"
+   echo "[STOP - ${JOB_NAME} killed]"
 ;;
 
 start)
-   runItem
+   if isRunning
+   then
+       echo "[START - ${JOB_NAME} already running, no action taken]"
+       exit 0
+   fi
+
+   ${JOB} >> "${LOG_FILE}" 2>&1 &
+   echo "[START - ${JOB_NAME} started]"
    callSelf lesslog
 ;;
 
