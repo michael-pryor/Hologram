@@ -27,12 +27,12 @@ if [ ! -f ${SOURCE_PATH} ] ; then
   exit 1
 fi
   
-DESTINATION_PATH="${DIR}/.."
+DESTINATION_PATH="${DIR%/*}"
 
 # Remove old directories
-# rm -r "${DESTINATION_PATH}/PythonServer"
-# rm -r "${DESTINATION_PATH}/bin"
+rm -r "${DESTINATION_PATH}/PythonServer"
+rm -r "${DESTINATION_PATH}/bin"
 
-echo "Installing package ${SOURCE_FILE} (${SOURCE_PATH})..."
+echo "Installing package ${SOURCE_FILE} (${SOURCE_PATH}) to [${DESTINATION_PATH}]..."
 tar -xvzf "${SOURCE_PATH}" -C "${DESTINATION_PATH}"
-echo "Installed package ${SOURCE_FILE}"
+echo "Installed package ${SOURCE_FILE} (${SOURCE_PATH}) to [${DESTINATION_PATH}]"
