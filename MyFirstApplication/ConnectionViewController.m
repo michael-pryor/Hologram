@@ -229,7 +229,7 @@
 
 - (void)start {
     // Start off in routed mode.
-    previousState = ROUTED;
+    previousState = NONE;
     [self onNatPunchthrough:nil stateChange:ROUTED];
 
     // Will probably already be there if we have already loaded previously.

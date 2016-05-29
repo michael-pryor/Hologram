@@ -11,6 +11,7 @@
 #import "InputSessionBase.h"
 
 typedef enum {
+    NONE, // Initial state when we've just started up.
     PUNCHED_THROUGH, // Punched through, so packets are going direct to end point.
     ROUTED, // Not punched through; we are going via the central server (costing me money).
     ADDRESS_RECEIVED // Received the address of a client, to attempt NAT punchthrough discovery with.
