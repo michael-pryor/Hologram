@@ -55,6 +55,7 @@ echoPrefix() {
 }
 
 LOG_FILE="${LOG_DIR}/${JOB_NAME}_${ENTITY}.log"
+AUDIT_REGULAR_LOCK="${DIR}/${JOB_NAME}_${ENTITY}.restart_lock"
 
 callSelf() {
    SILENCE_ECHO_TO_PASS="${2}"
@@ -148,6 +149,26 @@ audit_regular)
       fi
    fi
 ;;
+
+audit_daily)
+  greenEchoPrefix="$(echoPrefix AUDIT_DAILY) [GREEN] -"
+  redEchoPrefix="$(echoPrefix AUDIT_DAILY) [RED] -"
+
+  if [ -f ${AUDIT_REGULAR_LOCK} ] ; then
+      echoEx "${redEchoPrefix} Lock file at [${AUDIT_REGULAR_LOCK}] exists. This means that processes may be silently restarted on a regular basis to deal with ongoing issues, and with no email notification. Addres this ASAP!"
+  else
+      echoEx "${greenEchoPrefix} No recent automatic restarts detected, this is good"
+  fi
+
+  if isRunning
+  then
+      pidVal="$(pid)"
+      echoEx "${greenEchoPrefix} is RUNNING (pid = ${pidVal}, uptime = $(processUpTime ${pidVal}))"
+  else
+      echoEx "${redEchoPrefix} is DOWN"
+  fi
+;;
+
 
 *)
    echoEx FAIL: available commands are: stop, start, restart, lesslog.
