@@ -12,6 +12,9 @@ if [ "$#" -lt 1 ]; then
     echo "2. Action, start/stop etc"
 fi
 
+# Some of our apps require working directory be set.
+cd ${DIR}
+
 ACTION="$1"
 ENTITY="$2"
 SILENCE_ECHO="$3"
@@ -49,6 +52,28 @@ if [ ! -d "${LOG_DIR}" ]; then
    echo "LOG_DIR directory not found (${LOG_DIR})"
    exit 1
 fi
+
+validateArchivingLock() {
+  if [ -z "${ARCHIVING_LOCK}" ] ; then
+    echo "ARCHIVING_LOCK variable is missing, required for audits, run from global script instead"
+    exit 1
+  fi
+}
+
+checkForArchivingLock() {
+  validateArchivingLock
+  if [ -f "${ARCHIVING_LOCK}" ] ; then
+    if test `find "${ARCHIVING_LOCK}" -mmin +5`
+    then
+       echo "WARNING: Archive lock file is older than 5 mins, removing it [${ARCHIVING_LOCK}]"
+       rm "${ARCHIVING_LOCK}"
+    else
+       # Don't do anything, and don't echo because we don't want to send an email.
+       # Just wait for archiving to finish, by exiting now.
+       exit 0
+    fi
+  fi
+}
 
 echoPrefix() {
   echoEx "[${1} - ${ENTITY} ($JOB_NAME)] -"
@@ -134,14 +159,15 @@ state)
 ;;
 
 audit_regular)
+   checkForArchivingLock
+ 
    AUDIT_REGULAR_LOCK="${DIR}/${JOB_NAME}_${ENTITY}.restart_lock"
-
    if ! isRunning
    then
       if [ ! -f "$AUDIT_REGULAR_LOCK" ] ; then
           echoEx "$(echoPrefix AUDIT) is NOT RUNNING! Attempting to restart."
           echoEx "Note that you will not receive further email notification about the state of this job, or about further restarts. Clear the lock at [$AUDIT_REGULAR_LOCK] to re-enable email notification for this job"
-	  echo "Delete this lock to re-enable email on the service ${ENTITY} (${JOB_NAME})" > ${AUDIT_REGULAR_LOCK}
+	  echoEx "Delete this lock to re-enable email on the service ${ENTITY} (${JOB_NAME})" > ${AUDIT_REGULAR_LOCK}
           callSelf restart
       else
           # Don't echo anything, since anything we echo gets emailed.

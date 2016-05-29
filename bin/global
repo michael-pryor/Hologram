@@ -16,13 +16,59 @@ if [ "$#" -ne 1 ]; then
    exit 1
 fi
 
+if [ ! -d "${LOG_DIR}" ]; then
+   echo "LOG_DIR directory not found (${LOG_DIR})"
+   exit 1
+fi
+
 ACTION="${1}"
+
+callSelf() {
+  "$0" $@
+}
+
+# Used in run script as well.
+export ARCHIVING_LOCK="${LOG_DIR}/archiving_in_progress.lock"
+finishArchiving() {
+  echo "Finished archiving, restarting services and removing lock"
+  callSelf start
+  if [ -f "${ARCHIVING_LOCK}" ] ; then
+    rm "${ARCHIVING_LOCK}"
+  fi
+}
 
 case $ACTION in
 tail)
   tail -f "${LOG_DIR}"/*.log
   exit 0
 ;;
+
+archive_logs)
+  echo "Archiving of log files in progress, temporarily stopped all jobs" > "${ARCHIVING_LOCK}"
+  
+  # In case another script is in progress already, try to wait for it to finish as lock will have no impact.
+  sleep 1
+
+  callSelf stop
+
+  echo "Archiving log files"
+  now=$(date +"%d_%m_%Y_%H_%M_%S")
+  cd "${LOG_DIR}"
+  {  
+    tar czfv "logs_${now}.tgz" *.log
+  } || {
+    finishArchiving
+    exit $?
+  }
+  cd -
+  
+  echo "Removing log files"
+  rm "${LOG_DIR}"/*.log
+  
+  finishArchiving
+  exit $?
+;;
+
 esac
 
 
@@ -39,8 +85,10 @@ done
 
 case $ACTION in
 audit_daily)
+  # Append disk space stats to the end of the audit email.
   echo
   echo "Disk space stats"
   df -k --output=pcent ${DIR}
 ;;
+
 esac
