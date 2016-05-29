@@ -1,0 +1,88 @@
+#!/bin/sh -e
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+if [ ! -d "$LOG_DIR" ]; then
+   echo "FAIL: LOG_DIR environment variable not set, should be in .bashrc"
+   exit 1
+fi
+
+if [ "$#" -lt 2 ]; then
+    echo "Incorrect number of arguments:"
+    echo "1. Command to run."
+    echo "2. Script name, used to terminate process in pkill"
+    echo "3. Script called to start the process"
+fi
+
+ENTITY="$1"
+ACTION="$2"
+
+ENTITY_DIR="${DIR}/apps"
+ENTITY_FILE="${ENTITY_DIR}/${ENTITY}.sh"
+if [ ! -f ${ENTITY_FILE} ]; then
+    echo "Component ${ENTITY} not found (check ${ENTITY_DIR}, we looked for ${ENTITY_FILE})"
+    exit 1
+fi
+
+source "${ENTITY_FILE}"
+if [ -z ${JOB_NAME} ]; then
+   echo "Buggy app file [${ENTITY_FILE}], missing JOB_NAME variable to tell us what expression to pass to pkill when we terminate the app"
+   exit 1
+fi
+
+if [ -z "${JOB}" ]; then
+   echo "Buggy app file [${ENTITY_FILE}], missing JOB variable to tell us what to run when starting the app"
+   exit 1
+fi
+
+
+KILL_JOB="pkill -f \"$JOB_NAME\""
+LOG_FILE="${LOG_DIR}/${JOB_NAME}.log"
+
+runItem() {
+    ${JOB} >> "${LOG_FILE}" 2>&1 &
+}
+
+callSelf() {
+   "$0" "${ENTITY}" "${1}"
+}
+
+isRunning() { 
+   pgrep -f "${JOB}" > /dev/null
+}
+
+pid() {
+   pgrep -f "${JOB}"
+}
+
+case $ACTION in
+stop)
+   pkill -f "${JOB_NAME}"
+;;
+
+start)
+   runItem
+   callSelf lesslog
+;;
+
+restart)
+   callSelf stop
+   callSelf start
+;;
+
+lesslog)
+   less "${LOG_FILE}"
+;;
+
+state)
+   if isRunning
+    then
+       echo "[${JOB_NAME}] is RUNNING (pid = $(pid))"
+    else
+       echo "[${JOB_NAME}] is DOWN"
+    fi
+;;
+
+*)
+   echo FAIL: available commands are: stop, start, restart, lesslog.
+;;
+esac
