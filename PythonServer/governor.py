@@ -382,8 +382,8 @@ if __name__ == "__main__":
     parser.add_argument('--udp_port', help='Port to bind to via UDP')
     parser.add_argument('--commander_host', help='Commander host to connect to, defaults to this host', default="")
     parser.add_argument('--commander_port', help='Commander port to connect to, defaults to 12240', default="12240")
-    parser.add_argument('--governor_name', help='Name of this instance, to uniquely identify it in the database', default="michael_governor")
-    parser.add_argument('--log_level', help="ERROR, WARN, INFO or DEBUG")
+    parser.add_argument('--governor_name', help='Name of this instance, to uniquely identify it in the database')
+    parser.add_argument('--log_level', help="ERROR, WARN, INFO or DEBUG", default="INFO")
     args = parser.parse_args()
 
     logLevel = parseLogLevel(args.log_level)

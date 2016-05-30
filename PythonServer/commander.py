@@ -205,7 +205,7 @@ if __name__ == '__main__':
     parser.add_argument('--governor_logon_port', help='Port to bind to via TCP; governor servers register themselves on this port. Defaults to 12240', default="12240")
     parser.add_argument('--client_logon_port', help='Port to bind to via UDP; clients connect to this port. Defaults to 12241.', default="12241")
     parser.add_argument('--governor_host', help='Host to use with governors in the event that the host provided is local', default="")
-    parser.add_argument('--log_level', help="ERROR, WARN, INFO or DEBUG")
+    parser.add_argument('--log_level', help="ERROR, WARN, INFO or DEBUG", default="INFO")
     args = parser.parse_args()
 
     logLevel = parseLogLevel(args.log_level)
