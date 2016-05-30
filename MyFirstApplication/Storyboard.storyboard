@@ -88,26 +88,29 @@
                                 <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="2ei-fQ-3lJ">
-                                <rect key="frame" x="0.0" y="378" width="600" height="212"/>
+                            <view contentMode="scaleAspectFill" translatesAutoresizingMaskIntoConstraints="NO" id="2ei-fQ-3lJ">
+                                <rect key="frame" x="0.0" y="388" width="600" height="202"/>
                                 <subviews>
-                                    <button opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Ahx-48-JL5">
-                                        <rect key="frame" x="277" y="81" width="46" height="30"/>
-                                        <state key="normal" title="Start!">
-                                            <color key="titleColor" cocoaTouchSystemColor="darkTextColor"/>
-                                            <color key="titleShadowColor" red="0.4941176471" green="1" blue="0.92156862750000001" alpha="1" colorSpace="calibratedRGB"/>
-                                        </state>
+                                    <imageView contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="hologram_start_chat" translatesAutoresizingMaskIntoConstraints="NO" id="W0y-Zd-RaT">
+                                        <rect key="frame" x="-92" y="81" width="785" height="40"/>
+                                        <accessibility key="accessibilityConfiguration">
+                                            <accessibilityTraits key="traits" button="YES" image="YES"/>
+                                        </accessibility>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="40" id="7fs-8U-hAJ"/>
+                                        </constraints>
                                         <connections>
-                                            <action selector="onFinishedButtonClick:" destination="HPd-0g-j2K" eventType="touchUpInside" id="Ep7-L6-AtK"/>
+                                            <outletCollection property="gestureRecognizers" destination="Y9G-Ef-KY1" appends="YES" id="sEm-9W-LSH"/>
                                         </connections>
-                                    </button>
+                                    </imageView>
                                 </subviews>
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                 <color key="tintColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                <gestureRecognizers/>
                                 <constraints>
-                                    <constraint firstItem="Ahx-48-JL5" firstAttribute="centerX" secondItem="2ei-fQ-3lJ" secondAttribute="centerX" id="2H0-fY-8zZ"/>
-                                    <constraint firstItem="Ahx-48-JL5" firstAttribute="centerY" secondItem="2ei-fQ-3lJ" secondAttribute="centerY" id="G7v-hd-am6"/>
-                                    <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="50" id="knz-rg-hJa"/>
+                                    <constraint firstItem="W0y-Zd-RaT" firstAttribute="centerX" secondItem="2ei-fQ-3lJ" secondAttribute="centerX" id="doV-vN-ZUF"/>
+                                    <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="60" id="knz-rg-hJa"/>
+                                    <constraint firstItem="W0y-Zd-RaT" firstAttribute="centerY" secondItem="2ei-fQ-3lJ" secondAttribute="centerY" id="wZH-EK-Kog"/>
                                 </constraints>
                             </view>
                         </subviews>
@@ -124,7 +127,7 @@
                             <constraint firstItem="Tqe-eB-ZAO" firstAttribute="centerX" secondItem="a3M-hh-5zc" secondAttribute="centerX" constant="1" id="Rln-pH-h4p" userLabel="DisplayPicture centre"/>
                             <constraint firstItem="2ei-fQ-3lJ" firstAttribute="centerX" secondItem="a3M-hh-5zc" secondAttribute="centerX" id="T0Z-Bc-VHr"/>
                             <constraint firstItem="b6S-Yq-msf" firstAttribute="top" secondItem="2ei-fQ-3lJ" secondAttribute="bottom" constant="10" id="YbD-kx-jb1"/>
-                            <constraint firstItem="2ei-fQ-3lJ" firstAttribute="top" secondItem="OOB-gH-KCT" secondAttribute="bottom" constant="10" id="ZiO-xL-bP8"/>
+                            <constraint firstItem="2ei-fQ-3lJ" firstAttribute="top" secondItem="OOB-gH-KCT" secondAttribute="bottom" constant="20" id="ZiO-xL-bP8"/>
                             <constraint firstItem="OOB-gH-KCT" firstAttribute="centerX" secondItem="a3M-hh-5zc" secondAttribute="centerX" id="ZnM-6q-7sZ" userLabel="GenderChooser centred"/>
                             <constraint firstItem="Tqe-eB-ZAO" firstAttribute="top" secondItem="lWr-th-MY7" secondAttribute="bottom" constant="5" id="eCf-c9-qe8"/>
                             <constraint firstItem="cSh-QE-Wji" firstAttribute="bottom" secondItem="VbS-z8-oK5" secondAttribute="top" constant="-5" id="hlW-4q-xU6" userLabel="DisplayName bottom minimum"/>
@@ -139,6 +142,7 @@
                     </view>
                     <navigationItem key="navigationItem" id="26w-at-jnP"/>
                     <connections>
+                        <outlet property="_buttonDone" destination="W0y-Zd-RaT" id="Bwa-ig-Wig"/>
                         <outlet property="_desiredGenderChooser" destination="OOB-gH-KCT" id="qsG-k1-h1a"/>
                         <outlet property="displayName" destination="cSh-QE-Wji" id="rRq-yg-MED"/>
                         <outlet property="displayPicture" destination="Tqe-eB-ZAO" id="8Hu-Cb-xqY"/>
@@ -146,6 +150,11 @@
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="cru-Hr-wOD" userLabel="First Responder" sceneMemberID="firstResponder"/>
+                <tapGestureRecognizer id="Y9G-Ef-KY1">
+                    <connections>
+                        <action selector="onFinishedButtonClick:" destination="HPd-0g-j2K" id="9ni-XB-iCE"/>
+                    </connections>
+                </tapGestureRecognizer>
             </objects>
             <point key="canvasLocation" x="1571" y="-484"/>
         </scene>
@@ -389,6 +398,7 @@
     <resources>
         <image name="audio_problem" width="2482" height="2420"/>
         <image name="fast_forward_audio" width="2440" height="2482"/>
+        <image name="hologram_start_chat" width="785" height="194"/>
         <image name="video_problem" width="2482" height="1860"/>
     </resources>
 </document>

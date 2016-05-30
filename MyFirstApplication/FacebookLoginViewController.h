@@ -14,7 +14,5 @@
 @interface FacebookLoginViewController : GAITrackedViewController <FBSDKLoginButtonDelegate, UIAlertViewDelegate>
 @property(weak, nonatomic) IBOutlet FBSDKLoginButton *loginButton;
 @property(strong, nonatomic) IBOutlet UILabel *displayName;
-@property(strong, nonatomic) IBOutlet UIButton *buttonFinished;
-
 @property(strong, nonatomic) IBOutlet FBSDKProfilePictureView *displayPicture;
 @end

@@ -12,6 +12,7 @@
 
 @implementation FacebookLoginViewController {
     IBOutlet UISegmentedControl *_desiredGenderChooser;
+    __weak IBOutlet UIImageView *_buttonDone;
 }
 
 - (IBAction)onFinishedButtonClick:(id)sender {
@@ -45,21 +46,23 @@
     SocialState *state = [SocialState getFacebookInstance];
 
     if ([state isBasicDataLoaded]) {
-        [_displayName setText:[state humanFullName]];
-        [_displayPicture setProfileID:[state facebookId]];
-        [_buttonFinished setEnabled:true];
+        dispatch_sync_main(^{
+            [_displayName setText:[state humanFullName]];
+            [_displayPicture setProfileID:[state facebookId]];
 
-        [_displayName setHidden:false];
-        [_displayPicture setHidden:false];
-        [_buttonFinished setHidden:false];
+            [_displayName setHidden:false];
+            [_displayPicture setHidden:false];
+            [_buttonDone setHidden:false];
+        });
     } else {
-        [_displayName setHidden:true];
-        [_displayPicture setHidden:true];
-        [_buttonFinished setHidden:true];
+        dispatch_sync_main(^{
+            [_displayName setHidden:true];
+            [_displayPicture setHidden:true];
+            [_buttonDone setHidden:true];
 
-        [_displayName setText:@""];
-        [_displayPicture setProfileID:nil];
-        [_buttonFinished setEnabled:false];
+            [_displayName setText:@""];
+            [_displayPicture setProfileID:nil];
+        });
     }
 }
 
