@@ -6,6 +6,13 @@
 
 #import "Timer.h"
 
+@interface DeferredEvent : NSObject
+- (void)increment;
+
+- (void)start;
+
+- (void)pause;
+@end
 
 @interface Analytics : NSObject
 + (Analytics *)getInstance;
@@ -25,4 +32,8 @@
 - (void)pushEventWithCategory:(NSString *)category action:(NSString *)action label:(NSString *)label;
 
 - (void)pushEventWithCategory:(NSString *)category action:(NSString *)action;
+
+- (DeferredEvent *)deferEventWithFrequencySeconds:(NSTimeInterval)frequency category:(NSString *)category action:(NSString *)action label:(NSString *)label;
+
+- (DeferredEvent *)deferEventWithFrequencySeconds:(NSTimeInterval)frequency category:(NSString *)category action:(NSString *)action;
 @end

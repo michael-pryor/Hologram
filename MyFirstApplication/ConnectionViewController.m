@@ -84,6 +84,10 @@
 
     DnsResolver *_dnsResolver;
     NSString *_cachedResolvedDns;
+
+    DeferredEvent *_videoDataLossAnalytics;
+    DeferredEvent *_audioDataLossAnalytics;
+    DeferredEvent *_audioResetAnalytics;
 }
 
 // View initially load; happens once per process.
@@ -135,6 +139,11 @@
     _isScreenInUse = false;
 
     _dnsResolver = [[DnsResolver alloc] initWithNotifier:self dnsHost:@"app.commander.thehologram.org" timeout:5];
+
+    const uint analyticsPublishFreqSeconds = 60;
+    _videoDataLossAnalytics = [[Analytics getInstance] deferEventWithFrequencySeconds:analyticsPublishFreqSeconds category:@"network" action:@"video_loss"];
+    _audioDataLossAnalytics = [[Analytics getInstance] deferEventWithFrequencySeconds:analyticsPublishFreqSeconds category:@"network" action:@"audio_loss"];
+    _audioResetAnalytics = [[Analytics getInstance] deferEventWithFrequencySeconds:analyticsPublishFreqSeconds category:@"network" action:@"audio_reset"];
 }
 
 // Permanently close our session on the server, disconnect and stop media input/output.
@@ -257,6 +266,10 @@
     }
     [_mediaController startVideo];
 
+    [_videoDataLossAnalytics start];
+    [_audioDataLossAnalytics start];
+    [_audioResetAnalytics start];
+
     if (![socialState isDataLoaded]) {
         [socialState registerNotifier:self];
         [self setDisconnectStateWithShortDescription:@"Loading Facebook details" longDescription:@"Waiting for Facebook details to load"];
@@ -270,6 +283,10 @@
 
 - (void)stop:(bool)stopVideo {
     [self terminateCurrentSession:stopVideo];
+
+    [_videoDataLossAnalytics pause];
+    [_audioDataLossAnalytics pause];
+    [_audioResetAnalytics pause];
 }
 
 // Callback for social data (Facebook).
@@ -639,15 +656,15 @@
         if (mediaType == VIDEO) {
             NSLog(@"Data loss for video!");
             [ViewInteractions fadeInOut:_dcVideo completion:nil options:UIViewAnimationOptionBeginFromCurrentState];
-            [[Analytics getInstance] pushEventWithCategory:@"network" action:@"video_loss"];
+            [_videoDataLossAnalytics increment];
         } else if (mediaType == AUDIO) {
             NSLog(@"Data loss for audio!");
             [ViewInteractions fadeInOut:_dcAudio completion:nil options:UIViewAnimationOptionBeginFromCurrentState];
-            [[Analytics getInstance] pushEventWithCategory:@"network" action:@"audio_loss"];
+            [_audioDataLossAnalytics increment];
         } else if (mediaType == AUDIO_QUEUE_RESET) {
             NSLog(@"Extreme audio data loss (audio queue reset)!");
             [ViewInteractions fadeInOut:_dcAudioClear completion:nil options:UIViewAnimationOptionBeginFromCurrentState];
-            [[Analytics getInstance] pushEventWithCategory:@"network" action:@"audio_reset"];
+            [_audioResetAnalytics increment];
         } else {
             NSLog(@"Unknown data loss type");
         }
