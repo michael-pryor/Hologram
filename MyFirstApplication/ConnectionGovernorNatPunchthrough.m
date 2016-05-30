@@ -31,6 +31,10 @@
 
     // If data flow has stopped for some reason, then regress back to routed mode.
     Timer *_natPunchthroughTimeout;
+
+    // While connecting to server and not yet assigned a match, throttle our send rate, so as to
+    // reduce bandwidth required for server.
+    Timer *_packetSendingThrottle;
 }
 - (id)initWithRecvDelegate:(id <NewPacketDelegate>)recvDelegate connectionStatusDelegate:(id <ConnectionStatusDelegateProtocol>)connectionStatusDelegate loginProvider:(id <LoginProvider>)loginProvider punchthroughNotifier:(id <NatPunchthroughNotifier>)notifier {
     if (self) {
@@ -50,6 +54,7 @@
 
         _natPunchthroughTimeout = [[Timer alloc] initWithFrequencySeconds:10 firingInitially:false];
         _natPunchthroughCooldownTimer = [[Timer alloc] initWithFrequencySeconds:0.5 firingInitially:false];
+        _packetSendingThrottle = [[Timer alloc] initWithFrequencySeconds:0.5 firingInitially:true];
     }
     return self;
 }
@@ -92,6 +97,9 @@
     return [_connectionGovernor isConnected];
 }
 
+- (bool)shouldSendUdpToMaster:(uint)punchThroughAddress {
+    return punchThroughAddress != 0 || [_packetSendingThrottle getState];
+}
 
 - (void)connectToTcpHost:(NSString *)tcpHost tcpPort:(ushort)tcpPort udpHost:(NSString *)udpHost udpPort:(ushort)udpPort {
     [self clearNatPunchthrough];
@@ -127,7 +135,9 @@
             [_connectionGovernor sendUdpPacket:_natPunchthroughDiscoveryPacket toPreparedAddress:punchthroughAddress toPreparedPort:punchthroughPort];
         }
 
-        [_connectionGovernor sendUdpPacket:packet];
+        if ([self shouldSendUdpToMaster:punchthroughAddress]) {
+            [_connectionGovernor sendUdpPacket:packet];
+        }
     }
 }
 
