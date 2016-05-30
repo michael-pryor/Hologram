@@ -218,15 +218,20 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
 
     @Throttle(1)
     def _onMalformed(self, fromAddress):
-        logger.debug("Malformed hash received in unknown UDP packet from [%s], discarding" % fromAddress)
+        logger.debug("Malformed UDP data received from unknown client [%s], discarding" % unicode(fromAddress))
 
     def onUnknownData(self, data, remoteAddress):
         assert isinstance(data, ByteBuffer)
 
+        op = data.getUnsignedInteger8()
+        if op != Client.UdpOperationCodes.OP_UDP_HASH:
+            self._onMalformed(remoteAddress)
+            return
+
         theHash = data.getString()
         if theHash is None or len(theHash) == 0:
             # This can happen because of UDP ordering or client sending video frames before fully connected.
-            self._onMalformed(unicode(remoteAddress))
+            self._onMalformed(remoteAddress)
             return
 
         registeredClient = self.udp_connection_linker.registerCompletion(theHash, ClientUdp(remoteAddress, self.transport.write))
@@ -257,6 +262,28 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
             # for a client' so that even with no data there can still be a match.
             self.house.handleUdpPacket(registeredClient)
             logger.info("Client successfully connected, sent success ack and registered with house")
+        else:
+            # This case is most commonly seen if user switches from 3G to wifi, UDP route changes to go via wifi but
+            # TCP route stays unchanged, so we need to update on the fly.
+            client = self.clients_by_udp_hash.get(theHash)
+            if client is not None and client.connection_status == Client.ConnectionStatus.CONNECTED and client.udp is not None:
+                self._lockClm()
+                try:
+                    newUdp = ClientUdp(remoteAddress, self.transport.write)
+                    oldUdp = client.udp
+                    logger.debug("Client UDP routing has changed from [%s] to [%s]" % (oldUdp, newUdp))
+
+                    try:
+                        del self.clients_by_udp_address[oldUdp.remote_address]
+                    except KeyError:
+                        pass
+
+                    self.clients_by_udp_address[remoteAddress] = client
+                    client.udp = newUdp
+
+                    self.house.readviseNatPunchthrough(client)
+                finally:
+                    self._unlockClm()
 
 
 class CommanderConnection(ReconnectingClientFactory):

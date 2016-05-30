@@ -103,7 +103,16 @@ class House:
 
         clientA.tcp.sendByteBuffer(bufferClientA)
         clientB.tcp.sendByteBuffer(bufferClientB)
-        logger.info("NAT punchthrough introduction made between client [%s] and [%s], distance between them [%dkm]" % (clientA, clientB, distance))
+        logger.info("NAT punchthrough introduction made between client [%s] and [%s], distance between them [%d km]" % (clientA, clientB, distance))
+
+    def readviseNatPunchthrough(self, client):
+        self.house_lock.acquire()
+        try:
+            clientB = self.room_participant.get(client)
+            if clientB is not None:
+                self.adviseNatPunchthrough(client, clientB)
+        finally:
+            self.house_lock.release()
 
     def adviseAbortNatPunchthrough(self, client):
         assert isinstance(client, Client)

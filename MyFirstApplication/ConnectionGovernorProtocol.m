@@ -10,8 +10,7 @@
 #import "EventTracker.h"
 #import "ActivityMonitor.h"
 #import "Timer.h"
-
-uint NUM_SOCKETS = 1;
+#import "NetworkOperations.h"
 
 // Session hash has timed out, you need a fresh session.
 #define REJECT_HASH_TIMEOUT 1
@@ -51,7 +50,6 @@ uint NUM_SOCKETS = 1;
     Boolean _isNewSession;
 
     Boolean _badVersionNotified;
-
 
     // Must be kept in sync with server.
 #define OP_REJECT_LOGON 1
@@ -114,7 +112,12 @@ uint NUM_SOCKETS = 1;
         [pingTimer blockUntilNextTick];
         if (_connectionStatus == P_CONNECTED) {
             [_tcpOutputSession onNewPacket:pingBuffer fromProtocol:TCP];
-            //NSLog(@"Sending ping to governor server");
+
+            // Send UDP route detection packet, in case our external IP or port changes, we want the server to know
+            // and to fix itself.
+            if (_udpHashPacket != nil) {
+                [_udpConnection sendBuffer:_udpHashPacket];
+            }
         }
     }
     NSLog(@"Ping thread exiting");
@@ -313,6 +316,7 @@ uint NUM_SOCKETS = 1;
                     if (_isNewSession) {
                         _udpHash = [packet getString];
                         _udpHashPacket = [[ByteBuffer alloc] init];
+                        [_udpHashPacket addUnsignedInteger8:UDP_HASH];
                         [_udpHashPacket addString:_udpHash];
                     }
 

@@ -13,17 +13,14 @@
 #define AUDIO_ID 1
 #define VIDEO_ID 2
 
-// Try to punchthrough NAT, we send this periodically while in routing mode (through server) and also
-// while in punch through mode.
-//
-// While routing, we send periocially peer to peer to try and setup the connection.
-// While punched through, we send periodically to master server.
-
-// We need to keep the master server connection as well, so discovery is sent down this channel
-// while we are punched through. If we don't do this, particularly with 3G, we risk the route changing and
-// as a result our external IP address changing, if it changes then the server won't know who we are,
-// so we really need to reconnect (though there is no logic to trigger a reconnect).
+// Try to punch through NAT, we send a ping periodically while in routing mode (through server).
 #define NAT_PUNCHTHROUGH_DISCOVERY 3
+
+// When connecting to the master server, as part of handshaking, we send a UDP packet containing our assigned hash.
+// Also, while connected, regardless of routing mode, we will send periodically a ping to the master server, containing
+// our assigned hash. This is in case our remote IP or port changes, we want the server to update, and to let
+// the person we're talking to know as well.
+#define UDP_HASH 4
 
 // ****** TCP ******
 // The master server has sent a packet containing an address to connect to,

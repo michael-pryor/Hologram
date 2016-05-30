@@ -10,18 +10,27 @@
 #import "NetworkOperations.h"
 #import "Timer.h"
 #import "NetworkUtility.h"
+#import "Signal.h"
 
 @implementation ConnectionGovernorNatPunchthrough {
     ConnectionGovernorProtocol *_connectionGovernor;
     id <NewPacketDelegate> _recvDelegate;
     uint _punchthroughAddress;
     uint _punchthroughPort;
-    Boolean _routeThroughPunchthroughAddress;
+    Signal *_routeThroughPunchthroughAddress;
     Timer *_natPunchthroughDiscoveryTimer;
-    Timer *_masterKeepAliveTimer;
+
     ByteBuffer *_natPunchthroughDiscoveryPacket;
     id <NatPunchthroughNotifier> _notifier;
     id <ConnectionStatusDelegateProtocol> _connectionStatusDelegate;
+
+    // If we switch from a network capable of punchthrough to not capable, but lingering packets are in our queues,
+    // then we do not want to switch over to punchthrough, but would as a result of those packets. So introduce
+    // a small wait to prevent this.
+    Timer *_natPunchthroughCooldownTimer;
+
+    // If data flow has stopped for some reason, then regress back to routed mode.
+    Timer *_natPunchthroughTimeout;
 }
 - (id)initWithRecvDelegate:(id <NewPacketDelegate>)recvDelegate connectionStatusDelegate:(id <ConnectionStatusDelegateProtocol>)connectionStatusDelegate loginProvider:(id <LoginProvider>)loginProvider punchthroughNotifier:(id <NatPunchthroughNotifier>)notifier {
     if (self) {
@@ -33,10 +42,14 @@
 
         [self clearNatPunchthrough];
         _natPunchthroughDiscoveryTimer = [[Timer alloc] initWithFrequencySeconds:0.5 firingInitially:true];
-        _masterKeepAliveTimer = [[Timer alloc] initWithFrequencySeconds:2 firingInitially:true];
 
         _natPunchthroughDiscoveryPacket = [[ByteBuffer alloc] initWithSize:sizeof(uint8_t)];
         [_natPunchthroughDiscoveryPacket addUnsignedInteger8:NAT_PUNCHTHROUGH_DISCOVERY];
+
+        _routeThroughPunchthroughAddress = [[Signal alloc] initWithFlag:false];
+
+        _natPunchthroughTimeout = [[Timer alloc] initWithFrequencySeconds:10 firingInitially:false];
+        _natPunchthroughCooldownTimer = [[Timer alloc] initWithFrequencySeconds:0.5 firingInitially:false];
     }
     return self;
 }
@@ -90,17 +103,28 @@
 }
 
 - (void)sendUdpPacket:(ByteBuffer *)packet {
-    if (_routeThroughPunchthroughAddress) {
-        [_connectionGovernor sendUdpPacket:packet toPreparedAddress:_punchthroughAddress toPreparedPort:_punchthroughPort];
+    uint punchthroughAddress;
+    uint punchthroughPort;
+    bool routeThroughPunchthroughAddress;
 
-        if([_masterKeepAliveTimer getState]) {
-            NSLog(@"Sending keep alive UDP packet to master");
-            [_connectionGovernor sendUdpPacket:_natPunchthroughDiscoveryPacket];
+    @synchronized(_routeThroughPunchthroughAddress) {
+        punchthroughAddress = _punchthroughAddress;
+        punchthroughPort = _punchthroughPort;
+        routeThroughPunchthroughAddress = [_routeThroughPunchthroughAddress isSignaled];
+    }
+
+    if (routeThroughPunchthroughAddress) {
+        [_connectionGovernor sendUdpPacket:packet toPreparedAddress:punchthroughAddress toPreparedPort:punchthroughPort];
+
+        // Revert to routing mode, something has gone wrong.
+        if ([_natPunchthroughTimeout getState]) {
+            NSLog(@"Reverting to routing mode, no data through NAT punchthrough for %.1f seconds", [_natPunchthroughTimeout getSecondsSinceLastTick]);
+            [self clearNatPunchthrough:false];
         }
     } else {
         if ([self isNatPunchthroughAddressLoaded] && [_natPunchthroughDiscoveryTimer getState]) {
             NSLog(@"Sending discovery packet peer to peer");
-            [_connectionGovernor sendUdpPacket:_natPunchthroughDiscoveryPacket toPreparedAddress:_punchthroughAddress toPreparedPort:_punchthroughPort];
+            [_connectionGovernor sendUdpPacket:_natPunchthroughDiscoveryPacket toPreparedAddress:punchthroughAddress toPreparedPort:punchthroughPort];
         }
 
         [_connectionGovernor sendUdpPacket:packet];
@@ -116,23 +140,34 @@
 }
 
 - (void)clearNatPunchthrough {
-    if (_punchthroughAddress != 0) {
-        _punchthroughAddress = 0;
-        _punchthroughPort = 0;
+    [self clearNatPunchthrough:true];
+}
+
+- (void)clearNatPunchthrough:(bool)clearAddress {
+    @synchronized (_routeThroughPunchthroughAddress) {
+        if (clearAddress) {
+            if (!_punchthroughAddress != 0) {
+                return;
+            }
+            _punchthroughAddress = 0;
+            _punchthroughPort = 0;
+        }
 
         // Important to clear addresses before clearing this flag, to avoid
         // picking up late packets comparing against old address and resetting the flag prematurely.
-        _routeThroughPunchthroughAddress = false;
-
-        [_notifier onNatPunchthrough:self stateChange:ROUTED];
+        [_routeThroughPunchthroughAddress clear];
     }
+
+    [_notifier onNatPunchthrough:self stateChange:ROUTED];
 }
 
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
     if (protocol == UDP) {
         unsigned int prefix = [packet getUnsignedIntegerAtPosition8:0];
         if (prefix == NAT_PUNCHTHROUGH_DISCOVERY) {
-            // See documentation on NAT_PUNCHTHROUGH_DISCOVERY for why this can happen.
+            NSLog(@"Ignoring NAT_PUNCHTHROUGH_DISCOVERY from master server");
+        } else if (prefix == UDP_HASH) {
+            NSLog(@"Ignoring UDP_HASH update form master server");
         } else {
             [_recvDelegate onNewPacket:packet fromProtocol:protocol];
         }
@@ -141,21 +176,23 @@
         if (prefix == NAT_PUNCHTHROUGH_ADDRESS) {
             // If we are reconnecting, we may already have an old address.
             // We need to switch back to routing temporarily in case this address is now invalid.
-            [self clearNatPunchthrough];
+            @synchronized(_routeThroughPunchthroughAddress) {
+                [self clearNatPunchthrough];
 
-            // Load in the new address.
-            _punchthroughAddress = [packet getUnsignedInteger];
-            _punchthroughPort = [packet getUnsignedInteger];
-            NSString *humanAddress = [NetworkUtility convertPreparedAddress:_punchthroughAddress port:_punchthroughPort];
-            NSLog(@"Loaded punch through address: %d / %d - this is: %@", _punchthroughAddress, _punchthroughPort, humanAddress);
+                // Load in the new address.
+                _punchthroughAddress = [packet getUnsignedInteger];
+                _punchthroughPort = [packet getUnsignedInteger];
+                [_natPunchthroughCooldownTimer reset];
+                NSString *humanAddress = [NetworkUtility convertPreparedAddress:_punchthroughAddress port:_punchthroughPort];
+                NSLog(@"Loaded punch through address: %d / %d - this is: %@", _punchthroughAddress, _punchthroughPort, humanAddress);
+            }
 
             NSString *userName = [packet getString];
             uint userAge = [packet getUnsignedInteger];
-
             uint distanceFromUser = [packet getUnsignedInteger];
 
             [_notifier onNatPunchthrough:self stateChange:ADDRESS_RECEIVED];
-            [_notifier handleUserName:userName age:userAge distance:(uint)distanceFromUser];
+            [_notifier handleUserName:userName age:userAge distance:(uint) distanceFromUser];
         } else if (prefix == NAT_PUNCHTHROUGH_DISCONNECT) {
             NSLog(@"Request to stop using NAT punchthrough received");
             [self clearNatPunchthrough];
@@ -170,24 +207,41 @@
 }
 
 - (Boolean)isNatPunchthroughAddressLoaded {
-    return _punchthroughAddress != 0 && _punchthroughPort != 0;
+    @synchronized(_routeThroughPunchthroughAddress) {
+        return _punchthroughAddress != 0 && _punchthroughPort != 0;
+    }
 }
 
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol fromAddress:(uint)address andPort:(ushort)port {
-    if ([self isNatPunchthroughAddressLoaded] && address == _punchthroughAddress && port == _punchthroughPort) {
-        if (!_routeThroughPunchthroughAddress) {
-            [_notifier onNatPunchthrough:self stateChange:PUNCHED_THROUGH];
-            _routeThroughPunchthroughAddress = true;
+    bool doProcessing = false;
+    bool notifyPunchedThrough = false;
+    @synchronized (_routeThroughPunchthroughAddress) {
+        if ([self isNatPunchthroughAddressLoaded] && address == _punchthroughAddress && port == _punchthroughPort) {
+            if ([_natPunchthroughCooldownTimer getState] && [_routeThroughPunchthroughAddress signalAll]) {
+                notifyPunchedThrough = true;
+                [_natPunchthroughTimeout reset];
+            }
+            doProcessing = true;
+        } else {
+            NSLog(@"Dropping unknown packet from address: %d / %d", address, port);
         }
+    }
+
+    if (notifyPunchedThrough) {
+        [_notifier onNatPunchthrough:self stateChange:PUNCHED_THROUGH];
+    }
+
+    if (doProcessing) {
         unsigned int prefix = [packet getUnsignedIntegerAtPosition8:0];
         if (prefix == NAT_PUNCHTHROUGH_DISCOVERY) {
             NSString *addressConverted = [NetworkUtility convertPreparedAddress:address port:port];
             NSLog(@"Discovery packet received from: %@", addressConverted);
+        } else if (prefix == UDP_HASH) {
+            NSLog(@"Ignoring UDP hash received direct from client");
         } else {
+            [_natPunchthroughTimeout reset];
             [_recvDelegate onNewPacket:packet fromProtocol:protocol];
         }
-    } else {
-        NSLog(@"Dropping unknown packet from address: %d / %d", address, port);
     }
 }
 @end

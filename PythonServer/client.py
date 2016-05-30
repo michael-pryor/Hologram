@@ -28,6 +28,7 @@ class Client(object):
         OP_REJECT_LOGON = 1
         OP_ACCEPT_LOGON = 2
         OP_ACCEPT_UDP = 3
+        OP_UDP_HASH = 4
 
     class TcpOperationCodes:
         OP_NAT_PUNCHTHROUGH_ADDRESS = 2
