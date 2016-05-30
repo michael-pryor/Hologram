@@ -49,7 +49,7 @@
         previousId = _lastId;
         _lastId = packetSequenceId;
     }
-    uint diff = packetSequenceId - previousId;
+    int diff = ((int)packetSequenceId) - ((int)previousId);
 
     // Handle overflow gracefully.
     if (diff < 0) {
