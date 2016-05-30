@@ -43,7 +43,6 @@
 		51260FD41B47F60F001DE2B3 /* ConnectionCommander.m in Sources */ = {isa = PBXBuildFile; fileRef = 51260FD31B47F60F001DE2B3 /* ConnectionCommander.m */; };
 		516526631C54C85F00AA3816 /* BatchSizeGeneratorTest.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61829DC4A7512B689E307 /* BatchSizeGeneratorTest.m */; };
 		519573041AEBEB26000247E1 /* EventTracker.m in Sources */ = {isa = PBXBuildFile; fileRef = 519573031AEBEB26000247E1 /* EventTracker.m */; };
-		519FFBFA1C6FB466002717F0 /* Hologram-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 519FFBF91C6FB466002717F0 /* Hologram-Info.plist */; };
 		519FFBFC1C6FC9A3002717F0 /* CoreImage.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 519FFBFB1C6FC9A3002717F0 /* CoreImage.framework */; };
 		51BE77721C53EEF100492336 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 51BE77711C53EEF100492336 /* XCTest.framework */; };
 		51BE77871C5401C400492336 /* ByteBuffer.h in Sources */ = {isa = PBXBuildFile; fileRef = 51D584BF19AB7A9400BB6CE6 /* ByteBuffer.h */; };
@@ -850,7 +849,6 @@
 				51E5BE341936A982003E45C3 /* Images.xcassets in Resources */,
 				51E219DC193B2D190066D915 /* Storyboard.storyboard in Resources */,
 				511EB6611B4B01C7000E287F /* FacebookSDKStrings.bundle in Resources */,
-				519FFBFA1C6FB466002717F0 /* Hologram-Info.plist in Resources */,
 				511669F61CF3A8D100E561DF /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1180,7 +1178,7 @@
 				);
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_LDFLAGS = "$(inherited)";
-				PRODUCT_BUNDLE_IDENTIFIER = "mike.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_BUNDLE_IDENTIFIER = mike.Spawn;
 				PRODUCT_NAME = Hologram;
 				PROVISIONING_PROFILE = "";
 				STRIP_STYLE = debugging;
@@ -1229,7 +1227,7 @@
 					"$(PROJECT_DIR)/FFmpeg-iOS-build-script/FFmpeg-iOS/lib",
 				);
 				OTHER_LDFLAGS = "$(inherited)";
-				PRODUCT_BUNDLE_IDENTIFIER = "mike.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_BUNDLE_IDENTIFIER = mike.Spawn;
 				PRODUCT_NAME = Hologram;
 				PROVISIONING_PROFILE = "";
 				STRIP_STYLE = all;

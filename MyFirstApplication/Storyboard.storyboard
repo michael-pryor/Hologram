@@ -91,7 +91,7 @@
                             <view contentMode="scaleAspectFill" translatesAutoresizingMaskIntoConstraints="NO" id="2ei-fQ-3lJ">
                                 <rect key="frame" x="0.0" y="388" width="600" height="202"/>
                                 <subviews>
-                                    <imageView contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="hologram_start_chat" translatesAutoresizingMaskIntoConstraints="NO" id="W0y-Zd-RaT">
+                                    <imageView contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" image="hologram_start_chat" translatesAutoresizingMaskIntoConstraints="NO" id="W0y-Zd-RaT">
                                         <rect key="frame" x="-92" y="81" width="785" height="40"/>
                                         <accessibility key="accessibilityConfiguration">
                                             <accessibilityTraits key="traits" button="YES" image="YES"/>
