@@ -217,8 +217,8 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
             knownClient.handleUdpPacket(data)
 
     @Throttle(1)
-    def _onMalformed(self):
-        logger.debug("Malformed hash received in unknown UDP packet, discarding")
+    def _onMalformed(self, fromAddress):
+        logger.debug("Malformed hash received in unknown UDP packet from [%s], discarding" % fromAddress)
 
     def onUnknownData(self, data, remoteAddress):
         assert isinstance(data, ByteBuffer)
@@ -226,37 +226,37 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
         theHash = data.getString()
         if theHash is None or len(theHash) == 0:
             # This can happen because of UDP ordering or client sending video frames before fully connected.
-            self._onMalformed()
+            self._onMalformed(unicode(remoteAddress))
             return
 
         registeredClient = self.udp_connection_linker.registerCompletion(theHash, ClientUdp(remoteAddress, self.transport.write))
 
         if registeredClient:
-            if registeredClient.connection_status == Client.ConnectionStatus.CONNECTED:
-                self._lockClm()
-                try:
-                    existingClient = self.clients_by_udp_hash.get(theHash)
-                    if existingClient is not None:
-                        logger.info("Cleaning up existing client before processing reconnect: %s" % existingClient)
-                        self.clientDisconnected(existingClient)
+            self._lockClm()
+            try:
+                existingClient = self.clients_by_udp_hash.get(theHash)
+                if existingClient is not None:
+                    logger.info("Cleaning up existing client before processing reconnect: %s" % existingClient)
+                    registeredClient.consumeMetaState(existingClient)
+                    self.clientDisconnected(existingClient)
 
-                    self.cancelCleanupClientUdpHash(registeredClient)
-                    self.clients_by_udp_hash[theHash] = registeredClient
-                    self.clients_by_udp_address[remoteAddress] = registeredClient
-                finally:
-                    self._unlockClm()
+                self.cancelCleanupClientUdpHash(registeredClient)
+                self.clients_by_udp_hash[theHash] = registeredClient
+                self.clients_by_udp_address[remoteAddress] = registeredClient
+            finally:
+                self._unlockClm()
 
-                successPing = ByteBuffer()
-                successPing.addUnsignedInteger8(Client.UdpOperationCodes.OP_ACCEPT_UDP)
+            successPing = ByteBuffer()
+            successPing.addUnsignedInteger8(Client.UdpOperationCodes.OP_ACCEPT_UDP)
 
-                logger.info("Sending fully connected ACK")
-                registeredClient.tcp.sendByteBuffer(successPing)
+            logger.info("Sending fully connected ACK")
+            registeredClient.tcp.sendByteBuffer(successPing)
 
-                # Client will not start sending UDP data until it has received a NAT punch through notification
-                # i.e. has been matched with a client. So we need to make sure the client is listed as 'waiting
-                # for a client' so that even with no data there can still be a match.
-                self.house.handleUdpPacket(registeredClient)
-                logger.info("Client successfully connected, sent success ack and registered with house")
+            # Client will not start sending UDP data until it has received a NAT punch through notification
+            # i.e. has been matched with a client. So we need to make sure the client is listed as 'waiting
+            # for a client' so that even with no data there can still be a match.
+            self.house.handleUdpPacket(registeredClient)
+            logger.info("Client successfully connected, sent success ack and registered with house")
 
 
 class CommanderConnection(ReconnectingClientFactory):

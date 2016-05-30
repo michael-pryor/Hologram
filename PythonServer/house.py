@@ -163,7 +163,7 @@ class House:
                     clientB.tcp.sendByteBuffer(notification)
 
                 self.attemptTakeRoom(clientB)
-                logger.info("Permanent closure of session between client [%s] and [%s] due to disconnect of client [%s]" % (client, clientB, client))
+                logger.info("Permanent closure of session between client [%s] and [%s] due to client [%s] leaving the room" % (client, clientB, client))
 
                 # Return the other client.
                 return clientB
@@ -187,14 +187,14 @@ class House:
 
         self.house_lock.acquire()
         try:
+            client.onWaitingForMatch()
+
             # Each client runs one query initially and then repeats
             # every two seconds.
             doQuery = client.house_match_timer is None or getEpoch() - client.house_match_timer > 2
 
             if doQuery:
                 client.house_match_timer = getEpoch()
-
-                client.onWaitingForMatch()
 
                 # This loop allows us to clean up the database quickly if there are alot of inconsistencies.
                 while True:
@@ -221,7 +221,8 @@ class House:
 
                 # Avoid recently skipped clients, unless we've timed out.
                 if clientMatch is not None and client.shouldMatch(clientMatch):
-                    self.takeRoom(client, clientMatch)
+                    if not self.takeRoom(client, clientMatch):
+                        return None
                     return clientMatch
                 else:
                     return None

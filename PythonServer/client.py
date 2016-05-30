@@ -123,7 +123,7 @@ class Client(object):
         self.match_skip_history = Client.HistoryTracking()
 
         # Track time of last successful match, so we know if we've been waiting a while to ignore the skip list.
-        self.started_waiting_for_match_timer = getEpoch()
+        self.started_waiting_for_match_timer = None
 
         logger.info("New client connected, awaiting logon message")
 
@@ -150,17 +150,12 @@ class Client(object):
 
         logger.info("UDP socket has connected: [%s]" % unicode(clientUdp))
         self.udp = clientUdp;
+        self.connection_status = Client.ConnectionStatus.CONNECTED
 
-        if self.udp is not None:
-            self.connection_status = Client.ConnectionStatus.CONNECTED
+        # don't need this anymore.
+        self.udp_connection_linker = None
 
-            # don't need this anymore.
-            self.udp_connection_linker = None
-
-            logger.info("Client UDP stream activated, client is fully connected")
-            return True
-        else:
-            return False
+        logger.info("Client UDP stream activated, client is fully connected")
 
     # Closes the TCP socket, triggering indirectly onDisconnect to be called.
     def closeConnection(self):
@@ -284,6 +279,12 @@ class Client(object):
         logger.debug("Client [%s] has been waiting %.2f seconds for a match; is prior match [%s], match successful: [%s]" % (self, secondsWaitingForMatch, isPriorMatch, result))
 
         return result
+
+    # After reconnecting, a client will have a fresh client object, which may be missing some
+    # state information e.g. history of recent matches, we copy this over before disposing of the old object.
+    def consumeMetaState(self, client):
+        assert isinstance(client, Client)
+        self.match_skip_history = client.match_skip_history
 
     # Must be protected by house lock.
     def onWaitingForMatch(self):

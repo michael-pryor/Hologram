@@ -68,6 +68,8 @@ class UdpConnectionLinker(object):
             success = self.registerInterest(newHash, waitingClient)
             if success or provided:
                 return newHash
+            else:
+                newHash = None
 
     def registerPrematureCompletion(self, udpHash, waitingClient):
         try:
@@ -82,8 +84,8 @@ class UdpConnectionLinker(object):
             hashObj = self.waiting_hashes[UdpConnectionLink(udpHash, None)]
             assert isinstance(hashObj, UdpConnectionLink)
 
-            if hashObj.waiting_client.setUdp(clientUdp):
-                del self.waiting_hashes[hashObj]
+            hashObj.waiting_client.setUdp(clientUdp)
+            del self.waiting_hashes[hashObj]
 
             logger.info("UDP connection with hash [%s] and details [%s] has been established" % (udpHash, unicode(clientUdp)))
             return hashObj.waiting_client

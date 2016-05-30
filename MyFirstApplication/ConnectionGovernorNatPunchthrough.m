@@ -18,6 +18,7 @@
     uint _punchthroughPort;
     Boolean _routeThroughPunchthroughAddress;
     Timer *_natPunchthroughDiscoveryTimer;
+    Timer *_masterKeepAliveTimer;
     ByteBuffer *_natPunchthroughDiscoveryPacket;
     id <NatPunchthroughNotifier> _notifier;
     id <ConnectionStatusDelegateProtocol> _connectionStatusDelegate;
@@ -32,6 +33,7 @@
 
         [self clearNatPunchthrough];
         _natPunchthroughDiscoveryTimer = [[Timer alloc] initWithFrequencySeconds:0.5 firingInitially:true];
+        _masterKeepAliveTimer = [[Timer alloc] initWithFrequencySeconds:2 firingInitially:true];
 
         _natPunchthroughDiscoveryPacket = [[ByteBuffer alloc] initWithSize:sizeof(uint8_t)];
         [_natPunchthroughDiscoveryPacket addUnsignedInteger8:NAT_PUNCHTHROUGH_DISCOVERY];
@@ -90,9 +92,14 @@
 - (void)sendUdpPacket:(ByteBuffer *)packet {
     if (_routeThroughPunchthroughAddress) {
         [_connectionGovernor sendUdpPacket:packet toPreparedAddress:_punchthroughAddress toPreparedPort:_punchthroughPort];
+
+        if([_masterKeepAliveTimer getState]) {
+            NSLog(@"Sending keep alive UDP packet to master");
+            [_connectionGovernor sendUdpPacket:_natPunchthroughDiscoveryPacket];
+        }
     } else {
         if ([self isNatPunchthroughAddressLoaded] && [_natPunchthroughDiscoveryTimer getState]) {
-            NSLog(@"Sending discovery packet");
+            NSLog(@"Sending discovery packet peer to peer");
             [_connectionGovernor sendUdpPacket:_natPunchthroughDiscoveryPacket toPreparedAddress:_punchthroughAddress toPreparedPort:_punchthroughPort];
         }
 
@@ -125,8 +132,7 @@
     if (protocol == UDP) {
         unsigned int prefix = [packet getUnsignedIntegerAtPosition8:0];
         if (prefix == NAT_PUNCHTHROUGH_DISCOVERY) {
-            // As a precaution.
-            NSLog(@"Discovery packet received on master connection, dropping packet");
+            // See documentation on NAT_PUNCHTHROUGH_DISCOVERY for why this can happen.
         } else {
             [_recvDelegate onNewPacket:packet fromProtocol:protocol];
         }

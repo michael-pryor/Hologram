@@ -230,16 +230,23 @@ uint NUM_SOCKETS = 1;
 }
 
 - (void)sendUdpPacket:(ByteBuffer *)packet {
+    if (_connectionStatus != P_CONNECTED) {
+        return;
+    }
+
     [_udpConnection onNewPacket:packet fromProtocol:UDP];
 }
 
 - (void)sendUdpPacket:(ByteBuffer *)packet toPreparedAddress:(uint)address toPreparedPort:(ushort)port {
+    if (_connectionStatus != P_CONNECTED) {
+        return;
+    }
+
     [_udpConnection sendBuffer:packet toPreparedAddress:address toPreparedPort:port];
 }
 
 - (void)sendUdpPacket:(ByteBuffer *)packet toAddress:(NSString *)address toPort:(ushort)port {
     if (_connectionStatus != P_CONNECTED) {
-        NSLog(@"Skipping UDP packet");
         return;
     }
     [_udpConnection sendBuffer:packet toAddress:address toPort:port];
