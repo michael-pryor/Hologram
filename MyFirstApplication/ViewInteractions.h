@@ -14,5 +14,5 @@
 
 + (void)fadeOut:(UIView *)label completion:(void (^)(BOOL))block duration:(float)duration;
 
-
++ (void)fadeInOut:(UIView *)entity completion:(void (^)(BOOL))block options:(UIViewAnimationOptions)options fadeInDuration:(float)durationIn fadeOutDuration:(float)durationOut fadeOutDelay:(float)delay;
 @end

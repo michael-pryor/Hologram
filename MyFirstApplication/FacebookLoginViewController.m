@@ -12,8 +12,6 @@
 
 @implementation FacebookLoginViewController {
     IBOutlet UISegmentedControl *_desiredGenderChooser;
-    __weak IBOutlet UILabel *_facebookAskLabel;
-
 }
 
 - (IBAction)onFinishedButtonClick:(id)sender {
@@ -26,9 +24,6 @@
     self.screenName = @"FacebookLogin";
 
     _desiredGenderChooser.selectedSegmentIndex = [[SocialState getFacebookInstance] interestedInSegmentIndex];
-
-    [_facebookAskLabel setText:@"Please allow this application to access your name and age (date of birth) from your Facebook account. This application uses only this information, and absolutely nothing else."];
-    [_facebookAskLabel setHidden:true];
 
     [FBSDKProfile enableUpdatesOnAccessTokenChange:true];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onProfileUpdated:) name:FBSDKProfileDidChangeNotification object:nil];
@@ -53,7 +48,6 @@
         [_displayName setText:[state humanFullName]];
         [_displayPicture setProfileID:[state facebookId]];
         [_buttonFinished setEnabled:true];
-        [_facebookAskLabel setHidden:true];
 
         [_displayName setHidden:false];
         [_displayPicture setHidden:false];
@@ -62,7 +56,6 @@
         [_displayName setHidden:true];
         [_displayPicture setHidden:true];
         [_buttonFinished setHidden:true];
-        [_facebookAskLabel setHidden:false];
 
         [_displayName setText:@""];
         [_displayPicture setProfileID:nil];
@@ -72,8 +65,8 @@
 
 - (void)_switchToChatView {
     if (![[NSUserDefaults standardUserDefaults] boolForKey:@"permissionsExplanationShown"]) {
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"This app requests your permission" message:
-                        @"This application connects you via audio and video to other people. This app needs permission to access your  microphone and camera to facilitate this. This app also needs permission to access your current location; this is because we try to match you with users close by.\n\nNo audio, video or location data is stored on our servers or on your device. Matches that you connect with will not receive your location data in any form."
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Hologram Permissions" message:
+                        @"Please grant Hologram access to your device's camera and microphone so that you can start video chatting.\n\nPlease also allow Hologram to access your current location; we use this to try and match you with users in your area."
 
                                                        delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"I am happy with this!", nil];
         dispatch_sync_main(^{

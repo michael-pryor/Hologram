@@ -71,7 +71,7 @@
 
 - (void)tryAccessGps:(void (^)(void))successAction {
     if (![CLLocationManager locationServicesEnabled]) {
-        [self showFailureDialogBoxWithServiceName:@"location services" explanation:@"We attempt to match you with users who are in the same geographical region as you; for this we need access to your device's location information. Location services are currently disabled globally (for all applications) on the device"];
+        [self showFailureDialogBoxWithServiceName:@"location services" explanation:@"We attempt to match you with users who are in the same geographical area as you; for this we need access to your device's location information. Location services are currently disabled globally (for all applications) on the device"];
         return;
     }
 
@@ -87,7 +87,7 @@
         return;
     } else {
         // Failed to get access.
-        [self showFailureDialogBoxWithServiceName:@"location services" explanation:@"We attempt to match you with users who are in the same geographical region as you; for this we need access to your device's location information"];
+        [self showFailureDialogBoxWithServiceName:@"location services" explanation:@"We attempt to match you with users who are in the same geographical area as you; for this we need access to your device's location information"];
     }
 }
 

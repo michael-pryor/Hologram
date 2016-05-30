@@ -691,6 +691,9 @@
     NSLog(@"Time since last tutorial prepare is: %.0f seconds, showing tutorial", difference);
 
     // Once per application run.
+    float fadeInDuration = 1.0f;
+    float fadeOutDuration = 2.0f;
+    float delay=3.0f;
     [ViewInteractions fadeInOut:_swipeTutorialSkip completion:^void(BOOL finishedSkip) {
         if (!finishedSkip) {
             return;
@@ -703,8 +706,8 @@
 
             // Update only after tutorial has completed successfully.
             [storage setDouble:currentEpochSeconds forKey:tutorialLastPreparedEpochSecondsKey];
-        }                   options:UIViewAnimationOptionOverrideInheritedCurve | UIViewAnimationOptionOverrideInheritedDuration];
-    }                   options:UIViewAnimationOptionOverrideInheritedCurve | UIViewAnimationOptionOverrideInheritedDuration];
+        }                   options:UIViewAnimationOptionOverrideInheritedCurve | UIViewAnimationOptionOverrideInheritedDuration fadeInDuration:fadeInDuration fadeOutDuration:fadeOutDuration fadeOutDelay:delay];
+    }                   options:UIViewAnimationOptionOverrideInheritedCurve | UIViewAnimationOptionOverrideInheritedDuration fadeInDuration:fadeInDuration fadeOutDuration:fadeOutDuration fadeOutDelay:delay];
 }
 
 - (void)preprepareRuntimeView {
