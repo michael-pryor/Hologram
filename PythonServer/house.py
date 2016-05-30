@@ -63,7 +63,7 @@ class House:
 
         self.adviseNatPunchthrough(clientA, clientB)
 
-        logger.info("New room set up between client [%s] and [%s]" % (clientA, clientB))
+        logger.debug("New room set up between client [%s] and [%s]" % (clientA, clientB))
         return True
 
     def getDistance(self, clientA, clientB):
@@ -103,7 +103,7 @@ class House:
 
         clientA.tcp.sendByteBuffer(bufferClientA)
         clientB.tcp.sendByteBuffer(bufferClientB)
-        logger.info("NAT punchthrough introduction made between client [%s] and [%s], distance between them [%d km]" % (clientA, clientB, distance))
+        logger.debug("NAT punchthrough introduction made between client [%s] and [%s], distance between them [%d km]" % (clientA, clientB, distance))
 
     def readviseNatPunchthrough(self, client):
         self.house_lock.acquire()
@@ -138,7 +138,7 @@ class House:
         if realClient is not None and client is realClient:
             self.adviseAbortNatPunchthrough(clientB)
             clientB.tcp.sendByteBuffer(self.disconnected_temporary)
-            logger.info("Session pause signaled to client [%s] because of client disconnect [%s]" % (clientB, client))
+            logger.debug("Session pause signaled to client [%s] because of client disconnect [%s]" % (clientB, client))
 
     def _removeFromWaitingList(self, client):
         self.house_lock.acquire()
@@ -172,7 +172,7 @@ class House:
                     clientB.tcp.sendByteBuffer(notification)
 
                 self.attemptTakeRoom(clientB)
-                logger.info("Permanent closure of session between client [%s] and [%s] due to client [%s] leaving the room" % (client, clientB, client))
+                logger.debug("Permanent closure of session between client [%s] and [%s] due to client [%s] leaving the room" % (client, clientB, client))
 
                 # Return the other client.
                 return clientB
@@ -210,7 +210,7 @@ class House:
                     try:
                         databaseResultMatch = self.database.findMatch(client)
                     except ValueError as e:
-                        logger.error("Bad database query attempt [%s], forcefully disconnecting client: [%s]" % (e, client))
+                        logger.debug("Bad database query attempt [%s], forcefully disconnecting client: [%s]" % (e, client))
                         client.closeConnection()
                         return
 
@@ -223,7 +223,7 @@ class House:
                     clientMatch = self.waiting_clients_by_key.get(key)
                     if clientMatch is None:
                         self.database.removeMatchById(key)
-                        logger.error("Client in DB not found in waiting list, database inconsistency detected, removing key from database: " + key + ", and retrying")
+                        logger.warn("Client in DB not found in waiting list, database inconsistency detected, removing key from database: " + key + ", and retrying")
                         continue # Retry repeatedly.
 
                     break # exit the loop because we succeeded
@@ -250,7 +250,7 @@ class House:
 
                 # A client has reconnected, and wants to use the old room.
                 if clientOld is not client:
-                    logger.info("Old room reused")
+                    logger.debug("Old room reused")
                     self.room_participant[client] = clientMatch
                     self.room_participant[clientMatch] = client
 

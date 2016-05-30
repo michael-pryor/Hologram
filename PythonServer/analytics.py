@@ -37,7 +37,7 @@ class Analytics(object):
         self.live_count-=1
 
         if result.status_code == 200:
-            logger.info("Successfully pushed analytics result: [%s] (live count = %d)" % (result.reason, self.live_count))
+            logger.debug("Successfully pushed analytics result: [%s] (live count = %d)" % (result.reason, self.live_count))
         else:
             logger.error("Failed to push analytics result with status code [%d]: [%s] (live count = %d)" % (result.status_code, result.reason, self.live_count))
 

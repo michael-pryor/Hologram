@@ -2,6 +2,7 @@ import calendar
 import time
 import struct
 import socket
+import logging
 from functools import wraps, partial
 
 __author__ = 'pryormic'
@@ -25,6 +26,17 @@ def getEpoch():
 def getRemainingTimeOnAction(action):
     return action.getTime() - getEpoch()
 
+def parseLogLevel(levelString):
+    if 'ERROR' == levelString:
+        return logging.ERROR
+    elif 'WARN' == levelString:
+        return logging.WARN
+    elif 'INFO' == levelString:
+        return logging.INFO
+    elif 'DEBUG' == levelString:
+        return logging.DEBUG
+    else:
+        return logging.INFO
 
 # Equivalent to inet_addr.
 def inet_addr(address):

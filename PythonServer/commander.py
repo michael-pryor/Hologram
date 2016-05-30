@@ -2,7 +2,7 @@ from twisted.internet.protocol import ClientFactory
 from twisted.internet import reactor, defer, ssl
 from protocol_client import ClientTcp
 from byte_buffer import ByteBuffer
-from utility import inet_addr, Throttle
+from utility import inet_addr, Throttle, parseLogLevel
 from twisted.internet.endpoints import TCP4ServerEndpoint, SSL4ServerEndpoint
 from threading import RLock
 
@@ -192,7 +192,7 @@ class CommanderClientRouting(ClientFactory):
             result.addUnsignedInteger8(CommanderClientRouting.RouterCodes.FAILURE)
             result.addString("No governors available")
         else:
-            logger.info("Directed client to governor: [%s]" % subServer)
+            logger.debug("Directed client to governor: [%s]" % subServer)
             result.addUnsignedInteger8(CommanderClientRouting.RouterCodes.SUCCESS)
             result.addByteBuffer(subServer.forwardPacket, includePrefix=False)
 
@@ -201,13 +201,17 @@ class CommanderClientRouting(ClientFactory):
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level = logging.DEBUG, format = '%(asctime)-30s %(name)-20s %(levelname)-8s %(message)s')
-
     parser = argparse.ArgumentParser(description='Commander Server', argument_default=argparse.SUPPRESS)
     parser.add_argument('--governor_logon_port', help='Port to bind to via TCP; governor servers register themselves on this port. Defaults to 12240', default="12240")
     parser.add_argument('--client_logon_port', help='Port to bind to via UDP; clients connect to this port. Defaults to 12241.', default="12241")
     parser.add_argument('--governor_host', help='Host to use with governors in the event that the host provided is local', default="")
+    parser.add_argument('--log_level', help="ERROR, WARN, INFO or DEBUG")
     args = parser.parse_args()
+
+    logLevel = parseLogLevel(args.log_level)
+    logging.basicConfig(level = logLevel, format = '%(asctime)-30s %(name)-20s %(levelname)-8s %(message)s')
+
+    logger.info("COMMANDER STARTED")
 
     governor_logon_port = int(args.governor_logon_port)
     client_logon_port = int(args.client_logon_port)

@@ -25,7 +25,7 @@ class ClientTcp(IntNStringReceiver):
         self.parent = None
 
     def connectionMade(self):
-        logger.info("New client connection [%s]" % self)
+        logger.debug("New client connection [%s]" % self)
         try:
             if self.parent is not None:
                 self.parent.onConnectionMade()
@@ -33,7 +33,7 @@ class ClientTcp(IntNStringReceiver):
             pass
 
     def connectionLost(self, reason):
-        logger.info("Client TCP connection lost [%s]", self);
+        logger.debug("Client TCP connection lost [%s]", self);
         try:
             if self.parent is not None:
                 self.parent.onTcpSocketDisconnect()
@@ -41,7 +41,6 @@ class ClientTcp(IntNStringReceiver):
             pass
 
     def stringReceived(self, data):
-        # logger.info("Client received TCP packet, length: %d, from: [%s]" % (len(data), self))
         byteBuffer = ByteBuffer.buildFromIterable(data)
         try:
             if self.parent is not None:

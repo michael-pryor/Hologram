@@ -108,7 +108,7 @@ class Client(object):
             if self.last_received_data is not None:
                 timeDiff = getEpoch() - self.last_received_data
                 if timeDiff > 5.0:
-                    logger.warn("Dropping client [%s] which has been inactive for %.2f seconds" % (self, timeDiff))
+                    logger.debug("Dropping client [%s] which has been inactive for %.2f seconds" % (self, timeDiff))
                     self.closeConnection()
                 else:
                     pass
@@ -126,7 +126,7 @@ class Client(object):
         # Track time of last successful match, so we know if we've been waiting a while to ignore the skip list.
         self.started_waiting_for_match_timer = None
 
-        logger.info("New client connected, awaiting logon message")
+        logger.debug("New client connected, awaiting logon message")
 
     def isConnectedTcp(self):
         return self.connection_status != Client.ConnectionStatus.NOT_CONNECTED
@@ -149,14 +149,14 @@ class Client(object):
     def setUdp(self, clientUdp):
         assert isinstance(clientUdp, ClientUdp)
 
-        logger.info("UDP socket has connected: [%s]" % unicode(clientUdp))
+        logger.debug("UDP socket has connected: [%s]" % unicode(clientUdp))
         self.udp = clientUdp;
         self.connection_status = Client.ConnectionStatus.CONNECTED
 
         # don't need this anymore.
         self.udp_connection_linker = None
 
-        logger.info("Client UDP stream activated, client is fully connected")
+        logger.debug("Client UDP stream activated, client is fully connected")
 
     # Closes the TCP socket, triggering indirectly onDisconnect to be called.
     def closeConnection(self):
@@ -175,7 +175,7 @@ class Client(object):
 
             # This indicates that a logon ACK should be sent via TCP.
             self.udp_hash = self.udp_connection_linker.registerInterestGenerated(self, self.udp_hash)
-            logger.info("Reconnect accepted, hash: %s", self.udp_hash)
+            logger.debug("Reconnect accepted, hash: %s", self.udp_hash)
         else:
             self.udp_hash = self.udp_connection_linker.registerInterestGenerated(self)
 
@@ -208,12 +208,12 @@ class Client(object):
             rejectCode, dataString = self.handleLogon(packet)
             if rejectCode == Client.RejectCodes.SUCCESS:
                 self.connection_status = Client.ConnectionStatus.WAITING_UDP
-                logger.info("Logon accepted, waiting for UDP connection")
+                logger.debug("Logon accepted, waiting for UDP connection")
 
                 response.addUnsignedInteger8(Client.UdpOperationCodes.OP_ACCEPT_LOGON)
                 response.addString(dataString) # the UDP hash code.
             else:
-                logger.warn("Logon rejected, closing connection, reject code [%d], reject reason [%s]" % (rejectCode, dataString))
+                logger.debug("Logon rejected, closing connection, reject code [%d], reject reason [%s]" % (rejectCode, dataString))
                 response.addUnsignedInteger8(Client.UdpOperationCodes.OP_REJECT_LOGON)
                 response.addUnsignedInteger8(rejectCode)
                 response.addString("Reject reason: %s" % dataString)
@@ -223,7 +223,7 @@ class Client(object):
             self.tcp.sendByteBuffer(response)
 
         elif self.connection_status == Client.ConnectionStatus.WAITING_UDP:
-            logger.warn("TCP packet received while waiting for UDP connection to be established, dropping packet")
+            logger.debug("TCP packet received while waiting for UDP connection to be established, dropping packet")
             pass
         elif self.connection_status == Client.ConnectionStatus.CONNECTED:
             self.onFriendlyPacketTcp(packet)
@@ -233,7 +233,7 @@ class Client(object):
 
     def handleUdpPacket(self, packet):
         if self.connection_status != Client.ConnectionStatus.CONNECTED:
-            logger.warn("Client is not connected, discarding UDP packet")
+            logger.debug("Client is not connected, discarding UDP packet")
             return
 
         self.onFriendlyPacketUdp(packet)
@@ -259,7 +259,9 @@ class Client(object):
             self.house.releaseRoom(self, self.house.disconnected_permanent)
             self.closeConnection()
         else:
-            logger.error("Unknown TCP packet received from client [%s]" % self)
+            # Must be debug in case rogue client sends us garbage data
+            logger.debug("Unknown TCP packet received from client [%s]" % self)
+            self.closeConnection()
 
     # Must be protected by house lock.
     def shouldMatch(self, client, recurse=True):
