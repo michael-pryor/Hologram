@@ -20,6 +20,7 @@
 
 + (NSString *)convertPreparedHostName:(uint)address {
     struct in_addr addr;
+    memset(&addr, 0, sizeof(addr));
     addr.s_addr = address;
     char *convertedAddress = inet_ntoa(addr);
     return [NSString localizedStringWithFormat:@"%s", convertedAddress];
@@ -34,9 +35,15 @@
     return description;
 }
 
-+ (NSString *)retrieveHostFromAddress:(const struct sockaddr *)address {
-    const struct sockaddr_in* addressNice = (const struct sockaddr_in *) address;
-    char *convertedAddress = inet_ntoa(addressNice->sin_addr);
-    return [NSString localizedStringWithFormat:@"%s", convertedAddress];
++ (NSString *)retrieveHostFromBytes:(const void*)bytes length:(uint)length {
+    if (length != sizeof(int)) {
+        NSLog(@"Could not parse raw bytes into host name, invalid size of %d vs expected size of %lu", length, sizeof(int));
+        return nil;
+    }
+
+    uint resultNetwork;
+    memcpy(&resultNetwork, bytes, sizeof(int));
+
+    return [NetworkUtility convertPreparedHostName:resultNetwork];
 }
 @end

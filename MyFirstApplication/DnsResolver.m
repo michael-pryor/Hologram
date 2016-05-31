@@ -8,6 +8,7 @@
 #import "NetworkUtility.h"
 #import "Analytics.h"
 #import "Signal.h"
+#import "Threading.h"
 
 static NSString *dnsSaveKey = @"previousDnsResolutions";
 //static NSString *lastResortResolution = @"192.168.1.92";
@@ -33,17 +34,29 @@ static NSString *lastResortResolution = @"212.227.84.229";
     return self;
 }
 
-void getAddrInfoCallBack(DNSServiceRef sdRef, DNSServiceFlags flags, uint32_t interfaceIndex, DNSServiceErrorType errorCode, const char *hostname, const struct sockaddr *address, uint32_t ttl, void *context) {
+static void dnsRecordCallback ( DNSServiceRef sdRef, DNSServiceFlags flags, uint32_t interfaceIndex, DNSServiceErrorType errorCode, const char *fullname, uint16_t rrtype, uint16_t rrclass, uint16_t rdlen, const void *rdata, uint32_t ttl, void *context ) {
     DnsResolver *resolverObject = (__bridge DnsResolver *) context;
     if (![resolverObject->_dnsLookupInProgress clear]) {
         return;
     }
 
-    NSString *host = [NetworkUtility retrieveHostFromAddress:address];
+    if (errorCode != kDNSServiceErr_NoError) {
+        NSLog(@"Unexpected error querying DNS: %i", errorCode);
+        [resolverObject onDnsResolutionFailure];
+        return;
+    }
+
+    NSString *host = [NetworkUtility retrieveHostFromBytes:rdata length:rdlen];
+    if (host == nil) {
+        [resolverObject onDnsResolutionFailure];
+        return;
+    }
+    NSLog(@"Successfully resolved domain name from [%s] to [%@]", fullname, host);
 
     [[Analytics getInstance] pushTimer:resolverObject->_dnsResolutionTimer withCategory:@"setup" name:@"dns_resolution" label:@"normal_lookup"];
 
     DNSServiceRefDeallocate(resolverObject->_serviceRef);
+
     [resolverObject storePreviousHostName:host];
     [resolverObject->_resultNotifier onDnsSuccess:host];
 };
@@ -54,12 +67,21 @@ void getAddrInfoCallBack(DNSServiceRef sdRef, DNSServiceFlags flags, uint32_t in
     }
 
     [_dnsResolutionTimer reset];
-    DNSServiceErrorType result = DNSServiceGetAddrInfo(&_serviceRef, 0, 0, kDNSServiceProtocol_IPv4, [_dnsHost UTF8String], getAddrInfoCallBack, 0);
+    DNSServiceErrorType result = DNSServiceQueryRecord(&_serviceRef, 0, 0, [_dnsHost UTF8String], kDNSServiceType_A, kDNSServiceClass_IN, dnsRecordCallback, (__bridge void *)(self));
     if (result != kDNSServiceErr_NoError) {
-        NSLog(@"DNSServiceGetAddrInfo failure");
+        NSLog(@"DNSServiceQueryRecord failure: %i", result);
         [self onDnsResolutionFailure];
+        return;
     }
 
+    result = DNSServiceSetDispatchQueue(_serviceRef, dispatch_get_main_queue());
+    if (result != kDNSServiceErr_NoError) {
+        NSLog(@"DNSServiceSetDispatchQueue failure: %i", result);
+        DNSServiceRefDeallocate(_serviceRef);
+        [self onDnsResolutionFailure];
+        return;
+    }
+    
     __block DnsResolver* blockDnsResolver = self;
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)_dnsUpdateTimeout * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
         if (![blockDnsResolver->_dnsLookupInProgress clear]) {

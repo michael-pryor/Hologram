@@ -17,5 +17,5 @@
 
 + (NSString *)convertPreparedHostName:(uint)address;
 
-+ (NSString*)retrieveHostFromAddress:(const struct sockaddr*)address;
++ (NSString *)retrieveHostFromBytes:(const void*)bytes length:(uint)length;
 @end
