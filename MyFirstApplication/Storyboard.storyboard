@@ -91,7 +91,7 @@
                             <view contentMode="scaleAspectFill" translatesAutoresizingMaskIntoConstraints="NO" id="2ei-fQ-3lJ">
                                 <rect key="frame" x="0.0" y="388" width="600" height="202"/>
                                 <subviews>
-                                    <imageView contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" image="hologram_start_chat" translatesAutoresizingMaskIntoConstraints="NO" id="W0y-Zd-RaT">
+                                    <imageView contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="hologram_start_chat" translatesAutoresizingMaskIntoConstraints="NO" id="W0y-Zd-RaT">
                                         <rect key="frame" x="-92" y="81" width="785" height="40"/>
                                         <accessibility key="accessibilityConfiguration">
                                             <accessibilityTraits key="traits" button="YES" image="YES"/>
@@ -176,14 +176,84 @@
                                 <color key="tintColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                 <gestureRecognizers/>
                             </imageView>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="cd6-78-3Jp" userLabel="Remote Distance">
-                                <rect key="frame" x="10" y="50" width="580" height="15"/>
+                            <button opaque="NO" alpha="0.5" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="top" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="dDa-yk-yWa">
+                                <rect key="frame" x="334" y="556" width="33" height="44"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="26"/>
+                                <state key="normal" title="&gt;&gt;">
+                                    <color key="titleColor" red="0.68083472739999995" green="1" blue="0.6582494485" alpha="1" colorSpace="calibratedRGB"/>
+                                </state>
+                                <connections>
+                                    <action selector="onSkipPersonButtonPress:" destination="tQC-hy-qbI" eventType="touchDown" id="ufg-rc-dLg"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" alpha="0.5" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="top" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="4xm-sU-sjm">
+                                <rect key="frame" x="234" y="556" width="33" height="44"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="26"/>
+                                <state key="normal" title="&lt;&lt;">
+                                    <color key="titleColor" red="0.68083472739999995" green="1" blue="0.6582494485" alpha="1" colorSpace="calibratedRGB"/>
+                                </state>
+                                <connections>
+                                    <action selector="onGotoFbLogonViewButtonPress:" destination="tQC-hy-qbI" eventType="touchUpInside" id="Twc-vQ-crv"/>
+                                </connections>
+                            </button>
+                            <label opaque="NO" userInteractionEnabled="NO" alpha="0.0" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="&lt;= Swipe to change settings " textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="pgN-Gq-UFL">
+                                <rect key="frame" x="8" y="269" width="223" height="21"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="calibratedRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <imageView opaque="NO" userInteractionEnabled="NO" alpha="0.0" contentMode="scaleAspectFit" image="fast_forward_audio" translatesAutoresizingMaskIntoConstraints="NO" id="F1S-Hc-p7x" userLabel="DC Audio Clear">
+                                <rect key="frame" x="78" y="20" width="30" height="30"/>
+                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                <accessibility key="accessibilityConfiguration">
+                                    <accessibilityTraits key="traits" notEnabled="YES"/>
+                                </accessibility>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="30" id="746-ct-e7A"/>
+                                    <constraint firstAttribute="height" constant="30" id="Oy8-NW-aaO"/>
+                                </constraints>
+                            </imageView>
+                            <imageView opaque="NO" userInteractionEnabled="NO" alpha="0.0" contentMode="scaleAspectFit" image="audio_problem" translatesAutoresizingMaskIntoConstraints="NO" id="0Z4-8y-t8q" userLabel="DC Audio">
+                                <rect key="frame" x="43" y="20" width="30" height="30"/>
+                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                <accessibility key="accessibilityConfiguration">
+                                    <accessibilityTraits key="traits" notEnabled="YES"/>
+                                </accessibility>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="30" id="88n-Mt-3nR"/>
+                                    <constraint firstAttribute="height" constant="30" id="May-Vr-X0w"/>
+                                </constraints>
+                            </imageView>
+                            <imageView opaque="NO" userInteractionEnabled="NO" alpha="0.0" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="video_problem" translatesAutoresizingMaskIntoConstraints="NO" id="5yT-Gv-8LY" userLabel="DC Video Image">
+                                <rect key="frame" x="8" y="20" width="30" height="30"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="30" id="SIK-ed-fsi"/>
+                                    <constraint firstAttribute="height" constant="30" id="pp6-jM-Nen"/>
+                                </constraints>
+                            </imageView>
+                            <label opaque="NO" userInteractionEnabled="NO" alpha="0.0" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Swipe to skip =&gt;" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="rhH-1x-tXl">
+                                <rect key="frame" x="464" y="300" width="128" height="21"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="calibratedRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="11e-ce-u2V">
+                                <rect key="frame" x="10" y="20" width="580" height="15"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="15" id="9W4-a0-FXh"/>
+                                </constraints>
                                 <fontDescription key="fontDescription" type="system" pointSize="11"/>
                                 <color key="textColor" red="0.0" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="EFB-GX-YTW">
-                                <rect key="frame" x="10" y="35" width="580" height="15"/>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="TEST" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="UGl-Rn-eIt">
+                                <rect key="frame" x="10" y="581" width="28" height="14"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="11"/>
+                                <color key="textColor" red="0.49411764705882355" green="1" blue="0.92156862745098034" alpha="1" colorSpace="calibratedRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="cbc-sf-j5j">
+                                <rect key="frame" x="10" y="567" width="28" height="14"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="11"/>
                                 <color key="textColor" red="0.0" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                 <nil key="highlightedColor"/>
@@ -199,66 +269,16 @@
                                     <constraint firstAttribute="width" constant="30" id="Wct-jJ-BxB"/>
                                 </constraints>
                             </imageView>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="cbc-sf-j5j">
-                                <rect key="frame" x="10" y="567" width="28" height="14"/>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="EFB-GX-YTW">
+                                <rect key="frame" x="10" y="35" width="580" height="15"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="11"/>
                                 <color key="textColor" red="0.0" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="TEST" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="UGl-Rn-eIt">
-                                <rect key="frame" x="10" y="581" width="28" height="14"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="11"/>
-                                <color key="textColor" red="0.49411764705882355" green="1" blue="0.92156862745098034" alpha="1" colorSpace="calibratedRGB"/>
-                                <nil key="highlightedColor"/>
-                            </label>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="11e-ce-u2V">
-                                <rect key="frame" x="10" y="20" width="580" height="15"/>
-                                <constraints>
-                                    <constraint firstAttribute="height" constant="15" id="9W4-a0-FXh"/>
-                                </constraints>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="cd6-78-3Jp" userLabel="Remote Distance">
+                                <rect key="frame" x="10" y="50" width="580" height="15"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="11"/>
                                 <color key="textColor" red="0.0" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
-                                <nil key="highlightedColor"/>
-                            </label>
-                            <label opaque="NO" userInteractionEnabled="NO" alpha="0.0" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Swipe to skip =&gt;" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="rhH-1x-tXl">
-                                <rect key="frame" x="464" y="300" width="128" height="21"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="calibratedRGB"/>
-                                <nil key="highlightedColor"/>
-                            </label>
-                            <imageView opaque="NO" userInteractionEnabled="NO" alpha="0.0" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="video_problem" translatesAutoresizingMaskIntoConstraints="NO" id="5yT-Gv-8LY" userLabel="DC Video Image">
-                                <rect key="frame" x="8" y="20" width="30" height="30"/>
-                                <constraints>
-                                    <constraint firstAttribute="width" constant="30" id="SIK-ed-fsi"/>
-                                    <constraint firstAttribute="height" constant="30" id="pp6-jM-Nen"/>
-                                </constraints>
-                            </imageView>
-                            <imageView opaque="NO" userInteractionEnabled="NO" alpha="0.0" contentMode="scaleAspectFit" image="audio_problem" translatesAutoresizingMaskIntoConstraints="NO" id="0Z4-8y-t8q" userLabel="DC Audio">
-                                <rect key="frame" x="43" y="20" width="30" height="30"/>
-                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
-                                <accessibility key="accessibilityConfiguration">
-                                    <accessibilityTraits key="traits" notEnabled="YES"/>
-                                </accessibility>
-                                <constraints>
-                                    <constraint firstAttribute="width" constant="30" id="88n-Mt-3nR"/>
-                                    <constraint firstAttribute="height" constant="30" id="May-Vr-X0w"/>
-                                </constraints>
-                            </imageView>
-                            <imageView opaque="NO" userInteractionEnabled="NO" alpha="0.0" contentMode="scaleAspectFit" image="fast_forward_audio" translatesAutoresizingMaskIntoConstraints="NO" id="F1S-Hc-p7x" userLabel="DC Audio Clear">
-                                <rect key="frame" x="78" y="20" width="30" height="30"/>
-                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
-                                <accessibility key="accessibilityConfiguration">
-                                    <accessibilityTraits key="traits" notEnabled="YES"/>
-                                </accessibility>
-                                <constraints>
-                                    <constraint firstAttribute="width" constant="30" id="746-ct-e7A"/>
-                                    <constraint firstAttribute="height" constant="30" id="Oy8-NW-aaO"/>
-                                </constraints>
-                            </imageView>
-                            <label opaque="NO" userInteractionEnabled="NO" alpha="0.0" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="&lt;= Swipe to change settings " textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="pgN-Gq-UFL">
-                                <rect key="frame" x="8" y="269" width="223" height="21"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="calibratedRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
                         </subviews>
@@ -280,6 +300,7 @@
                             <constraint firstItem="GLg-2U-XhO" firstAttribute="leading" secondItem="BlS-3L-w4D" secondAttribute="leading" id="HDX-qr-kxS" userLabel="CameraView left"/>
                             <constraint firstItem="11e-ce-u2V" firstAttribute="top" secondItem="uJU-NG-i7x" secondAttribute="bottom" id="HRA-iA-S3X" userLabel="RemoteName top"/>
                             <constraint firstItem="GLg-2U-XhO" firstAttribute="top" secondItem="BlS-3L-w4D" secondAttribute="top" id="LLn-1G-xya" userLabel="CameraView top"/>
+                            <constraint firstItem="dDa-yk-yWa" firstAttribute="centerX" secondItem="GLg-2U-XhO" secondAttribute="centerX" constant="50" id="P0g-km-a5z"/>
                             <constraint firstItem="cd6-78-3Jp" firstAttribute="trailing" secondItem="11e-ce-u2V" secondAttribute="trailing" id="PgC-Sn-GCh"/>
                             <constraint firstItem="EFB-GX-YTW" firstAttribute="width" secondItem="11e-ce-u2V" secondAttribute="width" id="QaP-Dn-mcp" userLabel="RemoteAge width"/>
                             <constraint firstItem="11e-ce-u2V" firstAttribute="trailing" secondItem="BlS-3L-w4D" secondAttribute="trailing" constant="-10" id="UCc-UT-0Ht" userLabel="RemoteName right"/>
@@ -288,10 +309,13 @@
                             <constraint firstItem="cbc-sf-j5j" firstAttribute="bottom" secondItem="UGl-Rn-eIt" secondAttribute="top" id="aLQ-vT-Khn" userLabel="OwnerAge top"/>
                             <constraint firstItem="SN4-gs-A3A" firstAttribute="top" secondItem="UGl-Rn-eIt" secondAttribute="bottom" constant="5" id="cHA-bh-crm" userLabel="OwnerName bottom"/>
                             <constraint firstAttribute="trailing" secondItem="GLg-2U-XhO" secondAttribute="trailing" id="e0w-kQ-nDF" userLabel="CameraView right"/>
+                            <constraint firstItem="dDa-yk-yWa" firstAttribute="centerY" secondItem="4xm-sU-sjm" secondAttribute="centerY" id="g4R-tI-Xcz"/>
                             <constraint firstItem="cd6-78-3Jp" firstAttribute="leading" secondItem="11e-ce-u2V" secondAttribute="leading" id="gA1-lr-dfa"/>
+                            <constraint firstItem="4xm-sU-sjm" firstAttribute="bottom" secondItem="GLg-2U-XhO" secondAttribute="bottom" id="gtI-o8-PKW"/>
                             <constraint firstItem="Wt1-7M-iep" firstAttribute="trailing" secondItem="BlS-3L-w4D" secondAttribute="trailing" constant="-5" id="hFh-B7-HaM" userLabel="NAT right"/>
                             <constraint firstAttribute="bottom" secondItem="GLg-2U-XhO" secondAttribute="bottom" id="hrJ-L3-rnv" userLabel="CameraView bottom"/>
                             <constraint firstItem="5yT-Gv-8LY" firstAttribute="leading" secondItem="GLg-2U-XhO" secondAttribute="leadingMargin" id="lct-cm-ncm" userLabel="DC Video left"/>
+                            <constraint firstItem="4xm-sU-sjm" firstAttribute="centerX" secondItem="GLg-2U-XhO" secondAttribute="centerX" constant="-50" id="mph-6o-yGc"/>
                             <constraint firstItem="cbc-sf-j5j" firstAttribute="height" secondItem="UGl-Rn-eIt" secondAttribute="height" id="nHK-nP-fLn" userLabel="OwnerAge height"/>
                             <constraint firstItem="5yT-Gv-8LY" firstAttribute="top" secondItem="11e-ce-u2V" secondAttribute="top" id="nxx-hi-cx6" userLabel="DC Video top"/>
                             <constraint firstItem="F1S-Hc-p7x" firstAttribute="top" secondItem="0Z4-8y-t8q" secondAttribute="top" id="p9I-4s-bYp" userLabel="DC Audio Clear top"/>

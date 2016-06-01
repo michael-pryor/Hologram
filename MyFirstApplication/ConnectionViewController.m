@@ -489,22 +489,36 @@
 // User swiped left <- goto facebook view controller.
 - (IBAction)showGestureForSwipeRecognizer:(UISwipeGestureRecognizer *)recognizer {
     if (recognizer.direction == UISwipeGestureRecognizerDirectionLeft) {
-        if (_waitingForNewEndPoint && !_isSkippableDespiteNoMatch) {
-            NSLog(@"Ignoring skip request, nobody to skip");
-            return;
-        }
-
-        _isSkippableDespiteNoMatch = false;
-
-        [[Analytics getInstance] pushEventWithCategory:@"conversation" action:@"ended" label:@"skip_initiated"];
-
-        NSLog(@"Sending skip request");
-        [_connection sendTcpPacket:_skipPersonPacket];
-        [self setDisconnectStateWithShortDescription:@"Connecting to new session\nYou skipped the other person" longDescription:@"Searching for somebody else suitable for you to talk with"];
+        [self doSkipPerson];
     } else {
-        [[Analytics getInstance] pushEventWithCategory:@"conversation" action:@"ended" label:@"login_screen"];
-        [self switchToFacebookLogonView];
+        [self doGotoFbLogonView];
     }
+}
+- (IBAction)onSkipPersonButtonPress:(id)sender {
+    [self doSkipPerson];
+}
+- (IBAction)onGotoFbLogonViewButtonPress:(id)sender {
+    [self doGotoFbLogonView];
+}
+
+- (void)doSkipPerson {
+    if (_waitingForNewEndPoint && !_isSkippableDespiteNoMatch) {
+        NSLog(@"Ignoring skip request, nobody to skip");
+        return;
+    }
+    
+    _isSkippableDespiteNoMatch = false;
+    
+    [[Analytics getInstance] pushEventWithCategory:@"conversation" action:@"ended" label:@"skip_initiated"];
+    
+    NSLog(@"Sending skip request");
+    [_connection sendTcpPacket:_skipPersonPacket];
+    [self setDisconnectStateWithShortDescription:@"Matching you with somebody to talk with\nYou skipped the other person" longDescription:@"Searching for somebody else suitable for you to talk with"];
+}
+
+- (void)doGotoFbLogonView {
+    [[Analytics getInstance] pushEventWithCategory:@"conversation" action:@"ended" label:@"login_screen"];
+    [self switchToFacebookLogonView];
 }
 
 // Received server details from commander and have connected.
@@ -529,7 +543,7 @@
             break;
 
         case P_CONNECTED:
-            [self setDisconnectStateWithShortDescription:@"Connecting to new session" longDescription:@"Searching for somebody suitable for you to talk with"];
+            [self setDisconnectStateWithShortDescription:@"Matching you with somebody to talk with" longDescription:@"Searching for somebody suitable for you to talk with"];
             if (_mediaController != nil) {
                 [_mediaController resetSendRate];
             }
@@ -630,10 +644,10 @@
             NSLog(@"End point temporarily disconnected");
             [self setDisconnectStateWithShortDescription:@"Reconnecting to existing session\nThe other person disconnected temporarily" longDescription:@"The person you were talking with has temporarily disconnected, please wait a few seconds to see if they can rejoin!"];
         } else if (operation == DISCONNECT_PERM) {
-            [self setDisconnectStateWithShortDescription:@"Connecting to new session\nThe other person left" longDescription:@"The person you were talking with has permanently disconnected, we'll find you someone else to talk to"];
+            [self setDisconnectStateWithShortDescription:@"Matching you with somebody to talk with\nThe other person left" longDescription:@"The person you were talking with has permanently disconnected, we'll find you someone else to talk to"];
             NSLog(@"End point permanently disconnected");
         } else if (operation == DISCONNECT_SKIPPED) {
-            [self setDisconnectStateWithShortDescription:@"Connecting to new session\nThe other person skipped you" longDescription:@"The person you were talking with skipped you, we'll find you someone else to talk to"];
+            [self setDisconnectStateWithShortDescription:@"Matching you with somebody to talk with\nThe other person skipped you" longDescription:@"The person you were talking with skipped you, we'll find you someone else to talk to"];
             NSLog(@"End point skipped us");
         } else if (_mediaController != nil) {
             [_mediaController onNewPacket:packet fromProtocol:protocol];
