@@ -4,16 +4,19 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 while [[ $# > 0 ]]
 do
 key="$1"
-
 case $key in
     -p|--package)
-    SOURCE_FILE=="$2"
+    SOURCE_FILE="$2"
     shift
     ;;
     -ho|--hosts)
     shift
     while ! echo "$1" | egrep '^-' > /dev/null 2>&1 && [ ! -z "$1" ]; do
-      HOST_LIST="$HOST_LIST $1"
+      if [ -z "${HOST_LIST}" ]; then
+        HOST_LIST="${1}"
+      else
+        HOST_LIST="${HOST_LIST} ${1}"
+      fi
       shift
     done
     ;;
@@ -30,7 +33,6 @@ case $key in
     exit 0
     ;;
 esac
-shift # past argument or value
 done
 
 if [ -z ${HOST_LIST} ]; then
@@ -67,5 +69,6 @@ do
 
   if [ ! -z "${SHOULD_INSTALL}" ] && [ "${SHOULD_INSTALL}" -eq 1 ]; then
    ssh ${host} "source ~/.bashrc; ~/hologram/bin/install ${SOURCE_FILE}"
-  fi
+   echo "Installed [${SOURCE_FILE}] on host [${host}]"
+ fi
 done
