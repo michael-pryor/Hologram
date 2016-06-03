@@ -1,14 +1,53 @@
 #!/bin/sh -e
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-destination_hosts=( "pryormic@s18315587.onlinehome-server.info" )
+while [[ $# > 0 ]]
+do
+key="$1"
+
+case $key in
+    -p|--package)
+    SOURCE_FILE=="$2"
+    shift
+    ;;
+    -ho|--hosts)
+    shift
+    while ! echo "$1" | egrep '^-' > /dev/null 2>&1 && [ ! -z "$1" ]; do
+      HOST_LIST="$HOST_LIST $1"
+      shift
+    done
+    ;;
+    -i|--install)
+    SHOULD_INSTALL=1
+    shift
+    ;;
+
+    -h|--help)
+    echo "Usage: deploy -p package.tgz -ho host1.place host2.place -i"
+    exit 0
+    ;;
+    *)
+    echo "Unknown argument, use --help for usage"
+    exit 0
+    ;;
+esac
+shift # past argument or value
+done
+
+if [ -z ${HOST_LIST} ]; then
+  HOST_LIST=( "s18315587.onlinehome-server.info" )
+  echo "Host list defaulted to: ${HOST_LIST}"
+fi
+
+destination_hosts=( "${HOST_LIST}" )
 
 PACKAGE_DIR="${DIR}/../builds"
 
-SOURCE_FILE="${2}"
+# Pick the most recent package.
 if [ -z ${SOURCE_FILE} ]; then
   # Pick the newest archive.
   SOURCE_FILE=$(ls -t ${PACKAGE_DIR} | head -1)
+  echo "Package defaulted to newest packet: ${SOURCE_FILE}"
   if [ -z ${SOURCE_FILE} ]; then
     echo "No packages found"
     exit 1
@@ -17,11 +56,10 @@ fi
 
 for host in "${destination_hosts[@]}"
 do
-  command="scp ${PACKAGE_DIR}/${SOURCE_FILE} ${host}:~/packages"
+  command="scp ${PACKAGE_DIR}/${SOURCE_FILE} pryormic@${host}:~/packages"
   echo $command
   $command
 
-  SHOULD_INSTALL=${1}
   if [ ! -z "${SHOULD_INSTALL}" ] && [ "${SHOULD_INSTALL}" -eq 1 ]; then
    ssh ${host} "source ~/.bashrc; ~/hologram/bin/install ${SOURCE_FILE}"
   fi
