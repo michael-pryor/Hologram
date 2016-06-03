@@ -25,7 +25,9 @@ echoEx() {
    fi
 }
 
-ENTITY_DIR="${DIR}/apps"
+HOSTNAME="$(hostname)"
+
+ENTITY_DIR="${DIR}/apps/${HOSTNAME}"
 ENTITY_FILE="${ENTITY_DIR}/${ENTITY}.sh"
 if [ ! -f ${ENTITY_FILE} ]; then
     echo "Component ${ENTITY} not found (check ${ENTITY_DIR}, we looked for ${ENTITY_FILE})"

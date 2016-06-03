@@ -27,8 +27,6 @@ if [ ! -f ${SOURCE_PATH} ] ; then
   exit 1
 fi
   
-"${DIR}/global" stop
-
 DESTINATION_PATH="${DIR%/*}"
 
 # Remove old directories
@@ -47,4 +45,4 @@ echo "Installing package ${SOURCE_FILE} (${SOURCE_PATH}) to [${DESTINATION_PATH}
 tar -xvzf "${SOURCE_PATH}" -C "${DESTINATION_PATH}"
 echo "Installed package ${SOURCE_FILE} (${SOURCE_PATH}) to [${DESTINATION_PATH}]"
 
-"${DIR}/global" start
+"${DIR}/global" restart
