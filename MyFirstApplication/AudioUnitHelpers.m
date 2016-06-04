@@ -186,7 +186,7 @@ bool deepCopyBuffers(AudioBufferList *destinationAudioBufferList, AudioBufferLis
         AudioBuffer *sourceAudioBuffer = &sourceAudioBufferList->mBuffers[n];
 
         if (destinationBufferMemorySize < sourceAudioBuffer->mDataByteSize) {
-            NSLog(@"Memory size is too small, source is: %lu, destination is: %lu", sourceAudioBuffer->mDataByteSize, destinationBufferMemorySize);
+            NSLog(@"Memory size is too small, source is: %u, destination is: %u", (unsigned int)sourceAudioBuffer->mDataByteSize, (unsigned int)destinationBufferMemorySize);
             return false;
         }
         destinationAudioBuffer->mDataByteSize = sourceAudioBuffer->mDataByteSize;

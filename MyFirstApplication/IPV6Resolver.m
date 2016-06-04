@@ -36,8 +36,6 @@
     hints.ai_socktype = SOCK_DGRAM;
     hints.ai_flags = AI_DEFAULT;
 
-    const char * portStr = [[NSString stringWithFormat:@"%i", port] cStringUsingEncoding:NSUTF8StringEncoding];
-
     int error = getaddrinfo([hostName cStringUsingEncoding:NSUTF8StringEncoding], NULL, &hints, &_result);
     if (error) {
         return [self onError:error host:hostName port:port];

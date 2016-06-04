@@ -21,6 +21,7 @@
 
     // For google analytics.
     NSString * _screenName;
+    void(^_moveToFacebookViewControllerFunc)();
 }
 
 - (void)setAlertShortText:(NSString *)shortText longText:(NSString *)longText {
@@ -33,6 +34,8 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+
+    _moveToFacebookViewControllerFunc = nil;
 
     _localImageViewVisible = [[Signal alloc] initWithFlag:false];
 
@@ -120,5 +123,14 @@
     }
 }
 
+- (void)setMoveToFacebookViewControllerFunc:(void(^)())moveToFacebookViewControllerFunc {
+    _moveToFacebookViewControllerFunc = moveToFacebookViewControllerFunc;
+}
+
+- (IBAction)onGotoFbLogonViewButtonPress:(id)sender {
+    if (_moveToFacebookViewControllerFunc != nil) {
+        _moveToFacebookViewControllerFunc();
+    }
+}
 @end
 

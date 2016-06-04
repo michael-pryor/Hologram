@@ -602,6 +602,11 @@
 
                 _disconnectViewController = (AlertViewController *) [storyboard instantiateViewControllerWithIdentifier:@"DisconnectAlertView"];
                 _disconnectViewController.view.frame = self.view.bounds;
+                __weak typeof(self) weakSelf = self;
+                __weak AlertViewController * weakViewController;
+                [_disconnectViewController setMoveToFacebookViewControllerFunc:^{
+                   [weakSelf onGotoFbLogonViewButtonPress:weakViewController];
+                }];
                 if (_mediaController != nil) {
                     [_mediaController setLocalImageDelegate:_disconnectViewController];
                 }

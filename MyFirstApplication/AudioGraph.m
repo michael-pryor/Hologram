@@ -402,7 +402,7 @@ static OSStatus audioOutputPullCallback(
             size_t estimatedSize = inNumberFrames * audioController->_audioFormatSpeaker.mBytesPerFrame;
             size_t actualSize = ioData->mBuffers[0].mDataByteSize;
             if (estimatedSize != actualSize) {
-                NSLog(@"Mismatch, num frames = %lu, estimated size = %lu, byte size = %lu", inNumberFrames, estimatedSize, actualSize);
+                NSLog(@"Mismatch, num frames = %u, estimated size = %lu, byte size = %lu", (unsigned int)inNumberFrames, estimatedSize, actualSize);
 
                 // Fix the number frames so that the audio compression continues to work properly regardless.
                 inNumberFrames = actualSize / audioController->_audioFormatSpeaker.mBytesPerFrame;
@@ -410,7 +410,7 @@ static OSStatus audioOutputPullCallback(
         }
 
         if (ioData->mNumberBuffers > 1) {
-            NSLog(@"Number of buffers is greater than 1, not supported, value is: %lu", ioData->mNumberBuffers);
+            NSLog(@"Number of buffers is greater than 1, not supported, value is: %u", (unsigned int)ioData->mNumberBuffers);
             return kAudioConverterErr_UnspecifiedError;
         }
 
@@ -464,7 +464,7 @@ static OSStatus audioOutputPullCallback(
                         // Validation.
                         audioBufferList = [audioController->bufferAvailableContainer audioList];
                         if (audioBufferList->mNumberBuffers != 1) {
-                            NSLog(@"Decompressed audio buffer must have only 1 buffer, actually has: %lu", audioBufferList->mNumberBuffers);
+                            NSLog(@"Decompressed audio buffer must have only 1 buffer, actually has: %u", (unsigned int)audioBufferList->mNumberBuffers);
                             return kAudioConverterErr_UnspecifiedError;
                         }
 
@@ -564,7 +564,7 @@ static OSStatus audioOutputPullCallback(
 - (void)audioRouteChangeListenerCallback:(NSNotification *)notification {
     NSDictionary *interruptionDict = notification.userInfo;
     NSInteger routeChangeReason = [[interruptionDict valueForKey:AVAudioSessionRouteChangeReasonKey] integerValue];
-    NSLog(@"Audio route change, with reason: %d", routeChangeReason);
+    NSLog(@"Audio route change, with reason: %ld", (long)routeChangeReason);
 
     if (routeChangeReason != AVAudioSessionRouteChangeReasonNewDeviceAvailable && routeChangeReason != AVAudioSessionRouteChangeReasonOldDeviceUnavailable) {
         return;

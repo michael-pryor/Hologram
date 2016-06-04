@@ -202,7 +202,7 @@ OSStatus pullUncompressedDataToAudioConverter(AudioConverterRef inAudioConverter
             [self validateResult:status description:@"compressing audio data" logSuccess:false];
 
             if (numFramesResult > audioBufferList.mNumberBuffers || numFramesResult > maxNumFrames) {
-                NSLog(@"After compression, number of frames (%lu) is greater than number of buffers (%lu) or maximum number of frames (%lu)", numFramesResult, audioBufferList.mNumberBuffers, maxNumFrames);
+                NSLog(@"After compression, number of frames (%u) is greater than number of buffers (%u) or maximum number of frames (%u)", (unsigned int)numFramesResult, (unsigned int)audioBufferList.mNumberBuffers, (unsigned int)maxNumFrames);
                 continue;
             }
 
@@ -218,7 +218,7 @@ OSStatus pullUncompressedDataToAudioConverter(AudioConverterRef inAudioConverter
                 }
 
                 if (compressedPacketDescriptionItem.mDataByteSize != buffer->mDataByteSize) {
-                    NSLog(@"Mismatch in packet description and packet data, %lu vs %lu", compressedPacketDescriptionItem.mDataByteSize, buffer->mDataByteSize);
+                    NSLog(@"Mismatch in packet description and packet data, %u vs %u", (unsigned int)compressedPacketDescriptionItem.mDataByteSize, (unsigned int)buffer->mDataByteSize);
                     problemDetected = true;
                     break;
                 }

@@ -20,4 +20,6 @@
 - (void)hideNow;
 
 - (NSString*)getScreenName;
+
+- (void)setMoveToFacebookViewControllerFunc:(void(^)())moveToFacebookViewControllerFunc;
 @end

@@ -18,6 +18,9 @@
 - (IBAction)onFinishedButtonClick:(id)sender {
     [self _switchToChatView];
 }
+- (IBAction)onSwipeGesture:(UISwipeGestureRecognizer *)recognizer  {
+    [self _switchToChatView];
+}
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -67,6 +70,10 @@
 }
 
 - (void)_switchToChatView {
+    if (![[SocialState getFacebookInstance] isBasicDataLoaded]) {
+        return;
+    }
+
     if (![[NSUserDefaults standardUserDefaults] boolForKey:@"permissionsExplanationShown"]) {
         UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Hologram Permissions" message:
                         @"Please grant Hologram access to your device's camera and microphone so that you can start video chatting.\n\nPlease also allow Hologram to access your current location; we use this to try and match you with users in your area."
