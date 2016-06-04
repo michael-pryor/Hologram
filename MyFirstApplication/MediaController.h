@@ -31,4 +31,6 @@
 - (void)setLocalImageDelegate:(id <NewImageDelegate>)localImageDelegate;
 
 - (void)clearLocalImageDelegate;
+
+- (bool)isAudioPacket:(ByteBuffer*)buffer;
 @end

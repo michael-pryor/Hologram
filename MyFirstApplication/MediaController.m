@@ -128,6 +128,11 @@
     }
 }
 
+- (bool)isAudioPacket:(ByteBuffer*)buffer {
+    uint operationId = [buffer getUnsignedIntegerAtPosition8:0];
+    return operationId == AUDIO_ID;
+}
+
 - (void)resetSendRate {
     // This gets called when we move to another person, so discard any delayed video from previous person.
 }

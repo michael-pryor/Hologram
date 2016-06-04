@@ -668,6 +668,11 @@
             return;
         }
 
+        // Don't show audio until user is visible.
+        if ([_mediaController isAudioPacket:packet] && _disconnectViewController != nil) {
+            return;
+        }
+
         // Do not update screen in background, because its expensive and we get warnings about GPU in the logs.
         if (_mediaController != nil && !_isInBackground) {
             [_mediaController onNewPacket:packet fromProtocol:protocol];
