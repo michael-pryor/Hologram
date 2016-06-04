@@ -177,6 +177,7 @@
         if (prefix == NAT_PUNCHTHROUGH_DISCOVERY) {
             NSLog(@"Ignoring NAT_PUNCHTHROUGH_DISCOVERY from master server");
         } else if (prefix == UDP_HASH) {
+            // This happens in peer to peer mode, server won't check these packets because its already getting sufficient data.
             NSLog(@"Ignoring UDP_HASH update form master server");
         } else {
             [_recvDelegate onNewPacket:packet fromProtocol:protocol];

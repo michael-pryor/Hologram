@@ -32,7 +32,7 @@
                         <viewControllerLayoutGuide type="top" id="lWr-th-MY7"/>
                         <viewControllerLayoutGuide type="bottom" id="b6S-Yq-msf"/>
                     </layoutGuides>
-                    <view key="view" contentMode="scaleToFill" id="a3M-hh-5zc">
+                    <view key="view" multipleTouchEnabled="YES" contentMode="scaleToFill" id="a3M-hh-5zc">
                         <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
@@ -67,7 +67,7 @@
                                     <outlet property="delegate" destination="HPd-0g-j2K" id="8aN-tL-cNW"/>
                                 </connections>
                             </view>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Facebook" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="VbS-z8-oK5" userLabel="Facebook Label">
+                            <label opaque="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Facebook" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="VbS-z8-oK5" userLabel="Facebook Label">
                                 <rect key="frame" x="20" y="232" width="560" height="18"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="15"/>
                                 <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
@@ -88,7 +88,7 @@
                                     <action selector="onDesiredGenderChanged:" destination="HPd-0g-j2K" eventType="valueChanged" id="vpP-XO-3NL"/>
                                 </connections>
                             </segmentedControl>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Interested in" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="9Bj-2i-1uF" userLabel="Gender Chooser Label">
+                            <label opaque="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Interested in" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="9Bj-2i-1uF" userLabel="Gender Chooser Label">
                                 <rect key="frame" x="20" y="315" width="560" height="18"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="15"/>
                                 <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
