@@ -9,11 +9,12 @@
 #import "ConnectionManagerUdp.h"
 #import "Signal.h"
 #import "EventTracker.h"
-#import "Timer.h"
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#import <netdb.h>
 #include "NetworkUtility.h"
+#include "IPV6Resolver.h"
 
 @implementation ConnectionManagerUdp {
     int _socket;
@@ -23,12 +24,13 @@
     id <NewPacketDelegate> _newPacketDelegate;
     id <ConnectionStatusDelegateUdp> _connectionDelegate;
     ByteBuffer *_recvBuffer;
-    Signal *_closingNotInProgress;
-    Signal *_openingNotInProgress;
     EventTracker *_sendFailureEventTracker;
-    struct sockaddr_in _connectAddress;
+    struct sockaddr* _primaryConnectAddress;
+    uint _primaryConnectAddressLength;
     id <NewUnknownPacketDelegate> _newUnknownPacketDelegate;
-    uint _sockAddressSize;
+    IPV6Resolver * _addressResolver;
+
+    struct addrinfo *_allConnectAddresses;
 }
 
 - (id)initWithNewPacketDelegate:(id <NewPacketDelegate>)newPacketDelegate newUnknownPacketDelegate:(id <NewUnknownPacketDelegate>)newUnknownPacketDelegate connectionDelegate:(id <ConnectionStatusDelegateUdp>)connectionDelegate retryCount:(uint)retryCountMax {
@@ -38,14 +40,15 @@
         _connectionDelegate = connectionDelegate;
         _newPacketDelegate = newPacketDelegate;
         _recvBuffer = [[ByteBuffer alloc] init];
-        _closingNotInProgress = [[Signal alloc] initWithFlag:true];
-        _openingNotInProgress = [[Signal alloc] initWithFlag:true];
         _gcd_queue = dispatch_queue_create("ConnectionManagerUdp", NULL);
         _gcd_queue_sending = dispatch_queue_create("ConnectionManagerUdpSendQueue", NULL);
         _dispatch_source = nil;
         _sendFailureEventTracker = [[EventTracker alloc] initWithMaxEvents:retryCountMax];
-        _sockAddressSize = sizeof(struct sockaddr_in);
         _newUnknownPacketDelegate = newUnknownPacketDelegate;
+        _addressResolver = [[IPV6Resolver alloc] init];
+        _allConnectAddresses = nil;
+        _primaryConnectAddress = nil;
+        _primaryConnectAddressLength = 0;
     }
     return self;
 }
@@ -62,21 +65,14 @@
     [_connectionDelegate connectionStatusChangeUdp:U_ERROR withDescription:description];
 }
 
-- (void)validateResult:(int)result {
-    if (result < 0) {
-        [self onFailure];
-    }
-}
-
 - (void)close {
-    [_closingNotInProgress wait];
-    if ([self isConnected] && _dispatch_source != nil) {
-        NSLog(@"UDP - Closing socket");
-        [_closingNotInProgress clear];
-        dispatch_source_cancel(_dispatch_source);
-        close(_socket);
-        _socket = 0;
-        [_closingNotInProgress signalAll];
+    @synchronized(self) {
+        if ([self isConnected] && _dispatch_source != nil) {
+            NSLog(@"UDP - Closing socket");
+            dispatch_source_cancel(_dispatch_source);
+            close(_socket);
+            _socket = 0;
+        }
     }
 }
 
@@ -85,7 +81,9 @@
 }
 
 - (Boolean)isConnected {
-    return _socket != 0;
+    @synchronized(self) {
+        return _socket != 0;
+    }
 }
 
 - (void)onRecv {
@@ -100,8 +98,9 @@
         [_recvBuffer setMemorySize:(uint) maximumAmountReceivable retaining:false];
     }
 
-    struct sockaddr_in recvAddress;
-    realAmountReceived = recvfrom(_socket, [_recvBuffer getRawDataPtr], maximumAmountReceivable, 0, (struct sockaddr *) &recvAddress, &_sockAddressSize);
+    struct sockaddr_in6 recvAddress;
+    uint recvAddressSize;
+    realAmountReceived = recvfrom(_socket, [_recvBuffer getRawDataPtr], maximumAmountReceivable, 0, (struct sockaddr *) &recvAddress, &recvAddressSize);
 
     // This would cause buffer overrun and indicates a serious bug somewhere (probably not in our code though *puts on sunglasses slowly*).
     if (realAmountReceived == -1) {
@@ -118,42 +117,43 @@
     [_recvBuffer setUsedSize:(uint) realAmountReceived];
 
     //NSLog(@"UDP - Received packet of size: %ul", [_recvBuffer bufferUsedSize]);
-    if ([NetworkUtility isEqualAddress:&_connectAddress address:&recvAddress]) {
-        [_newPacketDelegate onNewPacket:_recvBuffer fromProtocol:UDP];
-    } else {
-        [_newUnknownPacketDelegate onNewPacket:_recvBuffer fromProtocol:UDP fromAddress:recvAddress.sin_addr.s_addr andPort:recvAddress.sin_port];
+    struct addrinfo * address;
+    for (address = _allConnectAddresses; address != nil; address = address->ai_next) {
+        if ([NetworkUtility isEqualAddress:address->ai_addr address:&recvAddress]) {
+            [_newPacketDelegate onNewPacket:_recvBuffer fromProtocol:UDP];
+            return;
+        }
     }
+
+    // If is IP4 we can do NAT punchthrough.
+    // TODO: handle IPV6.
+    /*if (recvAddress.sa_family == AF_INET) {
+        struct sockaddr_in * recvAddressIPV4 = (struct sockaddr_in*)&recvAddress;
+        [_newUnknownPacketDelegate onNewPacket:_recvBuffer fromProtocol:UDP fromAddress:recvAddressIPV4->sin_addr.s_addr andPort:recvAddressIPV4->sin_port];
+    }*/
 }
 
 - (void)connectToHost:(NSString *)host andPort:(ushort)port {
-    [self close];
+    @synchronized (self) {
+        [self close];
 
-    [_sendFailureEventTracker reset];
+        [_sendFailureEventTracker reset];
 
-    memset(&_connectAddress, 0, sizeof(_connectAddress));
-    _connectAddress.sin_family = AF_INET;
-    _connectAddress.sin_addr.s_addr = INADDR_ANY;
+        _primaryConnectAddress = nil;
+        _primaryConnectAddressLength = 0;
+        _allConnectAddresses = [_addressResolver retrieveAddressesFromHost:host withPort:port];
 
-    _connectAddress.sin_port = htons(port);
-    _connectAddress.sin_addr.s_addr = inet_addr([host UTF8String]);
+        _socket = socket(AF_INET6, SOCK_DGRAM, 0);
+        _dispatch_source = dispatch_source_create(DISPATCH_SOURCE_TYPE_READ, _socket, 0, _gcd_queue);
+        dispatch_source_set_event_handler(_dispatch_source, ^{
+            [self onRecv];
+        });
+        dispatch_resume(_dispatch_source);
 
-    // Termination of socket happens asynchronously, make sure we don't reconnect
-    // midway through termination.
-    [_closingNotInProgress wait];
-    [_openingNotInProgress clear];
+        [_connectionDelegate connectionStatusChangeUdp:U_CONNECTED withDescription:@"Successfully connected"];
 
-    _socket = socket(AF_INET, SOCK_DGRAM, 0);
-    _dispatch_source = dispatch_source_create(DISPATCH_SOURCE_TYPE_READ, _socket, 0, _gcd_queue);
-    dispatch_source_set_event_handler(_dispatch_source, ^{
-        [self onRecv];
-    });
-    dispatch_resume(_dispatch_source);
-
-    [_openingNotInProgress signalAll];
-
-    [_connectionDelegate connectionStatusChangeUdp:U_CONNECTED withDescription:@"Successfully connected"];
-
-    NSLog(@"UDP - Connected socket to host %@ and port %u", host, port);
+        NSLog(@"UDP - Connected socket to host %@ and port %u", host, port);
+    }
 }
 
 - (void)onNewPacket:(ByteBuffer *)buffer fromProtocol:(ProtocolType)protocol {
@@ -169,7 +169,8 @@
     toAddress.sin_port = port;
     toAddress.sin_addr.s_addr = address;
 
-    [self sendBuffer:buffer toAddress:&toAddress];
+    // TEmporary disable NAT punchtrhough.
+    //[self sendBuffer:buffer toAddress:&toAddress];
 }
 
 - (void)sendBuffer:(ByteBuffer *)buffer toAddress:(NSString *)address toPort:(ushort)port {
@@ -178,21 +179,63 @@
 
 - (void)sendBuffer:(ByteBuffer *)buffer {
     if ([self isConnected]) {
-        [self sendBuffer:buffer toAddress:&_connectAddress];
+        [self updatePrimaryConnectAddress:false];
+        [self sendBuffer:buffer toAddress:_primaryConnectAddress addressLength:_primaryConnectAddressLength];
     }
 }
 
-- (void)sendBuffer:(ByteBuffer *)buffer toAddress:(struct sockaddr_in *)address {
-    dispatch_sync(_gcd_queue_sending, ^{
-        if (![self isConnected]) {
-            return;
+- (bool)updatePrimaryConnectAddress:(bool)force {
+    if (!force && _primaryConnectAddress != nil) {
+        return true;
+    }
+    @synchronized(self) {
+        if (!force && _primaryConnectAddress != nil) {
+            return true;
         }
-        [_openingNotInProgress wait];
 
-        long result = sendto(_socket, [buffer buffer], [buffer bufferUsedSize], 0, (struct sockaddr *) address, _sockAddressSize);
+        bool consumeNextOne = false;
+        struct addrinfo * address;
+        for (address = _allConnectAddresses; address != nil; address = address->ai_next) {
+            if (_primaryConnectAddress == nil) {
+                consumeNextOne = true;
+            } else if (address->ai_addr == _primaryConnectAddress) {
+                consumeNextOne = true;
+                continue;
+            }
+            if (!consumeNextOne) {
+                continue;
+            }
+
+            _primaryConnectAddress = address->ai_addr;
+            _primaryConnectAddressLength = address->ai_addrlen;
+            return true;
+        }
+
+        return false;
+    }
+
+}
+
+- (void)sendBuffer:(ByteBuffer *)buffer toAddress:(struct sockaddr *)address addressLength:(uint)length {
+    dispatch_sync(_gcd_queue_sending, ^{
+        long result;
+        @synchronized(self) {
+            if (![self isConnected]) {
+                return;
+            }
+            [NetworkUtility isEqualAddress:address address:address];
+            result = sendto(_socket, [buffer buffer], [buffer bufferUsedSize], 0, address, length);
+        }
+
         if (result < 0) {
             if ([_sendFailureEventTracker increment]) {
-                [self onFailure];
+                @synchronized(self) {
+                    if (![self updatePrimaryConnectAddress:true]) {
+                        [self onFailure];
+                    } else {
+                        [_sendFailureEventTracker reset];
+                    }
+                }
             } else {
                 int err = errno;
                 float waitForSeconds = [_sendFailureEventTracker getNumEvents] * 0.2;

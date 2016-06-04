@@ -11,11 +11,13 @@
 #include <netinet/in.h>
 
 @interface NetworkUtility : NSObject
-+ (Boolean)isEqualAddress:(struct sockaddr_in *)addr1 address:(struct sockaddr_in *)addr2;
++ (Boolean)isEqualAddress:(struct sockaddr *)rawAddr1 address:(struct sockaddr *)rawAddr2;
 
 + (NSString *)convertPreparedAddress:(uint)address port:(ushort)port;
 
 + (NSString *)convertPreparedHostName:(uint)address;
 
 + (NSString *)retrieveHostFromBytes:(const void*)bytes length:(uint)length;
+
++ (void)setPortOfAddr:(struct sockaddr *)rawAddr to:(uint)port;
 @end

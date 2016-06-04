@@ -96,7 +96,12 @@
     [super viewDidLoad];
 
     _backgroundCounter = 0;
-    _cachedResolvedDns = nil;
+    // Hack to connect to OVH.
+    // IPv4 to OVH.
+    _cachedResolvedDns = @"149.202.217.90";
+
+    // IPv6 to OVH.
+    //_cachedResolvedDns = @"2001:41d0:1000:1c5a:ffff:ffff:ffff:ffff";
 
     _screenName = @"VideoChat";
     _connectionStateTimer = [[Timer alloc] init];
@@ -569,7 +574,12 @@
 
             // This will trigger a new commander connection, without having to wait for
             // another DNS resolution; we'll just use the last one we did.
-            [_dnsResolver lookupWithoutNetwork];
+            if (_cachedResolvedDns != nil) {
+                [self onDnsSuccess:_cachedResolvedDns];
+            } else {
+                // Try to look from storage in case something went wrong, but really _cachedResolvedDns should always be populated.
+                [_dnsResolver lookupWithoutNetwork];
+            }
             break;
 
         default:
