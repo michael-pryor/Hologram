@@ -12,7 +12,7 @@
 
 static NSString *dnsSaveKey = @"previousDnsResolutions";
 //static NSString *lastResortResolution = @"192.168.1.92";
-static NSString *lastResortResolution = @"212.227.84.229";
+static NSString *lastResortResolution = @"149.202.217.90";
 
 @implementation DnsResolver : NSObject {
     Signal *_dnsLookupInProgress;
