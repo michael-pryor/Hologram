@@ -197,7 +197,8 @@ class Client(object):
 
         self.login_details = Client.LoginDetails(self.udp_hash, fullName, shortName, age, gender, interestedIn, longitude, latitude)
 
-        logger.info("Login processed with details, udp hash: [%s], full name: [%s], short name: [%s], age: [%d], gender [%d], interested in [%d], GPS: [(%d,%d)]" % (self.udp_hash, fullName, shortName, age, gender, interestedIn, longitude, latitude))
+        logger.debug("(Full details) Login processed with details, udp hash: [%s], full name: [%s], short name: [%s], age: [%d], gender [%d], interested in [%d], GPS: [(%d,%d)]" % (self.udp_hash, fullName, shortName, age, gender, interestedIn, longitude, latitude))
+        logger.info("Login processed with udp hash: [%s]; identifier: [%s/%d]" % (self.udp_hash, shortName, age))
         return Client.RejectCodes.SUCCESS, self.udp_hash
 
     def handleTcpPacket(self, packet):
