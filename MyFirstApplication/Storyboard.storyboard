@@ -164,7 +164,7 @@
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="cru-Hr-wOD" userLabel="First Responder" sceneMemberID="firstResponder"/>
-                <swipeGestureRecognizer direction="left" id="Sgw-EM-6X0">
+                <swipeGestureRecognizer cancelsTouchesInView="NO" delaysTouchesEnded="NO" direction="left" id="Sgw-EM-6X0">
                     <connections>
                         <action selector="onSwipeGesture:" destination="HPd-0g-j2K" id="R8X-X5-S5W"/>
                     </connections>

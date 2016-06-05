@@ -11,6 +11,7 @@
 #import "Threading.h"
 #import "ViewInteractions.h"
 
+#define MINIMUM_WAIT_TIME 3.0
 @implementation AlertViewController {
     IBOutlet UILabel *_alertShortText;
     Timer *_timerSinceAdvertCreated;
@@ -46,7 +47,7 @@
 
 
     // This frequency represents the maximum amount of time a user will be waiting for the advert to load.
-    _timerSinceAdvertCreated = [[Timer alloc] initWithFrequencySeconds:5.0 firingInitially:false];
+    _timerSinceAdvertCreated = [[Timer alloc] initWithFrequencySeconds:MINIMUM_WAIT_TIME firingInitially:false];
 
     _advertView = [[FBAdView alloc] initWithPlacementID:@"458360797698673_526756897525729"
                                                  adSize:kFBAdSizeHeight50Banner
@@ -99,10 +100,11 @@
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
+    [_timerSinceAdvertCreated setSecondsFrequency:MINIMUM_WAIT_TIME];
+    [_timerSinceAdvertCreated reset];
 
     dispatch_sync_main(^{
         NSLog(@"Alert view loaded, unhiding banner advert and setting delegate");
-        [_timerSinceAdvertCreated reset];
         [_localImageViewVisible clear];
         [_localImageView setAlpha:0.0f];
 
@@ -151,11 +153,6 @@
     dispatch_sync_main(^{
         NSLog(@"Banner has loaded, unhiding it");
         [ViewInteractions fadeIn:_advertBannerView completion:nil duration:0.5f];
-
-        // User must wait a minimum of 2 seconds extra while the advert is visible
-        // (giving them a chance to see it and click it).
-        [_timerSinceAdvertCreated reset];
-        [_timerSinceAdvertCreated setSecondsFrequency:2.0];
     });
 }
 
