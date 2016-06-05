@@ -452,6 +452,7 @@
                     <connections>
                         <outlet property="_advertBannerView" destination="utn-8v-zRu" id="UXp-8N-fvj"/>
                         <outlet property="_alertShortText" destination="MuE-y5-gsJ" id="7Df-1T-xIO"/>
+                        <outlet property="_backButton" destination="KCR-gg-Slb" id="kvc-AY-29V"/>
                         <outlet property="_localImageView" destination="4GO-A5-5zk" id="dcv-r8-ZWm"/>
                     </connections>
                 </viewController>

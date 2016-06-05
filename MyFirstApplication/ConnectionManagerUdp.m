@@ -224,7 +224,7 @@
         _primaryConnectAddressLength = 0;
         _allConnectAddresses = [_addressResolver retrieveAddressesFromHost:host withPort:port];
 
-        [self updatePrimaryConnectAddress:true];
+        [self updatePrimaryConnectAddress];
         _socketV4 = [self buildSocketWithDomain:AF_INET outDispatchSource:&_dispatchSourceV4];
         _socketV6 = [self buildSocketWithDomain:AF_INET6 outDispatchSource:&_dispatchSourceV6];
 
@@ -264,15 +264,8 @@
     }
 }
 
-- (bool)updatePrimaryConnectAddress:(bool)force {
-    if (!force && _primaryConnectAddress != nil) {
-        return true;
-    }
+- (bool)updatePrimaryConnectAddress {
     @synchronized (self) {
-        if (!force && _primaryConnectAddress != nil) {
-            return true;
-        }
-
         bool consumeNextOne = false;
         struct addrinfo *address;
         for (address = _allConnectAddresses; address != nil; address = address->ai_next) {
@@ -310,7 +303,7 @@
         if (result < 0) {
             if ([_sendFailureEventTracker increment]) {
                 @synchronized (self) {
-                    if (![self updatePrimaryConnectAddress:true]) {
+                    if (![self updatePrimaryConnectAddress]) {
                         [self onFailure];
                     } else {
                         [_sendFailureEventTracker reset];

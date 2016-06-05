@@ -100,12 +100,8 @@
     _hasHadAtLeastOneConversation = false;
 
     _backgroundCounter = 0;
-    // Hack to connect to OVH.
-    // IPv4 to OVH.
-    _cachedResolvedDns = @"149.202.217.90";
 
-    // IPv6 to OVH.
-    //_cachedResolvedDns = @"2001:41d0:1000:1c5a:ffff:ffff:ffff:ffff";
+    _cachedResolvedDns = nil;
 
     _screenName = @"VideoChat";
     _connectionStateTimer = [[Timer alloc] init];

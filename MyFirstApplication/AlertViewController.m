@@ -20,6 +20,8 @@
     __weak IBOutlet UIView *_advertBannerView; // The container which sizes it.
     FBAdView *_advertView; // The actual advert.
 
+    __weak IBOutlet UIButton *_backButton;
+    
     Signal *_localImageViewVisible;
 
     void(^_moveToFacebookViewControllerFunc)();
@@ -38,6 +40,9 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
 
+    // It should be shown at same time as camera, because it sits on top of camera.
+    [_backButton setHidden:true];
+    
     _moveToFacebookViewControllerFunc = nil;
     _shouldShowAdverts = false;
 
@@ -104,9 +109,10 @@
     [_timerSinceAdvertCreated reset];
 
     dispatch_sync_main(^{
-        NSLog(@"Alert view loaded, unhiding banner advert and setting delegate");
+        NSLog(@"Disconnect view controller loaded, unhiding banner advert and setting delegate");
         [_localImageViewVisible clear];
         [_localImageView setAlpha:0.0f];
+        [_backButton setHidden:false];
 
         // Use hidden flag on appear/disappear, in case it impacts decision to display adds.
         if (_shouldShowAdverts) {
@@ -121,8 +127,8 @@
         [_localImageView setAlpha:0.0f];
 
         // Pause the banner view, stop it loading new adverts.
-        NSLog(@"Alert view hidden, hiding banner advert and removing delegate");
-
+        NSLog(@"Disconnect view controller hidden, hiding banner advert and removing delegate");
+        [_backButton setHidden:true];
         [_advertBannerView setHidden:true];
     });
 }

@@ -48,7 +48,11 @@
     struct addrinfo *address;
     for (address = _result; address != nil; address = address->ai_next) {
         [NetworkUtility setPortOfAddr:address->ai_addr to:port];
-        totalSize++;
+        
+        // Important we discard anything else.
+        if (address->ai_family == AF_INET || address->ai_family == AF_INET6) {
+            totalSize++;
+        }
     }
 
     // If we have no results, then nothing to reorder.

@@ -11,7 +11,11 @@
 #import "Threading.h"
 
 static NSString *dnsSaveKey = @"previousDnsResolutions";
+
+// Local home server.
 //static NSString *lastResortResolution = @"192.168.1.92";
+
+// OVH server.
 static NSString *lastResortResolution = @"149.202.217.90";
 
 @implementation DnsResolver {
