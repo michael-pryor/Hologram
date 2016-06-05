@@ -36,21 +36,63 @@
     hints.ai_socktype = SOCK_DGRAM;
     hints.ai_flags = AI_DEFAULT;
 
+    // Retrieve list of applicable addresses, may include an IPv6 and IPv4 address.
+    // We always provide IPv4 at this stage.
     int error = getaddrinfo([hostName cStringUsingEncoding:NSUTF8StringEncoding], NULL, &hints, &_result);
     if (error) {
         return [self onError:error host:hostName port:port];
     }
 
     // AI_NUMERICSERV does not appear to work, so we do it manually.
-    struct addrinfo * address;
+    int totalSize = 0;
+    struct addrinfo *address;
     for (address = _result; address != nil; address = address->ai_next) {
         [NetworkUtility setPortOfAddr:address->ai_addr to:port];
+        totalSize++;
     }
+
+    // If we have no results, then nothing to reorder.
+    if (totalSize <= 1) {
+        return _result;
+    }
+
+    // Prefer IPV4 addresses, so reorder with them first.
+    //
+    // We do this because our server only supports IPV4, and we only support
+    // peer to peer on IPV4.
+    //
+    // I would change this, but my home network and cellular data provider doesn't
+    // even support IPV6 yet...
+    struct addrinfo **_reordered = malloc(sizeof(struct addrinfo *) * totalSize);
+    int n = 0;
+    for (address = _result; address != nil; address = address->ai_next) {
+        if (address->ai_family == AF_INET) {
+            _reordered[n] = address;
+            n++;
+        }
+    }
+
+    for (address = _result; address != nil; address = address->ai_next) {
+        if (address->ai_family != AF_INET) {
+            _reordered[n] = address;
+            n++;
+        }
+    }
+
+    _result = _reordered[0];
+    address = _result;
+    for (n = 1; n < totalSize-1; n++) {
+        address->ai_next = _reordered[n+1];
+        address = _reordered[n+1];
+    }
+    address->ai_next = nil;
+
+    free(_reordered);
 
     return _result;
 }
 
-- (struct addrinfo *)onError:(int)resultCode host:(NSString*)host port:(uint)port {
+- (struct addrinfo *)onError:(int)resultCode host:(NSString *)host port:(uint)port {
     NSLog(@"getaddrinfo error: %i", resultCode);
 
     memset(&_cachedBackupAddress, 0, sizeof(_cachedBackupAddress));
