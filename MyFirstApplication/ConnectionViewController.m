@@ -82,6 +82,8 @@
     uint _backgroundCounter;
     bool _isScreenInUse;
 
+    bool _hasHadAtLeastOneConversation;
+
     DnsResolver *_dnsResolver;
     NSString *_cachedResolvedDns;
 
@@ -94,6 +96,8 @@
 // Essentially this is the constructor.
 - (void)viewDidLoad {
     [super viewDidLoad];
+
+    _hasHadAtLeastOneConversation = false;
 
     _backgroundCounter = 0;
     // Hack to connect to OVH.
@@ -481,6 +485,10 @@
                 [_mediaController clearLocalImageDelegate];
                 [self prepareRuntimeView];
                 [[Analytics getInstance] pushScreenChange:_screenName];
+
+                if (!_hasHadAtLeastOneConversation) {
+                    _hasHadAtLeastOneConversation = true;
+                }
             }
         }
         [_cameraView setImage:image];
@@ -599,14 +607,21 @@
 
                 _disconnectViewController = (AlertViewController *) [storyboard instantiateViewControllerWithIdentifier:@"DisconnectAlertView"];
                 _disconnectViewController.view.frame = self.view.bounds;
+
+                if (_hasHadAtLeastOneConversation) {
+                    [_disconnectViewController enableAdverts];
+                }
+
                 __weak typeof(self) weakSelf = self;
                 __weak AlertViewController * weakViewController;
                 [_disconnectViewController setMoveToFacebookViewControllerFunc:^{
                    [weakSelf onGotoFbLogonViewButtonPress:weakViewController];
                 }];
+
                 if (_mediaController != nil) {
                     [_mediaController setLocalImageDelegate:_disconnectViewController];
                 }
+
                 [self addChildViewController:_disconnectViewController];
                 [self.view addSubview:_disconnectViewController.view];
             } else {

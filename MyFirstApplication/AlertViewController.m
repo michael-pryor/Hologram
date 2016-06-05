@@ -10,18 +10,20 @@
 #import "Timer.h"
 #import "Threading.h"
 #import "ViewInteractions.h"
-#import <Google/Analytics.h>
 
 @implementation AlertViewController {
     IBOutlet UILabel *_alertShortText;
     Timer *_timerSinceAdvertCreated;
     __weak IBOutlet UIImageView *_localImageView;
-    __weak IBOutlet ADBannerView *_bannerView;
+
+    __weak IBOutlet UIView *_advertBannerView; // The container which sizes it.
+    FBAdView *_advertView; // The actual advert.
+
     Signal *_localImageViewVisible;
 
-    // For google analytics.
-    NSString * _screenName;
     void(^_moveToFacebookViewControllerFunc)();
+
+    bool _shouldShowAdverts;
 }
 
 - (void)setAlertShortText:(NSString *)shortText longText:(NSString *)longText {
@@ -36,6 +38,7 @@
     [super viewDidLoad];
 
     _moveToFacebookViewControllerFunc = nil;
+    _shouldShowAdverts = false;
 
     _localImageViewVisible = [[Signal alloc] initWithFlag:false];
 
@@ -45,23 +48,70 @@
     // This frequency represents the maximum amount of time a user will be waiting for the advert to load.
     _timerSinceAdvertCreated = [[Timer alloc] initWithFrequencySeconds:5.0 firingInitially:false];
 
-    [_bannerView setAlpha:0.0f];
-    [_localImageView setAlpha:0.0f];
+    _advertView = [[FBAdView alloc] initWithPlacementID:@"458360797698673_526756897525729"
+                                                 adSize:kFBAdSizeHeight50Banner
+                                     rootViewController:self];
+
+    _advertView.delegate = self;
+    [_advertBannerView addSubview:_advertView];
+
+    _advertView.translatesAutoresizingMaskIntoConstraints = NO;
+
+    // Width constraint
+    [_advertBannerView addConstraint:[NSLayoutConstraint constraintWithItem:_advertView
+                                                                  attribute:NSLayoutAttributeWidth
+                                                                  relatedBy:NSLayoutRelationEqual
+                                                                     toItem:_advertBannerView
+                                                                  attribute:NSLayoutAttributeWidth
+                                                                 multiplier:1
+                                                                   constant:0]];
+
+    // Height constraint, must be 50 because we used adSize = kFBAdSizeHeight50Banner.
+    [_advertBannerView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:[_advertView(==50)]"
+                                                                              options:0
+                                                                              metrics:nil
+                                                                                views:NSDictionaryOfVariableBindings(_advertView)]];
+
+    // Center horizontally
+    [_advertBannerView addConstraint:[NSLayoutConstraint constraintWithItem:_advertView
+                                                                  attribute:NSLayoutAttributeCenterX
+                                                                  relatedBy:NSLayoutRelationEqual
+                                                                     toItem:_advertBannerView
+                                                                  attribute:NSLayoutAttributeCenterX
+                                                                 multiplier:1.0
+                                                                   constant:0.0]];
+
+    // Center vertically
+    [_advertBannerView addConstraint:[NSLayoutConstraint constraintWithItem:_advertView
+                                                                  attribute:NSLayoutAttributeBottom
+                                                                  relatedBy:NSLayoutRelationEqual
+                                                                     toItem:_advertBannerView
+                                                                  attribute:NSLayoutAttributeBottom
+                                                                 multiplier:1.0
+                                                                   constant:0.0]];
+
+    [_advertBannerView setAlpha:0.0f];
 }
 
-- (NSString*)getScreenName {
+- (NSString *)getScreenName {
     return @"Connecting";
 }
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
-    [_timerSinceAdvertCreated reset];
-    [_localImageViewVisible clear];
-    [_localImageView setAlpha:0.0f];
 
-    NSLog(@"Alert view loaded, unhiding banner advert and setting delegate");
-    _bannerView.delegate = self;
-    [_bannerView setHidden:false];
+    dispatch_sync_main(^{
+        NSLog(@"Alert view loaded, unhiding banner advert and setting delegate");
+        [_timerSinceAdvertCreated reset];
+        [_localImageViewVisible clear];
+        [_localImageView setAlpha:0.0f];
+
+        // Use hidden flag on appear/disappear, in case it impacts decision to display adds.
+        if (_shouldShowAdverts) {
+            [_advertBannerView setHidden:false];
+            [_advertView loadAd];
+        }
+    });
 }
 
 - (void)viewDidDisappear:(BOOL)animated {
@@ -70,9 +120,13 @@
 
         // Pause the banner view, stop it loading new adverts.
         NSLog(@"Alert view hidden, hiding banner advert and removing delegate");
-        _bannerView.delegate = nil;
-        [_bannerView setHidden:true];
+
+        [_advertBannerView setHidden:true];
     });
+}
+
+- (void)enableAdverts {
+    _shouldShowAdverts = true;
 }
 
 - (void)hideNow {
@@ -93,10 +147,10 @@
     return true;
 }
 
-- (void)bannerViewDidLoadAd:(ADBannerView *)banner {
+- (void)adViewDidLoad:(FBAdView *)adView; {
     dispatch_sync_main(^{
         NSLog(@"Banner has loaded, unhiding it");
-        [ViewInteractions fadeIn:_bannerView completion:nil duration:0.5f];
+        [ViewInteractions fadeIn:_advertBannerView completion:nil duration:0.5f];
 
         // User must wait a minimum of 2 seconds extra while the advert is visible
         // (giving them a chance to see it and click it).
@@ -105,10 +159,11 @@
     });
 }
 
-- (void)bannerView:(ADBannerView *)banner didFailToReceiveAdWithError:(NSError *)error {
+
+- (void)adView:(FBAdView *)adView didFailWithError:(NSError *)error; {
     dispatch_sync_main(^{
         NSLog(@"Failed to retrieve banner, hiding it; error is: %@", error);
-        [ViewInteractions fadeOut:_bannerView completion:nil duration:1.0f];
+        [ViewInteractions fadeOut:_advertBannerView completion:nil duration:1.0f];
 
         // Will not wait for banner to be displayed.
         [_timerSinceAdvertCreated setSecondsFrequency:0];
@@ -123,7 +178,7 @@
     }
 }
 
-- (void)setMoveToFacebookViewControllerFunc:(void(^)())moveToFacebookViewControllerFunc {
+- (void)setMoveToFacebookViewControllerFunc:(void (^)())moveToFacebookViewControllerFunc {
     _moveToFacebookViewControllerFunc = moveToFacebookViewControllerFunc;
 }
 

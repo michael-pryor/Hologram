@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		5103D2A21B55960B00B9593C /* HologramLogin.m in Sources */ = {isa = PBXBuildFile; fileRef = 5103D2A11B55960B00B9593C /* HologramLogin.m */; };
-		5109583B1BB32C5800319FA9 /* iAd.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5109583A1BB32C5800319FA9 /* iAd.framework */; };
 		510F6DF91BA74C1800D2AF48 /* AlertViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 510F6DF81BA74C1800D2AF48 /* AlertViewController.m */; };
 		511605F51B3EBE5D0071A183 /* NetworkUtility.m in Sources */ = {isa = PBXBuildFile; fileRef = 511605F41B3EBE5D0071A183 /* NetworkUtility.m */; };
 		511669F61CF3A8D100E561DF /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 511669F51CF3A8D100E561DF /* GoogleService-Info.plist */; };
@@ -42,6 +41,7 @@
 		5178E5F21CFE376B00D89AA6 /* libxml2.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 5178E5F11CFE376B00D89AA6 /* libxml2.tbd */; };
 		519573041AEBEB26000247E1 /* EventTracker.m in Sources */ = {isa = PBXBuildFile; fileRef = 519573031AEBEB26000247E1 /* EventTracker.m */; };
 		519FFBFC1C6FC9A3002717F0 /* CoreImage.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 519FFBFB1C6FC9A3002717F0 /* CoreImage.framework */; };
+		51A8DEC91D04324500171206 /* FBAudienceNetwork.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 51A8DEC81D04324500171206 /* FBAudienceNetwork.framework */; };
 		51BF42541A750CDB00C16F9A /* ConnectionGovernorProtocol.m in Sources */ = {isa = PBXBuildFile; fileRef = 51BF42531A750CDB00C16F9A /* ConnectionGovernorProtocol.m */; };
 		51C18D2B1A9A3882000C42A8 /* Batch.m in Sources */ = {isa = PBXBuildFile; fileRef = 51C18D2A1A9A3882000C42A8 /* Batch.m */; };
 		51C2638B1AB45CE400285C6E /* BlockingQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = 51C2638A1AB45CE400285C6E /* BlockingQueue.m */; };
@@ -166,6 +166,7 @@
 		519573031AEBEB26000247E1 /* EventTracker.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EventTracker.m; sourceTree = "<group>"; };
 		519FFBF91C6FB466002717F0 /* Hologram-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "Hologram-Info.plist"; sourceTree = "<group>"; };
 		519FFBFB1C6FC9A3002717F0 /* CoreImage.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreImage.framework; path = System/Library/Frameworks/CoreImage.framework; sourceTree = SDKROOT; };
+		51A8DEC81D04324500171206 /* FBAudienceNetwork.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FBAudienceNetwork.framework; path = frameworks/FBAudienceNetwork.framework; sourceTree = "<group>"; };
 		51BDB1491A6F0E7E00E0DA49 /* InputSessionBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InputSessionBase.h; sourceTree = "<group>"; };
 		51BDB14D1A6F121400E0DA49 /* ConnectionManagerBase.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ConnectionManagerBase.h; sourceTree = "<group>"; };
 		51BE77711C53EEF100492336 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = XCTest.framework; sourceTree = "<group>"; };
@@ -292,6 +293,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				51A8DEC91D04324500171206 /* FBAudienceNetwork.framework in Frameworks */,
 				5178E5F21CFE376B00D89AA6 /* libxml2.tbd in Frameworks */,
 				5178E5F01CFE366100D89AA6 /* FBSDKShareKit.framework in Frameworks */,
 				5178E5ED1CFE354700D89AA6 /* FBSDKCoreKit.framework in Frameworks */,
@@ -310,7 +312,6 @@
 				5121AFEF1C397448001D3E78 /* libiconv.tbd in Frameworks */,
 				5121AFED1C397403001D3E78 /* libbz2.tbd in Frameworks */,
 				5121AFEB1C3973B1001D3E78 /* libz.tbd in Frameworks */,
-				5109583B1BB32C5800319FA9 /* iAd.framework in Frameworks */,
 				511E725B1B544484006F8D9A /* CoreLocation.framework in Frameworks */,
 				51E5BE241936A982003E45C3 /* CoreGraphics.framework in Frameworks */,
 				511EB6601B4B01C7000E287F /* Bolts.framework in Frameworks */,
@@ -488,6 +489,7 @@
 		51E5BE201936A982003E45C3 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				51A8DEC81D04324500171206 /* FBAudienceNetwork.framework */,
 				5178E5F11CFE376B00D89AA6 /* libxml2.tbd */,
 				5178E5EF1CFE366100D89AA6 /* FBSDKShareKit.framework */,
 				5178E5EB1CFE354700D89AA6 /* FBSDKCoreKit.framework */,
