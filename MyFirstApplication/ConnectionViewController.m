@@ -741,12 +741,12 @@
     float fadeOutDuration = 2.0f;
     float delay=3.0f;
     [ViewInteractions fadeInOut:_swipeTutorialSkip completion:^void(BOOL finishedSkip) {
-        if (!finishedSkip) {
+        if (!finishedSkip || _disconnectViewController != nil) {
             return;
         }
 
         [ViewInteractions fadeInOut:_swipeTutorialChangeSettings completion:^void(BOOL finishedChangeSettings) {
-            if (!finishedChangeSettings) {
+            if (!finishedChangeSettings || _disconnectViewController != nil) {
                 return;
             }
 
@@ -776,12 +776,12 @@
     [ViewInteractions fadeIn:_cameraView completion:nil duration:1.0f];
 
     [ViewInteractions fadeIn:_ownerName completion:^(BOOL completed) {
-        if (!completed) {
+        if (!completed || _disconnectViewController != nil) {
             return;
         }
 
         [ViewInteractions fadeIn:_ownerAge completion:^(BOOL completedNext) {
-            if (!completedNext) {
+            if (!completedNext || _disconnectViewController != nil) {
                 return;
             }
             [ViewInteractions fadeIn:_remoteDistance completion:nil duration:2.0f];
@@ -789,7 +789,7 @@
     }               duration:2.0f];
 
     [ViewInteractions fadeIn:_remoteName completion:^(BOOL completed) {
-        if (!completed) {
+        if (!completed || _disconnectViewController != nil) {
             return;
         }
         [ViewInteractions fadeIn:_remoteAge completion:nil duration:2.0f];

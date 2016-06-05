@@ -76,8 +76,7 @@
 
     if (![[NSUserDefaults standardUserDefaults] boolForKey:@"permissionsExplanationShown"]) {
         UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Hologram Permissions" message:
-                        @"Please grant Hologram access to your device's camera and microphone so that you can start video chatting.\n\nPlease also allow Hologram to access your current location; we use this to try and match you with users in your area."
-
+                        @"Hologram needs access to your camera, microphone and location so that it can setup video conversations with people in your area."
                                                        delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"I am happy with this!", nil];
         dispatch_sync_main(^{
             [alert show];
