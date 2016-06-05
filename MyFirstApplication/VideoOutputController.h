@@ -30,7 +30,7 @@
 
 - (void)startCapturing;
 
-- (void)stopCapturing;
+- (bool)stopCapturing;
 
 - (void)resetInbound;
 

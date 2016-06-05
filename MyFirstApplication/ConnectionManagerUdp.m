@@ -120,16 +120,6 @@
     }
 }
 
-- (void)closeBySocket:(int)socket {
-    @synchronized(self) {
-        if (socket == _socketV4) {
-            [self closeIPV4];
-        } else {
-            [self closeIPV6];
-        }
-    }
-}
-
 - (void)shutdown {
     [self close];
 }
@@ -152,6 +142,7 @@
     [self onRecvFromSocket:_socketV6 addressStructure:(struct sockaddr *) &recvAddress addressStructureSize:sizeof(recvAddress)];
 }
 
+// No need for synchronization here, we don't update dependant data structures unless sockets are closed.
 - (void)onRecvFromSocket:(int)socket addressStructure:(struct sockaddr *)recvAddress addressStructureSize:(uint)recvAddressSize{
     // dispatch_source_get_data seems to always return 1 after we switch the host we send/receive data to/from.
     // so this looks like a bug.

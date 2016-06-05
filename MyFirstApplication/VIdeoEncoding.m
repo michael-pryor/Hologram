@@ -53,13 +53,13 @@
             }
 
             if (device == nil) {
-                NSLog(@"No video output device found matching specification, defaulting to first in list");
-                device = devices[0];
-            }
-
-            if (device == nil) {
-                NSLog(@"No video output devices found");
-                return nil;
+                if ([devices count] > 0) {
+                    NSLog(@"No video output device found matching specification, defaulting to first in list");
+                    device = devices[0];
+                } else {
+                    NSLog(@"No video output devices found, failure to setup video");
+                    return nil;
+                }
             }
 
             // From the device, create an AVCaptureDeviceInput.

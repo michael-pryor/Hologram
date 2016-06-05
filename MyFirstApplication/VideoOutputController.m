@@ -14,6 +14,7 @@
 #import "Timer.h"
 #import "DecodingPipe.h"
 #import "TimedCounterLogging.h"
+#import "Threading.h"
 
 @implementation PacketToImageProcessor {
     id <NewImageDelegate> _newImageDelegate;
@@ -76,12 +77,16 @@
     Timer *_fpsTracker;
     uint _fpsCount;
 
+    bool _resumeAfterInterruptionFinished;
+
 }
 - (id)initWithUdpNetworkOutputSession:(id <NewPacketDelegate>)udpNetworkOutputSession imageDelegate:(id <NewImageDelegate>)newImageDelegate mediaDataLossNotifier:(id <MediaDataLossNotifier>)mediaDataLossNotifier leftPadding:(uint)leftPadding loopbackEnabled:(bool)loopbackEnabled {
     self = [super init];
     if (self) {
         _loopbackEnabled = loopbackEnabled;
         _localImageDelegate = nil;
+
+        _resumeAfterInterruptionFinished = false;
 
         if (_loopbackEnabled) {
             // Use the local image delegate, when that is loaded.
@@ -115,7 +120,15 @@
 
         _batcherOutput = [[BatcherOutput alloc] initWithOutputSession:_encodingPipeVideo leftPadding:leftPadding];
 
-        _captureSession = [_videoEncoder setupCaptureSessionWithDelegate:self];
+
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(captureSessionDidStopRunning:)
+                                                     name:AVCaptureSessionDidStopRunningNotification
+                                                   object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(captureSessionError:)
+                                                     name:AVCaptureSessionRuntimeErrorNotification
+                                                   object:nil];
+
+        [self prepareVideoCaptureSession];
 
         _mediaDataLossNotifier = mediaDataLossNotifier;
 
@@ -123,8 +136,24 @@
 
         _fpsTracker = [[Timer alloc] initWithFrequencySeconds:1 firingInitially:false];
         _fpsCount = 0;
+
     }
     return self;
+}
+
+- (void)prepareVideoCaptureSession {
+    @synchronized (self) {
+        _captureSession = [_videoEncoder setupCaptureSessionWithDelegate:self];
+
+        // We have seen failures to prepare the video capture session, this is a fail safe to keep retrying,
+        // because we need it in order to be operational.
+        __weak VideoOutputController *weakSelf = self;
+        if (_captureSession == nil) {
+            dispatch_async_main(^{
+                [weakSelf prepareVideoCaptureSession];
+            }, 1000);
+        }
+    }
 }
 
 - (void)setOutputSession:(id <NewPacketDelegate>)newPacketDelegate {
@@ -152,12 +181,51 @@
     }
 }
 
-- (void)stopCapturing {
+- (bool)stopCapturing {
     @synchronized (self) {
         if ([_isRunning clear]) {
             NSLog(@"Stopped video recording...");
             [_captureSession stopRunning];
+            return true;
         }
+        return false;
+    }
+}
+
+- (void)captureSessionDidStopRunning:(NSNotification *)notification {
+    @synchronized (self) {
+        if([_isRunning clear]) {
+            NSLog(@"Video capture session stopped, flag is out of sync, corrected");
+            // Don't attempt to restart here because if in background will infinitely loop as OS stops us.
+        }
+    }
+}
+
+- (void)attemptStart {
+    @synchronized (self) {
+        __weak VideoOutputController *weakSelf = self;
+        if (_captureSession == nil) {
+            dispatch_async_main(^{
+                [weakSelf startCapturing];
+            }, 1000);
+        }
+    }
+}
+
+- (void)captureSessionError:(NSNotification *)notification {
+    @synchronized (self) {
+        NSError *error = [notification userInfo][AVCaptureSessionErrorKey];
+        NSString *description;
+        if (error != nil) {
+            description = [error localizedDescription];
+        } else {
+            description = @"[unknown]";
+        }
+
+        NSLog(@"Video capture session failed with error: [%@], attempting to start again", description);
+
+        [_isRunning clear];
+        [self attemptStart];
     }
 }
 

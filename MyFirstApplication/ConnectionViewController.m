@@ -123,7 +123,7 @@
     // But because we know the application is going to be terminated, we don't care
     // about recovering.
     _accessDialog = [[AccessDialog alloc] initWithFailureAction:^{
-        [self terminateCurrentSession:true];
+        [self terminateCurrentSession];
     }];
 
     _skipPersonPacket = [[ByteBuffer alloc] init];
@@ -153,7 +153,7 @@
 
 // Permanently close our session on the server, disconnect and stop media input/output.
 // In order to resume, we need to reconnect to commander and get a brand new session.
-- (void)terminateCurrentSession:(bool)stopVideo {
+- (void)terminateCurrentSession {
     // Notify server that we want to fully disconnect; server will close connection when it receives
     // notification. This prevents end point from thinking this could be a temporary disconnect.
     if (_connection != nil && _isConnectionActive) {
@@ -170,9 +170,7 @@
 
     // Terminate microphone and video.
     [_mediaController stop];
-    if (stopVideo) {
-        [_mediaController stopVideo];
-    }
+    [_mediaController stopVideo];
 }
 
 // View disappears; happens if user switches app or moves from a different view controller.
@@ -185,7 +183,7 @@
         _isScreenInUse = false;
     });
 
-    [self stop:true];
+    [self stop];
 }
 
 // Doesn't terminate the session, remains connected but pauses media input/output
@@ -207,8 +205,7 @@
             NSLog(@"Pausing operation because inactive for too long");
             [_resumeAfterBecomeActive signalAll];
 
-            // Don't terminate video, we were having problems with this...
-            [self stop:false];
+            [self stop];
 
             NSLog(@"Returned");
         }
@@ -235,7 +232,7 @@
     [super viewDidAppear:animated];
 
     // A sanity call, in case anything was left running while we went away.
-    [self terminateCurrentSession:true];
+    [self terminateCurrentSession];
 
     _isScreenInUse = true;
     [self start];
@@ -286,8 +283,8 @@
     }
 }
 
-- (void)stop:(bool)stopVideo {
-    [self terminateCurrentSession:stopVideo];
+- (void)stop {
+    [self terminateCurrentSession];
 
     [_videoDataLossAnalytics pause];
     [_audioDataLossAnalytics pause];
