@@ -15,8 +15,6 @@
 
 - (id)initWithName:(NSString *)humanName maxQueueSize:(unsigned long)maxSize;
 
-- (id)initWithName:(NSString *)humanName maxQueueSize:(unsigned long)maxSize minQueueSizeLowerBound:(unsigned long)minSizeLower minQueueSizeUpperBound:(unsigned long)minSizeUpper;
-
 - (uint)add:(id)obj;
 
 - (uint)addObject:(id)obj atPosition:(int)position;
@@ -37,7 +35,8 @@
 
 - (int)size;
 
-- (void)enableUniqueConstraint;
+// Protected methods:
+- (void)onSizeChange:(uint)size;
 
-- (void)setupEventTracker:(CFAbsoluteTime)frequency;
+- (id)getImmediate:(double)timeoutSeconds;
 @end

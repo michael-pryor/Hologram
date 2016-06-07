@@ -14,39 +14,17 @@
     NSMutableArray *_queue;
     Boolean _queueShutdown;
     unsigned long _maxQueueSize;
-    unsigned long _minQueueSizeLower;
-    unsigned long _minQueueSizeUpper;
-
-    TimedGapEventTracker *_eventTracker;
-
-    bool _uniqueConstraintEnabled;
 }
-- (id)initWithName:(NSString *)humanName maxQueueSize:(unsigned long)maxSize {
-    return [self initWithName:humanName maxQueueSize:maxSize minQueueSizeLowerBound:0 minQueueSizeUpperBound:0];
-}
-
-- (id)initWithName:(NSString *)humanName maxQueueSize:(unsigned long)maxSize minQueueSizeLowerBound:(unsigned long)minSizeLower minQueueSizeUpperBound:(unsigned long)minSizeUpper {
+- (id)initWithName:(NSString *)humanName maxQueueSize:(unsigned long)maxSize{
     self = [super init];
     if (self) {
         _queue = [[NSMutableArray alloc] init];
         _lock = [[NSCondition alloc] init];
         _queueShutdown = false;
         _maxQueueSize = maxSize;
-        _minQueueSizeLower = minSizeLower;
-        _minQueueSizeUpper = minSizeUpper;
-        _eventTracker = nil;
-        _uniqueConstraintEnabled = false;
         _name = humanName;
     }
     return self;
-}
-
-- (void)enableUniqueConstraint {
-    _uniqueConstraintEnabled = true;
-}
-
-- (void)setupEventTracker:(CFAbsoluteTime)frequency {
-    _eventTracker = [[TimedGapEventTracker alloc] initWithResetFrequency:frequency];
 }
 
 - (id)init {
@@ -67,40 +45,30 @@
         _queueShutdown = true;
     }
 
-    if (_uniqueConstraintEnabled && [_queue containsObject:obj]) {
-        NSLog(@"(%@) Ignored duplicate insertion due to unique constraint being enabled", _name);
+
+    if (_maxQueueSize > 0 && [_queue count] >= _maxQueueSize) {
+        NSLog(@"(%@) Removing item from queue, breached maximum queue size of: %lu", _name, _maxQueueSize);
+
+        // Remove object from start of array.
+        [_queue removeObjectAtIndex:0];
+    }
+
+    // Add to end of array.
+    if (position < 0) {
+        [_queue addObject:obj];
     } else {
-        if (_maxQueueSize > 0 && [_queue count] >= _maxQueueSize) {
-            NSLog(@"(%@) Removing item from queue, breached maximum queue size of: %lu", _name, _maxQueueSize);
-
-            // Remove object from start of array.
-            [_queue removeObjectAtIndex:0];
-        }
-
-        // Add to end of array.
-        if (position < 0) {
+        // Will get NSRangeException if not enough space to accommodate insertObject:atIndex:
+        if (position >= [_queue count]) {
             [_queue addObject:obj];
         } else {
-            // Will get NSRangeException if not enough space to accommodate insertObject:atIndex:
-            if (position >= [_queue count]) {
-                [_queue addObject:obj];
-            } else {
-                [_queue insertObject:obj atIndex:(uint) position];
-            }
-        }
-
-        [self onSizeChange:[_queue count]];
-        if ([_queue count] >= _minQueueSizeUpper) {
-            [_lock signal];
+            [_queue insertObject:obj atIndex:(uint) position];
         }
     }
 
-    uint returnVal;
-    if (_eventTracker != nil) {
-        returnVal = [_eventTracker increment];
-    } else {
-        returnVal = [_queue count];
-    }
+    [self onSizeChange:[_queue count]];
+    [_lock signal];
+
+    uint returnVal = [_queue count];
 
     [_lock unlock];
     return returnVal;
@@ -117,7 +85,7 @@
     }
 
     [_lock lock];
-    while (_queue.count == 0 || _queue.count < _minQueueSizeLower) {
+    while (_queue.count == 0) {
         if (timeoutSeconds <= -1) {
             [_lock wait];
         } else if (timeoutSeconds == 0) {

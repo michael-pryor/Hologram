@@ -87,6 +87,7 @@
 		D5D6165B63794F0F27DDF979 /* AudioPcmConversion.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61FC56AFD47784849F7C2 /* AudioPcmConversion.m */; };
 		D5D6172203880B4EF5E0208A /* TimedCounter.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61836CE9E34E7AFC359A6 /* TimedCounter.m */; };
 		D5D61758C6E0646D1277A88C /* AudioUnitHelpers.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61D42394687AAC5C21FB8 /* AudioUnitHelpers.m */; };
+		D5D617D21FA6360C6525B632 /* AverageTrackerLimitedSize.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D618CA3E0E47943592842C /* AverageTrackerLimitedSize.m */; };
 		D5D618074CD0B5BEA7144104 /* AudioShared.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61B2954C519324141BCE0 /* AudioShared.m */; };
 		D5D6184FBB9A864226D0235D /* TimedMinMaxTracker.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61DA3C9FA2DFD20EDDA21 /* TimedMinMaxTracker.m */; };
 		D5D6192DFC855EFECF623757 /* AccessDialog.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61D7435CE35550C2AB293 /* AccessDialog.m */; };
@@ -256,9 +257,11 @@
 		D5D6164D3A71EE25A47432E8 /* BlockingQueueTemporal.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BlockingQueueTemporal.m; sourceTree = "<group>"; };
 		D5D6164EA8372CB5753B9B4D /* AudioSessionInteractions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AudioSessionInteractions.h; sourceTree = "<group>"; };
 		D5D616DDC50392E321D8B26A /* TimedCounterLogging.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TimedCounterLogging.h; sourceTree = "<group>"; };
+		D5D616F4004A03BFE96D87B5 /* AverageTrackerLimitedSize.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AverageTrackerLimitedSize.h; sourceTree = "<group>"; };
 		D5D617E1AB2467E773411B25 /* MediaShared.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MediaShared.h; sourceTree = "<group>"; };
 		D5D61829DC4A7512B689E307 /* BatchSizeGeneratorTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BatchSizeGeneratorTest.m; sourceTree = "<group>"; };
 		D5D61836CE9E34E7AFC359A6 /* TimedCounter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TimedCounter.m; sourceTree = "<group>"; };
+		D5D618CA3E0E47943592842C /* AverageTrackerLimitedSize.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AverageTrackerLimitedSize.m; sourceTree = "<group>"; };
 		D5D618DEAA6848DAB2BE2ADC /* Analytics.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Analytics.m; sourceTree = "<group>"; };
 		D5D619128899048FAEF6B7A4 /* Analytics.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Analytics.h; sourceTree = "<group>"; };
 		D5D61923E1F12385A8AA014E /* ViewInteractions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ViewInteractions.h; sourceTree = "<group>"; };
@@ -618,6 +621,8 @@
 				D5D615E7302D6D8F19FB32D1 /* BlockingQueueTemporal.h */,
 				D5D61DA3C9FA2DFD20EDDA21 /* TimedMinMaxTracker.m */,
 				D5D61ACAA18C40334DAAB46A /* TimedMinMaxTracker.h */,
+				D5D616F4004A03BFE96D87B5 /* AverageTrackerLimitedSize.h */,
+				D5D618CA3E0E47943592842C /* AverageTrackerLimitedSize.m */,
 			);
 			name = Util;
 			sourceTree = "<group>";
@@ -890,6 +895,7 @@
 				D5D614411E4E71114170D04A /* Analytics.m in Sources */,
 				D5D61FB357145EB97BA61493 /* DnsResolver.m in Sources */,
 				D5D615C5390466834791C72C /* IPV6Resolver.m in Sources */,
+				D5D617D21FA6360C6525B632 /* AverageTrackerLimitedSize.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

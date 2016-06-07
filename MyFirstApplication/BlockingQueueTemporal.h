@@ -10,6 +10,4 @@
 
 @interface BlockingQueueTemporal : BlockingQueue
 - (id)initWithName:(NSString *)name maxQueueSize:(uint)maxQueueSize trackerResetFrequencySeconds:(CFAbsoluteTime)resetFrequency minimumThreshold:(uint)minimumThreshold sequenceGapNotifier:(id<SequenceGapNotification>)sequenceGapNotifier;
-
-- (void)onSizeChange:(uint)count;
 @end
