@@ -70,7 +70,7 @@
 
 - (void)setMinimumDelay:(CFAbsoluteTime)delay {
     _delay = delay;
-    //NSLog(@"Minimum delay changed to %.2f", delay);
+    NSLog(@"Video delay changed to %.2f second", delay);
 }
 
 

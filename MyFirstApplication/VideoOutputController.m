@@ -61,6 +61,8 @@
 
     BatcherInput *_batcherInput;                       // Join up networked packets into one image.
 
+    DelayedPipe *_syncWithAudio;
+
     SequenceDecodingPipe *_dataLossDetector;          // Inspects the batch ID (without moving the cursor),
     // in order to detect data loss i.e. missing batches.
 
@@ -101,7 +103,7 @@
 
         _packetToImageProcessor = [[PacketToImageProcessor alloc] initWithImageDelegate:newImageDelegate encoder:_videoEncoder];
 
-        DelayedPipe *_syncWithAudio = [[DelayedPipe alloc] initWithMinimumDelay:0.1 outputSession:_packetToImageProcessor];
+        _syncWithAudio = [[DelayedPipe alloc] initWithMinimumDelay:0.1 outputSession:_packetToImageProcessor];
 
         _batcherInput = [[BatcherInput alloc] initWithOutputSession:_syncWithAudio timeoutMs:1000];
         _dataLossDetector = [[SequenceDecodingPipe alloc] initWithOutputSession:_batcherInput sequenceGapNotification:self shouldMoveCursor:false];
@@ -139,6 +141,11 @@
 
     }
     return self;
+}
+
+- (void)setVideoDelayMs:(uint)videoDelay {
+    NSLog(@"Video delay set to %dms", videoDelay);
+    [_syncWithAudio setMinimumDelay:((float)videoDelay) / 1000.0];
 }
 
 - (void)prepareVideoCaptureSession {

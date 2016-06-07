@@ -12,20 +12,32 @@
 @implementation BlockingQueueTemporal {
     TimedMinMaxTracker *_tracker;
     uint _minimumThreshold;
-    id<SequenceGapNotification> _sequenceGapNotifier;
+    id <SequenceGapNotification> _sequenceGapNotifier;
+    id <TimeInQueueNotification> _timeInQueueNotifier;
+
+    Timer *_timeInQueueNotifierTimer;
+
     BlockingQueue *_timeTrackers;
     AverageTrackerLimitedSize *_averageTimeInQueueTrackerMs;
+    uint _maxQueueSize;
 }
-- (id)initWithName:(NSString *)name maxQueueSize:(uint)maxQueueSize trackerResetFrequencySeconds:(CFAbsoluteTime)resetFrequency minimumThreshold:(uint)minimumThreshold sequenceGapNotifier:(id<SequenceGapNotification>)sequenceGapNotifier {
+- (id)initWithName:(NSString *)name maxQueueSize:(uint)maxQueueSize trackerResetFrequencySeconds:(CFAbsoluteTime)resetFrequency minimumThreshold:(uint)minimumThreshold sequenceGapNotifier:(id <SequenceGapNotification>)sequenceGapNotifier timeInQueueNotifier:(id <TimeInQueueNotification>)timeInQueueNotifier timeInQueueNotifierFrequency:(CFAbsoluteTime)frequency {
     self = [super initWithName:name maxQueueSize:maxQueueSize];
     if (self) {
         _tracker = [[TimedMinMaxTracker alloc] initWithResetFrequencySeconds:resetFrequency startingValue:_minimumThreshold];
         _minimumThreshold = minimumThreshold;
-        _sequenceGapNotifier = sequenceGapNotifier;
 
-        // Track average time in queue over last 5 seconds.
-        _averageTimeInQueueTrackerMs = [[AverageTrackerLimitedSize alloc] initWithMaxSize:10];
-        _timeTrackers = [[BlockingQueue alloc] init];
+        _sequenceGapNotifier = sequenceGapNotifier;
+        _timeInQueueNotifier = timeInQueueNotifier;
+
+        _maxQueueSize = maxQueueSize;
+
+        // Track average time in the queue.
+        if (timeInQueueNotifier != nil) {
+            _timeInQueueNotifierTimer = [[Timer alloc] initWithFrequencySeconds:frequency firingInitially:true];
+            _averageTimeInQueueTrackerMs = [[AverageTrackerLimitedSize alloc] initWithMaxSize:10];
+            _timeTrackers = [[BlockingQueue alloc] initWithName:[NSString stringWithFormat:@"[time tracker] %@", name] maxQueueSize:_maxQueueSize];
+        }
     }
     return self;
 }
@@ -33,6 +45,15 @@
 - (void)onSizeChange:(uint)count {
     TimedMinMaxTrackerResult result;
     bool populatedResult;
+
+    if (_timeTrackers != nil) {
+        if ([_timeInQueueNotifierTimer getState]) {
+            double averageTimeInQueue = [_averageTimeInQueueTrackerMs getWeightedAverage];
+            if (_timeInQueueNotifier != nil) {
+                [_timeInQueueNotifier onTimeInQueueNotification:(uint) averageTimeInQueue];
+            }
+        }
+    }
 
     [_tracker onValue:count result:&result hasResult:&populatedResult];
     if (populatedResult) {
@@ -43,23 +64,43 @@
             }
             [self clear];
         } else {
-            NSLog(@"(%@) Successfully validated queue (%2.fms average time). It is within minimum threshold %u over last %.1f seconds (max = %u, min = %u)", [self name], [_averageTimeInQueueTrackerMs getWeightedAverage], _minimumThreshold, [_tracker getFrequencySeconds], result.max, result.min);
+            NSLog(@"(%@) Successfully validated queue. It is within minimum threshold %u over last %.1f seconds (max = %u, min = %u)", [self name], _minimumThreshold, [_tracker getFrequencySeconds], result.max, result.min);
         }
     }
 }
 
 - (uint)addObject:(id)obj atPosition:(int)position {
-    [_timeTrackers addObject:[[Timer alloc] init] atPosition:position];
+    if (_timeTrackers != nil) {
+        [_timeTrackers addObject:[[Timer alloc] init] atPosition:position];
+    }
     return [super addObject:obj atPosition:position];
 }
 
--(id)getImmediate:(double)timeoutSeconds {
+- (id)getImmediate:(double)timeoutSeconds {
     id result = [super getImmediate:timeoutSeconds];
-    if (result == nil) {
-        return nil;
+
+    if (_timeTrackers != nil) {
+        if (result == nil) {
+            return nil;
+        }
+
+        Timer *_timer = [_timeTrackers get];
+        [_averageTimeInQueueTrackerMs addValue:(uint) ([_timer getSecondsSinceLastTick] * 1000.0)];
     }
-    Timer * _timer = [_timeTrackers get];
-    [_averageTimeInQueueTrackerMs addValue:(uint)([_timer getSecondsSinceLastTick] * 1000.0)];
     return result;
+}
+
+- (void)clear {
+    // We clear like this to solve synchronization issues.
+    if (_timeTrackers != nil) {
+        int numCleared = 0;
+        while ([self getImmediate] != nil && numCleared < _maxQueueSize) {
+            numCleared++;
+        }
+        return;
+    }
+
+    // Otherwise, we can just clear normally.
+    [super clear];
 }
 @end

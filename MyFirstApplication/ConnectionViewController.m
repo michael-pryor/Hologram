@@ -694,7 +694,13 @@
 }
 
 - (void)onMediaDataLossFromSender:(MediaType)mediaType {
-    dispatch_sync_main(^{
+    // Must be async to avoid deadlock.
+    //
+    // Specifically, we may send a data loss notification from within an audio priority queue serving the speaker.
+    // At the same time, we may attempt to shut down the audio I/O (including this speaker) from the main thread.
+    // The main thread would wait for the speaker to finish, which needs the audio priority queue to release, so
+    // both are waiting for each other forever!
+    dispatch_async_main(^{
         if (mediaType == VIDEO) {
             NSLog(@"Data loss for video!");
             [ViewInteractions fadeInOut:_dcVideo completion:nil options:UIViewAnimationOptionBeginFromCurrentState];
@@ -710,7 +716,7 @@
         } else {
             NSLog(@"Unknown data loss type");
         }
-    });
+    },0);
 }
 
 

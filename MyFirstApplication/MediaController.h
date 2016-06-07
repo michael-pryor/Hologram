@@ -12,8 +12,9 @@
 #import "Batch.h"
 #import "VideoOutputController.h"
 #import "SequenceDecodingPipe.h"
+#import "BlockingQueueTemporal.h"
 
-@interface MediaController : NSObject <NewPacketDelegate, SequenceGapNotification>
+@interface MediaController : NSObject <NewPacketDelegate, SequenceGapNotification, TimeInQueueNotification>
 - (id)initWithImageDelegate:(id <NewImageDelegate>)newImageDelegate mediaDataLossNotifier:(id <MediaDataLossNotifier>)mediaDataLossNotifier;
 
 - (void)resetSendRate;

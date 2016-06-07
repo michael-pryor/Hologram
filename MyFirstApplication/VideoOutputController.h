@@ -39,4 +39,6 @@
 - (void)clearLocalImageDelegate;
 
 - (void)setOutputSession:(id <NewPacketDelegate>)newPacketDelegate;
+
+- (void)setVideoDelayMs:(uint)videoDelay;
 @end

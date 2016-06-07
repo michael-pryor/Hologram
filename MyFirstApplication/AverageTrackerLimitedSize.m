@@ -3,12 +3,9 @@
 //
 
 #import "AverageTrackerLimitedSize.h"
-#import "Timer.h"
-#import "BlockingQueue.h"
 
 @implementation AverageTrackerLimitedSize {
-    BlockingQueue *_blockingQueue;
-    uint * times;
+    uint *_times;
     uint _total;
     uint _currentIndex;
     uint _timesSize;
@@ -18,12 +15,25 @@
 - (id)initWithMaxSize:(uint)sizeLimit {
     self = [super init];
     if (self) {
-        times = malloc(sizeof(uint) * sizeLimit);
         _timesSize = sizeLimit;
+        _times = malloc(sizeof(uint) * _timesSize);
+        memset(_times, 0, sizeof(uint) * _timesSize);
+        _total = 0;
         _numItems = 0;
-        memset(times, 0, sizeof(uint) * sizeLimit);
     }
     return self;
+}
+
+- (void)dealloc {
+    free(_times);
+}
+
+- (void)clear {
+    @synchronized (self) {
+        memset(_times, 0, sizeof(uint) * _timesSize);
+        _total = 0;
+        _numItems = 0;
+    }
 }
 
 - (void)addValue:(uint)value {
@@ -32,8 +42,8 @@
             _currentIndex = 0;
         }
 
-        _total -= times[_currentIndex];
-        times[_currentIndex] = value;
+        _total -= _times[_currentIndex];
+        _times[_currentIndex] = value;
         _total += value;
 
         _currentIndex++;
@@ -46,7 +56,11 @@
 
 - (double)getWeightedAverage {
     @synchronized (self) {
-        return (double)_total / (double)_numItems;
+        if (_numItems == 0) {
+            return 0;
+        }
+
+        return (double) _total / (double) _numItems;
     }
 }
 

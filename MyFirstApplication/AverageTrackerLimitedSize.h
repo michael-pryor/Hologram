@@ -13,4 +13,6 @@
 - (void)addValue:(uint)value;
 
 - (double)getWeightedAverage;
+
+- (void)clear;
 @end

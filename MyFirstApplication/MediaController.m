@@ -22,7 +22,7 @@
 
     // Audio
     EncodingPipe *_encodingPipeAudio;
-    AudioGraph *_audioMicrophone;
+    AudioGraph *_audioGraph;
 
     SequenceEncodingPipe *_audioSequenceEncodingPipe;
     SequenceDecodingPipe *_audioSequenceDecodingPipe;
@@ -58,10 +58,10 @@
             _encodingPipeAudio = nil;
         }
 
-        _audioMicrophone = [[AudioGraph alloc] initWithOutputSession:_encodingPipeAudio leftPadding:leftPadding + sizeof(uint16_t) sequenceGapNotifier:self];
-        _audioSequenceDecodingPipe = [[SequenceDecodingPipe alloc] initWithOutputSession:_audioMicrophone sequenceGapNotification:self];
+        _audioGraph = [[AudioGraph alloc] initWithOutputSession:_encodingPipeAudio leftPadding:leftPadding + sizeof(uint16_t) sequenceGapNotifier:self timeInQueueNotifier:self];
+        _audioSequenceDecodingPipe = [[SequenceDecodingPipe alloc] initWithOutputSession:_audioGraph sequenceGapNotification:self];
         [_decodingPipe addPrefix:AUDIO_ID mappingToOutputSession:_audioSequenceDecodingPipe];
-        [_audioMicrophone initialize];
+        [_audioGraph initialize];
     }
     return self;
 }
@@ -82,7 +82,7 @@
         _started = true;
 
         NSLog(@"Starting video recording and microphone");
-        [_audioMicrophone start];
+        [_audioGraph start];
 
         // We discard out of order batches based on keeping track of the batch ID.
         // We need to reset this when moving to the next person.
@@ -99,7 +99,7 @@
 
         // Don't stop the video because we use that in disconnect screen too.
         NSLog(@"Stopping microphone and speaker");
-        [_audioMicrophone stop];
+        [_audioGraph stop];
     }
 }
 
@@ -141,13 +141,17 @@
     if (sender == _audioSequenceDecodingPipe) {
         NSLog(@"Gap size of %u for audio", gapSize);
         [_mediaDelayNotifier onMediaDataLossFromSender:AUDIO];
-    } else if (sender == _audioMicrophone) {
+    } else if (sender == _audioGraph) {
         NSLog(@"Audio reset detected of approximately %d items", gapSize);
         [_mediaDelayNotifier onMediaDataLossFromSender:AUDIO_QUEUE_RESET];
     } else {
-        NSLog(@"Gap size of %u for video", gapSize);
-        [_mediaDelayNotifier onMediaDataLossFromSender:VIDEO];
+        NSLog(@"Unknown media data loss sender");
     }
+}
+
+// Receive notification from audio on how much delay there is.
+- (void)onTimeInQueueNotification:(uint)timeInQueueMs {
+    [_videoOutputController setVideoDelayMs:timeInQueueMs];
 }
 
 

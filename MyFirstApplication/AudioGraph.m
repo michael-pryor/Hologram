@@ -108,7 +108,7 @@ static OSStatus audioOutputPullCallback(
     bool _isInitialized;
 }
 
-- (id)initWithOutputSession:(id <NewPacketDelegate>)outputSession leftPadding:(uint)leftPadding sequenceGapNotifier:(id <SequenceGapNotification>)sequenceGapNotifier {
+- (id)initWithOutputSession:(id <NewPacketDelegate>)outputSession leftPadding:(uint)leftPadding sequenceGapNotifier:(id <SequenceGapNotification>)sequenceGapNotifier timeInQueueNotifier:(id <TimeInQueueNotification>)timeInQueueNotifier{
     self = [super init];
     if (self) {
         // Store options for later.
@@ -130,7 +130,7 @@ static OSStatus audioOutputPullCallback(
         _audioCompression = nil;
         _audioPcmConversionMicrophoneToTransit = nil;
         _audioPcmConversionTransitToSpeaker = nil;
-        _pendingOutputToSpeaker = buildAudioQueue(@"conversion PCM transit to speaker outbound", sequenceGapNotifier);
+        _pendingOutputToSpeaker = buildAudioQueueEx(@"conversion PCM transit to speaker outbound", self, timeInQueueNotifier);
 
         _audioInputAudioBufferList = initializeAudioBufferListSingle(4096, 1);
         _audioInputAudioBufferOriginalSize = _audioInputAudioBufferList.mBuffers[0].mDataByteSize;
@@ -304,10 +304,10 @@ static OSStatus audioOutputPullCallback(
 
 - (void)initializeConverters {
     // Prepare converters.
-    BlockingQueue *sharedDecompressionOutboundPcmInboundQueue = buildAudioQueue(@"Decompression AAC outbound / PCM conversion inbound transit to speaker", _sequenceGapNotifier);
-    _audioCompression = [[AudioCompression alloc] initWithUncompressedAudioFormat:_audioFormatTransit uncompressedAudioFormatEx:_audioFormatSpeakerEx outputSession:_outputSession leftPadding:_leftPadding outboundQueue:sharedDecompressionOutboundPcmInboundQueue sequenceGapNotifier:_sequenceGapNotifier];
-    _audioPcmConversionMicrophoneToTransit = [[AudioPcmConversion alloc] initWithDescription:@"microphone to transit" inputFormat:_audioFormatMicrophone outputFormat:_audioFormatTransit outputFormatEx:_audioFormatTransitEx outputResult:[[AudioPcmMicrophoneToTransitConverter alloc] initWithAudioCompression:_audioCompression queue:sharedDecompressionOutboundPcmInboundQueue compressionEnabled:_aacCompressionEnabled] inboundQueue:nil sequenceGapNotifier:_sequenceGapNotifier];
-    _audioPcmConversionTransitToSpeaker = [[AudioPcmConversion alloc] initWithDescription:@"transit to speaker" inputFormat:_audioFormatTransit outputFormat:_audioFormatSpeaker outputFormatEx:_audioFormatSpeakerEx outputResult:self inboundQueue:sharedDecompressionOutboundPcmInboundQueue sequenceGapNotifier:_sequenceGapNotifier];
+    BlockingQueue *sharedDecompressionOutboundPcmInboundQueue = buildAudioQueue(@"Decompression AAC outbound / PCM conversion inbound transit to speaker", self);
+    _audioCompression = [[AudioCompression alloc] initWithUncompressedAudioFormat:_audioFormatTransit uncompressedAudioFormatEx:_audioFormatSpeakerEx outputSession:_outputSession leftPadding:_leftPadding outboundQueue:sharedDecompressionOutboundPcmInboundQueue sequenceGapNotifier:self];
+    _audioPcmConversionMicrophoneToTransit = [[AudioPcmConversion alloc] initWithDescription:@"microphone to transit" inputFormat:_audioFormatMicrophone outputFormat:_audioFormatTransit outputFormatEx:_audioFormatTransitEx outputResult:[[AudioPcmMicrophoneToTransitConverter alloc] initWithAudioCompression:_audioCompression queue:sharedDecompressionOutboundPcmInboundQueue compressionEnabled:_aacCompressionEnabled] inboundQueue:nil sequenceGapNotifier:self];
+    _audioPcmConversionTransitToSpeaker = [[AudioPcmConversion alloc] initWithDescription:@"transit to speaker" inputFormat:_audioFormatTransit outputFormat:_audioFormatSpeaker outputFormatEx:_audioFormatSpeakerEx outputResult:self inboundQueue:sharedDecompressionOutboundPcmInboundQueue sequenceGapNotifier:self];
 
     // Start threads.
     [_audioCompression initialize];

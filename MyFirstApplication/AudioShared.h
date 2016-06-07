@@ -9,6 +9,7 @@
 
 @class BlockingQueue;
 @protocol SequenceGapNotification;
+@protocol TimeInQueueNotification;
 
 void printAudioBufferList(AudioBufferList *audioList, NSString *description);
 
@@ -32,5 +33,7 @@ void printAudioBufferList(AudioBufferList *audioList, NSString *description);
 @protocol AudioDataPipeline
 - (void)onNewAudioData:(AudioDataContainer *)audioData;
 @end
+
+BlockingQueue *buildAudioQueueEx(NSString *name, id <SequenceGapNotification> sequenceGapNotifier, id<TimeInQueueNotification> timeInQueueNotifier);
 
 BlockingQueue *buildAudioQueue(NSString *name, id <SequenceGapNotification> sequenceGapNotifier);
