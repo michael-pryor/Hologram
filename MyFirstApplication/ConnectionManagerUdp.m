@@ -14,6 +14,7 @@
 #import <netdb.h>
 #include "NetworkUtility.h"
 #include "IPV6Resolver.h"
+#include "Signal.h"
 
 @implementation ConnectionManagerUdp {
     int _socketV4; // IP version 4
@@ -35,6 +36,10 @@
     IPV6Resolver *_addressResolver;
 
     struct addrinfo *_allConnectAddresses;
+
+    Signal *_closingNotInProgress;
+    Signal *_openingNotInProgress;
+    Signal *_connectAddressNotUpdating;
 }
 
 - (id)initWithNewPacketDelegate:(id <NewPacketDelegate>)newPacketDelegate newUnknownPacketDelegate:(id <NewUnknownPacketDelegate>)newUnknownPacketDelegate connectionDelegate:(id <ConnectionStatusDelegateUdp>)connectionDelegate retryCount:(uint)retryCountMax {
@@ -55,6 +60,10 @@
         _allConnectAddresses = nil;
         _primaryConnectAddress = nil;
         _primaryConnectAddressLength = 0;
+
+        _closingNotInProgress = [[Signal alloc] initWithFlag:true];
+        _openingNotInProgress = [[Signal alloc] initWithFlag:true];
+        _connectAddressNotUpdating = [[Signal alloc] initWithFlag:true];
     }
     return self;
 }
@@ -64,16 +73,15 @@
 }
 
 - (int)getSocket {
-    @synchronized (self) {
-        if ([self isUsingIPV4]) {
-            return _socketV4;
-        } else {
-            return _socketV6;
-        }
+    if ([self isUsingIPV4]) {
+        return _socketV4;
+    } else {
+        return _socketV6;
     }
 }
 
 - (bool)isUsingIPV4 {
+    [_connectAddressNotUpdating wait];
     return _primaryConnectAddress->sa_family == AF_INET;
 }
 
@@ -86,38 +94,20 @@
 }
 
 - (void)close {
-    @synchronized (self) {
-        if ([self isConnected] && _dispatchSourceV4 != nil) {
-            NSLog(@"UDP - Closing socket");
-            [self closeIPV4];
-            [self closeIPV6];
-
-        }
-    }
-}
-
-- (void)closeIPV4 {
-    @synchronized (self) {
-        if (_socketV4 == 0) {
-            return;
-        }
+    [_closingNotInProgress wait];
+    if ([self isConnected] && _dispatchSourceV4 != nil) {
+        NSLog(@"UDP - Closing socket");
+        [_closingNotInProgress clear];
 
         dispatch_source_cancel(_dispatchSourceV4);
         close(_socketV4);
         _socketV4 = 0;
-    }
-}
-
-- (void)closeIPV6 {
-    @synchronized (self) {
-        if (_socketV6 == 0) {
-            return;
-        }
 
         dispatch_source_cancel(_dispatchSourceV6);
         close(_socketV6);
         _socketV6 = 0;
     }
+    [_closingNotInProgress signalAll];
 }
 
 - (void)shutdown {
@@ -125,9 +115,7 @@
 }
 
 - (Boolean)isConnected {
-    @synchronized (self) {
-        return _socketV4 != 0;
-    }
+    return _socketV4 != 0;
 }
 
 - (void)onRecvIPV4 {
@@ -143,7 +131,7 @@
 }
 
 // No need for synchronization here, we don't update dependant data structures unless sockets are closed.
-- (void)onRecvFromSocket:(int)socket addressStructure:(struct sockaddr *)recvAddress addressStructureSize:(uint)recvAddressSize{
+- (void)onRecvFromSocket:(int)socket addressStructure:(struct sockaddr *)recvAddress addressStructureSize:(uint)recvAddressSize {
     // dispatch_source_get_data seems to always return 1 after we switch the host we send/receive data to/from.
     // so this looks like a bug.
     //
@@ -190,7 +178,6 @@
         } else {
             NSLog(@"Dropping unknown data in unknown mode: %i", recvAddress->sa_family);
         }
-
     }
 }
 
@@ -215,23 +202,29 @@
 }
 
 - (void)connectToHost:(NSString *)host andPort:(ushort)port {
-    @synchronized (self) {
-        [self close];
+    [self close];
 
-        [_sendFailureEventTracker reset];
+    [_sendFailureEventTracker reset];
 
-        _primaryConnectAddress = nil;
-        _primaryConnectAddressLength = 0;
-        _allConnectAddresses = [_addressResolver retrieveAddressesFromHost:host withPort:port];
+    [_connectAddressNotUpdating clear];
+    _primaryConnectAddress = nil;
+    _primaryConnectAddressLength = 0;
+    _allConnectAddresses = [_addressResolver retrieveAddressesFromHost:host withPort:port];
+    [_connectAddressNotUpdating signalAll];
 
-        [self updatePrimaryConnectAddress];
-        _socketV4 = [self buildSocketWithDomain:AF_INET outDispatchSource:&_dispatchSourceV4];
-        _socketV6 = [self buildSocketWithDomain:AF_INET6 outDispatchSource:&_dispatchSourceV6];
+    // Termination of socket happens asynchronously, make sure we don't reconnect
+    // midway through termination.
+    [_closingNotInProgress wait];
+    [_openingNotInProgress clear];
 
-        [_connectionDelegate connectionStatusChangeUdp:U_CONNECTED withDescription:@"Successfully connected"];
+    [self updatePrimaryConnectAddress];
+    _socketV4 = [self buildSocketWithDomain:AF_INET outDispatchSource:&_dispatchSourceV4];
+    _socketV6 = [self buildSocketWithDomain:AF_INET6 outDispatchSource:&_dispatchSourceV6];
 
-        NSLog(@"UDP - Connected socket to host %@ and port %u", host, port);
-    }
+    [_openingNotInProgress signalAll];
+
+    [_connectionDelegate connectionStatusChangeUdp:U_CONNECTED withDescription:@"Successfully connected"];
+    NSLog(@"UDP - Connected socket to host %@ and port %u", host, port);
 }
 
 - (void)onNewPacket:(ByteBuffer *)buffer fromProtocol:(ProtocolType)protocol {
@@ -258,56 +251,64 @@
     [self sendBuffer:buffer toPreparedAddress:inet_addr([address UTF8String]) toPreparedPort:htons(port)];
 }
 
+- (void)copyConnectAddress:(struct sockaddr *)outConnectAddress length:(uint *)outConnectAddressLength {
+    [_connectAddressNotUpdating wait];
+    *outConnectAddress = *_primaryConnectAddress;
+    *outConnectAddressLength = _primaryConnectAddressLength;
+}
+
 - (void)sendBuffer:(ByteBuffer *)buffer {
     if ([self isConnected]) {
-        [self sendBuffer:buffer toAddress:_primaryConnectAddress addressLength:_primaryConnectAddressLength];
+        struct sockaddr primaryConnectAddress;
+        uint primaryConnectAddressLength;
+        [self copyConnectAddress:&primaryConnectAddress length:&primaryConnectAddressLength];
+
+        [self sendBuffer:buffer toAddress:&primaryConnectAddress addressLength:primaryConnectAddressLength];
     }
 }
 
 - (bool)updatePrimaryConnectAddress {
-    @synchronized (self) {
-        bool consumeNextOne = false;
-        struct addrinfo *address;
-        for (address = _allConnectAddresses; address != nil; address = address->ai_next) {
-            if (_primaryConnectAddress == nil) {
-                consumeNextOne = true;
-            } else if (address->ai_addr == _primaryConnectAddress) {
-                consumeNextOne = true;
-                continue;
-            }
-            if (!consumeNextOne) {
-                continue;
-            }
+    [_connectAddressNotUpdating clear];
 
-            _primaryConnectAddress = address->ai_addr;
-            _primaryConnectAddressLength = address->ai_addrlen;
-            return true;
+    bool consumeNextOne = false;
+    struct addrinfo *address;
+    for (address = _allConnectAddresses; address != nil; address = address->ai_next) {
+        if (_primaryConnectAddress == nil) {
+            consumeNextOne = true;
+        } else if (address->ai_addr == _primaryConnectAddress) {
+            consumeNextOne = true;
+            continue;
+        }
+        if (!consumeNextOne) {
+            continue;
         }
 
-        return false;
+        _primaryConnectAddress = address->ai_addr;
+        _primaryConnectAddressLength = address->ai_addrlen;
+        return true;
     }
 
+    [_connectAddressNotUpdating signalAll];
+
+    return false;
 }
 
 - (void)sendBuffer:(ByteBuffer *)buffer toAddress:(struct sockaddr *)address addressLength:(uint)length {
     dispatch_sync(_gcdSendingQueue, ^{
         long result;
-        @synchronized (self) {
-            if (![self isConnected]) {
-                return;
-            }
-            [NetworkUtility isEqualAddress:address address:address];
-            result = sendto([self getSocket], [buffer buffer], [buffer bufferUsedSize], 0, address, length);
+        if (![self isConnected]) {
+            return;
         }
+        [_openingNotInProgress wait];
+
+        result = sendto([self getSocket], [buffer buffer], [buffer bufferUsedSize], 0, address, length);
 
         if (result < 0) {
             if ([_sendFailureEventTracker increment]) {
-                @synchronized (self) {
-                    if (![self updatePrimaryConnectAddress]) {
-                        [self onFailure];
-                    } else {
-                        [_sendFailureEventTracker reset];
-                    }
+                if (![self updatePrimaryConnectAddress]) {
+                    [self onFailure];
+                } else {
+                    [_sendFailureEventTracker reset];
                 }
             } else {
                 int err = errno;
