@@ -40,6 +40,7 @@
     @synchronized (self) {
         if (_currentIndex >= _timesSize) {
             _currentIndex = 0;
+            NSLog(@"Wrapped around");
         }
 
         _total -= _times[_currentIndex];

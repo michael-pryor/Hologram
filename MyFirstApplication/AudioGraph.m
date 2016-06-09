@@ -3,6 +3,7 @@
 //
 
 #import "SequenceDecodingPipe.h"
+#import "BlockingQueueTemporal.h"
 #import "AudioGraph.h"
 #import "SoundEncodingShared.h"
 
@@ -104,11 +105,16 @@ static OSStatus audioOutputPullCallback(
     Signal *_isRegisteredWithNotificationCentre;
 
     id <SequenceGapNotification> _sequenceGapNotifier;
+    id <TimeInQueueNotification> _timeInQueueNotifier;
+
+    Signal *_syncInProgress;
+    dispatch_queue_t _syncGcdQueue;
+    Timer *_syncMaxFrequency;
 
     bool _isInitialized;
 }
 
-- (id)initWithOutputSession:(id <NewPacketDelegate>)outputSession leftPadding:(uint)leftPadding sequenceGapNotifier:(id <SequenceGapNotification>)sequenceGapNotifier timeInQueueNotifier:(id <TimeInQueueNotification>)timeInQueueNotifier{
+- (id)initWithOutputSession:(id <NewPacketDelegate>)outputSession leftPadding:(uint)leftPadding sequenceGapNotifier:(id <SequenceGapNotification>)sequenceGapNotifier timeInQueueNotifier:(id <TimeInQueueNotification>)timeInQueueNotifier {
     self = [super init];
     if (self) {
         // Store options for later.
@@ -127,10 +133,12 @@ static OSStatus audioOutputPullCallback(
         // Initialize data structures.
         _isInitialized = false;
 
+        _syncGcdQueue = dispatch_queue_create("SyncGcdQueue", NULL);
+
         _audioCompression = nil;
         _audioPcmConversionMicrophoneToTransit = nil;
         _audioPcmConversionTransitToSpeaker = nil;
-        _pendingOutputToSpeaker = buildAudioQueueEx(@"conversion PCM transit to speaker outbound", self, timeInQueueNotifier);
+        _pendingOutputToSpeaker = buildAudioQueueEx(@"conversion PCM transit to speaker outbound", self, self);
 
         _audioInputAudioBufferList = initializeAudioBufferListSingle(4096, 1);
         _audioInputAudioBufferOriginalSize = _audioInputAudioBufferList.mBuffers[0].mDataByteSize;
@@ -143,6 +151,10 @@ static OSStatus audioOutputPullCallback(
         _isRegisteredWithNotificationCentre = [[Signal alloc] initWithFlag:false];
 
         _sequenceGapNotifier = sequenceGapNotifier;
+        _timeInQueueNotifier = timeInQueueNotifier;
+
+        _syncInProgress = [[Signal alloc] initWithFlag:false];
+        _syncMaxFrequency = [[Timer alloc] initWithFrequencySeconds:0.5 firingInitially:true];
 
         [self buildAudioUnit];
     }
@@ -402,7 +414,7 @@ static OSStatus audioOutputPullCallback(
             size_t estimatedSize = inNumberFrames * audioController->_audioFormatSpeaker.mBytesPerFrame;
             size_t actualSize = ioData->mBuffers[0].mDataByteSize;
             if (estimatedSize != actualSize) {
-                NSLog(@"Mismatch, num frames = %u, estimated size = %lu, byte size = %lu", (unsigned int)inNumberFrames, estimatedSize, actualSize);
+                NSLog(@"Mismatch, num frames = %u, estimated size = %lu, byte size = %lu", (unsigned int) inNumberFrames, estimatedSize, actualSize);
 
                 // Fix the number frames so that the audio compression continues to work properly regardless.
                 inNumberFrames = actualSize / audioController->_audioFormatSpeaker.mBytesPerFrame;
@@ -410,7 +422,7 @@ static OSStatus audioOutputPullCallback(
         }
 
         if (ioData->mNumberBuffers > 1) {
-            NSLog(@"Number of buffers is greater than 1, not supported, value is: %u", (unsigned int)ioData->mNumberBuffers);
+            NSLog(@"Number of buffers is greater than 1, not supported, value is: %u", (unsigned int) ioData->mNumberBuffers);
             return kAudioConverterErr_UnspecifiedError;
         }
 
@@ -464,7 +476,7 @@ static OSStatus audioOutputPullCallback(
                         // Validation.
                         audioBufferList = [audioController->bufferAvailableContainer audioList];
                         if (audioBufferList->mNumberBuffers != 1) {
-                            NSLog(@"Decompressed audio buffer must have only 1 buffer, actually has: %u", (unsigned int)audioBufferList->mNumberBuffers);
+                            NSLog(@"Decompressed audio buffer must have only 1 buffer, actually has: %u", (unsigned int) audioBufferList->mNumberBuffers);
                             return kAudioConverterErr_UnspecifiedError;
                         }
 
@@ -501,28 +513,45 @@ static OSStatus audioOutputPullCallback(
     return noErr;
 }
 
-- (void)start {
-    if (![_isRunning signalAll]) {
-        return;
-    }
+- (bool)start {
+    @synchronized (self) {
+        if (![_isRunning signalAll]) {
+            return false;
+        }
 
-    OSStatus status = AudioOutputUnitStart(_ioAudioUnit);
-    if (![self validateResult:status description:@"starting graph"]) {
-        [_isRunning clear];
+        OSStatus status = AudioOutputUnitStart(_ioAudioUnit);
+        if (![self validateResult:status description:@"starting graph"]) {
+            [_isRunning clear];
+            return false;
+        }
+
+        return true;
     }
 }
 
-- (void)stop {
-    if (![_isRunning clear]) {
-        return;
-    }
+- (bool)stop {
+    return [self stop:true];
+}
 
-    OSStatus status = AudioOutputUnitStop(_ioAudioUnit);
-    if (![self validateResult:status description:@"stopping graph"]) {
-        [_isRunning signalAll];
-    }
+- (bool)stop:(bool)external {
+    @synchronized (self) {
+        if (![_isRunning clear]) {
+            return false;
+        }
 
-    [self reset];
+        if (external) {
+            [_syncInProgress clear];
+        }
+
+        OSStatus status = AudioOutputUnitStop(_ioAudioUnit);
+        if (![self validateResult:status description:@"stopping graph"]) {
+            [_isRunning signalAll];
+            return false;
+        }
+
+        [self reset];
+        return true;
+    }
 }
 
 - (bool)isRunning {
@@ -564,7 +593,7 @@ static OSStatus audioOutputPullCallback(
 - (void)audioRouteChangeListenerCallback:(NSNotification *)notification {
     NSDictionary *interruptionDict = notification.userInfo;
     NSInteger routeChangeReason = [[interruptionDict valueForKey:AVAudioSessionRouteChangeReasonKey] integerValue];
-    NSLog(@"Audio route change, with reason: %ld", (long)routeChangeReason);
+    NSLog(@"Audio route change, with reason: %ld", (long) routeChangeReason);
 
     if (routeChangeReason != AVAudioSessionRouteChangeReasonNewDeviceAvailable && routeChangeReason != AVAudioSessionRouteChangeReasonOldDeviceUnavailable) {
         return;
@@ -578,6 +607,38 @@ static OSStatus audioOutputPullCallback(
     [self reset]; // Empty intermediate queues.
     [self initialize]; // Reinitialize all audio.
     [self start]; // Unpause audio.
+}
+
+- (void)onTimeInQueueNotification:(uint)timeInQueueMs {
+    if (timeInQueueMs > 100 && [_syncMaxFrequency getState] && [_syncInProgress signalAll]) {
+
+        dispatch_async(_syncGcdQueue, ^{
+            [self stop:false];
+
+            // + 20 to enforce 20 second delay, we are screwed if we go over, so 20ms is a good compromise.
+            uint timeLagMs = 10;
+            if (timeLagMs > timeInQueueMs) {
+                return;
+            }
+
+            uint adjustedTimeMs = timeInQueueMs - timeLagMs;
+
+            NSLog(@"Pausing speaker for %dms in order to reduce latency", adjustedTimeMs);
+            if (_sequenceGapNotifier != nil) {
+                [_sequenceGapNotifier onSequenceGap:adjustedTimeMs fromSender:self];
+            }
+
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, adjustedTimeMs * NSEC_PER_MSEC), _syncGcdQueue, ^{
+                if (![_syncInProgress clear]) {
+                    return;
+                }
+                [_syncMaxFrequency reset];
+                [self start];
+            });
+        });
+    }
+
+    [_timeInQueueNotifier onTimeInQueueNotification:timeInQueueMs];
 }
 
 @end

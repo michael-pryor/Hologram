@@ -35,7 +35,7 @@
         // Track average time in the queue.
         if (timeInQueueNotifier != nil) {
             _timeInQueueNotifierTimer = [[Timer alloc] initWithFrequencySeconds:frequency firingInitially:true];
-            _averageTimeInQueueTrackerMs = [[AverageTrackerLimitedSize alloc] initWithMaxSize:10];
+            _averageTimeInQueueTrackerMs = [[AverageTrackerLimitedSize alloc] initWithMaxSize:125];
             _timeTrackers = [[BlockingQueue alloc] initWithName:[NSString stringWithFormat:@"[time tracker] %@", name] maxQueueSize:_maxQueueSize];
         }
     }
