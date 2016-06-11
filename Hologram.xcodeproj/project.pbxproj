@@ -93,6 +93,7 @@
 		D5D6192DFC855EFECF623757 /* AccessDialog.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61D7435CE35550C2AB293 /* AccessDialog.m */; };
 		D5D619A16A87A131135803C1 /* AudioSessionInteractions.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61422E8EE480CC5AAEF87 /* AudioSessionInteractions.m */; };
 		D5D61B5A48A0CB843806AA65 /* TimedCounterLogging.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D6114D7017CFB660E7BE53 /* TimedCounterLogging.m */; };
+		D5D61BB3C8D9E23D68765691 /* ReadWriteLock.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D6152266A86BEEEF16A5DD /* ReadWriteLock.m */; };
 		D5D61CBB3513E39935B73FDC /* CustomNavigationController.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61A72597479299B065AE4 /* CustomNavigationController.m */; };
 		D5D61CBEDFE3FFE1F6EE3C44 /* BatchSizeGenerator.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61FA523774C1B712EA210 /* BatchSizeGenerator.m */; };
 		D5D61D398DD2CB59B9FE1684 /* SoundEncodingShared.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61453B416B66B682A844C /* SoundEncodingShared.m */; };
@@ -238,6 +239,7 @@
 		D5D6111A027A5BE9BECAA5C2 /* DnsResolver.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DnsResolver.h; sourceTree = "<group>"; };
 		D5D6114D7017CFB660E7BE53 /* TimedCounterLogging.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TimedCounterLogging.m; sourceTree = "<group>"; };
 		D5D61207BC64C4E6C3132C20 /* AudioGraph.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AudioGraph.m; sourceTree = "<group>"; };
+		D5D61251762F6DA462F666E0 /* ReadWriteLock.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ReadWriteLock.h; sourceTree = "<group>"; };
 		D5D612C8E5F02C628B3B7961 /* VideoCompression.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VideoCompression.h; sourceTree = "<group>"; };
 		D5D612CDFF7D57CACE8B1BE6 /* AccessDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AccessDialog.h; sourceTree = "<group>"; };
 		D5D6133CC60B37AAACCADD40 /* VideoCompression.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = VideoCompression.m; sourceTree = "<group>"; };
@@ -249,6 +251,7 @@
 		D5D6142C892CC20B2A5702AB /* VIdeoEncoding.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = VIdeoEncoding.m; sourceTree = "<group>"; };
 		D5D61453B416B66B682A844C /* SoundEncodingShared.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SoundEncodingShared.m; sourceTree = "<group>"; };
 		D5D614574A26A6FB6BB7F913 /* AudioGraph.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AudioGraph.h; sourceTree = "<group>"; };
+		D5D6152266A86BEEEF16A5DD /* ReadWriteLock.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ReadWriteLock.m; sourceTree = "<group>"; };
 		D5D6153226E3E1A425BAF293 /* DelayedPipe.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DelayedPipe.h; sourceTree = "<group>"; };
 		D5D615BDBC1FD01C40CEEF84 /* AudioCompression.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AudioCompression.h; sourceTree = "<group>"; };
 		D5D615E2A5F1E15DC186FC94 /* BatchSizeGenerator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BatchSizeGenerator.h; sourceTree = "<group>"; };
@@ -623,6 +626,8 @@
 				D5D61ACAA18C40334DAAB46A /* TimedMinMaxTracker.h */,
 				D5D616F4004A03BFE96D87B5 /* AverageTrackerLimitedSize.h */,
 				D5D618CA3E0E47943592842C /* AverageTrackerLimitedSize.m */,
+				D5D6152266A86BEEEF16A5DD /* ReadWriteLock.m */,
+				D5D61251762F6DA462F666E0 /* ReadWriteLock.h */,
 			);
 			name = Util;
 			sourceTree = "<group>";
@@ -896,6 +901,7 @@
 				D5D61FB357145EB97BA61493 /* DnsResolver.m in Sources */,
 				D5D615C5390466834791C72C /* IPV6Resolver.m in Sources */,
 				D5D617D21FA6360C6525B632 /* AverageTrackerLimitedSize.m in Sources */,
+				D5D61BB3C8D9E23D68765691 /* ReadWriteLock.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

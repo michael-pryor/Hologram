@@ -15,6 +15,7 @@
 #include "NetworkUtility.h"
 #include "IPV6Resolver.h"
 #include "Signal.h"
+#include "ReadWriteLock.h"
 
 @implementation ConnectionManagerUdp {
     int _socketV4; // IP version 4
@@ -39,7 +40,9 @@
 
     Signal *_closingNotInProgress;
     Signal *_openingNotInProgress;
-    Signal *_connectAddressNotUpdating;
+
+    // Critical section of _allConnectAddresses, _primaryConnectAddress and _primaryConnectAddressLength.
+    ReadWriteLock *_connectAddressRwLock;
 }
 
 - (id)initWithNewPacketDelegate:(id <NewPacketDelegate>)newPacketDelegate newUnknownPacketDelegate:(id <NewUnknownPacketDelegate>)newUnknownPacketDelegate connectionDelegate:(id <ConnectionStatusDelegateUdp>)connectionDelegate retryCount:(uint)retryCountMax {
@@ -63,7 +66,7 @@
 
         _closingNotInProgress = [[Signal alloc] initWithFlag:true];
         _openingNotInProgress = [[Signal alloc] initWithFlag:true];
-        _connectAddressNotUpdating = [[Signal alloc] initWithFlag:true];
+        _connectAddressRwLock = [[ReadWriteLock alloc] init];
     }
     return self;
 }
@@ -81,8 +84,12 @@
 }
 
 - (bool)isUsingIPV4 {
-    [_connectAddressNotUpdating wait];
-    return _primaryConnectAddress->sa_family == AF_INET;
+    [_connectAddressRwLock lockForReading];
+    @try {
+        return _primaryConnectAddress->sa_family == AF_INET;
+    } @finally {
+        [_connectAddressRwLock unlock];
+    }
 }
 
 - (void)onFailure {
@@ -160,12 +167,17 @@
     [_recvBuffer setUsedSize:(uint) realAmountReceived];
 
     //NSLog(@"UDP - Received packet of size: %ul", [_recvBuffer bufferUsedSize]);
-    struct addrinfo *address;
-    for (address = _allConnectAddresses; address != nil; address = address->ai_next) {
-        if ([NetworkUtility isEqualAddress:address->ai_addr address:recvAddress]) {
-            [_newPacketDelegate onNewPacket:_recvBuffer fromProtocol:UDP];
-            return;
+    [_connectAddressRwLock lockForReading];
+    @try {
+        struct addrinfo *address;
+        for (address = _allConnectAddresses; address != nil; address = address->ai_next) {
+            if ([NetworkUtility isEqualAddress:address->ai_addr address:recvAddress]) {
+                [_newPacketDelegate onNewPacket:_recvBuffer fromProtocol:UDP];
+                return;
+            }
         }
+    } @finally {
+        [_connectAddressRwLock unlock];
     }
 
     // If is IP4 we can do NAT punchthrough.
@@ -185,7 +197,7 @@
     int socketRef = socket(domain, SOCK_DGRAM, 0);
     dispatch_source_t dispatchSource = dispatch_source_create(DISPATCH_SOURCE_TYPE_READ, (uintptr_t) socketRef, 0, _gcdReceivingQueue);
 
-    if ([self isUsingIPV4]) {
+    if (domain == AF_INET) {
         dispatch_source_set_event_handler(dispatchSource, ^{
             [self onRecvIPV4];
         });
@@ -206,18 +218,21 @@
 
     [_sendFailureEventTracker reset];
 
-    [_connectAddressNotUpdating clear];
-    _primaryConnectAddress = nil;
-    _primaryConnectAddressLength = 0;
-    _allConnectAddresses = [_addressResolver retrieveAddressesFromHost:host withPort:port];
-    [_connectAddressNotUpdating signalAll];
-
     // Termination of socket happens asynchronously, make sure we don't reconnect
     // midway through termination.
     [_closingNotInProgress wait];
     [_openingNotInProgress clear];
 
-    [self updatePrimaryConnectAddress];
+    [_connectAddressRwLock lockForWriting];
+    @try {
+        _primaryConnectAddress = nil;
+        _primaryConnectAddressLength = 0;
+        _allConnectAddresses = [_addressResolver retrieveAddressesFromHost:host withPort:port];
+        [self updatePrimaryConnectAddress];
+    } @finally {
+        [_connectAddressRwLock unlock];
+    }
+
     _socketV4 = [self buildSocketWithDomain:AF_INET outDispatchSource:&_dispatchSourceV4];
     _socketV6 = [self buildSocketWithDomain:AF_INET6 outDispatchSource:&_dispatchSourceV6];
 
@@ -252,9 +267,13 @@
 }
 
 - (void)copyConnectAddress:(struct sockaddr *)outConnectAddress length:(uint *)outConnectAddressLength {
-    [_connectAddressNotUpdating wait];
-    *outConnectAddress = *_primaryConnectAddress;
-    *outConnectAddressLength = _primaryConnectAddressLength;
+    [_connectAddressRwLock lockForReading];
+    @try {
+        *outConnectAddress = *_primaryConnectAddress;
+        *outConnectAddressLength = _primaryConnectAddressLength;
+    } @finally {
+        [_connectAddressRwLock unlock];
+    }
 }
 
 - (void)sendBuffer:(ByteBuffer *)buffer {
@@ -267,9 +286,16 @@
     }
 }
 
-- (bool)updatePrimaryConnectAddress {
-    [_connectAddressNotUpdating clear];
+- (bool)updatePrimaryConnectAddressUsingLock {
+    [_connectAddressRwLock lockForWriting];
+    @try {
+        return [self updatePrimaryConnectAddress];
+    } @finally {
+        [_connectAddressRwLock unlock];
+    }
+}
 
+- (bool)updatePrimaryConnectAddress {
     bool consumeNextOne = false;
     struct addrinfo *address;
     for (address = _allConnectAddresses; address != nil; address = address->ai_next) {
@@ -287,9 +313,6 @@
         _primaryConnectAddressLength = address->ai_addrlen;
         return true;
     }
-
-    [_connectAddressNotUpdating signalAll];
-
     return false;
 }
 
@@ -305,7 +328,7 @@
 
         if (result < 0) {
             if ([_sendFailureEventTracker increment]) {
-                if (![self updatePrimaryConnectAddress]) {
+                if (![self updatePrimaryConnectAddressUsingLock]) {
                     [self onFailure];
                 } else {
                     [_sendFailureEventTracker reset];
