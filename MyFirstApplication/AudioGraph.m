@@ -154,7 +154,7 @@ static OSStatus audioOutputPullCallback(
         _timeInQueueNotifier = timeInQueueNotifier;
 
         _syncInProgress = [[Signal alloc] initWithFlag:false];
-        _syncMaxFrequency = [[Timer alloc] initWithFrequencySeconds:0.5 firingInitially:true];
+        _syncMaxFrequency = [[Timer alloc] initWithFrequencySeconds:0.5 firingInitially:true jitterSeconds:2.0];
 
         [self buildAudioUnit];
     }

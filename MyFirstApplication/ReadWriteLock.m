@@ -24,11 +24,14 @@
     }
 }
 
+// Note: can hold multiple read locks (repeated calls without unlock will succeed),
+// but need to follow with equal number of unlocks.
 - (void)lockForReading {
     int result = pthread_rwlock_rdlock(&_lock);
     [self validate:result];
 }
 
+// Note: can only hold one write lock at a time (repeated calls without unlock will fail).
 - (void)lockForWriting {
     int result = pthread_rwlock_wrlock(&_lock);
     [self validate:result];

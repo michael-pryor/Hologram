@@ -7,9 +7,12 @@
 //
 
 #import "Timer.h"
+#import "Random.h"
 
 @implementation Timer {
     CFAbsoluteTime _secondsEpoch;
+    CFAbsoluteTime _secondsJitter;
+    CFAbsoluteTime _currentJitterValue;
 }
 
 // Use this if all we want to use is getSecondsSinceLastTick, none of the tick logic.
@@ -18,9 +21,14 @@
 }
 
 - (id)initWithFrequencySeconds:(CFAbsoluteTime)frequency firingInitially:(Boolean)initialFire {
+    return [self initWithFrequencySeconds:frequency firingInitially:initialFire jitterSeconds:0];
+}
+
+- (id)initWithFrequencySeconds:(CFAbsoluteTime)frequency firingInitially:(Boolean)initialFire jitterSeconds:(CFAbsoluteTime)jitter {
     self = [super init];
     if (self) {
         _secondsFrequency = frequency;
+        _secondsJitter = jitter;
         _defaultSecondsFrequency = frequency;
         if (initialFire) {
             _secondsEpoch = 0;
@@ -32,13 +40,23 @@
     return self;
 }
 
+- (void)updateJitter {
+    if (_secondsJitter <= 0) {
+        _currentJitterValue = 0;
+        return;
+    }
+
+    _currentJitterValue = [Random randomDoubleBetween:0 and:_secondsJitter];
+}
+
 + (CFAbsoluteTime)getSecondsEpoch {
     return CFAbsoluteTimeGetCurrent();
 }
 
 - (Boolean)getState {
-    if ([self getSecondsSinceLastTick] > [self secondsFrequency]) {
+    if ([self getSecondsSinceLastTick] > [self secondsFrequency] + _currentJitterValue) {
         _secondsEpoch = [Timer getSecondsEpoch];
+        [self updateJitter];
         return true;
     } else {
         return false;
