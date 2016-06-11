@@ -17,8 +17,6 @@
 
 - (uint)add:(id)obj;
 
-- (uint)addObject:(id)obj atPosition:(int)position;
-
 - (id)peek;
 
 - (id)get;

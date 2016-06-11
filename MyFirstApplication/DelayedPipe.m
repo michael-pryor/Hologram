@@ -50,15 +50,18 @@
     [_delayedItems add:item];
 
     while (true) {
-        DelayedItem *delayedItem = [_delayedItems getImmediate];
+        DelayedItem *delayedItem = [_delayedItems peek];
         if (delayedItem == nil) {
             break;
         }
         
         if ([delayedItem isItemReady]) {
-            [_outputSession onNewPacket:[delayedItem item] fromProtocol:protocol];
+            DelayedItem * retrievedItem = [_delayedItems getImmediate];
+            if (retrievedItem != delayedItem) {
+                continue;
+            }
+            [_outputSession onNewPacket:[retrievedItem item] fromProtocol:protocol];
         } else {
-            [_delayedItems addObject:delayedItem atPosition:0];
             break;
         }
     }

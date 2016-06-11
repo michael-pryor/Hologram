@@ -69,11 +69,11 @@
     }
 }
 
-- (uint)addObject:(id)obj atPosition:(int)position {
+- (uint)add:(id)obj {
     if (_timeTrackers != nil) {
-        [_timeTrackers addObject:[[Timer alloc] init] atPosition:position];
+        [_timeTrackers add:[[Timer alloc] init]];
     }
-    return [super addObject:obj atPosition:position];
+    return [super add:obj];
 }
 
 - (id)getImmediate:(double)timeoutSeconds {
