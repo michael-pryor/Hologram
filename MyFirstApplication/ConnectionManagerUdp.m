@@ -266,11 +266,12 @@
     [self sendBuffer:buffer toPreparedAddress:inet_addr([address UTF8String]) toPreparedPort:htons(port)];
 }
 
-- (void)copyConnectAddress:(struct sockaddr *)outConnectAddress length:(uint *)outConnectAddressLength {
+- (void)copyConnectAddress:(struct sockaddr **)outConnectAddress length:(uint *)outConnectAddressLength {
     [_connectAddressRwLock lockForReading];
     @try {
-        *outConnectAddress = *_primaryConnectAddress;
-        *outConnectAddressLength = _primaryConnectAddressLength;
+        *outConnectAddress = malloc(_primaryConnectAddressLength);
+        memcpy(*outConnectAddress, _primaryConnectAddress, _primaryConnectAddressLength);
+        (*outConnectAddressLength) = _primaryConnectAddressLength;
     } @finally {
         [_connectAddressRwLock unlock];
     }
@@ -278,11 +279,14 @@
 
 - (void)sendBuffer:(ByteBuffer *)buffer {
     if ([self isConnected]) {
-        struct sockaddr primaryConnectAddress;
         uint primaryConnectAddressLength;
-        [self copyConnectAddress:&primaryConnectAddress length:&primaryConnectAddressLength];
-
-        [self sendBuffer:buffer toAddress:&primaryConnectAddress addressLength:primaryConnectAddressLength];
+        struct sockaddr * primaryConnectAddress;
+        @try {
+            [self copyConnectAddress:&primaryConnectAddress length:&primaryConnectAddressLength];
+            [self sendBuffer:buffer toAddress:primaryConnectAddress addressLength:primaryConnectAddressLength];
+        } @finally {
+            free (primaryConnectAddress);
+        }
     }
 }
 
@@ -325,7 +329,6 @@
         [_openingNotInProgress wait];
 
         result = sendto([self getSocket], [buffer buffer], [buffer bufferUsedSize], 0, address, length);
-
         if (result < 0) {
             if ([_sendFailureEventTracker increment]) {
                 if (![self updatePrimaryConnectAddressUsingLock]) {
