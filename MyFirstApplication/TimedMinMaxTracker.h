@@ -13,9 +13,8 @@ typedef struct TimedMinMaxTrackerResult TimedMinMaxTrackerResult;
 @interface TimedMinMaxTracker : NSObject
 @property(readonly) uint min;
 @property(readonly) uint max;
-@property(readonly) uint startingValue;
 
-- (id)initWithResetFrequencySeconds:(CFAbsoluteTime)resetFrequency startingValue:(uint)startingValue;
+- (id)initWithResetFrequencySeconds:(CFAbsoluteTime)resetFrequency;
 
 - (void)onValue:(uint)value result:(TimedMinMaxTrackerResult *)outResult hasResult:(bool *)outHasResult;
 

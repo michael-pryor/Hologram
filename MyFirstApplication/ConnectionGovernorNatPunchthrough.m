@@ -131,7 +131,6 @@
         }
     } else {
         if ([self isNatPunchthroughAddressLoaded] && [_natPunchthroughDiscoveryTimer getState]) {
-            NSLog(@"Sending discovery packet peer to peer");
             [_connectionGovernor sendUdpPacket:_natPunchthroughDiscoveryPacket toPreparedAddress:punchthroughAddress toPreparedPort:punchthroughPort];
         }
 

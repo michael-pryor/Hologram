@@ -24,8 +24,8 @@
 - (id)initWithName:(NSString *)name maxQueueSize:(uint)maxQueueSize trackerResetFrequencySeconds:(CFAbsoluteTime)resetFrequency minimumThreshold:(uint)minimumThreshold sequenceGapNotifier:(id <SequenceGapNotification>)sequenceGapNotifier timeInQueueNotifier:(id <TimeInQueueNotification>)timeInQueueNotifier timeInQueueNotifierFrequency:(CFAbsoluteTime)frequency {
     self = [super initWithName:name maxQueueSize:maxQueueSize];
     if (self) {
-        _tracker = [[TimedMinMaxTracker alloc] initWithResetFrequencySeconds:resetFrequency startingValue:_minimumThreshold];
         _minimumThreshold = minimumThreshold;
+        _tracker = [[TimedMinMaxTracker alloc] initWithResetFrequencySeconds:resetFrequency];
 
         _sequenceGapNotifier = sequenceGapNotifier;
         _timeInQueueNotifier = timeInQueueNotifier;

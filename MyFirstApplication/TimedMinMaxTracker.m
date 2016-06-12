@@ -4,16 +4,15 @@
 
 #import "TimedMinMaxTracker.h"
 #import "Timer.h"
-
+#import <limits.h>
 
 @implementation TimedMinMaxTracker {
     Timer *_resetTimer;
 }
-- (id)initWithResetFrequencySeconds:(CFAbsoluteTime)resetFrequency startingValue:(uint)startingValue {
+- (id)initWithResetFrequencySeconds:(CFAbsoluteTime)resetFrequency {
     self = [super init];
     if (self) {
         _resetTimer = [[Timer alloc] initWithFrequencySeconds:resetFrequency firingInitially:false];
-        _startingValue = startingValue;
     }
     return self;
 }
@@ -31,8 +30,13 @@
             _max = value;
         }
         if ([_resetTimer getState]) {
-            *outResult = [self reset];
-            *outHasResult = true;
+            struct TimedMinMaxTrackerResult result = [self reset];
+            if (result.max != UINT32_MAX) {
+                *outResult = result;
+                *outHasResult = true;
+            } else {
+                *outHasResult = false;
+            }
             return;
         }
     }
@@ -44,8 +48,8 @@
         struct TimedMinMaxTrackerResult result;
         result.max = _max;
         result.min = _min;
-        _min = _startingValue;
-        _max = _startingValue;
+        _min = UINT32_MAX;
+        _max = 0;
         return result;
     }
 }

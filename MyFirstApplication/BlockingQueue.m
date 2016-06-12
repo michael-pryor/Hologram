@@ -50,8 +50,11 @@
 
 - (void)clear {
     [_lock lock];
-    [self clearNoLock];
-    [_lock unlock];
+    @try {
+        [self clearNoLock];
+    } @finally {
+        [_lock unlock];
+    }
 }
 
 - (void)clearNoLock {
@@ -66,38 +69,41 @@
         return 0;
     }
 
+    uint returnVal = 0;
     [_lock lock];
+    @try {
 
-    if (obj == nil) {
-        obj = [NSNull null];
-        [self clearNoLock];
-        _queueShutdown = true;
+        if (obj == nil) {
+            obj = [NSNull null];
+            [self clearNoLock];
+            _queueShutdown = true;
+        }
+
+
+        bool overwriting = false;
+        if (_maxQueueSize > 0 && _queueSize >= _maxQueueSize) {
+            NSLog(@"(%@) Removing item from queue, breached maximum queue size of: %lu", _name, _maxQueueSize);
+            overwriting = true;
+        }
+
+        // Add to end of array.
+        _queuePtrs[_writePos] = (void *) CFBridgingRetain(obj);
+        _writePos = [self incrementIndex:_writePos];
+
+        if (overwriting) {
+            // The slot which will next be written to, currently contains the oldest data.
+            _readPos = _writePos;
+        } else {
+            _queueSize++;
+        }
+
+        returnVal = _queueSize;
+    } @finally {
+        [_lock signal];
+        [_lock unlock];
     }
 
-
-    bool overwriting = false;
-    if (_maxQueueSize > 0 && _queueSize >= _maxQueueSize) {
-        NSLog(@"(%@) Removing item from queue, breached maximum queue size of: %lu", _name, _maxQueueSize);
-        overwriting = true;
-    }
-
-    // Add to end of array.
-    _queuePtrs[_writePos] = (void *) CFBridgingRetain(obj);
-    _writePos = [self incrementIndex:_writePos];
-
-    if (overwriting) {
-        // The slot which will next be written to, currently contains the oldest data.
-        _readPos = _writePos;
-    } else {
-        _queueSize++;
-    }
-
-    [self onSizeChange:_queueSize];
-    [_lock signal];
-
-    uint returnVal = _queueSize;
-
-    [_lock unlock];
+    [self onSizeChange:returnVal];
     return returnVal;
 }
 
@@ -107,33 +113,36 @@
         return nil;
     }
 
+    uint queueSizeCopy = 0;
+    id retVal;
     [_lock lock];
-    while (_queueSize == 0) {
-        if (timeoutSeconds <= -1) {
-            [_lock wait];
-        } else if (timeoutSeconds == 0) {
-            [_lock unlock];
-            return nil;
-        } else {
-            if (![_lock waitUntilDate:[NSDate dateWithTimeIntervalSinceNow:timeoutSeconds]]) {
-                [_lock unlock];
+    @try {
+        while (_queueSize == 0) {
+            if (timeoutSeconds <= -1) {
+                [_lock wait];
+            } else if (timeoutSeconds == 0) {
                 return nil;
+            } else {
+                if (![_lock waitUntilDate:[NSDate dateWithTimeIntervalSinceNow:timeoutSeconds]]) {
+                    return nil;
+                }
             }
         }
+
+        retVal = CFBridgingRelease(_queuePtrs[_readPos]);
+        _queuePtrs[_readPos] = nil; // for sanity.
+
+        if (retVal == [NSNull null]) {
+            retVal = nil;
+        }
+        _readPos = [self incrementIndex:_readPos];
+        _queueSize--;
+        queueSizeCopy = _queueSize;
+    } @finally {
+        [_lock unlock];
     }
 
-    id retVal = CFBridgingRelease(_queuePtrs[_readPos]);
-
-    if (retVal == [NSNull null]) {
-        retVal = nil;
-    }
-    _readPos = [self incrementIndex:_readPos];
-    _queueSize--;
-    [self onSizeChange:_queueSize];
-
-
-    [_lock unlock];
-
+    [self onSizeChange:queueSizeCopy];
     return retVal;
 }
 
@@ -141,13 +150,16 @@
     [_lock lock];
 
     id returnVal;
-    if (_queueSize > 0) {
-        returnVal = (__bridge NSObject *) (_queuePtrs[_readPos]);
-    } else {
-        returnVal = nil;
+    @try {
+        if (_queueSize > 0) {
+            returnVal = (__bridge NSObject *) (_queuePtrs[_readPos]);
+        } else {
+            returnVal = nil;
+        }
+    } @finally {
+        [_lock unlock];
     }
 
-    [_lock unlock];
     return returnVal;
 }
 
@@ -173,15 +185,22 @@
 
 - (void)restartQueue {
     [_lock lock];
-    _queueShutdown = false;
-    [self clearNoLock];
-    [_lock unlock];
+    @try {
+        _queueShutdown = false;
+        [self clearNoLock];
+    } @finally {
+        [_lock unlock];
+    }
 }
 
 - (int)size {
+    uint result;
     [_lock lock];
-    uint result = _queueSize;
-    [_lock unlock];
+    @try {
+        result = _queueSize;
+    } @finally {
+        [_lock unlock];
+    }
     return result;
 }
 

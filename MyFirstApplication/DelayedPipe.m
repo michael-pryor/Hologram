@@ -8,7 +8,7 @@
 
 @interface DelayedItem : NSObject
 @property id item;
-- (Boolean)isItemReady;
+- (bool)isItemReady;
 @end
 
 @implementation DelayedItem {
@@ -23,8 +23,10 @@
     return self;
 }
 
-- (Boolean)isItemReady {
-    return [_timer getState];
+- (bool)isItemReadyMaxDelay:(CFAbsoluteTime)maxDelay {
+    CFAbsoluteTime timerFrequency = [_timer secondsFrequency];
+    CFAbsoluteTime frequencyToUse = timerFrequency < maxDelay ? timerFrequency : maxDelay;
+    return [_timer getStateWithFrequencySeconds:frequencyToUse];
 }
 @end
 
@@ -55,7 +57,7 @@
             break;
         }
         
-        if ([delayedItem isItemReady]) {
+        if ([delayedItem isItemReadyMaxDelay:_delay]) {
             DelayedItem * retrievedItem = [_delayedItems getImmediate];
             if (retrievedItem != delayedItem) {
                 continue;
@@ -73,7 +75,6 @@
 
 - (void)setMinimumDelay:(CFAbsoluteTime)delay {
     _delay = delay;
-    NSLog(@"Video delay changed to %.2f second", delay);
 }
 
 

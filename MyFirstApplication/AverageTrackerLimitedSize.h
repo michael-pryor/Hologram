@@ -14,5 +14,7 @@
 
 - (double)getWeightedAverage;
 
+- (double)getStandardDeviation;
+
 - (void)clear;
 @end

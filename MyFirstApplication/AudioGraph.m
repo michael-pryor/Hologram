@@ -11,6 +11,7 @@
 #import "AudioUnitHelpers.h"
 #import "Signal.h"
 #import "AudioPcmConversion.h"
+#import "AverageTrackerLimitedSize.h"
 
 static OSStatus audioOutputPullCallback(
         void *inRefCon,
@@ -110,6 +111,8 @@ static OSStatus audioOutputPullCallback(
     Signal *_syncInProgress;
     dispatch_queue_t _syncGcdQueue;
     Timer *_syncMaxFrequency;
+    Timer *_syncLastUpdateTimer;
+    AverageTrackerLimitedSize *_syncLatencyAverageTracker;
 
     bool _isInitialized;
 }
@@ -154,7 +157,13 @@ static OSStatus audioOutputPullCallback(
         _timeInQueueNotifier = timeInQueueNotifier;
 
         _syncInProgress = [[Signal alloc] initWithFlag:false];
-        _syncMaxFrequency = [[Timer alloc] initWithFrequencySeconds:0.5 firingInitially:true jitterSeconds:2.0];
+
+        // Average over last 5 seconds, assumes we receive updated every half second.
+        // Perform sync max every 15 seconds.
+        // If no latency received for a while, then do not sync immediately on the first item, reset timers.
+        _syncLastUpdateTimer = [[Timer alloc] init];
+        _syncMaxFrequency = [[Timer alloc] initWithFrequencySeconds:15 firingInitially:true jitterSeconds:2.0];
+        _syncLatencyAverageTracker = [[AverageTrackerLimitedSize alloc] initWithMaxSize:10];
 
         [self buildAudioUnit];
     }
@@ -602,43 +611,86 @@ static OSStatus audioOutputPullCallback(
     // Hardware audio format may change when changing audio output device.
     // iPhone 6S is an example of this.
     // AS a result we reinitialize everything using the new format, just in case it has changed.
-    [self stop]; // Pause audio.
-    [self uninitialize]; // Cleanup all audio, conversion and compression.
-    [self reset]; // Empty intermediate queues.
-    [self initialize]; // Reinitialize all audio.
-    [self start]; // Unpause audio.
+    @synchronized(self) {
+        [self stop]; // Pause audio.
+        [self uninitialize]; // Cleanup all audio, conversion and compression.
+        [self reset]; // Empty intermediate queues.
+        [self initialize]; // Reinitialize all audio.
+        [self start]; // Unpause audio.
+    }
 }
 
 - (void)onTimeInQueueNotification:(uint)timeInQueueMs {
-    if (timeInQueueMs > 100 && [_syncMaxFrequency getState] && [_syncInProgress signalAll]) {
+    if ([_syncLastUpdateTimer getSecondsSinceLastTick] > 2) {
+        [_syncMaxFrequency reset];
+        [_syncLatencyAverageTracker clear];
+    }
+    [_syncLastUpdateTimer reset];
 
+    [_syncLatencyAverageTracker addValue:timeInQueueMs];
+
+    const double timeInQueueAverageMs = [_syncLatencyAverageTracker getWeightedAverage];
+
+    if (timeInQueueAverageMs > 300 && [_syncMaxFrequency getState] && [_syncInProgress signalAll]) {
+        // + 20 to enforce 20 second delay, we are screwed if we go over, so 20ms is a good compromise.
+        uint timeLagMs = 20;
+        if (timeLagMs > timeInQueueAverageMs) {
+            return;
+        }
+
+        uint adjustedTimeMs = ((uint)timeInQueueAverageMs) - timeLagMs;
+
+        // Phone may just be too slow, this kind of time gap is not about syncing.
+        if (adjustedTimeMs > 2000) {
+            return;
+        }
+
+        if (adjustedTimeMs > 500) {
+            adjustedTimeMs = 500;
+        }
+
+        // Std deviation is an indicator of how varied our latency results are.
+        // If there is alot of variation, then could be an outlier, and therefore we don't need to adjust.
+        // e.g. maybe user put app in background temporarily, or there was a network spike, or something,
+        // we only want to take action if we are consistently behind.
+        //
+        // Similarly, the phone may be resource starved i.e. not really powerful enough for our app,
+        // which means threads will get swapped in and out too slowly, so you will see very varied times.
+        // We don't want to correct in that case, because we're unlikely to be able to solve it.
+        double stdDev = [_syncLatencyAverageTracker getStandardDeviation];
+        if (stdDev > 100) {
+            return;
+        }
+
+        // must be async, because may be called from within audio callback.
         dispatch_async(_syncGcdQueue, ^{
-            [self stop:false];
+            @synchronized(self) {
+                // If headphones plugged in, that would clear syncing.
+                if (![_syncInProgress isSignaled]) {
+                    return;
+                }
 
-            // + 20 to enforce 20 second delay, we are screwed if we go over, so 20ms is a good compromise.
-            uint timeLagMs = 10;
-            if (timeLagMs > timeInQueueMs) {
-                return;
+                [self stop:false];
             }
-
-            uint adjustedTimeMs = timeInQueueMs - timeLagMs;
-
-            NSLog(@"Pausing speaker for %dms in order to reduce latency", adjustedTimeMs);
+            
+             NSLog(@"Pausing speaker for %dms in order to reduce latency", adjustedTimeMs);
             if (_sequenceGapNotifier != nil) {
                 [_sequenceGapNotifier onSequenceGap:adjustedTimeMs fromSender:self];
             }
 
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, adjustedTimeMs * NSEC_PER_MSEC), _syncGcdQueue, ^{
-                if (![_syncInProgress clear]) {
-                    return;
+                @synchronized(self) {
+                    if (![_syncInProgress clear]) {
+                        return;
+                    }
+                    [_syncMaxFrequency reset];
+                    [self start];
                 }
-                [_syncMaxFrequency reset];
-                [self start];
             });
         });
     }
 
-    [_timeInQueueNotifier onTimeInQueueNotification:timeInQueueMs];
+    [_timeInQueueNotifier onTimeInQueueNotification:(uint)timeInQueueAverageMs];
 }
 
 @end

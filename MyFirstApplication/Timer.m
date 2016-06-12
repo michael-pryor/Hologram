@@ -53,14 +53,18 @@
     return CFAbsoluteTimeGetCurrent();
 }
 
-- (Boolean)getState {
-    if ([self getSecondsSinceLastTick] > [self secondsFrequency] + _currentJitterValue) {
+- (bool)getStateWithFrequencySeconds:(CFAbsoluteTime)frequency {
+    if ([self getSecondsSinceLastTick] > frequency + _currentJitterValue) {
         _secondsEpoch = [Timer getSecondsEpoch];
         [self updateJitter];
         return true;
     } else {
         return false;
     }
+}
+
+- (bool)getState {
+    return [self getStateWithFrequencySeconds:_secondsFrequency];
 }
 
 - (CFAbsoluteTime)getSecondsSinceLastTick {
