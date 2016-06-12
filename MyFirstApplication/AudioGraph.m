@@ -159,10 +159,10 @@ static OSStatus audioOutputPullCallback(
         _syncInProgress = [[Signal alloc] initWithFlag:false];
 
         // Average over last 5 seconds, assumes we receive updated every half second.
-        // Perform sync max every 15 seconds.
+        // Perform sync max every 10 seconds, with 4 seconds jitter (so between 10 and 14 seconds).
         // If no latency received for a while, then do not sync immediately on the first item, reset timers.
         _syncLastUpdateTimer = [[Timer alloc] init];
-        _syncMaxFrequency = [[Timer alloc] initWithFrequencySeconds:15 firingInitially:true jitterSeconds:2.0];
+        _syncMaxFrequency = [[Timer alloc] initWithFrequencySeconds:10 firingInitially:true jitterSeconds:4.0];
         _syncLatencyAverageTracker = [[AverageTrackerLimitedSize alloc] initWithMaxSize:10];
 
         [self buildAudioUnit];
