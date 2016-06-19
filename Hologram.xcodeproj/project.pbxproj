@@ -39,6 +39,7 @@
 		5178E5EE1CFE354700D89AA6 /* FBSDKLoginKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5178E5EC1CFE354700D89AA6 /* FBSDKLoginKit.framework */; };
 		5178E5F01CFE366100D89AA6 /* FBSDKShareKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5178E5EF1CFE366100D89AA6 /* FBSDKShareKit.framework */; };
 		5178E5F21CFE376B00D89AA6 /* libxml2.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 5178E5F11CFE376B00D89AA6 /* libxml2.tbd */; };
+		517C4E781D16D15300E7A185 /* ConversationEndedViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 517C4E771D16D15300E7A185 /* ConversationEndedViewController.m */; };
 		519573041AEBEB26000247E1 /* EventTracker.m in Sources */ = {isa = PBXBuildFile; fileRef = 519573031AEBEB26000247E1 /* EventTracker.m */; };
 		519FFBFC1C6FC9A3002717F0 /* CoreImage.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 519FFBFB1C6FC9A3002717F0 /* CoreImage.framework */; };
 		51A8DEC91D04324500171206 /* FBAudienceNetwork.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 51A8DEC81D04324500171206 /* FBAudienceNetwork.framework */; };
@@ -165,6 +166,8 @@
 		5178E5EC1CFE354700D89AA6 /* FBSDKLoginKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FBSDKLoginKit.framework; path = frameworks/FBSDKLoginKit.framework; sourceTree = "<group>"; };
 		5178E5EF1CFE366100D89AA6 /* FBSDKShareKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FBSDKShareKit.framework; path = frameworks/FBSDKShareKit.framework; sourceTree = "<group>"; };
 		5178E5F11CFE376B00D89AA6 /* libxml2.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libxml2.tbd; path = usr/lib/libxml2.tbd; sourceTree = SDKROOT; };
+		517C4E761D16D15300E7A185 /* ConversationEndedViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConversationEndedViewController.h; sourceTree = "<group>"; };
+		517C4E771D16D15300E7A185 /* ConversationEndedViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ConversationEndedViewController.m; sourceTree = "<group>"; };
 		519573021AEBEB26000247E1 /* EventTracker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EventTracker.h; sourceTree = "<group>"; };
 		519573031AEBEB26000247E1 /* EventTracker.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EventTracker.m; sourceTree = "<group>"; };
 		519FFBF91C6FB466002717F0 /* Hologram-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "Hologram-Info.plist"; sourceTree = "<group>"; };
@@ -378,6 +381,8 @@
 				D5D61A6B1DCCCED8F72F6EFD /* Orientation.h */,
 				D5D61E1702DA62D0167A5510 /* ViewInteractions.m */,
 				D5D61923E1F12385A8AA014E /* ViewInteractions.h */,
+				517C4E761D16D15300E7A185 /* ConversationEndedViewController.h */,
+				517C4E771D16D15300E7A185 /* ConversationEndedViewController.m */,
 			);
 			name = Storyboard;
 			sourceTree = "<group>";
@@ -861,6 +866,7 @@
 				51D584BE19AB649500BB6CE6 /* OutputSessionTcp.m in Sources */,
 				51BF42541A750CDB00C16F9A /* ConnectionGovernorProtocol.m in Sources */,
 				51197AFD1B134D72006A7AEE /* ThrottledPipe.m in Sources */,
+				517C4E781D16D15300E7A185 /* ConversationEndedViewController.m in Sources */,
 				511949341B3FFF8F00314436 /* ConnectionGovernor.m in Sources */,
 				51197B001B1350B1006A7AEE /* ThrottledBlock.m in Sources */,
 				51DB961819A8E3D0001A63F8 /* ConnectionManagerTcp.m in Sources */,

@@ -14,7 +14,7 @@
 #import "VideoOutputController.h"
 
 @interface AlertViewController : UIViewController<FBAdViewDelegate, NewImageDelegate>
-- (void)setAlertShortText:(NSString *)shortText longText:(NSString *)longText;
+- (void)setAlertShortText:(NSString *)shortText;
 
 - (Boolean)hideIfVisibleAndReady;
 
@@ -25,4 +25,6 @@
 - (void)setMoveToFacebookViewControllerFunc:(void(^)())moveToFacebookViewControllerFunc;
 
 - (void)enableAdverts;
+
+- (void)setConversationEndedViewVisible:(bool)visible instantly:(bool)instant;
 @end

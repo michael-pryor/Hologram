@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="9532" systemVersion="15F34" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="0oT-De-dHC">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="10117" systemVersion="15F34" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="0oT-De-dHC">
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="9530"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="10085"/>
         <capability name="Alignment constraints with different attributes" minToolsVersion="5.1"/>
         <capability name="Aspect ratio constraints" minToolsVersion="5.1"/>
         <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
@@ -429,12 +429,20 @@
                                     <action selector="onGotoFbLogonViewButtonPress:" destination="szN-uc-xgc" eventType="touchUpInside" id="qwS-zV-bNt"/>
                                 </connections>
                             </button>
+                            <containerView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="QMu-Z6-TRi">
+                                <rect key="frame" x="45" y="40" width="510" height="428"/>
+                                <connections>
+                                    <segue destination="kqn-7n-6Sq" kind="embed" id="OTa-FO-5Df"/>
+                                </connections>
+                            </containerView>
                         </subviews>
                         <color key="backgroundColor" red="0.60392156862745094" green="0.99607843137254903" blue="0.94901960784313721" alpha="1" colorSpace="calibratedRGB"/>
                         <constraints>
                             <constraint firstItem="utn-8v-zRu" firstAttribute="bottom" secondItem="dBu-An-5ob" secondAttribute="top" id="41O-97-p7K"/>
                             <constraint firstItem="4GO-A5-5zk" firstAttribute="leading" secondItem="qfn-EI-xYg" secondAttribute="leadingMargin" constant="25" id="EJW-ms-iTq" userLabel="LocalImage left edge"/>
+                            <constraint firstItem="QMu-Z6-TRi" firstAttribute="width" secondItem="4GO-A5-5zk" secondAttribute="width" id="FC4-qc-4mG"/>
                             <constraint firstItem="MuE-y5-gsJ" firstAttribute="width" secondItem="qfn-EI-xYg" secondAttribute="width" id="Gal-Ed-jDD" userLabel="AlertText width"/>
+                            <constraint firstItem="QMu-Z6-TRi" firstAttribute="centerX" secondItem="4GO-A5-5zk" secondAttribute="centerX" id="HEq-2X-VUE"/>
                             <constraint firstItem="KCR-gg-Slb" firstAttribute="left" secondItem="4GO-A5-5zk" secondAttribute="leftMargin" id="IE7-M7-5ZO"/>
                             <constraint firstItem="utn-8v-zRu" firstAttribute="leading" secondItem="qfn-EI-xYg" secondAttribute="leading" id="JGc-uY-R8U"/>
                             <constraint firstItem="utn-8v-zRu" firstAttribute="trailing" secondItem="qfn-EI-xYg" secondAttribute="trailing" id="LH1-fg-EDR"/>
@@ -447,18 +455,73 @@
                             <constraint firstItem="4GO-A5-5zk" firstAttribute="top" secondItem="zQz-dJ-HyO" secondAttribute="bottom" constant="20" id="nhI-Ra-PKh" userLabel="LocalImage top"/>
                             <constraint firstItem="4GO-A5-5zk" firstAttribute="centerX" secondItem="MuE-y5-gsJ" secondAttribute="centerX" id="oCi-p1-dWk" userLabel="LocalImage center X"/>
                             <constraint firstItem="KCR-gg-Slb" firstAttribute="bottom" secondItem="4GO-A5-5zk" secondAttribute="bottom" id="pGG-uU-D5K"/>
+                            <constraint firstItem="QMu-Z6-TRi" firstAttribute="height" secondItem="4GO-A5-5zk" secondAttribute="height" id="yqH-sq-fCG"/>
+                            <constraint firstItem="QMu-Z6-TRi" firstAttribute="centerY" secondItem="4GO-A5-5zk" secondAttribute="centerY" id="zjL-Az-GJZ"/>
                         </constraints>
                     </view>
                     <connections>
                         <outlet property="_advertBannerView" destination="utn-8v-zRu" id="UXp-8N-fvj"/>
                         <outlet property="_alertShortText" destination="MuE-y5-gsJ" id="7Df-1T-xIO"/>
                         <outlet property="_backButton" destination="KCR-gg-Slb" id="kvc-AY-29V"/>
+                        <outlet property="_conversationEndViewController" destination="QMu-Z6-TRi" id="ahg-ss-fhm"/>
                         <outlet property="_localImageView" destination="4GO-A5-5zk" id="dcv-r8-ZWm"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="SN5-oZ-zxh" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="930" y="181"/>
+        </scene>
+        <!--Conversation Ended View Controller-->
+        <scene sceneID="5cF-ey-A3o">
+            <objects>
+                <viewController id="kqn-7n-6Sq" customClass="ConversationEndedViewController" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="XAx-Mf-MRE">
+                        <rect key="frame" x="0.0" y="0.0" width="510" height="428"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <button opaque="NO" contentMode="scaleToFill" horizontalCompressionResistancePriority="1000" verticalCompressionResistancePriority="1000" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="ErH-ds-blI">
+                                <rect key="frame" x="235" y="149" width="40" height="30"/>
+                                <accessibility key="accessibilityConfiguration" label="OKAY"/>
+                                <state key="normal" title="OKAY"/>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" horizontalCompressionResistancePriority="1000" verticalCompressionResistancePriority="1000" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="o7m-AH-8Vp">
+                                <rect key="frame" x="90" y="199" width="31" height="30"/>
+                                <accessibility key="accessibilityConfiguration" label="OKAY"/>
+                                <state key="normal" title="BAD"/>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" horizontalCompressionResistancePriority="1000" verticalCompressionResistancePriority="1000" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="mJ6-5h-TaN">
+                                <rect key="frame" x="383" y="199" width="45" height="30"/>
+                                <accessibility key="accessibilityConfiguration" label="OKAY"/>
+                                <state key="normal" title="GOOD"/>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" horizontalCompressionResistancePriority="1000" verticalCompressionResistancePriority="1000" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="hHv-ej-2Dw">
+                                <rect key="frame" x="231" y="249" width="49" height="30"/>
+                                <accessibility key="accessibilityConfiguration" label="OKAY"/>
+                                <state key="normal" title="BLOCK">
+                                    <color key="titleColor" red="1" green="0.098894447135054353" blue="0.12030000076941849" alpha="1" colorSpace="calibratedRGB"/>
+                                </state>
+                            </button>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <constraints>
+                            <constraint firstItem="mJ6-5h-TaN" firstAttribute="centerX" secondItem="XAx-Mf-MRE" secondAttribute="centerX" priority="900" constant="150" id="0wV-ZS-Mzc"/>
+                            <constraint firstItem="o7m-AH-8Vp" firstAttribute="centerY" secondItem="XAx-Mf-MRE" secondAttribute="centerY" id="5pW-yT-qsd"/>
+                            <constraint firstItem="hHv-ej-2Dw" firstAttribute="centerY" secondItem="XAx-Mf-MRE" secondAttribute="centerY" priority="900" constant="50" id="9PS-ly-aPU"/>
+                            <constraint firstItem="mJ6-5h-TaN" firstAttribute="centerY" secondItem="o7m-AH-8Vp" secondAttribute="centerY" id="JwP-xr-xHm"/>
+                            <constraint firstItem="o7m-AH-8Vp" firstAttribute="centerX" secondItem="XAx-Mf-MRE" secondAttribute="centerX" priority="900" constant="-150" id="PaV-jx-xvf"/>
+                            <constraint firstItem="ErH-ds-blI" firstAttribute="centerY" secondItem="XAx-Mf-MRE" secondAttribute="centerY" priority="900" constant="-50" id="Pxl-Sb-zvR"/>
+                            <constraint firstItem="ErH-ds-blI" firstAttribute="top" relation="greaterThanOrEqual" secondItem="XAx-Mf-MRE" secondAttribute="topMargin" id="SDQ-7g-THL"/>
+                            <constraint firstAttribute="trailingMargin" relation="greaterThanOrEqual" secondItem="mJ6-5h-TaN" secondAttribute="trailing" id="Xo9-tb-tKn"/>
+                            <constraint firstAttribute="bottomMargin" relation="greaterThanOrEqual" secondItem="hHv-ej-2Dw" secondAttribute="bottom" constant="50" id="ftf-Eo-aW9"/>
+                            <constraint firstItem="o7m-AH-8Vp" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="XAx-Mf-MRE" secondAttribute="leadingMargin" id="lyI-1Q-ALF"/>
+                            <constraint firstItem="hHv-ej-2Dw" firstAttribute="centerX" secondItem="ErH-ds-blI" secondAttribute="centerX" id="xHI-Zj-Bgp"/>
+                            <constraint firstItem="ErH-ds-blI" firstAttribute="centerX" secondItem="XAx-Mf-MRE" secondAttribute="centerX" id="zB4-Sx-uCl"/>
+                        </constraints>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="0Gj-gu-4NA" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1540" y="165"/>
         </scene>
     </scenes>
     <resources>

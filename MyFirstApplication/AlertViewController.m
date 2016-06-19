@@ -12,6 +12,7 @@
 #import "ViewInteractions.h"
 
 #define MINIMUM_WAIT_TIME 3.0
+
 @implementation AlertViewController {
     IBOutlet UILabel *_alertShortText;
     Timer *_timerSinceAdvertCreated;
@@ -21,15 +22,18 @@
     FBAdView *_advertView; // The actual advert.
 
     __weak IBOutlet UIButton *_backButton;
-    
+
     Signal *_localImageViewVisible;
 
     void(^_moveToFacebookViewControllerFunc)();
 
     bool _shouldShowAdverts;
+    __weak IBOutlet UIView *_conversationEndViewController;
+
+    bool _conversationEndViewControllerVisible;
 }
 
-- (void)setAlertShortText:(NSString *)shortText longText:(NSString *)longText {
+- (void)setAlertShortText:(NSString *)shortText {
     // Alert text has changed, wait at least two seconds more before clearing display.
     [_timerSinceAdvertCreated reset];
 
@@ -42,7 +46,7 @@
 
     // It should be shown at same time as camera, because it sits on top of camera.
     [_backButton setHidden:true];
-    
+
     _moveToFacebookViewControllerFunc = nil;
     _shouldShowAdverts = false;
 
@@ -175,10 +179,7 @@
 
 - (void)onNewImage:(UIImage *)image {
     [_localImageView performSelectorOnMainThread:@selector(setImage:) withObject:image waitUntilDone:YES];
-
-    if ([_localImageViewVisible signalAll]) {
-        [ViewInteractions fadeIn:_localImageView completion:nil duration:0.75f];
-    }
+    [self showLocalImageView];
 }
 
 - (void)setMoveToFacebookViewControllerFunc:(void (^)())moveToFacebookViewControllerFunc {
@@ -188,6 +189,30 @@
 - (IBAction)onGotoFbLogonViewButtonPress:(id)sender {
     if (_moveToFacebookViewControllerFunc != nil) {
         _moveToFacebookViewControllerFunc();
+    }
+}
+
+- (void)showLocalImageView {
+    if (!_conversationEndViewControllerVisible && [_localImageViewVisible signalAll]) {
+        [ViewInteractions fadeIn:_localImageView completion:nil duration:0.75f];
+    }
+}
+
+- (void)setConversationEndedViewVisible:(bool)visible instantly:(bool)instant {
+    float fadeDuration = instant ? 0.0f : 0.75f;
+
+    _conversationEndViewControllerVisible = visible;
+    if (_conversationEndViewControllerVisible) {
+        [_localImageViewVisible clear];
+        [ViewInteractions fadeOut:_localImageView completion:^(BOOL finished){
+            if (!finished) {
+                return;
+            }
+
+            [ViewInteractions fadeIn:_conversationEndViewController completion:nil duration:fadeDuration];
+        } duration:fadeDuration];
+    } else {
+       [ViewInteractions fadeOut:_conversationEndViewController completion:nil duration:fadeDuration];
     }
 }
 @end

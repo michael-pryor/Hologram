@@ -112,7 +112,7 @@
     _isSkippableDespiteNoMatch = false;
     _resumeAfterBecomeActive = [[Signal alloc] initWithFlag:false];
 
-    [self setDisconnectStateWithShortDescription:@"Initializing" longDescription:@"Initializing media controller"];
+    [self setDisconnectStateWithShortDescription:@"Initializing" showConversationEndView:false];
 
     // If failure action is triggered, application is guaranteed to be terminated by
     // _accessDialog (we may just be waiting for a user to acknowledge a dialog box).
@@ -262,7 +262,7 @@
     }
 
     // This step can take a few seconds (particularly on older devices).
-    [self setDisconnectStateWithShortDescription:@"Initializing" longDescription:@"Initializing media controller"];
+    [self setDisconnectStateWithShortDescription:@"Initializing" showConversationEndView:false];
     if (_mediaController == nil) {
         _mediaController = [[MediaController alloc] initWithImageDelegate:self mediaDataLossNotifier:self];
     }
@@ -274,7 +274,7 @@
 
     if (![socialState isDataLoaded]) {
         [socialState registerNotifier:self];
-        [self setDisconnectStateWithShortDescription:@"Loading Facebook details" longDescription:@"Waiting for Facebook details to load"];
+        [self setDisconnectStateWithShortDescription:@"Loading Facebook details" showConversationEndView:false];
         if (![socialState updateGraphFacebookInformation]) {
             [self switchToFacebookLogonView];
         }
@@ -306,7 +306,7 @@
             [_ownerAge setHidden:true];
         }
 
-        [self setDisconnectStateWithShortDescription:@"Loading GPS details" longDescription:@"Waiting for GPS information to load"];
+        [self setDisconnectStateWithShortDescription:@"Loading GPS details" showConversationEndView:false];
         [_gpsState update];
     });
 }
@@ -326,7 +326,7 @@
         return;
     }
 
-    [self setDisconnectStateWithShortDescription:@"Resolving DNS" longDescription:@"Waiting for DNS resolution to complete"];
+    [self setDisconnectStateWithShortDescription:@"Resolving DNS" showConversationEndView:false];
     [_dnsResolver startResolvingDns];
 }
 
@@ -353,7 +353,7 @@
 
 // On failure retrieving GPS failure, retry every 2 seconds.
 - (void)onGpsDataLoadFailure:(GpsState *)state withDescription:(NSString *)description {
-    [self setDisconnectStateWithShortDescription:@"Failed to load GPS details, retrying" longDescription:description];
+    [self setDisconnectStateWithShortDescription:@"Failed to load GPS details, retrying" showConversationEndView:false];
 
     // Try again in 2 seconds time.
     // Note this is just updating the UI. After failure, GPS automatically keeps retrying so needs
@@ -361,7 +361,7 @@
     // the situation hasn't improved.
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t) (2.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         if (![state isLoaded]) {
-            [self setDisconnectStateWithShortDescription:@"Loading GPS details" longDescription:@"Waiting for GPS information to load"];
+            [self setDisconnectStateWithShortDescription:@"Loading GPS details" showConversationEndView:false];
         }
     });
 }
@@ -500,9 +500,11 @@
         [self doGotoFbLogonView];
     }
 }
+
 - (IBAction)onSkipPersonButtonPress:(id)sender {
     [self doSkipPerson];
 }
+
 - (IBAction)onGotoFbLogonViewButtonPress:(id)sender {
     [self doGotoFbLogonView];
 }
@@ -512,14 +514,14 @@
         NSLog(@"Ignoring skip request, nobody to skip");
         return;
     }
-    
+
     _isSkippableDespiteNoMatch = false;
-    
+
     [[Analytics getInstance] pushEventWithCategory:@"conversation" action:@"ended" label:@"skip_initiated"];
-    
+
     NSLog(@"Sending skip request");
     [_connection sendTcpPacket:_skipPersonPacket];
-    [self setDisconnectStateWithShortDescription:@"Matching you with somebody to talk with\nYou skipped the other person" longDescription:@"Searching for somebody else suitable for you to talk with"];
+    [self setDisconnectStateWithShortDescription:@"Matching you with somebody to talk with\nYou skipped the other person" showConversationEndView:true];
 }
 
 - (void)doGotoFbLogonView {
@@ -544,12 +546,12 @@
 
     switch (status) {
         case P_CONNECTING:
-            [self setDisconnectStateWithShortDescription:@"Connecting" longDescription:description];
+            [self setDisconnectStateWithShortDescription:@"Connecting" showConversationEndView:false];
             [_connectingNetworkTimer reset];
             break;
 
         case P_CONNECTED:
-            [self setDisconnectStateWithShortDescription:@"Matching you with somebody to talk with" longDescription:@"Searching for somebody suitable for you to talk with"];
+            [self setDisconnectStateWithShortDescription:@"Matching you with somebody to talk with" showConversationEndView:false];
             if (_mediaController != nil) {
                 [_mediaController resetSendRate];
             }
@@ -557,7 +559,7 @@
             break;
 
         case P_CONNECTED_TO_EXISTING:
-            [self setDisconnectStateWithShortDescription:@"Reconnected to existing session" longDescription:@"Resuming previous conversation or finding a new match"];
+            [self setDisconnectStateWithShortDescription:@"Reconnected to existing session" showConversationEndView:false];
             [[Analytics getInstance] pushTimer:_connectingNetworkTimer withCategory:@"setup" name:@"network_connecting" label:@"resumed_session"];
 
             // How long were we disconnected for?
@@ -565,13 +567,13 @@
             break;
 
         case P_NOT_CONNECTED:
-            [self setDisconnectStateWithShortDescription:@"Disconnected" longDescription:description];
+            [self setDisconnectStateWithShortDescription:@"Disconnected" showConversationEndView:false];
             [_connectionTemporarilyDisconnectTimer reset];
             [[Analytics getInstance] pushEventWithCategory:@"conversation" action:@"ended" label:@"network_disconnect"];
             break;
 
         case P_NOT_CONNECTED_HASH_REJECTED:
-            [self setDisconnectStateWithShortDescription:@"Disconnected\nPrevious session timed out" longDescription:description];
+            [self setDisconnectStateWithShortDescription:@"Disconnected\nPrevious session timed out" showConversationEndView:false];
 
             // This will trigger a new commander connection, without having to wait for
             // another DNS resolution; we'll just use the last one we did.
@@ -591,7 +593,7 @@
 }
 
 // Display view overlay showing how connection is being recovered.
-- (void)setDisconnectStateWithShortDescription:(NSString *)shortDescription longDescription:(NSString *)longDescription {
+- (void)setDisconnectStateWithShortDescription:(NSString *)shortDescription showConversationEndView:(bool)showConversationEndView {
     void (^block)() = ^{
         dispatch_sync_main(^{
             // Show the disconnect storyboard.
@@ -609,9 +611,9 @@
                 }
 
                 __weak typeof(self) weakSelf = self;
-                __weak AlertViewController * weakViewController;
+                __weak AlertViewController *weakViewController;
                 [_disconnectViewController setMoveToFacebookViewControllerFunc:^{
-                   [weakSelf onGotoFbLogonViewButtonPress:weakViewController];
+                    [weakSelf onGotoFbLogonViewButtonPress:weakViewController];
                 }];
 
                 if (_mediaController != nil) {
@@ -626,8 +628,8 @@
                 }
             }
             // Set its content
-            NSLog(@"Disconnect screen presented, long description: %@", longDescription);
-            [_disconnectViewController setAlertShortText:shortDescription longText:longDescription];
+            [_disconnectViewController setConversationEndedViewVisible:showConversationEndView instantly:true];
+            [_disconnectViewController setAlertShortText:shortDescription];
 
             if (!alreadyPresented) {
                 [_disconnectViewController didMoveToParentViewController:self];
@@ -665,12 +667,12 @@
             _isSkippableDespiteNoMatch = true;
 
             NSLog(@"End point temporarily disconnected");
-            [self setDisconnectStateWithShortDescription:@"Reconnecting to existing session\nThe other person disconnected temporarily" longDescription:@"The person you were talking with has temporarily disconnected, please wait a few seconds to see if they can rejoin!"];
+            [self setDisconnectStateWithShortDescription:@"Reconnecting to existing session\nThe other person disconnected temporarily" showConversationEndView:false];
         } else if (operation == DISCONNECT_PERM) {
-            [self setDisconnectStateWithShortDescription:@"Matching you with somebody to talk with\nThe other person left" longDescription:@"The person you were talking with has permanently disconnected, we'll find you someone else to talk to"];
+            [self setDisconnectStateWithShortDescription:@"Matching you with somebody to talk with\nThe other person left" showConversationEndView:true];
             NSLog(@"End point permanently disconnected");
         } else if (operation == DISCONNECT_SKIPPED) {
-            [self setDisconnectStateWithShortDescription:@"Matching you with somebody to talk with\nThe other person skipped you" longDescription:@"The person you were talking with skipped you, we'll find you someone else to talk to"];
+            [self setDisconnectStateWithShortDescription:@"Matching you with somebody to talk with\nThe other person skipped you" showConversationEndView:true];
             NSLog(@"End point skipped us");
         } else if (_mediaController != nil) {
             [_mediaController onNewPacket:packet fromProtocol:protocol];
@@ -716,7 +718,7 @@
         } else {
             NSLog(@"Unknown data loss type");
         }
-    },0);
+    }, 0);
 }
 
 
@@ -741,7 +743,7 @@
     // Once per application run.
     float fadeInDuration = 1.0f;
     float fadeOutDuration = 2.0f;
-    float delay=3.0f;
+    float delay = 3.0f;
     [ViewInteractions fadeInOut:_swipeTutorialSkip completion:^void(BOOL finishedSkip) {
         if (!finishedSkip || _disconnectViewController != nil) {
             return;
