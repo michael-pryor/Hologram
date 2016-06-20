@@ -4,6 +4,7 @@ from byte_buffer import ByteBuffer
 from protocol_client import ClientTcp, ClientUdp
 from utility import getEpoch
 from twisted.internet import task
+from twisted.internet.error import AlreadyCalled, AlreadyCancelled
 from special_collections import OrderedSet
 
 __author__ = 'pryormic'
@@ -17,6 +18,8 @@ class Client(object):
     # Don't rematch with a previously skipped client for first x seconds while we
     # wait for a more suitable match, after x seconds give up and match anyways.
     PRIOR_MATCH_LIST_TIMEOUT_SECONDS = 10
+
+    WAITING_FOR_RATING_TIMEOUT = 5
 
     class ConnectionStatus:
         WAITING_LOGON = 1
@@ -42,10 +45,18 @@ class Client(object):
 
         OP_PING = 10
 
+        OP_RATING = 9 # give a rating of the previous conversation.
+
     class RejectCodes:
         SUCCESS = 0
         REJECT_HASH_TIMEOUT = 1
         REJECT_VERSION = 2
+
+    class ConversationRating:
+        OKAY = 0
+        BAD = 1
+        BLOCK = 2
+        GOOD = 3
 
     class LoginDetails(object):
         def __init__(self, uniqueId, name, shortName, age, gender, interestedIn, longitude, latitude):
@@ -88,10 +99,11 @@ class Client(object):
             return str(self.prior_matches)
 
 
-    def __init__(self, tcp, onCloseFunc, udpConnectionLinker, house):
+    def __init__(self, reactor, tcp, onCloseFunc, udpConnectionLinker, house):
         super(Client, self).__init__()
         assert isinstance(tcp, ClientTcp)
 
+        self.reactor = reactor
         self.udp = None
         self.tcp = tcp
         self.tcp.parent = self
@@ -125,6 +137,10 @@ class Client(object):
 
         # Track time of last successful match, so we know if we've been waiting a while to ignore the skip list.
         self.started_waiting_for_match_timer = None
+
+        # Client we were speaking to in last conversation, may not still be connected.
+        self.client_from_previous_conversation = None
+        self.waiting_for_rating_task = None
 
         logger.debug("New client connected, awaiting logon message")
 
@@ -253,8 +269,14 @@ class Client(object):
             if otherClient is not None:
                 assert isinstance(otherClient, Client)
                 self.match_skip_history.addMatch(otherClient.udp_hash)
+                self.setToWaitForRatingOfPreviousConversation(otherClient)
+        elif opCode == Client.TcpOperationCodes.OP_RATING:
+            if self.client_from_previous_conversation is None:
+                logger.debug("No previous conversation to rate")
+                return
 
-            self.house.attemptTakeRoom(self)
+            rating = packet.getUnsignedInteger8()
+            self.setRatingOfOtherClient(rating)
         elif opCode == Client.TcpOperationCodes.OP_PERM_DISCONNECT:
             logger.debug("Client [%s] has permanently disconnected with immediate impact" % self)
             self.house.releaseRoom(self, self.house.disconnected_permanent)
@@ -263,6 +285,50 @@ class Client(object):
             # Must be debug in case rogue client sends us garbage data
             logger.debug("Unknown TCP packet received from client [%s]" % self)
             self.closeConnection()
+
+    def setRatingOfOtherClient(self, rating):
+        try:
+            if self.waiting_for_rating_task is not None:
+                self.waiting_for_rating_task.cancel()
+        except (AlreadyCalled, AlreadyCancelled):
+            pass
+        else:
+            self.client_from_previous_conversation.handleRating(rating)
+            if self.client_from_previous_conversation.waiting_for_rating_task is None:
+                logger.debug("Both clients have received ratings, putting them back into house [%s, %s]" % (self, self.client_from_previous_conversation))
+                # At this point, both sides will have set their rating so let's put them back in the queue.
+                self.waiting_for_rating_task = None
+                self.house.attemptTakeRoom(self.client_from_previous_conversation)
+                self.house.attemptTakeRoom(self)
+
+            self.client_from_previous_conversation = None
+
+        self.waiting_for_rating_task = None
+
+    # This is somebody rating us.
+    def handleRating(self, rating):
+        if rating == Client.ConversationRating.BAD:
+            logger.debug("Bad rating for client [%s] received" % self)
+        elif rating == Client.ConversationRating.BLOCK:
+            logger.debug("Block for client [%s] received" % self)
+        elif rating == Client.ConversationRating.GOOD:
+            logger.debug("Good rating for client [%s] received" % self)
+        elif rating == Client.ConversationRating.OKAY:
+            logger.debug("Okay rating for client [%s] received" % self)
+        else:
+            logger.debug("Invalid rating received, dropping client: %d" % rating)
+            self.closeConnection()
+
+    # We need to wait for the client to send a rating, indicating how they felt about their previous conversation.
+    def setToWaitForRatingOfPreviousConversation(self, clientFromPreviousConversation):
+        self.client_from_previous_conversation = clientFromPreviousConversation
+        self.waiting_for_rating_task = self.reactor.callLater(Client.WAITING_FOR_RATING_TIMEOUT, self._onWaitingForRatingTimeout)
+        logger.debug("Client [%s] is waiting for rating from previous conversation with client [%s]" % (self, clientFromPreviousConversation))
+
+    def _onWaitingForRatingTimeout(self):
+        self.waiting_for_rating_task = None
+        logger.debug("Client [%s] timed out waiting for rating from previous client [%s], defaulting value" % (self, self.client_from_previous_conversation))
+        self.setRatingOfOtherClient(Client.ConversationRating.OKAY)
 
     # Must be protected by house lock.
     def shouldMatch(self, client, recurse=True):

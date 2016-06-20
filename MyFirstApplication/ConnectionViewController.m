@@ -101,7 +101,8 @@
 
     _backgroundCounter = 0;
 
-    _cachedResolvedDns = nil;
+    // Hack for arden crescent, should be nil.
+    _cachedResolvedDns = @"192.168.1.92";
 
     _screenName = @"VideoChat";
     _connectionStateTimer = [[Timer alloc] init];

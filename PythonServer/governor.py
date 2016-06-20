@@ -85,6 +85,7 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
             if cleanAction is None:
                 logger.debug("Scheduled new session expiry for client [%s] in [%s] seconds" % (client, UdpConnectionLinker.DELAY))
                 cleanAction = self.reactor.callLater(UdpConnectionLinker.DELAY, self._doClientHashCleanup, client)
+
                 self.clean_actions_by_udp_hash[client.udp_hash] = cleanAction
             else:
                 logger.debug("Reset expiry of [%s] seconds remaining for client [%s] to [%.2f] seconds" % (getRemainingTimeOnAction(cleanAction), client, UdpConnectionLinker.DELAY))
@@ -184,7 +185,7 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
         logger.debug('TCP connection initiated with new client [%s]' % addr)
 
         tcpCon = ClientTcp(addr)
-        client = Client(tcpCon, self.clientDisconnected, self.udp_connection_linker, self.house)
+        client = Client(reactor, tcpCon, self.clientDisconnected, self.udp_connection_linker, self.house)
 
         self._lockClm()
         try:

@@ -5,6 +5,7 @@ from byte_buffer import ByteBuffer
 from utility import inet_addr, Throttle, parseLogLevel
 from twisted.internet.endpoints import TCP4ServerEndpoint, SSL4ServerEndpoint
 from threading import RLock
+from twisted.internet.error import AlreadyCalled, AlreadyCancelled
 
 import logging
 import argparse
@@ -53,7 +54,10 @@ class CommanderGovernor(object):
     def handleTcpPacket(self, packet):
         assert isinstance(packet, ByteBuffer)
 
-        self.disconnect_timeout.reset(CommanderGovernor.TIMEOUT)
+        try:
+            self.disconnect_timeout.reset(CommanderGovernor.TIMEOUT)
+        except (AlreadyCalled, AlreadyCancelled):
+            pass
 
         if self.connection_status == CommanderGovernor.ConnectionStatus.WAITING_FOR_CONNECTION_DETAILS:
             passwordEnvVariable = os.environ['HOLOGRAM_PASSWORD']

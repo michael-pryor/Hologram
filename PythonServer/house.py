@@ -153,7 +153,7 @@ class House:
 
     # The session has been completely shutdown because a client has
     # permanently disconnected and we don't think they're coming back.
-    def releaseRoom(self, client, notification = None):
+    def releaseRoom(self, client, notification = None, otherClientRelease = None):
         self.house_lock.acquire()
         try:
             self._removeFromWaitingList(client)
@@ -171,7 +171,7 @@ class House:
                     assert isinstance(notification, ByteBuffer)
                     clientB.tcp.sendByteBuffer(notification)
 
-                self.attemptTakeRoom(clientB)
+                clientB.setToWaitForRatingOfPreviousConversation(client)
                 logger.debug("Permanent closure of session between client [%s] and [%s] due to client [%s] leaving the room" % (client, clientB, client))
 
                 # Return the other client.
@@ -196,6 +196,10 @@ class House:
 
         self.house_lock.acquire()
         try:
+            # Can't take more than one room at a time.
+            if client in self.room_participant or client.waiting_for_rating_task is not None:
+                return
+
             client.onWaitingForMatch()
 
             # Each client runs one query initially and then repeats

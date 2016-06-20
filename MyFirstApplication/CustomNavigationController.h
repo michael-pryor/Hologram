@@ -4,9 +4,5 @@
 
 #import <Foundation/Foundation.h>
 
-
 @interface CustomNavigationController : UINavigationController
-
-
-
 @end

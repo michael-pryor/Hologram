@@ -8,6 +8,10 @@
 
 #import "ConversationEndedViewController.h"
 
-@implementation ConversationEndedViewController
+@implementation ConversationEndedViewController {
+    id<ConversationRatingConsumer> _conversationRatingConsumer;
+}
+
+
 
 @end
