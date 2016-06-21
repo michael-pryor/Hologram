@@ -91,6 +91,10 @@ class House:
         bufferClientA.addString(clientB.login_details.short_name)
         bufferClientA.addUnsignedInteger(clientB.login_details.age)
         bufferClientA.addUnsignedInteger(distance)
+        bufferClientA.addUnsignedInteger(Client.WAITING_FOR_RATING_TIMEOUT)
+        bufferClientA.addUnsignedInteger(Client.KARMA_MAXIMUM)
+        bufferClientA.addUnsignedInteger(clientA.karma_rating)
+        bufferClientA.addUnsignedInteger(clientB.karma_rating)
 
         bufferClientB = ByteBuffer()
         bufferClientB.addUnsignedInteger8(Client.TcpOperationCodes.OP_NAT_PUNCHTHROUGH_ADDRESS)
@@ -99,7 +103,10 @@ class House:
         bufferClientB.addString(clientA.login_details.short_name)
         bufferClientB.addUnsignedInteger(clientA.login_details.age)
         bufferClientB.addUnsignedInteger(distance)
-
+        bufferClientB.addUnsignedInteger(Client.WAITING_FOR_RATING_TIMEOUT)
+        bufferClientB.addUnsignedInteger(Client.KARMA_MAXIMUM)
+        bufferClientB.addUnsignedInteger(clientB.karma_rating)
+        bufferClientB.addUnsignedInteger(clientA.karma_rating)
 
         clientA.tcp.sendByteBuffer(bufferClientA)
         clientB.tcp.sendByteBuffer(bufferClientB)

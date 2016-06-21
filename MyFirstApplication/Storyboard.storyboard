@@ -306,6 +306,20 @@
                                 <color key="textColor" red="0.0" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
+                            <progressView opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" misplaced="YES" progress="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="Wkl-aq-hIG">
+                                <rect key="frame" x="10" y="65" width="580" height="20"/>
+                                <color key="tintColor" red="1" green="0.098894447139999994" blue="0.1203000008" alpha="1" colorSpace="calibratedRGB"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="20" id="pwX-Xp-PS4"/>
+                                </constraints>
+                            </progressView>
+                            <progressView opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" misplaced="YES" progress="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="BIz-fU-nrs">
+                                <rect key="frame" x="10" y="537" width="580" height="20"/>
+                                <color key="tintColor" red="1" green="0.098894447139999994" blue="0.1203000008" alpha="1" colorSpace="calibratedRGB"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="20" id="u7U-vw-wWA"/>
+                                </constraints>
+                            </progressView>
                         </subviews>
                         <color key="backgroundColor" red="0.081339869195487968" green="0.22745098039215686" blue="0.0041172287612304863" alpha="1" colorSpace="calibratedRGB"/>
                         <gestureRecognizers/>
@@ -313,24 +327,30 @@
                             <constraint firstItem="cd6-78-3Jp" firstAttribute="width" secondItem="11e-ce-u2V" secondAttribute="width" id="129-tY-iJC"/>
                             <constraint firstItem="11e-ce-u2V" firstAttribute="leading" secondItem="BlS-3L-w4D" secondAttribute="leading" constant="10" id="14O-dE-heh" userLabel="RemoteName left"/>
                             <constraint firstItem="F1S-Hc-p7x" firstAttribute="leading" secondItem="0Z4-8y-t8q" secondAttribute="trailing" constant="5" id="1B8-ye-em3" userLabel="DC Audio Clear left"/>
+                            <constraint firstItem="Wkl-aq-hIG" firstAttribute="top" secondItem="cd6-78-3Jp" secondAttribute="bottom" id="1Bx-iN-duG"/>
                             <constraint firstItem="rhH-1x-tXl" firstAttribute="centerY" secondItem="GLg-2U-XhO" secondAttribute="centerY" constant="10" id="1iz-hb-eV5"/>
                             <constraint firstItem="UGl-Rn-eIt" firstAttribute="right" relation="lessThanOrEqual" secondItem="4xm-sU-sjm" secondAttribute="left" constant="-5" id="3Uz-Q1-JCQ"/>
                             <constraint firstItem="UGl-Rn-eIt" firstAttribute="leading" secondItem="BlS-3L-w4D" secondAttribute="leading" constant="10" id="3cP-hX-Qpd" userLabel="OwnerName left"/>
+                            <constraint firstItem="BIz-fU-nrs" firstAttribute="width" secondItem="Wkl-aq-hIG" secondAttribute="width" id="4UN-MO-DZT"/>
                             <constraint firstItem="EFB-GX-YTW" firstAttribute="bottom" secondItem="cd6-78-3Jp" secondAttribute="top" id="69U-pC-jNg"/>
                             <constraint firstItem="0Z4-8y-t8q" firstAttribute="leading" secondItem="5yT-Gv-8LY" secondAttribute="trailing" constant="5" id="8ru-Ce-c0Z" userLabel="DC Audio left"/>
                             <constraint firstItem="EFB-GX-YTW" firstAttribute="height" secondItem="11e-ce-u2V" secondAttribute="height" id="BF4-W3-nvJ" userLabel="RemoteAge height"/>
                             <constraint firstItem="EFB-GX-YTW" firstAttribute="top" secondItem="11e-ce-u2V" secondAttribute="bottom" id="CWZ-oK-XL5" userLabel="RemoteAge top"/>
                             <constraint firstItem="0Z4-8y-t8q" firstAttribute="top" secondItem="5yT-Gv-8LY" secondAttribute="top" id="D8q-4h-0KH" userLabel="DC Audio top"/>
+                            <constraint firstItem="Wkl-aq-hIG" firstAttribute="width" secondItem="cd6-78-3Jp" secondAttribute="width" id="DcP-3a-nje"/>
                             <constraint firstItem="EFB-GX-YTW" firstAttribute="leading" secondItem="11e-ce-u2V" secondAttribute="leading" id="ESk-QL-c9T" userLabel="RemoteAge left"/>
                             <constraint firstItem="SN4-gs-A3A" firstAttribute="top" secondItem="Wt1-7M-iep" secondAttribute="bottom" constant="6" id="H2G-EK-OrX"/>
                             <constraint firstItem="GLg-2U-XhO" firstAttribute="leading" secondItem="BlS-3L-w4D" secondAttribute="leading" id="HDX-qr-kxS" userLabel="CameraView left"/>
                             <constraint firstItem="11e-ce-u2V" firstAttribute="top" secondItem="uJU-NG-i7x" secondAttribute="bottom" id="HRA-iA-S3X" userLabel="RemoteName top"/>
+                            <constraint firstItem="Wkl-aq-hIG" firstAttribute="centerX" secondItem="cd6-78-3Jp" secondAttribute="centerX" id="JL4-sp-Pbc"/>
                             <constraint firstItem="GLg-2U-XhO" firstAttribute="top" secondItem="BlS-3L-w4D" secondAttribute="top" id="LLn-1G-xya" userLabel="CameraView top"/>
                             <constraint firstItem="dDa-yk-yWa" firstAttribute="centerX" secondItem="GLg-2U-XhO" secondAttribute="centerX" constant="50" id="P0g-km-a5z"/>
                             <constraint firstItem="cd6-78-3Jp" firstAttribute="trailing" secondItem="11e-ce-u2V" secondAttribute="trailing" id="PgC-Sn-GCh"/>
                             <constraint firstItem="EFB-GX-YTW" firstAttribute="width" secondItem="11e-ce-u2V" secondAttribute="width" id="QaP-Dn-mcp" userLabel="RemoteAge width"/>
+                            <constraint firstItem="BIz-fU-nrs" firstAttribute="bottom" secondItem="cbc-sf-j5j" secondAttribute="top" constant="-10" id="TNJ-8g-Yxh"/>
                             <constraint firstItem="11e-ce-u2V" firstAttribute="trailing" secondItem="BlS-3L-w4D" secondAttribute="trailing" constant="-10" id="UCc-UT-0Ht" userLabel="RemoteName right"/>
                             <constraint firstItem="pgN-Gq-UFL" firstAttribute="bottom" secondItem="rhH-1x-tXl" secondAttribute="top" constant="-10" id="WIe-YY-Xlg"/>
+                            <constraint firstItem="BIz-fU-nrs" firstAttribute="centerX" secondItem="GLg-2U-XhO" secondAttribute="centerX" id="Y85-CY-rUU"/>
                             <constraint firstItem="cbc-sf-j5j" firstAttribute="width" secondItem="UGl-Rn-eIt" secondAttribute="width" id="ZJE-nE-xcG" userLabel="OwnerAge width"/>
                             <constraint firstItem="cbc-sf-j5j" firstAttribute="bottom" secondItem="UGl-Rn-eIt" secondAttribute="top" id="aLQ-vT-Khn" userLabel="OwnerAge top"/>
                             <constraint firstItem="SN4-gs-A3A" firstAttribute="top" secondItem="UGl-Rn-eIt" secondAttribute="bottom" constant="5" id="cHA-bh-crm" userLabel="OwnerName bottom"/>
@@ -362,10 +382,12 @@
                         <outlet property="_dcAudioClear" destination="F1S-Hc-p7x" id="qnS-NM-tpu"/>
                         <outlet property="_dcVideo" destination="5yT-Gv-8LY" id="qYu-2s-YMw"/>
                         <outlet property="_natPunchthroughIndicator" destination="Wt1-7M-iep" id="QkT-gO-Zx1"/>
+                        <outlet property="_ourKarma" destination="BIz-fU-nrs" id="TsO-Cg-PEf"/>
                         <outlet property="_ownerAge" destination="cbc-sf-j5j" id="cmb-cr-zqc"/>
                         <outlet property="_ownerName" destination="UGl-Rn-eIt" id="tP2-31-106"/>
                         <outlet property="_remoteAge" destination="EFB-GX-YTW" id="Pdx-dp-id0"/>
                         <outlet property="_remoteDistance" destination="cd6-78-3Jp" id="2dS-LP-5dZ"/>
+                        <outlet property="_remoteKarma" destination="Wkl-aq-hIG" id="hF4-BT-796"/>
                         <outlet property="_remoteName" destination="11e-ce-u2V" id="eMq-rq-vK1"/>
                         <outlet property="_swipeTutorialChangeSettings" destination="pgN-Gq-UFL" id="Fco-DG-xgK"/>
                         <outlet property="_swipeTutorialSkip" destination="rhH-1x-tXl" id="eGU-x8-Icg"/>

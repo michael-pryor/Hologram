@@ -17,6 +17,7 @@
 #import "Timer.h"
 #import "Analytics.h"
 
+
 @implementation ConnectionViewController {
     // Connection
     id <ConnectionGovernor> _connection;
@@ -90,6 +91,12 @@
     DeferredEvent *_videoDataLossAnalytics;
     DeferredEvent *_audioDataLossAnalytics;
     DeferredEvent *_audioResetAnalytics;
+    
+    __weak IBOutlet UIProgressView *_remoteKarma;
+    __weak IBOutlet UIProgressView *_ourKarma;
+    
+    uint _karmaMax;
+    uint _ratingTimeoutSeconds;
 }
 
 // View initially load; happens once per process.
@@ -150,6 +157,8 @@
     _videoDataLossAnalytics = [[Analytics getInstance] deferEventWithFrequencySeconds:analyticsPublishFreqSeconds category:@"network" action:@"video_loss"];
     _audioDataLossAnalytics = [[Analytics getInstance] deferEventWithFrequencySeconds:analyticsPublishFreqSeconds category:@"network" action:@"audio_loss"];
     _audioResetAnalytics = [[Analytics getInstance] deferEventWithFrequencySeconds:analyticsPublishFreqSeconds category:@"network" action:@"audio_reset"];
+    
+    _karmaMax = 0;
 }
 
 // Permanently close our session on the server, disconnect and stop media input/output.
@@ -463,6 +472,36 @@
         [[Analytics getInstance] pushEventWithCategory:@"conversation" action:@"distance" label:nil value:@(distance)];
     });
 }
+
+- (void)handleKarmaMaximum:(uint)karmaMaximum ratingTimeoutSeconds:(uint)ratingTimeoutSeconds {
+    _karmaMax = karmaMaximum;
+    _ratingTimeoutSeconds = ratingTimeoutSeconds;
+
+    NSLog(@"Karma maximum of %d loaded", karmaMaximum);
+    NSLog(@"Rating timeout of %d seconds loaded", ratingTimeoutSeconds);
+}
+
+- (float)getKarmaPercentage:(uint)karmaValue {
+    float karmaFloatValue = karmaValue;
+    float karmaFloatMax = _karmaMax;
+    return karmaFloatValue / karmaFloatMax;
+}
+
+- (void)updateKarmaUsingProgressView:(UIProgressView*)progressView percentage:(float)percentage {
+    [progressView setProgress:percentage animated:true];
+}
+
+- (void)handleOurKarma:(uint)ourKarma remoteKarma:(uint)remoteKarma {
+    float ourKarmaPercentage = [self getKarmaPercentage:ourKarma];
+    float remoteKarmaPercentage = [self getKarmaPercentage:remoteKarma];
+
+    NSLog(@"Received our karma of [%.3f] and remote karma of [%.3f]", ourKarmaPercentage, remoteKarmaPercentage);
+    dispatch_async_main(^{
+        [self updateKarmaUsingProgressView:_remoteKarma percentage:remoteKarmaPercentage];
+        [self updateKarmaUsingProgressView:_ourKarma percentage:ourKarmaPercentage];
+    },0);
+}
+
 
 // Received a new image from network.
 // Update the UI.

@@ -50,4 +50,8 @@ typedef enum {
 
 // NAT punch through also provides user name and age details as part of the login process.
 - (void)handleUserName:(NSString*)name age:(uint)age distance:(uint)distance;
+
+- (void)handleKarmaMaximum:(uint)karmaMaximum ratingTimeoutSeconds:(uint)ratingTimeoutSeconds;
+
+- (void)handleOurKarma:(uint)ourKarma remoteKarma:(uint)remoteKarma;
 @end

@@ -20,7 +20,11 @@ class Client(object):
     # TODO: set this back to 10, I changed it temporarily while testing rating system.
     PRIOR_MATCH_LIST_TIMEOUT_SECONDS = 0
 
+    # Clients have 5 seconds to give their rating before it defaults to an okay rating.
     WAITING_FOR_RATING_TIMEOUT = 5
+
+    # Karma ratings are from between 0 to 5.
+    KARMA_MAXIMUM = 5
 
     class ConnectionStatus:
         WAITING_LOGON = 1
@@ -142,6 +146,8 @@ class Client(object):
         # Client we were speaking to in last conversation, may not still be connected.
         self.client_from_previous_conversation = None
         self.waiting_for_rating_task = None
+
+        self.karma_rating = Client.KARMA_MAXIMUM
 
         logger.debug("New client connected, awaiting logon message")
 
@@ -308,17 +314,33 @@ class Client(object):
 
     # This is somebody rating us.
     def handleRating(self, rating):
+        currentKarma = self.karma_rating
+
         if rating == Client.ConversationRating.BAD:
             logger.debug("Bad rating for client [%s] received" % self)
+            currentKarma -= 1
+
         elif rating == Client.ConversationRating.BLOCK:
             logger.debug("Block for client [%s] received" % self)
+            currentKarma -= 1
+
         elif rating == Client.ConversationRating.GOOD:
             logger.debug("Good rating for client [%s] received" % self)
+            currentKarma += 1
+
         elif rating == Client.ConversationRating.OKAY:
             logger.debug("Okay rating for client [%s] received" % self)
         else:
             logger.debug("Invalid rating received, dropping client: %d" % rating)
             self.closeConnection()
+
+        # Keep within bounds.
+        if currentKarma < 0:
+            currentKarma = 0
+        elif currentKarma > Client.KARMA_MAXIMUM:
+            currentKarma = Client.KARMA_MAXIMUM
+
+        self.karma_rating = currentKarma
 
     # We need to wait for the client to send a rating, indicating how they felt about their previous conversation.
     def setToWaitForRatingOfPreviousConversation(self, clientFromPreviousConversation):
@@ -359,6 +381,7 @@ class Client(object):
     def consumeMetaState(self, client):
         assert isinstance(client, Client)
         self.match_skip_history = client.match_skip_history
+        self.karma_rating = client.karma_rating
 
     # Must be protected by house lock.
     def onWaitingForMatch(self):
