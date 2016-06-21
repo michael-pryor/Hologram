@@ -463,7 +463,7 @@
                         <outlet property="_advertBannerView" destination="utn-8v-zRu" id="UXp-8N-fvj"/>
                         <outlet property="_alertShortText" destination="MuE-y5-gsJ" id="7Df-1T-xIO"/>
                         <outlet property="_backButton" destination="KCR-gg-Slb" id="kvc-AY-29V"/>
-                        <outlet property="_conversationEndViewController" destination="QMu-Z6-TRi" id="ahg-ss-fhm"/>
+                        <outlet property="_conversationEndView" destination="QMu-Z6-TRi" id="ahg-ss-fhm"/>
                         <outlet property="_localImageView" destination="4GO-A5-5zk" id="dcv-r8-ZWm"/>
                     </connections>
                 </viewController>
@@ -487,16 +487,25 @@
                                 <rect key="frame" x="235" y="149" width="40" height="30"/>
                                 <accessibility key="accessibilityConfiguration" label="OKAY"/>
                                 <state key="normal" title="OKAY"/>
+                                <connections>
+                                    <action selector="onOkayRatingButtonPress:" destination="kqn-7n-6Sq" eventType="touchUpInside" id="gGZ-Vv-aw0"/>
+                                </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" horizontalCompressionResistancePriority="1000" verticalCompressionResistancePriority="1000" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="o7m-AH-8Vp">
                                 <rect key="frame" x="90" y="199" width="31" height="30"/>
                                 <accessibility key="accessibilityConfiguration" label="OKAY"/>
                                 <state key="normal" title="BAD"/>
+                                <connections>
+                                    <action selector="onBadRatingButtonPress:" destination="kqn-7n-6Sq" eventType="touchUpInside" id="i8d-kV-vlR"/>
+                                </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" horizontalCompressionResistancePriority="1000" verticalCompressionResistancePriority="1000" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="mJ6-5h-TaN">
                                 <rect key="frame" x="383" y="199" width="45" height="30"/>
                                 <accessibility key="accessibilityConfiguration" label="OKAY"/>
                                 <state key="normal" title="GOOD"/>
+                                <connections>
+                                    <action selector="onGoodRatingButtonPress:" destination="kqn-7n-6Sq" eventType="touchUpInside" id="Mzv-DH-t8X"/>
+                                </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" horizontalCompressionResistancePriority="1000" verticalCompressionResistancePriority="1000" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="hHv-ej-2Dw">
                                 <rect key="frame" x="231" y="249" width="49" height="30"/>
@@ -504,6 +513,9 @@
                                 <state key="normal" title="BLOCK">
                                     <color key="titleColor" red="1" green="0.098894447135054353" blue="0.12030000076941849" alpha="1" colorSpace="calibratedRGB"/>
                                 </state>
+                                <connections>
+                                    <action selector="onBlockButtonPress:" destination="kqn-7n-6Sq" eventType="touchUpInside" id="ujM-Yz-tn3"/>
+                                </connections>
                             </button>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
@@ -522,6 +534,12 @@
                             <constraint firstItem="ErH-ds-blI" firstAttribute="centerX" secondItem="XAx-Mf-MRE" secondAttribute="centerX" id="zB4-Sx-uCl"/>
                         </constraints>
                     </view>
+                    <connections>
+                        <outlet property="_badRatingButton" destination="o7m-AH-8Vp" id="1Zd-ed-reW"/>
+                        <outlet property="_blockButton" destination="hHv-ej-2Dw" id="seP-2c-1Xd"/>
+                        <outlet property="_goodRatingButton" destination="mJ6-5h-TaN" id="aEe-Ke-Kvn"/>
+                        <outlet property="_okayRatingButton" destination="ErH-ds-blI" id="tDl-cE-3Dj"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="0Gj-gu-4NA" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>

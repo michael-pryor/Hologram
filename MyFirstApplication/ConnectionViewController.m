@@ -631,6 +631,7 @@
             // Set its content
             [_disconnectViewController setConversationEndedViewVisible:showConversationEndView instantly:true];
             [_disconnectViewController setAlertShortText:shortDescription];
+            [_disconnectViewController setConversationRatingConsumer:self];
 
             if (!alreadyPresented) {
                 [_disconnectViewController didMoveToParentViewController:self];
@@ -800,5 +801,13 @@
         [ViewInteractions fadeIn:_remoteAge completion:nil duration:2.0f];
     }               duration:2.0f];
 }
+
+- (void)onConversationRating:(ConversationRating)conversationRating {
+    ByteBuffer * buffer = [[ByteBuffer alloc] init];
+    [buffer addUnsignedInteger8:PREVIOUS_CONVERSATION_RATING];
+    [buffer addUnsignedInteger8:conversationRating];
+    [_connection sendTcpPacket:buffer];
+}
+
 
 @end

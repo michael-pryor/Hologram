@@ -13,18 +13,22 @@
 #import <FBAudienceNetwork/FBAudienceNetwork.h>
 #import "VideoOutputController.h"
 
-@interface AlertViewController : UIViewController<FBAdViewDelegate, NewImageDelegate>
+@protocol ConversationRatingConsumer;
+
+@interface AlertViewController : UIViewController <FBAdViewDelegate, NewImageDelegate>
 - (void)setAlertShortText:(NSString *)shortText;
 
 - (Boolean)hideIfVisibleAndReady;
 
 - (void)hideNow;
 
-- (NSString*)getScreenName;
+- (NSString *)getScreenName;
 
-- (void)setMoveToFacebookViewControllerFunc:(void(^)())moveToFacebookViewControllerFunc;
+- (void)setMoveToFacebookViewControllerFunc:(void (^)())moveToFacebookViewControllerFunc;
 
 - (void)enableAdverts;
 
 - (void)setConversationEndedViewVisible:(bool)visible instantly:(bool)instant;
+
+- (void)setConversationRatingConsumer:(id <ConversationRatingConsumer>)consumer;
 @end

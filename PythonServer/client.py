@@ -17,7 +17,8 @@ class Client(object):
 
     # Don't rematch with a previously skipped client for first x seconds while we
     # wait for a more suitable match, after x seconds give up and match anyways.
-    PRIOR_MATCH_LIST_TIMEOUT_SECONDS = 10
+    # TODO: set this back to 10, I changed it temporarily while testing rating system.
+    PRIOR_MATCH_LIST_TIMEOUT_SECONDS = 0
 
     WAITING_FOR_RATING_TIMEOUT = 5
 
@@ -321,6 +322,9 @@ class Client(object):
 
     # We need to wait for the client to send a rating, indicating how they felt about their previous conversation.
     def setToWaitForRatingOfPreviousConversation(self, clientFromPreviousConversation):
+        if self.client_from_previous_conversation is not None:
+            return
+
         self.client_from_previous_conversation = clientFromPreviousConversation
         self.waiting_for_rating_task = self.reactor.callLater(Client.WAITING_FOR_RATING_TIMEOUT, self._onWaitingForRatingTimeout)
         logger.debug("Client [%s] is waiting for rating from previous conversation with client [%s]" % (self, clientFromPreviousConversation))

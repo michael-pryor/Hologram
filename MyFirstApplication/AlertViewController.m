@@ -10,6 +10,7 @@
 #import "Timer.h"
 #import "Threading.h"
 #import "ViewInteractions.h"
+#import "ConversationEndedViewController.h"
 
 #define MINIMUM_WAIT_TIME 3.0
 
@@ -28,7 +29,9 @@
     void(^_moveToFacebookViewControllerFunc)();
 
     bool _shouldShowAdverts;
-    __weak IBOutlet UIView *_conversationEndViewController;
+    __weak IBOutlet UIView *_conversationEndView;
+
+    ConversationEndedViewController* _conversationEndViewController;
 
     bool _conversationEndViewControllerVisible;
 }
@@ -43,6 +46,8 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+
+    _conversationEndViewController = self.childViewControllers[0];
 
     // It should be shown at same time as camera, because it sits on top of camera.
     [_backButton setHidden:true];
@@ -112,29 +117,25 @@
     [_timerSinceAdvertCreated setSecondsFrequency:MINIMUM_WAIT_TIME];
     [_timerSinceAdvertCreated reset];
 
-    dispatch_sync_main(^{
-        NSLog(@"Disconnect view controller loaded, unhiding banner advert and setting delegate");
-        [_localImageViewVisible clear];
-        [_localImageView setAlpha:0.0f];
-        [_backButton setHidden:false];
+    NSLog(@"Disconnect view controller loaded, unhiding banner advert and setting delegate");
+    [_localImageViewVisible clear];
+    [_localImageView setAlpha:0.0f];
+    [_backButton setHidden:false];
 
-        // Use hidden flag on appear/disappear, in case it impacts decision to display adds.
-        if (_shouldShowAdverts) {
-            [_advertBannerView setHidden:false];
-            [_advertView loadAd];
-        }
-    });
+    // Use hidden flag on appear/disappear, in case it impacts decision to display adds.
+    if (_shouldShowAdverts) {
+        [_advertBannerView setHidden:false];
+        [_advertView loadAd];
+    }
 }
 
 - (void)viewDidDisappear:(BOOL)animated {
-    dispatch_sync_main(^{
-        [_localImageView setAlpha:0.0f];
+    [_localImageView setAlpha:0.0f];
 
-        // Pause the banner view, stop it loading new adverts.
-        NSLog(@"Disconnect view controller hidden, hiding banner advert and removing delegate");
-        [_backButton setHidden:true];
-        [_advertBannerView setHidden:true];
-    });
+    // Pause the banner view, stop it loading new adverts.
+    NSLog(@"Disconnect view controller hidden, hiding banner advert and removing delegate");
+    [_backButton setHidden:true];
+    [_advertBannerView setHidden:true];
 }
 
 - (void)enableAdverts {
@@ -204,16 +205,20 @@
     _conversationEndViewControllerVisible = visible;
     if (_conversationEndViewControllerVisible) {
         [_localImageViewVisible clear];
-        [ViewInteractions fadeOut:_localImageView completion:^(BOOL finished){
+        [ViewInteractions fadeOut:_localImageView completion:^(BOOL finished) {
             if (!finished) {
                 return;
             }
 
-            [ViewInteractions fadeIn:_conversationEndViewController completion:nil duration:fadeDuration];
-        } duration:fadeDuration];
+            [ViewInteractions fadeIn:_conversationEndView completion:nil duration:fadeDuration];
+        }                duration:fadeDuration];
     } else {
-       [ViewInteractions fadeOut:_conversationEndViewController completion:nil duration:fadeDuration];
+        [ViewInteractions fadeOut:_conversationEndView completion:nil duration:fadeDuration];
     }
+}
+
+- (void)setConversationRatingConsumer:(id <ConversationRatingConsumer>)consumer {
+    [_conversationEndViewController setConversationRatingConsumer:consumer];
 }
 @end
 

@@ -8,11 +8,13 @@
 
 #import <Foundation/Foundation.h>
 
+// Note: these integer values map to the server, must be the same as they
+// are sent and received over the network.
 typedef enum {
-    S_BAD,
-    S_GOOD,
-    S_BLOCK,
-    S_OKAY
+    S_OKAY = 0,
+    S_BAD = 1,
+    S_BLOCK = 2,
+    S_GOOD = 3
 } ConversationRating;
 
 @protocol ConversationRatingConsumer
@@ -20,5 +22,5 @@ typedef enum {
 @end
 
 @interface ConversationEndedViewController : UIViewController
-
+- (void)setConversationRatingConsumer:(id <ConversationRatingConsumer>) consumer;
 @end

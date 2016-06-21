@@ -46,6 +46,9 @@
 // End point clicked on 'skip' so asked to move to next person.
 #define DISCONNECT_SKIPPED 8
 
+// Client is rating a previous conversation.
+#define PREVIOUS_CONVERSATION_RATING 9
+
 #define COMMANDER_SUCCESS 1
 #define COMMANDER_FAILURE 2
 
