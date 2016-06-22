@@ -10,43 +10,19 @@ import random
 
 logger = logging.getLogger(__name__)
 
-class Database(object):
+class Blocking(object):
     RANDOM_FACTOR = 20
 
-    def __init__(self, serverName, host, port):
-        self.mongo_client = pymongo.MongoClient(host, port)
-        self.match_collection = self.mongo_client.db.matcher
-        self.server_name = serverName
-
-    def removeMatchById(self, uniqueKey):
-        self.match_collection.remove({'_id' : uniqueKey})
-
-    def removeMatch(self, client):
-        assert isinstance(client, Client)
-
-        uniqueKey = client.login_details.unique_id
-        self.removeMatchById(uniqueKey)
+    def __init__(self, mongoClient):
+        self.mongo_client = mongoClient
+        self.block_collection = self.mongo_client.db.blocked
 
     # find a match which is fit enough for the specified client.
-    def findMatch(self, client):
-        assert isinstance(client, Client)
-        loginDetails = client.login_details
-
-        # Note that age can be 0 here if user does not want to disclose via facebook. We should handle this case.
-
-        # Gender can be 0 here if user does not want to disclose via facebook. We handle this by saying that users
-        # not specifying gender can match people looking for either male, female or who do not care. We do not
-        # specify a specific gender.
-        matchWithGenderWanted = [3]
-        if loginDetails.gender == 0:
-            matchWithGenderWanted += [1, 2]
-        else:
-            matchWithGenderWanted.append(loginDetails.gender)
-
-        # If a user has not specified what gender htey are interested in, then they can match anything.
-        if loginDetails.interested_in == 0:
-            loginDetails.interested_in = 3
-        genderWanted = loginDetails.interested_in
+    def canMatch(self, clientA, clientB):
+        assert isinstance(clientA, Client)
+        assert isinstance(clientB, Client)
+        loginDetailsA = clientA.login_details
+        loginDetailsB = clientB.login_details
 
         # If they don't care what gender they want, then don't include gender as part of the query.
         if genderWanted == 3:
@@ -72,13 +48,13 @@ class Database(object):
                     })
 
         try:
-            cursor = self.match_collection.find(query).limit(Database.RANDOM_FACTOR)
+            cursor = self.block_collection.find(query).limit(Matching.RANDOM_FACTOR)
         except Exception as e:
             raise ValueError(e)
 
         # Of the results returned, randomly select one person to talk to.
         # Seeded on current time epoch at time random was imported.
-        randomIndex = random.randint(0,Database.RANDOM_FACTOR-1) # randint is inclusive left and right.
+        randomIndex = random.randint(0, Matching.RANDOM_FACTOR - 1) # randint is inclusive left and right.
 
         matches = list()
         for matchIndex in range(0, randomIndex+1): # range is inclusive left and exclusive right.
@@ -109,13 +85,13 @@ class Database(object):
 
         loginDetails = client.login_details
 
-        self.match_collection.create_index([("server", pymongo.ASCENDING),
+        self.block_collection.create_index([("server", pymongo.ASCENDING),
                                             ("gender", pymongo.ASCENDING),
                                             ("gender_wanted", pymongo.ASCENDING),
                                             ("age", pymongo.ASCENDING),
                                             ("location", pymongo.GEOSPHERE)])
 
-        self.match_collection.create_index([("server", pymongo.ASCENDING),
+        self.block_collection.create_index([("server", pymongo.ASCENDING),
                                             ("gender_wanted", pymongo.ASCENDING),
                                             ("age", pymongo.ASCENDING),
                                             ("location", pymongo.GEOSPHERE)])
@@ -127,14 +103,14 @@ class Database(object):
                           "location": [loginDetails.longitude, loginDetails.latitude],
                           "gender_wanted": loginDetails.interested_in}
 
-        self.match_collection.insert_one(recordToInsert)
+        self.block_collection.insert_one(recordToInsert)
 
     def listItems(self):
-        for item in self.match_collection.find():
+        for item in self.block_collection.find():
             print item
 
 if __name__ == '__main__':
-    db = Database("michael_governor", "localhost", 27017)
+    db = Matching("michael_governor", "localhost", 27017)
     db.match_collection.drop()
 
     amountToPush = 1000

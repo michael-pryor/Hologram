@@ -14,8 +14,9 @@ import argparse
 import os
 from stat_tracker import StatTracker
 from analytics import Analytics
+import pymongo
 
-from database import Database
+from database.matching import Matching
 
 __author__ = 'pryormic'
 
@@ -400,8 +401,9 @@ if __name__ == "__main__":
     commanderHost = args.commander_host
     commanderPort = int(args.commander_port)
 
-    database = Database(governorName, "localhost", 27017)
-    server = Governor(reactor, database, governorName)
+    mongoClient = pymongo.MongoClient("localhost", 27017)
+    matchingDatabase = Matching(governorName, mongoClient)
+    server = Governor(reactor, matchingDatabase, governorName)
 
     analytics = Analytics(100, governorName)
 

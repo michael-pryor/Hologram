@@ -4,7 +4,7 @@ from byte_buffer import ByteBuffer
 from utility import htons, inet_addr
 from threading import RLock
 import logging
-from database import Database
+from database.matching import Matching
 from utility import getRemainingTimeOnAction, getEpoch
 from geography import distanceBetweenPointsKm
 import math
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 # A house has lots of rooms in it, each room has two participants in it (the video call).
 class House:
     def __init__(self, database):
-        assert isinstance(database, Database)
+        assert isinstance(database, Matching)
 
         # Contains links e.g.
         # Participant A -> Participant B

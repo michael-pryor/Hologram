@@ -64,9 +64,11 @@ class Client(object):
         GOOD = 3
 
     class LoginDetails(object):
-        def __init__(self, uniqueId, name, shortName, age, gender, interestedIn, longitude, latitude):
+        def __init__(self, uniqueId, facebookId, facebookUrl, name, shortName, age, gender, interestedIn, longitude, latitude):
             super(Client.LoginDetails, self).__init__()
             self.unique_id = uniqueId
+            self.facebook_id = facebookId
+            self.facebook_url = facebookUrl
             self.name = name
             self.short_name = shortName
             self.age = age
@@ -208,7 +210,9 @@ class Client(object):
             rejectText = "Invalid version %d vs required %d" % (version, Client.MINIMUM_VERSION)
             return Client.RejectCodes.REJECT_VERSION, rejectText
 
-        # See quark login.
+        # See hologram login on app side.
+        facebookId = packet.getString()
+        facebookUrl = packet.getString()
         fullName = packet.getString()
         shortName = packet.getString()
         age = packet.getUnsignedInteger()
@@ -218,7 +222,7 @@ class Client(object):
         latitude = packet.getFloat()
         longitude = packet.getFloat()
 
-        self.login_details = Client.LoginDetails(self.udp_hash, fullName, shortName, age, gender, interestedIn, longitude, latitude)
+        self.login_details = Client.LoginDetails(self.udp_hash, facebookId, facebookUrl, fullName, shortName, age, gender, interestedIn, longitude, latitude)
 
         logger.debug("(Full details) Login processed with details, udp hash: [%s], full name: [%s], short name: [%s], age: [%d], gender [%d], interested in [%d], GPS: [(%d,%d)]" % (self.udp_hash, fullName, shortName, age, gender, interestedIn, longitude, latitude))
         logger.info("Login processed with udp hash: [%s]; identifier: [%s/%d]" % (self.udp_hash, shortName, age))
