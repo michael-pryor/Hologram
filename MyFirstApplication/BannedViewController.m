@@ -51,7 +51,7 @@
 }
 
 - (void)updateProgress {
-    float secondsSinceLastTick = [_destinationTime getPercentageProgressThroughTick] / 100.0;
+    float secondsSinceLastTick = [_destinationTime getPercentageProgressThroughTick];
     [_circleTimerProgress setProgress:secondsSinceLastTick animated:true];
 
     dispatch_async_main(^ {
