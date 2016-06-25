@@ -16,6 +16,8 @@
 
 @protocol ConnectionStatusDelegateProtocol
 - (void)connectionStatusChange:(ConnectionStatusProtocol)status withDescription:(NSString *)description;
+
+- (void)onBanned:(uint)numSeconds;
 @end
 
 @interface ConnectionGovernorProtocol : NSObject <ConnectionGovernor>

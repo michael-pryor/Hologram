@@ -5,9 +5,10 @@ from datetime import datetime
 logger = logging.getLogger(__name__)
 
 class Karma(object):
-    def __init__(self, mongoCollection, expiryTimeSeconds):
+    def __init__(self, mongoCollection, expiryTimeSeconds, shouldLinkTimes = False):
         self.karma_collection = mongoCollection
         self.expiry_time_seconds = expiryTimeSeconds
+        self.should_link_times = shouldLinkTimes
 
     # find a match which is fit enough for the specified client.
     def getKarmaDeduction(self, client):
@@ -69,15 +70,22 @@ class Karma(object):
             try:
                 attempts += 1
                 self.karma_collection.create_index([("date", pymongo.ASCENDING)], expireAfterSeconds=self.expiry_time_seconds)
+                break
             except pymongo.errors.OperationFailure as e:
                 logger.warn("Pymongo error: %s, dropping date index on karma collection" % e)
                 self.karma_collection.drop_index([("date", pymongo.ASCENDING)])
 
+        utcNow = datetime.utcnow()
+
         recordToInsert = {"facebookId" : clientFacebookId,
-                          "date": datetime.utcnow() } # For TTL removing.
+                          "date": utcNow } # For TTL removing.
 
         logger.debug("Writing karma deduction to database for Facebook ID: [%s]" % (clientFacebookId))
         self.karma_collection.insert_one(recordToInsert)
+
+        # If we want all records to have the latest timestamp.
+        if self.should_link_times:
+            self.karma_collection.update({"facebookId" : clientFacebookId}, {'$set' : {"date": utcNow}}, multi=True)
 
     def incrementKarma(self, client):
         if client is None:

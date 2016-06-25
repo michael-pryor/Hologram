@@ -73,6 +73,7 @@
 		51FF00531B52E54100D6AF33 /* SocialState.m in Sources */ = {isa = PBXBuildFile; fileRef = 51FF00521B52E54100D6AF33 /* SocialState.m */; };
 		D5D61065DF0FE43CD8139FEE /* TimedGapEventTracker.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D619B9B74C7F1DF1AAC7AB /* TimedGapEventTracker.m */; };
 		D5D6109C65D00FC0470BFE1E /* DelayedPipe.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61109DD409D89A9B6D01A /* DelayedPipe.m */; };
+		D5D610AE60939C3E1169833F /* BannedViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61BCFDFFC217775E41C2D /* BannedViewController.m */; };
 		D5D61138250F5B15745691AF /* AverageTracker.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D615F63C69FA0011332EF8 /* AverageTracker.m */; };
 		D5D611D1DE3EDA3A80460046 /* ViewInteractions.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61E1702DA62D0167A5510 /* ViewInteractions.m */; };
 		D5D6134479AE653BC9C32A65 /* VideoCompression.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D6133CC60B37AAACCADD40 /* VideoCompression.m */; };
@@ -246,6 +247,7 @@
 		D5D61251762F6DA462F666E0 /* ReadWriteLock.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ReadWriteLock.h; sourceTree = "<group>"; };
 		D5D612C8E5F02C628B3B7961 /* VideoCompression.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VideoCompression.h; sourceTree = "<group>"; };
 		D5D612CDFF7D57CACE8B1BE6 /* AccessDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AccessDialog.h; sourceTree = "<group>"; };
+		D5D612FF79799E7D6233D2E9 /* BannedViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BannedViewController.h; sourceTree = "<group>"; };
 		D5D6133CC60B37AAACCADD40 /* VideoCompression.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = VideoCompression.m; sourceTree = "<group>"; };
 		D5D61344A3DA20E707951D3E /* TimedCounter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TimedCounter.h; sourceTree = "<group>"; };
 		D5D61361F43525D3DF93DCE0 /* Orientation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Orientation.m; sourceTree = "<group>"; };
@@ -286,6 +288,7 @@
 		D5D61AFC38BFDD751F10C1A5 /* VIdeoEncoding.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VIdeoEncoding.h; sourceTree = "<group>"; };
 		D5D61B2954C519324141BCE0 /* AudioShared.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AudioShared.m; sourceTree = "<group>"; };
 		D5D61BBEC1CD98FCE065A176 /* SequenceEncodingPipe.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SequenceEncodingPipe.m; sourceTree = "<group>"; };
+		D5D61BCFDFFC217775E41C2D /* BannedViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BannedViewController.m; sourceTree = "<group>"; };
 		D5D61C57CA825622E4A41B53 /* SequenceEncodingPipe.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SequenceEncodingPipe.h; sourceTree = "<group>"; };
 		D5D61D42394687AAC5C21FB8 /* AudioUnitHelpers.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AudioUnitHelpers.m; sourceTree = "<group>"; };
 		D5D61D7435CE35550C2AB293 /* AccessDialog.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AccessDialog.m; sourceTree = "<group>"; };
@@ -383,6 +386,8 @@
 				D5D61923E1F12385A8AA014E /* ViewInteractions.h */,
 				517C4E761D16D15300E7A185 /* ConversationEndedViewController.h */,
 				517C4E771D16D15300E7A185 /* ConversationEndedViewController.m */,
+				D5D61BCFDFFC217775E41C2D /* BannedViewController.m */,
+				D5D612FF79799E7D6233D2E9 /* BannedViewController.h */,
 			);
 			name = Storyboard;
 			sourceTree = "<group>";
@@ -733,12 +738,12 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 51E5BE4A1936A982003E45C3 /* Build configuration list for PBXNativeTarget "Hologram" */;
 			buildPhases = (
-				1548AB076B242B834CD75B17 /* uD83DuDCE6 Check Pods Manifest.lock */,
+				1548AB076B242B834CD75B17 /* [CP] Check Pods Manifest.lock */,
 				51E5BE1A1936A982003E45C3 /* Sources */,
 				51E5BE1B1936A982003E45C3 /* Frameworks */,
 				51E5BE1C1936A982003E45C3 /* Resources */,
-				9C7B20FA7941B69475CECF80 /* uD83DuDCE6 Embed Pods Frameworks */,
-				C596FDDFA22F14333EED0D79 /* uD83DuDCE6 Copy Pods Resources */,
+				9C7B20FA7941B69475CECF80 /* [CP] Embed Pods Frameworks */,
+				C596FDDFA22F14333EED0D79 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -760,6 +765,11 @@
 				TargetAttributes = {
 					51E5BE1D1936A982003E45C3 = {
 						DevelopmentTeam = Q6XP93Q965;
+						SystemCapabilities = {
+							com.apple.Push = {
+								enabled = 1;
+							};
+						};
 					};
 				};
 			};
@@ -796,14 +806,14 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		1548AB076B242B834CD75B17 /* uD83DuDCE6 Check Pods Manifest.lock */ = {
+		1548AB076B242B834CD75B17 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			inputPaths = (
 			);
-			name = "uD83DuDCE6 Check Pods Manifest.lock";
+			name = "[CP] Check Pods Manifest.lock";
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -811,14 +821,14 @@
 			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [[ $? != 0 ]] ; then\n    cat << EOM\nerror: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\nEOM\n    exit 1\nfi\n";
 			showEnvVarsInLog = 0;
 		};
-		9C7B20FA7941B69475CECF80 /* uD83DuDCE6 Embed Pods Frameworks */ = {
+		9C7B20FA7941B69475CECF80 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			inputPaths = (
 			);
-			name = "uD83DuDCE6 Embed Pods Frameworks";
+			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -826,14 +836,14 @@
 			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-Hologram/Pods-Hologram-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		C596FDDFA22F14333EED0D79 /* uD83DuDCE6 Copy Pods Resources */ = {
+		C596FDDFA22F14333EED0D79 /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			inputPaths = (
 			);
-			name = "uD83DuDCE6 Copy Pods Resources";
+			name = "[CP] Copy Pods Resources";
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -914,6 +924,7 @@
 				D5D617D21FA6360C6525B632 /* AverageTrackerLimitedSize.m in Sources */,
 				D5D61BB3C8D9E23D68765691 /* ReadWriteLock.m in Sources */,
 				D5D614DB6EB5A7B2C1193E29 /* Random.m in Sources */,
+				D5D610AE60939C3E1169833F /* BannedViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1030,12 +1041,18 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/frameworks",
+					"$(PROJECT_DIR)/build/Debug-iphoneos/CircleProgressBar",
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "MyFirstApplication/Hologram-Prefix.pch";
 				GCC_UNROLL_LOOPS = YES;
 				GENERATE_PROFILING_CODE = YES;
 				HEADER_SEARCH_PATHS = (
+					"$(inherited)/**",
+					"/Users/pryormic/Desktop/MyFirstApplication/ffmpeg/FFmpeg-iOS/include/**",
+					"/Users/pryormic/Desktop/MyFirstApplication/x264-ios/x264-iOS/include",
+				);
+				"HEADER_SEARCH_PATHS[arch=*]" = (
 					"$(inherited)/**",
 					"/Users/pryormic/Desktop/MyFirstApplication/ffmpeg/FFmpeg-iOS/include/**",
 					"/Users/pryormic/Desktop/MyFirstApplication/x264-ios/x264-iOS/include",
@@ -1078,6 +1095,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/frameworks",
+					"$(PROJECT_DIR)/build/Debug-iphoneos/CircleProgressBar",
 				);
 				GCC_OPTIMIZATION_LEVEL = s;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;

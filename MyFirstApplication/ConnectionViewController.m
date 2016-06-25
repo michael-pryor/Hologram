@@ -16,7 +16,7 @@
 #import "ViewInteractions.h"
 #import "Timer.h"
 #import "Analytics.h"
-
+#import "BannedViewController.h"
 
 @implementation ConnectionViewController {
     // Connection
@@ -631,6 +631,16 @@
             break;
     }
 }
+
+- (void)onBanned:(uint)numSeconds {
+    dispatch_sync_main(^{
+        UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Storyboard" bundle:nil];
+        BannedViewController *viewController = [storyboard instantiateViewControllerWithIdentifier:@"BannedViewController"];
+        [self.navigationController pushViewController:viewController animated:YES];
+        [viewController setWaitTime:numSeconds];
+    });
+}
+
 
 // Display view overlay showing how connection is being recovered.
 - (void)setDisconnectStateWithShortDescription:(NSString *)shortDescription showConversationEndView:(bool)showConversationEndView {

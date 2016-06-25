@@ -363,7 +363,7 @@ class Client(object):
         self.waiting_for_rating_task = None
 
     def sendBanMessage(self, expiryTime):
-        packet = self.buildRejectPacket(*self.getRejectBannedArguments())
+        packet = self.buildRejectPacket(*self.getRejectBannedArguments(expiryTime))
         self.tcp.sendByteBuffer(packet)
         self.closeConnection()
 

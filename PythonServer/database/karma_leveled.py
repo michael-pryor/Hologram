@@ -20,7 +20,7 @@ class KarmaLeveled(object):
     KARMA_MAXIMUM = 5
 
     def __init__(self, mongoClient):
-        self.karma = Karma(mongoClient.db.karma, KarmaLeveled.KARMA_BASE_EXPIRY_TIME_SECONDS)
+        self.karma = Karma(mongoClient.db.karma, KarmaLeveled.KARMA_BASE_EXPIRY_TIME_SECONDS, shouldLinkTimes=False)
 
         # Most severe ban is first in the list (element 0).
         self.bans = []
@@ -28,7 +28,7 @@ class KarmaLeveled(object):
             expirationTime = KarmaLeveled.KARMA_BASE_EXPIRY_TIME_SECONDS * n
             collectionName = "ban_%d" % n
             logger.info("MongoDB collection [%s] has expiration of %d seconds" % (collectionName, expirationTime))
-            self.bans.append(Karma(getattr(mongoClient.db,collectionName), expiryTimeSeconds=expirationTime))
+            self.bans.append(Karma(getattr(mongoClient.db,collectionName), expiryTimeSeconds=expirationTime, shouldLinkTimes=True))
 
     def listItems(self):
         print "Karma: "
@@ -36,8 +36,8 @@ class KarmaLeveled(object):
 
         print
         print "Bans:"
-        for item, n in zip(self.bans, range(0,len(self.bans))):
-            print "BAN_%d" % n
+        for item, n in zip(self.bans, range(len(self.bans),0,-1)):
+            print "BAN_%d (%d seconds. %.2f minutes)" % (n, item.expiry_time_seconds, float(item.expiry_time_seconds) / 60.0)
             item.listItems()
             print
 
@@ -71,11 +71,11 @@ class KarmaLeveled(object):
         else:
             currentKarma = karmaOverride
 
-        if currentKarma <= 0:
+        if currentKarma < 0:
             return False
 
         self.karma.pushKarmaDeduction(client)
-        if currentKarma - 1 > 0:
+        if currentKarma > 0:
             return False
 
         for ban in self.bans:

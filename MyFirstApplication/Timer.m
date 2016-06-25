@@ -71,6 +71,19 @@
     return [Timer getSecondsEpoch] - _secondsEpoch;
 }
 
+- (float)getPercentageProgressThroughTick {
+    CFAbsoluteTime secondsSinceLastTick = [self getSecondsSinceLastTick];
+    CFAbsoluteTime diff = _secondsFrequency - secondsSinceLastTick;
+
+    CFAbsoluteTime progress = diff / _secondsFrequency;
+    if (progress < 0) {
+        progress = 0;
+    } else if (progress > 100) {
+        progress = 100;
+    }
+    return (float)progress;
+}
+
 - (void)blockUntilNextTick {
     if (_secondsEpoch == 0) {
         _secondsEpoch = [Timer getSecondsEpoch] - _secondsFrequency;

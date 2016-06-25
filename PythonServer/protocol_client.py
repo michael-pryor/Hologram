@@ -45,8 +45,8 @@ class ClientTcp(IntNStringReceiver):
         try:
             if self.parent is not None:
                 self.parent.handleTcpPacket(byteBuffer)
-        except AttributeError:
-            pass
+        except AttributeError as e:
+            logger.debug("Attribute error: %s" % unicode(e))
 
     def sendByteBuffer(self, byteBuffer):
         assert isinstance(byteBuffer, ByteBuffer)

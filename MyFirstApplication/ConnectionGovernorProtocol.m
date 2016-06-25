@@ -11,6 +11,7 @@
 #import "ActivityMonitor.h"
 #import "Timer.h"
 #import "NetworkOperations.h"
+#import "BannedViewController.h"
 
 // Session hash has timed out, you need a fresh session.
 #define REJECT_HASH_TIMEOUT 1
@@ -54,8 +55,6 @@
 
     Boolean _exitDialogShown;
 
-    uint _expiryTimeSeconds;
-
     // Must be kept in sync with server.
 #define OP_REJECT_LOGON 1
 #define OP_ACCEPT_LOGON 2
@@ -68,8 +67,6 @@
     if (self) {
         _alive = true;
         _reconnectEnabled = true;
-
-        _expiryTimeSeconds = 0;
 
         _udpHash = nil;
         _udpHashPacket = nil;
@@ -279,6 +276,7 @@
     // Hash timed out, the next one will succeed if we clear it (server will give us a new one).
     if (rejectCode == REJECT_HASH_TIMEOUT) {
         [self terminateWithConnectionStatus:P_NOT_CONNECTED_HASH_REJECTED withDescription:@"Session expired"];
+        [self reconnectLimitedWithFailureDescription:rejectDescription];
     } else if (rejectCode == REJECT_BAD_VERSION) {
         [self disableReconnecting];
         if (_exitDialogShown) {
@@ -286,7 +284,6 @@
         }
         _exitDialogShown = true;
 
-        _expiryTimeSeconds = 0;
         NSString *alertText = [NSString stringWithFormat:@"The version of the application you are running is too old; please update it in the Apple app store.\n\nThe server rejected our connection request with details: [%@]", rejectDescription];
         UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Please update the application"
                                                         message:alertText
@@ -296,65 +293,8 @@
         [alert show];
     } else if (rejectCode == REJECT_BANNED) {
         [self disableReconnecting];
-        if (_exitDialogShown) {
-            return;
-        }
-        _exitDialogShown = true;
-
-        _expiryTimeSeconds = [packet getUnsignedInteger];
-
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"You have run out of karma"
-                                                        message:rejectDescription
-                                                       delegate:self
-                                              cancelButtonTitle:@"Exit, and notify me when my karma has regenerated"
-                                              otherButtonTitles:nil];
-        [alert show];
-    }
-}
-
-- (void)setupNotificationSettings {
-    UIUserNotificationType types = (UIUserNotificationType) (UIUserNotificationTypeBadge |
-            UIUserNotificationTypeSound | UIUserNotificationTypeAlert);
-
-    UIUserNotificationSettings *mySettings =
-            [UIUserNotificationSettings settingsForTypes:types categories:nil];
-
-    [[UIApplication sharedApplication] registerUserNotificationSettings:mySettings];
-}
-
-- (void)scheduleNotification:(uint)numSeconds {
-    UILocalNotification *localNotif = [[UILocalNotification alloc] init];
-    if (localNotif == nil)
-        return;
-
-    localNotif.fireDate = [[NSDate date] dateByAddingTimeInterval: numSeconds];
-    localNotif.timeZone = [NSTimeZone defaultTimeZone];
-
-    localNotif.alertBody = @"Your karma has regenerated, you can logon to Hologram again";
-    localNotif.alertTitle = @"Hologram Karma";
-
-    localNotif.soundName = UILocalNotificationDefaultSoundName;
-    localNotif.applicationIconBadgeNumber = 1;
-
-    [[UIApplication sharedApplication] scheduleLocalNotification:localNotif];
-    NSLog(@"Scheduled local notification to take place in %d seconds", numSeconds);
-}
-
-- (void)notifyBanExpired:(uint)numSeconds {
-    [self setupNotificationSettings];
-    [self scheduleNotification:numSeconds];
-}
-
-- (void)alertView:(UIAlertView *)alertView didDismissWithButtonIndex:(NSInteger)buttonIndex {
-    if ([alertView cancelButtonIndex] == buttonIndex) {
-        if (_expiryTimeSeconds != 0) {
-            NSLog(@"Notifying client that expiry has ended, in %d seconds", _expiryTimeSeconds);
-            [self notifyBanExpired:_expiryTimeSeconds];
-            _expiryTimeSeconds = 0;
-        } else {
-            NSLog(@"Exiting the application because rejected by server");
-            exit(0);
-        }
+        uint expiryTimeSeconds = [packet getUnsignedInteger];
+        [_connectionStatusDelegate onBanned:expiryTimeSeconds];
     }
 }
 
@@ -369,7 +309,6 @@
             }
             NSString *rejectDescription = [@"Logon rejected with reason: " stringByAppendingString:rejectReason];
             [self handleRejectCode:rejectCode description:rejectDescription packet:packet];
-            [self reconnectLimitedWithFailureDescription:rejectDescription];
             return;
         }
 

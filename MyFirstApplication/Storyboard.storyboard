@@ -407,6 +407,41 @@
             </objects>
             <point key="canvasLocation" x="829" y="-495"/>
         </scene>
+        <!--Banned View Controller-->
+        <scene sceneID="KkO-9d-jiX">
+            <objects>
+                <viewController storyboardIdentifier="BannedViewController" id="2Aj-9g-5Ez" customClass="BannedViewController" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="tio-fB-AaK"/>
+                        <viewControllerLayoutGuide type="bottom" id="2HX-Mr-Mhw"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="7tU-wf-FhH">
+                        <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="XqR-QA-b6a" customClass="CircleProgressBar">
+                                <rect key="frame" x="175" y="175" width="250" height="250"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="250" id="AuL-Se-vfj"/>
+                                    <constraint firstAttribute="height" constant="250" id="nqm-nz-Xyg"/>
+                                </constraints>
+                            </view>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <constraints>
+                            <constraint firstItem="XqR-QA-b6a" firstAttribute="centerX" secondItem="7tU-wf-FhH" secondAttribute="centerX" id="Tbo-5g-jTx"/>
+                            <constraint firstItem="XqR-QA-b6a" firstAttribute="centerY" secondItem="7tU-wf-FhH" secondAttribute="centerY" id="to9-wr-Fwo"/>
+                        </constraints>
+                    </view>
+                    <connections>
+                        <outlet property="_circleTimerProgress" destination="XqR-QA-b6a" id="qgb-Qv-cB1"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="0pE-ke-P6e" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="271" y="194"/>
+        </scene>
         <!--Alert View Controller-->
         <scene sceneID="bwh-xN-V9T">
             <objects>

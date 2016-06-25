@@ -33,4 +33,6 @@
 - (void)blockUntilNextTick;
 
 + (CFAbsoluteTime)getSecondsEpoch;
+
+- (float)getPercentageProgressThroughTick;
 @end
