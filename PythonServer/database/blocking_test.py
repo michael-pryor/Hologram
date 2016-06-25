@@ -9,7 +9,6 @@ if __name__ == '__main__':
     db.block_collection.drop()
 
     amountToPush = 1000
-    amountToTest = 1000
 
     def getRandomClient():
         return Client.buildDummy()

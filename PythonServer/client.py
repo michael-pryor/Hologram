@@ -112,7 +112,7 @@ class Client(object):
 
     @classmethod
     def buildDummy(cls):
-        item = cls(None, ClientTcp(namedtuple('Address', ['host', 'port'], verbose=False)), None, None, None)
+        item = cls(None, ClientTcp(namedtuple('Address', ['host', 'port'], verbose=False)), None, None, None, None)
         fbId = str(uuid.uuid4())
         item.login_details = Client.LoginDetails(str(uuid.uuid4()), fbId, "www.facebook.com/%s" % fbId, "Mike P", "Mike", random.randint(18, 30),
                                                         random.randint(1, 2), random.randint(1, 3),

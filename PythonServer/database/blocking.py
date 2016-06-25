@@ -5,8 +5,6 @@ import pymongo.errors
 logger = logging.getLogger(__name__)
 
 class Blocking(object):
-    RANDOM_FACTOR = 20
-
     def __init__(self, mongoClient):
         self.mongo_client = mongoClient
         self.block_collection = self.mongo_client.db.blocked
