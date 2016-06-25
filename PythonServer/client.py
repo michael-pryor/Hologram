@@ -6,6 +6,10 @@ from utility import getEpoch
 from twisted.internet import task
 from twisted.internet.error import AlreadyCalled, AlreadyCancelled
 from special_collections import OrderedSet
+from collections import namedtuple
+from database.blocking import Blocking
+import uuid
+import random
 
 __author__ = 'pryormic'
 
@@ -106,9 +110,21 @@ class Client(object):
             return str(self.prior_matches)
 
 
-    def __init__(self, reactor, tcp, onCloseFunc, udpConnectionLinker, house):
+    @classmethod
+    def buildDummy(cls):
+        item = cls(None, ClientTcp(namedtuple('Address', ['host', 'port'], verbose=False)), None, None, None)
+        fbId = str(uuid.uuid4())
+        item.login_details = Client.LoginDetails(str(uuid.uuid4()), fbId, "www.facebook.com/%s" % fbId, "Mike P", "Mike", random.randint(18, 30),
+                                                        random.randint(1, 2), random.randint(1, 3),
+                                                        random.randint(0, 180), random.randint(0, 90))
+        return item
+
+    def __init__(self, reactor, tcp, onCloseFunc, udpConnectionLinker, house, blockingDatabase):
         super(Client, self).__init__()
         assert isinstance(tcp, ClientTcp)
+
+        if blockingDatabase is not None:
+            assert isinstance(blockingDatabase, Blocking)
 
         self.reactor = reactor
         self.udp = None
@@ -120,6 +136,7 @@ class Client(object):
         self.udp_hash = None
         self.udp_remote_address = None
         self.house = house
+        self.blocking_database = blockingDatabase
 
         self.last_received_data = None
 
@@ -325,8 +342,10 @@ class Client(object):
             currentKarma -= 1
 
         elif rating == Client.ConversationRating.BLOCK:
-            logger.debug("Block for client [%s] received" % self)
+            logger.debug("Block for client [%s] received from [%s]" % (self, self.client_from_previous_conversation))
             currentKarma -= 1
+
+            self.blocking_database.pushBlock(self.client_from_previous_conversation, self)
 
         elif rating == Client.ConversationRating.GOOD:
             logger.debug("Good rating for client [%s] received" % self)
@@ -376,6 +395,16 @@ class Client(object):
         isPriorMatch = self.match_skip_history.isPriorMatch(client.udp_hash)
 
         result = (not isPriorMatch)  or secondsWaitingForMatch >= Client.PRIOR_MATCH_LIST_TIMEOUT_SECONDS
+
+        if result:
+            # No need to check both sides in this call, since we already have logic in shouldMatch to
+            # check both sides.
+            #
+            # This checks to see if users blocked each other.
+            if not self.blocking_database.canMatch(self, client, checkBothSides=False):
+                logger.debug("Client [%s] has blocked client [%s], not matching them" % (self, client))
+                result = False
+
         logger.debug("Client [%s] has been waiting %.2f seconds for a match; is prior match [%s], match successful: [%s]" % (self, secondsWaitingForMatch, isPriorMatch, result))
 
         return result

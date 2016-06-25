@@ -15,8 +15,8 @@ import os
 from stat_tracker import StatTracker
 from analytics import Analytics
 import pymongo
-
 from database.matching import Matching
+from database.blocking import Blocking
 
 __author__ = 'pryormic'
 
@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 #
 # ClientFactory encapsulates the TCP listening socket.
 class Governor(ClientFactory, protocol.DatagramProtocol):
-    def __init__(self, reactor, database, governorName):
+    def __init__(self, reactor, matchingDatabase, blockingDatabase, governorName):
         # All connected clients.
         self.client_mappings_lock = RLock()
 
@@ -42,12 +42,13 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
         self.clean_actions_by_udp_hash = dict()
 
         self.reactor = reactor
-        self.house = House(database)
+        self.house = House(matchingDatabase)
 
         # Track kilobytes per second averaged over last 30 seconds.
         self.kilobyte_per_second_tracker = StatTracker(1,30)
 
         self.governor_name = governorName
+        self.blocking_database = blockingDatabase
 
     # Higher = under more stress, handling more traffic, lower = handling less.
     def getLoad(self):
@@ -186,7 +187,7 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
         logger.debug('TCP connection initiated with new client [%s]' % addr)
 
         tcpCon = ClientTcp(addr)
-        client = Client(reactor, tcpCon, self.clientDisconnected, self.udp_connection_linker, self.house)
+        client = Client(reactor, tcpCon, self.clientDisconnected, self.udp_connection_linker, self.house, self.blocking_database)
 
         self._lockClm()
         try:
@@ -403,7 +404,8 @@ if __name__ == "__main__":
 
     mongoClient = pymongo.MongoClient("localhost", 27017)
     matchingDatabase = Matching(governorName, mongoClient)
-    server = Governor(reactor, matchingDatabase, governorName)
+    blockingDatabase = Blocking(mongoClient)
+    server = Governor(reactor, matchingDatabase, blockingDatabase, governorName)
 
     analytics = Analytics(100, governorName)
 

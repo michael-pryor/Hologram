@@ -13,8 +13,8 @@ logger = logging.getLogger(__name__)
 
 # A house has lots of rooms in it, each room has two participants in it (the video call).
 class House:
-    def __init__(self, database):
-        assert isinstance(database, Matching)
+    def __init__(self, matchingDatabase):
+        assert isinstance(matchingDatabase, Matching)
 
         # Contains links e.g.
         # Participant A -> Participant B
@@ -42,7 +42,7 @@ class House:
         self.disconnected_skip = ByteBuffer()
         self.disconnected_skip.addUnsignedInteger(Client.TcpOperationCodes.OP_SKIPPED_DISCONNECT)
 
-        self.database = database
+        self.matchingDatabase = matchingDatabase
 
     def takeRoom(self, clientA, clientB):
         if clientA is clientB:
@@ -154,7 +154,7 @@ class House:
                 del self.waiting_keys_by_client[client]
                 del self.waiting_clients_by_key[client.login_details.unique_id]
 
-                self.database.removeMatch(client)
+                self.matchingDatabase.removeMatch(client)
         finally:
             self.house_lock.release()
 
@@ -193,7 +193,7 @@ class House:
                 self.waiting_clients_by_key[key] = client
                 self.waiting_keys_by_client[client] = key
 
-                self.database.pushWaiting(client)
+                self.matchingDatabase.pushWaiting(client)
 
         # A client which is not connected should never be able to take a room.
         # This covers the edge case of a temporarily disconnected session where the connected party
@@ -219,7 +219,7 @@ class House:
                 # This loop allows us to clean up the database quickly if there are alot of inconsistencies.
                 while True:
                     try:
-                        databaseResultMatch = self.database.findMatch(client)
+                        databaseResultMatch = self.matchingDatabase.findMatch(client)
                     except ValueError as e:
                         logger.debug("Bad database query attempt [%s], forcefully disconnecting client: [%s]" % (e, client))
                         client.closeConnection()
@@ -233,7 +233,7 @@ class House:
                     key = databaseResultMatch['_id']
                     clientMatch = self.waiting_clients_by_key.get(key)
                     if clientMatch is None:
-                        self.database.removeMatchById(key)
+                        self.matchingDatabase.removeMatchById(key)
                         logger.warn("Client in DB not found in waiting list, database inconsistency detected, removing key from database: " + key + ", and retrying")
                         continue # Retry repeatedly.
 
