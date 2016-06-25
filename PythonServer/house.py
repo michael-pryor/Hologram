@@ -8,6 +8,7 @@ from database.matching import Matching
 from utility import getRemainingTimeOnAction, getEpoch
 from geography import distanceBetweenPointsKm
 import math
+from database.karma_leveled import KarmaLeveled
 
 logger = logging.getLogger(__name__)
 
@@ -92,7 +93,7 @@ class House:
         bufferClientA.addUnsignedInteger(clientB.login_details.age)
         bufferClientA.addUnsignedInteger(distance)
         bufferClientA.addUnsignedInteger(Client.WAITING_FOR_RATING_TIMEOUT)
-        bufferClientA.addUnsignedInteger(Client.KARMA_MAXIMUM)
+        bufferClientA.addUnsignedInteger(KarmaLeveled.KARMA_MAXIMUM)
         bufferClientA.addUnsignedInteger(clientA.karma_rating)
         bufferClientA.addUnsignedInteger(clientB.karma_rating)
 
@@ -104,7 +105,7 @@ class House:
         bufferClientB.addUnsignedInteger(clientA.login_details.age)
         bufferClientB.addUnsignedInteger(distance)
         bufferClientB.addUnsignedInteger(Client.WAITING_FOR_RATING_TIMEOUT)
-        bufferClientB.addUnsignedInteger(Client.KARMA_MAXIMUM)
+        bufferClientB.addUnsignedInteger(KarmaLeveled.KARMA_MAXIMUM)
         bufferClientB.addUnsignedInteger(clientB.karma_rating)
         bufferClientB.addUnsignedInteger(clientA.karma_rating)
 

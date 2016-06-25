@@ -7,16 +7,16 @@ import time
 
 if __name__ == '__main__':
     mongoClient = pymongo.MongoClient("localhost", 27017)
-    db = Karma(mongoClient)
+    db = Karma(mongoClient.db.karma_base_collection, 25)
     db.karma_collection.drop()
 
-    amountToPush = 1000
+    amountToPush = 5
 
     def getRandomClient():
         return Client.buildDummy()
 
     clientsList = [getRandomClient() for x in range(0,amountToPush)]
-    karmaRatings = [randint(0, Client.KARMA_MAXIMUM) for x in range(0, amountToPush)]
+    karmaRatings = [randint(0, 5) for x in range(0, amountToPush)]
 
     print "Inserting..."
     try:
@@ -32,8 +32,20 @@ if __name__ == '__main__':
         if result != karmaRating:
             print "Mismatch: %s vs expected %s" % (result, karmaRating)
 
+    print "Testing karma increments..."
+    for client, karmaRating in zip(clientsList, karmaRatings):
+        db.incrementKarma(client)
+        result = db.getKarmaDeduction(client)
+        if karmaRating == 0:
+            newKarmaRating = 0
+        else:
+            newKarmaRating = karmaRating - 1
+
+        if newKarmaRating != result:
+            print "Karma incrementing mismatch: %s vs expected %s" % (result, karmaRating)
+
     # MongoDB expires data every 60 seconds, so lets wait twice that.
-    sleepSeconds = Karma.KARMA_EXPIRY_TIME_SECONDS + 120
+    sleepSeconds = db.expiry_time_seconds + 120
     print "Sleeping for %d seconds to wait for TTL" % sleepSeconds
     time.sleep(sleepSeconds)
     print "Validating TTL..."
@@ -42,5 +54,6 @@ if __name__ == '__main__':
         result = db.getKarmaDeduction(client)
         if result != 0:
             print "Mismatch: %s vs expected %s" % (result, 0)
+
 
     print "All finished"

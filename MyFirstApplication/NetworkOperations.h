@@ -49,6 +49,9 @@
 // Client is rating a previous conversation.
 #define PREVIOUS_CONVERSATION_RATING 9
 
+// You have been banned!
+#define NEWLY_BANNED 10
+
 #define COMMANDER_SUCCESS 1
 #define COMMANDER_FAILURE 2
 

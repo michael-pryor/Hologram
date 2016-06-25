@@ -10,6 +10,7 @@ from collections import namedtuple
 from database.blocking import Blocking
 import uuid
 import random
+from database.karma_leveled import KarmaLeveled
 
 __author__ = 'pryormic'
 
@@ -26,9 +27,6 @@ class Client(object):
 
     # Clients have 5 seconds to give their rating before it defaults to an okay rating.
     WAITING_FOR_RATING_TIMEOUT = 5
-
-    # Karma ratings are from between 0 to 5.
-    KARMA_MAXIMUM = 5
 
     class ConnectionStatus:
         WAITING_LOGON = 1
@@ -60,6 +58,7 @@ class Client(object):
         SUCCESS = 0
         REJECT_HASH_TIMEOUT = 1
         REJECT_VERSION = 2
+        REJECT_BANNED = 3
 
     class ConversationRating:
         OKAY = 0
@@ -119,12 +118,15 @@ class Client(object):
                                                         random.randint(0, 180), random.randint(0, 90))
         return item
 
-    def __init__(self, reactor, tcp, onCloseFunc, udpConnectionLinker, house, blockingDatabase):
+    def __init__(self, reactor, tcp, onCloseFunc, udpConnectionLinker, house, blockingDatabase, karmaDatabase):
         super(Client, self).__init__()
         assert isinstance(tcp, ClientTcp)
 
         if blockingDatabase is not None:
             assert isinstance(blockingDatabase, Blocking)
+
+        if karmaDatabase is not None:
+            assert isinstance(karmaDatabase, KarmaLeveled)
 
         self.reactor = reactor
         self.udp = None
@@ -166,9 +168,11 @@ class Client(object):
         self.client_from_previous_conversation = None
         self.waiting_for_rating_task = None
 
-        self.karma_rating = Client.KARMA_MAXIMUM
+        self.karma_database = karmaDatabase
 
-        logger.debug("New client connected, awaiting logon message")
+        # Need FacebookID in order to do lookup, so preset with default value.
+        self.karma_rating = KarmaLeveled.KARMA_MAXIMUM
+
 
     def isConnectedTcp(self):
         return self.connection_status != Client.ConnectionStatus.NOT_CONNECTED
@@ -241,8 +245,16 @@ class Client(object):
 
         self.login_details = Client.LoginDetails(self.udp_hash, facebookId, facebookUrl, fullName, shortName, age, gender, interestedIn, longitude, latitude)
 
-        logger.debug("(Full details) Login processed with details, udp hash: [%s], full name: [%s], short name: [%s], age: [%d], gender [%d], interested in [%d], GPS: [(%d,%d)]" % (self.udp_hash, fullName, shortName, age, gender, interestedIn, longitude, latitude))
-        logger.info("Login processed with udp hash: [%s]; identifier: [%s/%d]" % (self.udp_hash, shortName, age))
+        banTime = self.karma_database.getBanTime(self)
+        if banTime is not None:
+            return Client.RejectCodes.REJECT_BANNED, "You have run out of karma, please wait to regenerate\nMaximum wait time is: %.1f minutes" % (float(banTime) / 60.0), expiryTime
+
+        self.karma_rating = self.karma_database.getKarma(self)
+
+        logger.debug("(Full details) Login processed with details, udp hash: [%s], full name: [%s], short name: [%s], age: [%d], gender [%d], interested in [%d], GPS: [(%d,%d)], Karma [%d]" % (self.udp_hash, fullName, shortName, age, gender, interestedIn, longitude, latitude, self.karma_rating))
+        logger.info("Login processed with udp hash: [%s]; identifier: [%s/%d]; karma: [%d]" % (self.udp_hash, shortName, age, self.karma_rating))
+
+
         return Client.RejectCodes.SUCCESS, self.udp_hash
 
     def handleTcpPacket(self, packet):
@@ -250,8 +262,9 @@ class Client(object):
         if self.connection_status == Client.ConnectionStatus.WAITING_LOGON:
             response = ByteBuffer()
 
-            rejectCode, dataString = self.handleLogon(packet)
-            if rejectCode == Client.RejectCodes.SUCCESS:
+            rejectCode, dataString, expiryTime = self.handleLogon(packet)
+            rejected = rejectCode != Client.RejectCodes.SUCCESS
+            if not rejected:
                 self.connection_status = Client.ConnectionStatus.WAITING_UDP
                 logger.debug("Logon accepted, waiting for UDP connection")
 
@@ -261,11 +274,15 @@ class Client(object):
                 logger.debug("Logon rejected, closing connection, reject code [%d], reject reason [%s]" % (rejectCode, dataString))
                 response.addUnsignedInteger8(Client.UdpOperationCodes.OP_REJECT_LOGON)
                 response.addUnsignedInteger8(rejectCode)
-                response.addString("Reject reason: %s" % dataString)
-                self.closeConnection()
+                response.addString(dataString)
+                if expiryTime is not None:
+                    response.addUnsignedInteger(expiryTime)
 
             logger.debug("Sending response accept/reject to TCP client: %s", self.tcp)
             self.tcp.sendByteBuffer(response)
+
+            if rejected:
+                self.closeConnection()
 
         elif self.connection_status == Client.ConnectionStatus.WAITING_UDP:
             logger.debug("TCP packet received while waiting for UDP connection to be established, dropping packet")
@@ -333,35 +350,53 @@ class Client(object):
 
         self.waiting_for_rating_task = None
 
+    def sendBanMessage(self):
+        pass
+
     # This is somebody rating us.
     def handleRating(self, rating):
         currentKarma = self.karma_rating
 
+        def deductKarma():
+            currentKarma -= 1
+            if currentKarma < 0:
+                currentKarma = 0
+                return
+
+            isBanned = self.karma_database.deductKarma(self)
+            if not isBanned:
+                return
+
+            banTime = self.karma_database.getBanTime(self)
+            if banTime is None:
+                return
+
+            self.sendBanMessage(banTime)
+
+        def incrementKarma():
+            currentKarma += 1
+            if currentKarma > KarmaLeveled.KARMA_MAXIMUM:
+                currentKarma = KarmaLeveled.KARMA_MAXIMUM
+            else:
+                self.karma_database.incrementKarma(self)
+
         if rating == Client.ConversationRating.BAD:
             logger.debug("Bad rating for client [%s] received" % self)
-            currentKarma -= 1
+            deductKarma()
 
         elif rating == Client.ConversationRating.BLOCK:
             logger.debug("Block for client [%s] received from [%s]" % (self, self.client_from_previous_conversation))
-            currentKarma -= 1
-
+            deductKarma()
             self.blocking_database.pushBlock(self.client_from_previous_conversation, self)
-
         elif rating == Client.ConversationRating.GOOD:
             logger.debug("Good rating for client [%s] received" % self)
-            currentKarma += 1
+            incrementKarma()
 
         elif rating == Client.ConversationRating.OKAY:
             logger.debug("Okay rating for client [%s] received" % self)
         else:
             logger.debug("Invalid rating received, dropping client: %d" % rating)
             self.closeConnection()
-
-        # Keep within bounds.
-        if currentKarma < 0:
-            currentKarma = 0
-        elif currentKarma > Client.KARMA_MAXIMUM:
-            currentKarma = Client.KARMA_MAXIMUM
 
         self.karma_rating = currentKarma
 

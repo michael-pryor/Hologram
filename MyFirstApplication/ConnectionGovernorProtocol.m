@@ -18,6 +18,9 @@
 // Server wants a newer version.
 #define REJECT_BAD_VERSION 2
 
+// You were banned from the server previously, and so cannot join.
+#define REJECT_BANNED 3
+
 // Version to include in connection attempts.
 // Must be >= to server's expectation, otherwise we'l be rejected.
 #define VERSION 1
@@ -49,7 +52,9 @@
     Boolean _alive;
     Boolean _isNewSession;
 
-    Boolean _badVersionNotified;
+    Boolean _exitDialogShown;
+
+    uint _expiryTimeSeconds;
 
     // Must be kept in sync with server.
 #define OP_REJECT_LOGON 1
@@ -63,6 +68,8 @@
     if (self) {
         _alive = true;
         _reconnectEnabled = true;
+
+        _expiryTimeSeconds = 0;
 
         _udpHash = nil;
         _udpHashPacket = nil;
@@ -83,7 +90,7 @@
         _udpConnection = [[ConnectionManagerUdp alloc] initWithNewPacketDelegate:self newUnknownPacketDelegate:unknownRecvDelegate connectionDelegate:self retryCount:5];
 
         _loginProvider = loginProvider;
-        _badVersionNotified = false;
+        _exitDialogShown = false;
 
         [self _setupReconnectMonitor];
 
@@ -268,49 +275,76 @@
     [self performSelector:@selector(sendUdpLogonHash:) withObject:bufferToSend afterDelay:0.5];
 }
 
-- (void)handleRejectCode:(uint)rejectCode description:(NSString *)rejectDescription {
+- (void)handleRejectCode:(uint)rejectCode description:(NSString *)rejectDescription packet:(ByteBuffer *)packet {
     // Hash timed out, the next one will succeed if we clear it (server will give us a new one).
     if (rejectCode == REJECT_HASH_TIMEOUT) {
         [self terminateWithConnectionStatus:P_NOT_CONNECTED_HASH_REJECTED withDescription:@"Session expired"];
     } else if (rejectCode == REJECT_BAD_VERSION) {
         [self disableReconnecting];
-        if (!_badVersionNotified) {
-            _badVersionNotified = true;
-
-            NSString *alertText = [NSString stringWithFormat:@"The version of the application you are running is too old; please update it in the Apple app store.\n\nThe server rejected our connection request with details: [%@]", rejectDescription];
-            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Please update the application"
-                                                            message:alertText
-                                                           delegate:self
-                                                  cancelButtonTitle:@"Exit"
-                                                  otherButtonTitles:nil];
-            [alert show];
+        if (_exitDialogShown) {
+            return;
         }
+        _exitDialogShown = true;
+
+        _expiryTimeSeconds = 0;
+        NSString *alertText = [NSString stringWithFormat:@"The version of the application you are running is too old; please update it in the Apple app store.\n\nThe server rejected our connection request with details: [%@]", rejectDescription];
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Please update the application"
+                                                        message:alertText
+                                                       delegate:self
+                                              cancelButtonTitle:@"Exit"
+                                              otherButtonTitles:nil];
+        [alert show];
+    } else if (rejectCode == REJECT_BANNED) {
+        [self disableReconnecting];
+        if (_exitDialogShown) {
+            return;
+        }
+        _exitDialogShown = true;
+
+        _expiryTimeSeconds = [packet getUnsignedInteger];
+
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"You have run out of karma"
+                                                        message:rejectDescription
+                                                       delegate:self
+                                              cancelButtonTitle:@"Exit, and notify me when my karma has regenerated"
+                                              otherButtonTitles:nil];
+        [alert show];
     }
 }
 
 - (void)alertView:(UIAlertView *)alertView didDismissWithButtonIndex:(NSInteger)buttonIndex {
     if ([alertView cancelButtonIndex] == buttonIndex) {
-        NSLog(@"Exiting the application because rejected by server (bad version)");
+        NSLog(@"Exiting the application because rejected by server");
+
+        if (_expiryTimeSeconds != 0) {
+            NSLog(@"Notifying client that expiry has ended, in %d seconds", _expiryTimeSeconds);
+
+
+            _expiryTimeSeconds = 0;
+            
+        }
         exit(0);
     }
 }
 
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
     if (protocol == TCP) {
-        if (_connectionStatus != P_CONNECTED) {
-            uint logon = [packet getUnsignedInteger8];
+        uint logon = [packet getUnsignedInteger8];
+        if (logon == OP_REJECT_LOGON) {
+            uint rejectCode = [packet getUnsignedInteger8];
+            NSString *rejectReason = [packet getString];
+            if (rejectReason == nil) {
+                rejectReason = @"[No reject reason]";
+            }
+            NSString *rejectDescription = [@"Logon rejected with reason: " stringByAppendingString:rejectReason];
+            [self handleRejectCode:rejectCode description:rejectDescription packet:packet];
+            [self reconnectLimitedWithFailureDescription:rejectDescription];
+            return;
+        }
 
+        if (_connectionStatus != P_CONNECTED) {
             if (_connectionStatus == P_WAITING_FOR_TCP_LOGON_ACK) {
-                if (logon == OP_REJECT_LOGON) {
-                    uint rejectCode = [packet getUnsignedInteger8];
-                    NSString *rejectReason = [packet getString];
-                    if (rejectReason == nil) {
-                        rejectReason = @"[No reject reason]";
-                    }
-                    NSString *rejectDescription = [@"Logon rejected with reason: " stringByAppendingString:rejectReason];
-                    [self handleRejectCode:rejectCode description:rejectDescription];
-                    [self reconnectLimitedWithFailureDescription:rejectDescription];
-                } else if (logon == OP_ACCEPT_LOGON) {
+                if (logon == OP_ACCEPT_LOGON) {
                     NSLog(@"Login accepted, sending UDP hash packet with hash: %@", _udpHash);
                     _isNewSession = _udpHash == nil;
                     if (_isNewSession) {
@@ -342,6 +376,7 @@
             return;
         } else {
             NSLog(@"New TCP packet received with size: %ul", [packet bufferUsedSize]);
+            [packet setCursorPosition:0];
             [_recvDelegate onNewPacket:packet fromProtocol:protocol];
         }
     } else {
