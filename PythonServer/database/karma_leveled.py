@@ -25,7 +25,7 @@ class KarmaLeveled(object):
         # Most severe ban is first in the list (element 0).
         self.bans = []
         for n in range(KarmaLeveled.MAX_EXPONENTIAL_INCREASES, 0, -1):
-            expirationTime = pow(KarmaLeveled.KARMA_BASE_EXPIRY_TIME_SECONDS, n)
+            expirationTime = KarmaLeveled.KARMA_BASE_EXPIRY_TIME_SECONDS * n
             collectionName = "ban_%d" % n
             logger.info("MongoDB collection [%s] has expiration of %d seconds" % (collectionName, expirationTime))
             self.bans.append(Karma(getattr(mongoClient.db,collectionName), expiryTimeSeconds=expirationTime))
@@ -88,9 +88,9 @@ class KarmaLeveled(object):
         for banTimeMultiplier, karmaTracker in zip(range(KarmaLeveled.MAX_EXPONENTIAL_INCREASES, 0, -1), self.bans):
             assert isinstance(karmaTracker, Karma)
 
-            banEntries = karmaTracker.getKarmaDeduction(client)
+            banEntries, expirationTime = karmaTracker.getKarmaDeductionAndExpirationTime(client)
             if banEntries >= banTimeMultiplier:
-                return karmaTracker.expiry_time_seconds
+                return expirationTime
 
         return None
 

@@ -24,6 +24,36 @@ class Karma(object):
         except Exception as e:
             raise ValueError(e)
 
+    def getKarmaDeductionAndExpirationTime(self, client):
+        # assert isinstance(client, Client)
+
+        clientFacebookId = client.login_details.facebook_id
+        query = {"facebookId": clientFacebookId}
+        try:
+            cursor = self.karma_collection.find(query, sort=[("date", pymongo.ASCENDING)])
+            if cursor is None:
+                return 0
+
+            cursorCount = cursor.count()
+            for item in cursor:
+                dateOfRecord = item['date']
+                timeSinceOldestRecordWritten = (datetime.utcnow() - dateOfRecord).seconds
+                expirationTime = self.expiry_time_seconds - timeSinceOldestRecordWritten
+                if expirationTime < 0:
+                    # We have old redundant data which is no longer relevant, clear it.
+                    for n in range(0,cursorCount):
+                        self.incrementKarma(client)
+
+                    expirationTime = 0
+                    cursorCount = 0
+                break
+            else:
+                expirationTime = 0
+
+            return cursorCount, expirationTime
+        except Exception as e:
+            raise ValueError(e)
+
     def pushKarmaDeduction(self, client):
         if client is None:
             return
@@ -33,7 +63,15 @@ class Karma(object):
         clientFacebookId = client.login_details.facebook_id
 
         self.karma_collection.create_index([("facebookId", pymongo.ASCENDING),("date", pymongo.ASCENDING)])
-        self.karma_collection.create_index([("date", pymongo.ASCENDING)], expireAfterSeconds=self.expiry_time_seconds)
+
+        attempts= 0
+        while attempts < 2:
+            try:
+                attempts += 1
+                self.karma_collection.create_index([("date", pymongo.ASCENDING)], expireAfterSeconds=self.expiry_time_seconds)
+            except pymongo.errors.OperationFailure as e:
+                logger.warn("Pymongo error: %s, dropping date index on karma collection" % e)
+                self.karma_collection.drop_index([("date", pymongo.ASCENDING)])
 
         recordToInsert = {"facebookId" : clientFacebookId,
                           "date": datetime.utcnow() } # For TTL removing.
