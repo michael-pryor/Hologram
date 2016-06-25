@@ -17,6 +17,7 @@ from analytics import Analytics
 import pymongo
 from database.matching import Matching
 from database.blocking import Blocking
+from database.karma_leveled import KarmaLeveled
 
 __author__ = 'pryormic'
 
@@ -255,7 +256,7 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
                 self._unlockClm()
 
             successPing = ByteBuffer()
-            successPing.addUnsignedInteger8(Client.UdpOperationCodes.OP_ACCEPT_UDP)
+            successPing.addUnsignedInteger8(Client.TcpOperationCodes.OP_ACCEPT_UDP)
 
             logger.debug("Sending fully connected ACK")
             registeredClient.tcp.sendByteBuffer(successPing)

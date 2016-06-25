@@ -1,6 +1,6 @@
 import logging
 logger = logging.getLogger(__name__)
-from karma import Karma
+from database.karma import Karma
 
 class KarmaLeveled(object):
     # 1 hour.
@@ -24,11 +24,28 @@ class KarmaLeveled(object):
 
         # Most severe ban is first in the list (element 0).
         self.bans = []
-        for n in range(KarmaLeveled.MAX_EXPONENTIAL_INCREASES, 0, step=-1):
-            expirationTime = pow(KarmaLeveled.KARMA_BASE_EXPIRY_TIME_SECONDS, n+1)
+        for n in range(KarmaLeveled.MAX_EXPONENTIAL_INCREASES, 0, -1):
+            expirationTime = pow(KarmaLeveled.KARMA_BASE_EXPIRY_TIME_SECONDS, n)
             collectionName = "ban_%d" % n
             logger.info("MongoDB collection [%s] has expiration of %d seconds" % (collectionName, expirationTime))
             self.bans.append(Karma(getattr(mongoClient.db,collectionName), expiryTimeSeconds=expirationTime))
+
+    def listItems(self):
+        print "Karma: "
+        self.karma.listItems()
+
+        print
+        print "Bans:"
+        for item, n in zip(self.bans, range(0,len(self.bans))):
+            print "BAN_%d" % n
+            item.listItems()
+            print
+
+    def dropCollections(self):
+        self.karma.karma_collection.drop()
+
+        for ban in self.bans:
+            ban.karma_collection.drop()
 
     def getKarma(self, client):
         #assert isinstance(client, Client)
@@ -45,11 +62,15 @@ class KarmaLeveled(object):
         return karma
 
     # Return true if client has been banned.
-    def deductKarma(self, client):
+    def deductKarma(self, client, karmaOverride=None):
         if client is None:
             return False
 
-        currentKarma = self.getKarma(client)
+        if karmaOverride is None:
+            currentKarma = self.getKarma(client)
+        else:
+            currentKarma = karmaOverride
+
         if currentKarma <= 0:
             return False
 
@@ -64,13 +85,12 @@ class KarmaLeveled(object):
         return True
 
     def getBanTime(self, client):
-        for banTimeMultiplier, karmaTracker in zip(range(KarmaLeveled.MAX_EXPONENTIAL_INCREASES+1, 1, step=-1), self.bans):
+        for banTimeMultiplier, karmaTracker in zip(range(KarmaLeveled.MAX_EXPONENTIAL_INCREASES, 0, -1), self.bans):
             assert isinstance(karmaTracker, Karma)
 
             banEntries = karmaTracker.getKarmaDeduction(client)
             if banEntries >= banTimeMultiplier:
-                banTime = banTimeMultiplier * KarmaLeveled.KARMA_MAXIMUM
-                return banTime
+                return karmaTracker.expiry_time_seconds
 
         return None
 

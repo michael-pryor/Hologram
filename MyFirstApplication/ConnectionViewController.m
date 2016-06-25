@@ -715,15 +715,6 @@
         } else if (operation == DISCONNECT_SKIPPED) {
             [self setDisconnectStateWithShortDescription:@"Matching you with somebody to talk with\nThe other person skipped you" showConversationEndView:true];
             NSLog(@"End point skipped us");
-        } else if (operation == NEWLY_BANNED) {
-            uint rejectCode = [packet getUnsignedInteger8];
-            NSString *rejectReason = [packet getString];
-            if (rejectReason == nil) {
-                rejectReason = @"[No reject reason]";
-            }
-            NSString *rejectDescription = [@"Logon rejected with reason: " stringByAppendingString:rejectReason];
-            [self handleRejectCode:rejectCode description:rejectDescription];
-            [self reconnectLimitedWithFailureDescription:rejectDescription];
         } else {
             if (_mediaController != nil) {
                 [_mediaController onNewPacket:packet fromProtocol:protocol];

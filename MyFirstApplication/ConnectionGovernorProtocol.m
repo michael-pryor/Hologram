@@ -312,18 +312,49 @@
     }
 }
 
+- (void)setupNotificationSettings {
+    UIUserNotificationType types = (UIUserNotificationType) (UIUserNotificationTypeBadge |
+            UIUserNotificationTypeSound | UIUserNotificationTypeAlert);
+
+    UIUserNotificationSettings *mySettings =
+            [UIUserNotificationSettings settingsForTypes:types categories:nil];
+
+    [[UIApplication sharedApplication] registerUserNotificationSettings:mySettings];
+}
+
+- (void)scheduleNotification:(uint)numSeconds {
+    UILocalNotification *localNotif = [[UILocalNotification alloc] init];
+    if (localNotif == nil)
+        return;
+
+    localNotif.fireDate = [[NSDate date] dateByAddingTimeInterval: numSeconds];
+    localNotif.timeZone = [NSTimeZone defaultTimeZone];
+
+    localNotif.alertBody = @"Your karma has regenerated, you can logon to Hologram again";
+    localNotif.alertTitle = @"Hologram Karma";
+
+    localNotif.soundName = UILocalNotificationDefaultSoundName;
+    localNotif.applicationIconBadgeNumber = 1;
+
+    [[UIApplication sharedApplication] scheduleLocalNotification:localNotif];
+    NSLog(@"Scheduled local notification to take place in %d seconds", numSeconds);
+}
+
+- (void)notifyBanExpired:(uint)numSeconds {
+    [self setupNotificationSettings];
+    [self scheduleNotification:numSeconds];
+}
+
 - (void)alertView:(UIAlertView *)alertView didDismissWithButtonIndex:(NSInteger)buttonIndex {
     if ([alertView cancelButtonIndex] == buttonIndex) {
-        NSLog(@"Exiting the application because rejected by server");
-
         if (_expiryTimeSeconds != 0) {
             NSLog(@"Notifying client that expiry has ended, in %d seconds", _expiryTimeSeconds);
-
-
+            [self notifyBanExpired:_expiryTimeSeconds];
             _expiryTimeSeconds = 0;
-            
+        } else {
+            NSLog(@"Exiting the application because rejected by server");
+            exit(0);
         }
-        exit(0);
     }
 }
 

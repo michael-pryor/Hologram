@@ -1,9 +1,10 @@
+import time
+from random import randint
+
 import pymongo
 
 from client import Client
 from database.karma import Karma
-from random import randint
-import time
 
 if __name__ == '__main__':
     mongoClient = pymongo.MongoClient("localhost", 27017)
