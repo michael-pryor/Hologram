@@ -46,4 +46,14 @@
         }                completion:block];
     });
 }
+
++ (void)fadeOut:(UIView*)viewA thenIn:(UIView*)viewB duration:(float)duration {
+    [ViewInteractions fadeOut:viewA completion:^(BOOL finished) {
+        if (!finished) {
+            return;
+        }
+
+        [ViewInteractions fadeIn:viewB completion:nil duration:duration];
+    } duration:duration];
+}
 @end

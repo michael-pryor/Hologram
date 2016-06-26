@@ -37,14 +37,25 @@
 
     id <ConversationRatingConsumer> _conversationRatingConsumer;
     uint _ratingTimeoutSeconds;
+
+    NSString *_cachedAlertShortText;
 }
 
 - (void)setAlertShortText:(NSString *)shortText {
-    // Alert text has changed, wait at least two seconds more before clearing display.
-    [_timerSinceAdvertCreated reset];
+    _cachedAlertShortText = shortText;
+    if (!_conversationEndViewControllerVisible) {
+        [self doSetAlertShortText:shortText];
+    }
+}
 
-    _alertShortText.text = shortText;
-    [_alertShortText setNeedsDisplay];
+- (void)doSetAlertShortText:(NSString *)shortText {
+    dispatch_sync_main(^{
+        // Alert text has changed, wait at least two seconds more before clearing display.
+        [_timerSinceAdvertCreated reset];
+
+        _alertShortText.text = shortText;
+        [_alertShortText setNeedsDisplay];
+    });
 }
 
 - (void)viewDidLoad {
@@ -57,6 +68,7 @@
     // It should be shown at same time as camera, because it sits on top of camera.
     [_backButton setHidden:true];
 
+    _cachedAlertShortText = nil;
     _moveToFacebookViewControllerFunc = nil;
     _shouldShowAdverts = false;
 
@@ -213,26 +225,15 @@
         if (_conversationEndViewControllerVisible) {
             [_conversationEndViewController reset];
             [_localImageViewVisible clear];
-            [ViewInteractions fadeOut:_localImageView completion:^(BOOL finished) {
-                if (!finished) {
-                    return;
-                }
-
-                [ViewInteractions fadeIn:_conversationEndView completion:nil duration:fadeDuration];
-            }                duration:fadeDuration];
-            
+            [ViewInteractions fadeOut:_localImageView thenIn:_conversationEndView duration:fadeDuration];
+            [self doSetAlertShortText:@"Please rate your previous conversation\nThis will influence their karma"];
             dispatch_async_main(^{
                 [_conversationEndViewController onRatingsCompleted];
             }, _ratingTimeoutSeconds * 1000);
-            
-        } else {
-            [ViewInteractions fadeOut:_conversationEndView completion:^(BOOL finished) {
-                if (!finished) {
-                    return;
-                }
 
-                [ViewInteractions fadeIn:_localImageView completion:nil duration:fadeDuration];
-            } duration:fadeDuration];
+        } else {
+            [ViewInteractions fadeOut:_conversationEndView thenIn:_localImageView duration:fadeDuration];
+            [self doSetAlertShortText:_cachedAlertShortText];
         }
     });
 }
