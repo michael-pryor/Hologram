@@ -93,7 +93,7 @@
     DeferredEvent *_audioResetAnalytics;
     
     __weak IBOutlet UIProgressView *_remoteKarma;
-    __weak IBOutlet UIProgressView *_ourKarma;
+    __weak IBOutlet UIProgressView *_ownerKarma;
     
     uint _karmaMax;
     uint _ratingTimeoutSeconds;
@@ -108,8 +108,12 @@
 
     _backgroundCounter = 0;
 
+    /*
     // Hack for arden crescent, should be nil.
     _cachedResolvedDns = @"192.168.1.92";
+    */
+
+    _cachedResolvedDns = nil;
 
     _screenName = @"VideoChat";
     _connectionStateTimer = [[Timer alloc] init];
@@ -493,8 +497,15 @@
     return karmaFloatValue / karmaFloatMax;
 }
 
-- (void)updateKarmaUsingProgressView:(UIProgressView*)progressView percentage:(float)percentage {
-    [progressView setProgress:percentage animated:true];
+- (void)updateKarmaUsingProgressView:(UIProgressView *)progressView ratio:(float)ratio {
+    if (ratio > 0.9) {
+        [progressView setTintColor:[UIColor greenColor]];
+    } else if (ratio < 0.3) {
+        [progressView setTintColor:[UIColor redColor]];
+    } else {
+        [progressView setTintColor:[UIColor blueColor]];
+    }
+    [progressView setProgress:ratio animated:false];
 }
 
 - (void)handleOurKarma:(uint)ourKarma remoteKarma:(uint)remoteKarma {
@@ -503,8 +514,8 @@
 
     NSLog(@"Received our karma of [%.3f] and remote karma of [%.3f]", ourKarmaPercentage, remoteKarmaPercentage);
     dispatch_async_main(^{
-        [self updateKarmaUsingProgressView:_remoteKarma percentage:remoteKarmaPercentage];
-        [self updateKarmaUsingProgressView:_ourKarma percentage:ourKarmaPercentage];
+        [self updateKarmaUsingProgressView:_remoteKarma ratio:remoteKarmaPercentage];
+        [self updateKarmaUsingProgressView:_ownerKarma ratio:ourKarmaPercentage];
     },0);
 }
 
@@ -831,6 +842,8 @@
         [_remoteName setAlpha:0.0f];
         [_cameraView setAlpha:0.0f];
         [_remoteDistance setAlpha:0.0f];
+        [_remoteKarma setAlpha:0.0f];
+        [_ownerKarma setAlpha:0.0f];
     });
 }
 
@@ -839,25 +852,35 @@
 
     [ViewInteractions fadeIn:_cameraView completion:nil duration:1.0f];
 
-    [ViewInteractions fadeIn:_ownerName completion:^(BOOL completed) {
+    [ViewInteractions fadeIn:_remoteKarma completion:^(BOOL completed) {
         if (!completed || _disconnectViewController != nil) {
             return;
         }
 
-        [ViewInteractions fadeIn:_ownerAge completion:^(BOOL completedNext) {
+        [ViewInteractions fadeIn:_remoteName completion:^(BOOL completedNext) {
             if (!completedNext || _disconnectViewController != nil) {
                 return;
             }
-            [ViewInteractions fadeIn:_remoteDistance completion:nil duration:2.0f];
-        }               duration:2.0f];
-    }               duration:2.0f];
+            [ViewInteractions fadeIn:_remoteAge completion:^(BOOL completedNextB) {
+                if (!completedNextB || _disconnectViewController != nil) {
+                    return;
+                }
+                [ViewInteractions fadeIn:_remoteDistance completion:nil duration:2.0f];
+            } duration:2.0f];
+        } duration:2.0f];
+    } duration:2.0f];
 
-    [ViewInteractions fadeIn:_remoteName completion:^(BOOL completed) {
+    [ViewInteractions fadeIn:_ownerKarma completion:^(BOOL completed) {
         if (!completed || _disconnectViewController != nil) {
             return;
         }
-        [ViewInteractions fadeIn:_remoteAge completion:nil duration:2.0f];
-    }               duration:2.0f];
+        [ViewInteractions fadeIn:_ownerName completion:^(BOOL completedNext) {
+            if (!completedNext || _disconnectViewController != nil) {
+                return;
+            }
+            [ViewInteractions fadeIn:_ownerAge completion:nil duration:2.0f];
+        } duration:2.0f];
+    } duration:2.0f];
 }
 
 - (void)onConversationRating:(ConversationRating)conversationRating {

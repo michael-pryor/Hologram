@@ -24,7 +24,7 @@
 
 // Version to include in connection attempts.
 // Must be >= to server's expectation, otherwise we'l be rejected.
-#define VERSION 1
+#define VERSION 2
 
 @implementation ConnectionGovernorProtocol {
     id <NewPacketDelegate> _recvDelegate;
@@ -295,6 +295,13 @@
         [self disableReconnecting];
         uint expiryTimeSeconds = [packet getUnsignedInteger];
         [_connectionStatusDelegate onBanned:expiryTimeSeconds];
+    }
+}
+
+- (void)alertView:(UIAlertView *)alertView didDismissWithButtonIndex:(NSInteger)buttonIndex {
+    if ([alertView cancelButtonIndex] == buttonIndex) {
+        NSLog(@"Exiting the application because rejected by server (bad version)");
+        exit(0);
     }
 }
 
