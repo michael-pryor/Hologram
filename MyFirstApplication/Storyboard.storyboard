@@ -421,21 +421,64 @@
                         <subviews>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="XqR-QA-b6a" customClass="CircleProgressBar">
                                 <rect key="frame" x="175" y="175" width="250" height="250"/>
-                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                 <constraints>
-                                    <constraint firstAttribute="width" constant="250" id="AuL-Se-vfj"/>
-                                    <constraint firstAttribute="height" constant="250" id="nqm-nz-Xyg"/>
+                                    <constraint firstAttribute="width" priority="700" constant="250" id="AuL-Se-vfj"/>
+                                    <constraint firstAttribute="width" secondItem="XqR-QA-b6a" secondAttribute="height" multiplier="1:1" id="FAt-Yx-cNP"/>
+                                    <constraint firstAttribute="height" priority="700" constant="250" id="nqm-nz-Xyg"/>
                                 </constraints>
+                                <userDefinedRuntimeAttributes>
+                                    <userDefinedRuntimeAttribute type="number" keyPath="progress">
+                                        <real key="value" value="0.0"/>
+                                    </userDefinedRuntimeAttribute>
+                                </userDefinedRuntimeAttributes>
                             </view>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="1000" verticalCompressionResistancePriority="1000" text="Label" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="R33-4T-Bn9">
+                                <rect key="frame" x="0.0" y="119" width="600" height="36"/>
+                                <fontDescription key="fontDescription" type="system" weight="heavy" pointSize="30"/>
+                                <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <button opaque="NO" alpha="0.60000002384185791" contentMode="scaleToFill" horizontalHuggingPriority="1000" verticalHuggingPriority="1000" horizontalCompressionResistancePriority="1000" verticalCompressionResistancePriority="1000" contentHorizontalAlignment="center" contentVerticalAlignment="top" buttonType="roundedRect" lineBreakMode="clip" translatesAutoresizingMaskIntoConstraints="NO" id="RpG-8J-z4B">
+                                <rect key="frame" x="20" y="556" width="33" height="44"/>
+                                <accessibility key="accessibilityConfiguration">
+                                    <accessibilityTraits key="traits" button="YES" image="YES"/>
+                                </accessibility>
+                                <fontDescription key="fontDescription" type="system" pointSize="26"/>
+                                <state key="normal" title="&lt;&lt;">
+                                    <color key="titleColor" red="1" green="0.97127305689999999" blue="0.01083243375" alpha="1" colorSpace="calibratedRGB"/>
+                                </state>
+                                <connections>
+                                    <action selector="onBackButtonPress:" destination="2Aj-9g-5Ez" eventType="touchUpInside" id="mG2-sX-vvO"/>
+                                    <action selector="onGotoFbLogonViewButtonPress:" destination="tQC-hy-qbI" eventType="touchUpInside" id="46c-2T-p1D"/>
+                                </connections>
+                            </button>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="1000" verticalCompressionResistancePriority="1000" text="You have run out of karma, please wait for it to regenerate" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="B4n-bL-s23">
+                                <rect key="frame" x="0.0" y="82" width="600" height="17"/>
+                                <fontDescription key="fontDescription" type="system" weight="heavy" pointSize="14"/>
+                                <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
-                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <color key="backgroundColor" red="0.5490196078431373" green="1" blue="0.93725490196078431" alpha="1" colorSpace="calibratedRGB"/>
                         <constraints>
+                            <constraint firstItem="R33-4T-Bn9" firstAttribute="centerX" secondItem="XqR-QA-b6a" secondAttribute="centerX" id="91z-PH-zhZ"/>
+                            <constraint firstAttribute="leadingMargin" secondItem="RpG-8J-z4B" secondAttribute="leading" id="ABO-IN-8kt"/>
+                            <constraint firstItem="B4n-bL-s23" firstAttribute="top" relation="greaterThanOrEqual" secondItem="tio-fB-AaK" secondAttribute="bottom" constant="5" id="K0a-Kc-YoI"/>
+                            <constraint firstItem="2HX-Mr-Mhw" firstAttribute="top" relation="greaterThanOrEqual" secondItem="XqR-QA-b6a" secondAttribute="bottom" constant="20" id="LQp-KH-YfV"/>
+                            <constraint firstItem="B4n-bL-s23" firstAttribute="centerX" secondItem="7tU-wf-FhH" secondAttribute="centerX" id="NST-0x-bi6"/>
+                            <constraint firstItem="R33-4T-Bn9" firstAttribute="bottom" secondItem="XqR-QA-b6a" secondAttribute="top" constant="-20" id="RAs-hj-bw7"/>
                             <constraint firstItem="XqR-QA-b6a" firstAttribute="centerX" secondItem="7tU-wf-FhH" secondAttribute="centerX" id="Tbo-5g-jTx"/>
-                            <constraint firstItem="XqR-QA-b6a" firstAttribute="centerY" secondItem="7tU-wf-FhH" secondAttribute="centerY" id="to9-wr-Fwo"/>
+                            <constraint firstItem="B4n-bL-s23" firstAttribute="bottom" secondItem="R33-4T-Bn9" secondAttribute="top" constant="-20" id="dKQ-vb-eFZ"/>
+                            <constraint firstItem="B4n-bL-s23" firstAttribute="width" secondItem="7tU-wf-FhH" secondAttribute="width" id="s5U-b0-N8P"/>
+                            <constraint firstItem="XqR-QA-b6a" firstAttribute="centerY" secondItem="7tU-wf-FhH" secondAttribute="centerY" priority="500" id="to9-wr-Fwo"/>
+                            <constraint firstItem="2HX-Mr-Mhw" firstAttribute="top" secondItem="RpG-8J-z4B" secondAttribute="bottom" id="xRr-bv-CD5"/>
+                            <constraint firstItem="R33-4T-Bn9" firstAttribute="width" secondItem="7tU-wf-FhH" secondAttribute="width" id="zwo-11-ATP"/>
                         </constraints>
                     </view>
                     <connections>
                         <outlet property="_circleTimerProgress" destination="XqR-QA-b6a" id="qgb-Qv-cB1"/>
+                        <outlet property="_humanTimeStringProgress" destination="R33-4T-Bn9" id="UqT-5c-Kp4"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="0pE-ke-P6e" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -488,6 +531,7 @@
                             </button>
                             <containerView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="QMu-Z6-TRi">
                                 <rect key="frame" x="45" y="40" width="510" height="428"/>
+                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                 <connections>
                                     <segue destination="kqn-7n-6Sq" kind="embed" id="OTa-FO-5Df"/>
                                 </connections>
@@ -575,7 +619,7 @@
                                 </connections>
                             </button>
                         </subviews>
-                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                         <constraints>
                             <constraint firstItem="mJ6-5h-TaN" firstAttribute="centerX" secondItem="XAx-Mf-MRE" secondAttribute="centerX" priority="900" constant="150" id="0wV-ZS-Mzc"/>
                             <constraint firstItem="o7m-AH-8Vp" firstAttribute="centerY" secondItem="XAx-Mf-MRE" secondAttribute="centerY" id="5pW-yT-qsd"/>

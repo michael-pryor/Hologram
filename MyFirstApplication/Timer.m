@@ -71,9 +71,20 @@
     return [Timer getSecondsEpoch] - _secondsEpoch;
 }
 
-- (float)getPercentageProgressThroughTick {
-    CFAbsoluteTime secondsSinceLastTick = [self getSecondsSinceLastTick];
-    CFAbsoluteTime diff = _secondsFrequency - secondsSinceLastTick;
+- (CFAbsoluteTime)getSecondsUntilNextTick {
+    CFAbsoluteTime result = _secondsFrequency - [self getSecondsSinceLastTick];
+    if (result < 0) {
+        return 0;
+    }
+    return result;
+}
+
+- (NSString *)getSecondsSinceLastTickHumanString {
+    return [Timer convertToHumanString:[self getSecondsUntilNextTick]];
+}
+
+- (float)getRatioProgressThroughTick {
+    CFAbsoluteTime diff = [self getSecondsUntilNextTick];
 
     CFAbsoluteTime progress = (_secondsFrequency - diff) / _secondsFrequency;
     if (progress < 0) {
@@ -81,7 +92,7 @@
     } else if (progress > 1) {
         progress = 1;
     }
-    return (float)progress;
+    return (float) progress;
 }
 
 - (void)blockUntilNextTick {
@@ -104,6 +115,22 @@
 - (void)resetFrequency {
     NSLog(@"Resetting frequency to default of %.2f", _defaultSecondsFrequency);
     _secondsFrequency = _defaultSecondsFrequency;
+}
+
++ (NSString *)convertToHumanString:(NSTimeInterval)timeSeconds {
+    NSString *humanString;
+    if (timeSeconds > 120) {
+        NSTimeInterval timeMinutes = timeSeconds / 60.0;
+        if (timeMinutes > 120) {
+            NSTimeInterval timeHours = timeMinutes / 60.0;
+            humanString = [NSString stringWithFormat:@"%.0f hours", timeHours];
+        } else {
+            humanString = [NSString stringWithFormat:@"%.0f minutes", timeMinutes];
+        }
+    } else {
+        humanString = [NSString stringWithFormat:@"%.0f seconds", timeSeconds];
+    }
+    return humanString;
 }
 
 - (void)doubleFrequencyValue {

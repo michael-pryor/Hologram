@@ -34,5 +34,9 @@
 
 + (CFAbsoluteTime)getSecondsEpoch;
 
-- (float)getPercentageProgressThroughTick;
+- (float)getRatioProgressThroughTick;
+
+- (NSString *)getSecondsSinceLastTickHumanString;
+
++ (NSString *)convertToHumanString:(NSTimeInterval)timeSeconds;
 @end

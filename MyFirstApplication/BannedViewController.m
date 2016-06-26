@@ -13,9 +13,10 @@
     Timer * _destinationTime;
 
     __weak IBOutlet CircleProgressBar *_circleTimerProgress;
+    __weak IBOutlet UILabel *_humanTimeStringProgress;
 }
 - (void)viewDidLoad {
-    //_destinationTime = nil;
+    [self updateProgress];
 }
 - (void)setupNotificationSettings {
     UIUserNotificationType types = (UIUserNotificationType) (UIUserNotificationTypeBadge |
@@ -51,16 +52,40 @@
 }
 
 - (void)updateProgress {
-    float secondsSinceLastTick = [_destinationTime getPercentageProgressThroughTick];
-    [_circleTimerProgress setProgress:secondsSinceLastTick animated:true];
+    if (_circleTimerProgress == nil) {
+        return;
+    }
+
+    float ratioProgress = [_destinationTime getRatioProgressThroughTick];
+    [_circleTimerProgress setProgress:ratioProgress animated:true];
+    if (ratioProgress >= 1.0) {
+        // Always will have got here via another view controller.
+        dispatch_sync_main(^{
+            [self.navigationController popViewControllerAnimated:YES];
+        });
+
+        return;
+    }
 
     dispatch_async_main(^ {
         [self updateProgress];
-    },1000);
+        [_humanTimeStringProgress setText:[_destinationTime getSecondsSinceLastTickHumanString]];
+    },100);
+}
+- (IBAction)onBackButtonPress:(id)sender {
+    [self moveToFbViewController];
+}
+
+- (void)moveToFbViewController {
+    dispatch_sync_main(^{
+        UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Storyboard" bundle:nil];
+        UIViewController *viewController = [storyboard instantiateViewControllerWithIdentifier:@"FacebookView"];
+        [self.navigationController pushViewController:viewController animated:YES];
+    });
 }
 
 - (void)setWaitTime:(uint)numSeconds {
-    NSLog(@"Wait time of %d seconds loaded", numSeconds);
+    NSLog(@"Blocked wait time of %d seconds loaded", numSeconds);
     _destinationTime = [[Timer alloc] initWithFrequencySeconds:numSeconds firingInitially:false];
     [self updateProgress];
 }

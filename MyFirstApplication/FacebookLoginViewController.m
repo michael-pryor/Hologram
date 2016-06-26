@@ -86,7 +86,7 @@
 
     // Always will have got here via another view controller.
     dispatch_sync_main(^{
-        [self.navigationController popViewControllerAnimated:YES];
+        [self.navigationController popToRootViewControllerAnimated:YES];
     });
 }
 

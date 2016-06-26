@@ -53,7 +53,7 @@
     ByteBuffer *_skipPersonPacket;
     ByteBuffer *_permDisconnectPacket;
 
-    bool _inFacebookLoginView;
+    bool _inDifferentView;
 
     // Special case where we want user to be able to skip, even if not currently talking
     // with somebody. Current special cases include:
@@ -116,7 +116,7 @@
     _connectingNetworkTimer = [[Timer alloc] init];
     _connectionTemporarilyDisconnectTimer = [[Timer alloc] init];
 
-    _inFacebookLoginView = false;
+    _inDifferentView = false;
     _isSkippableDespiteNoMatch = false;
     _resumeAfterBecomeActive = [[Signal alloc] initWithFlag:false];
 
@@ -254,11 +254,11 @@
     [self onNatPunchthrough:nil stateChange:ROUTED];
 
     // Will probably already be there if we have already loaded previously.
-    if (_disconnectViewController != nil && _inFacebookLoginView) {
+    if (_disconnectViewController != nil && _inDifferentView) {
         [[Analytics getInstance] pushScreenChange:[_disconnectViewController getScreenName]];
     }
 
-    _inFacebookLoginView = false;
+    _inDifferentView = false;
     _isSkippableDespiteNoMatch = false;
 
     // Important that we don't validate access to video/microphone before Facebook
@@ -380,12 +380,12 @@
 // Switch to the facebook logon view controller.
 - (void)switchToFacebookLogonView {
     // We are the entry point, so we push to the Facebook view controller.
-    if (_inFacebookLoginView) {
+    if (_inDifferentView) {
         return;
     }
 
     dispatch_sync_main(^{
-        _inFacebookLoginView = true;
+        _inDifferentView = true;
 
         UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Storyboard" bundle:nil];
         FacebookLoginViewController *viewController = (FacebookLoginViewController *) [storyboard instantiateViewControllerWithIdentifier:@"FacebookView"];
@@ -634,10 +634,11 @@
 
 - (void)onBanned:(uint)numSeconds {
     dispatch_sync_main(^{
+        _inDifferentView = true;
         UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Storyboard" bundle:nil];
         BannedViewController *viewController = [storyboard instantiateViewControllerWithIdentifier:@"BannedViewController"];
-        [self.navigationController pushViewController:viewController animated:YES];
         [viewController setWaitTime:numSeconds];
+        [self.navigationController pushViewController:viewController animated:YES];
     });
 }
 
@@ -688,7 +689,7 @@
                 [_mediaController stop];
 
                 // Important so that we don't notify google analytics of screen change, whilst inside FB view.
-                if (!_inFacebookLoginView) {
+                if (!_inDifferentView) {
                     [[Analytics getInstance] pushScreenChange:[_disconnectViewController getScreenName]];
                 }
             }
