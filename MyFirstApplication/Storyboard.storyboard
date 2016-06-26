@@ -27,7 +27,7 @@
         <!--Delegate-->
         <scene sceneID="G9x-gg-bMB">
             <objects>
-                <viewController storyboardIdentifier="FacebookView" modalTransitionStyle="crossDissolve" id="HPd-0g-j2K" customClass="FacebookLoginViewController" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="FacebookView" modalTransitionStyle="crossDissolve" useStoryboardIdentifierAsRestorationIdentifier="YES" id="HPd-0g-j2K" customClass="FacebookLoginViewController" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="lWr-th-MY7"/>
                         <viewControllerLayoutGuide type="bottom" id="b6S-Yq-msf"/>
@@ -180,7 +180,7 @@
         <!--Connection View Controller-->
         <scene sceneID="cXI-Mw-kVU">
             <objects>
-                <viewController storyboardIdentifier="ConnectionView" modalTransitionStyle="crossDissolve" id="tQC-hy-qbI" customClass="ConnectionViewController" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="ConnectionView" modalTransitionStyle="crossDissolve" useStoryboardIdentifierAsRestorationIdentifier="YES" id="tQC-hy-qbI" customClass="ConnectionViewController" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="uJU-NG-i7x"/>
                         <viewControllerLayoutGuide type="bottom" id="SN4-gs-A3A"/>
@@ -410,7 +410,7 @@
         <!--Banned View Controller-->
         <scene sceneID="KkO-9d-jiX">
             <objects>
-                <viewController storyboardIdentifier="BannedViewController" id="2Aj-9g-5Ez" customClass="BannedViewController" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="BannedViewController" useStoryboardIdentifierAsRestorationIdentifier="YES" id="2Aj-9g-5Ez" customClass="BannedViewController" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="tio-fB-AaK"/>
                         <viewControllerLayoutGuide type="bottom" id="2HX-Mr-Mhw"/>
@@ -432,18 +432,27 @@
                                         <real key="value" value="0.0"/>
                                     </userDefinedRuntimeAttribute>
                                 </userDefinedRuntimeAttributes>
+                                <connections>
+                                    <outletCollection property="gestureRecognizers" destination="PAF-i1-0IX" appends="YES" id="HZn-TS-T3g"/>
+                                </connections>
                             </view>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="1000" verticalCompressionResistancePriority="1000" text="Label" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="R33-4T-Bn9">
                                 <rect key="frame" x="0.0" y="129" width="600" height="36"/>
                                 <fontDescription key="fontDescription" type="system" weight="heavy" pointSize="30"/>
                                 <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                 <nil key="highlightedColor"/>
+                                <connections>
+                                    <outletCollection property="gestureRecognizers" destination="PAF-i1-0IX" appends="YES" id="r1c-Lk-j9e"/>
+                                </connections>
                             </label>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="1000" verticalCompressionResistancePriority="1000" text="You have run out of karma, please wait for it to regenerate" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="3" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="B4n-bL-s23">
                                 <rect key="frame" x="0.0" y="102" width="600" height="17"/>
                                 <fontDescription key="fontDescription" type="system" weight="heavy" pointSize="14"/>
                                 <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                 <nil key="highlightedColor"/>
+                                <connections>
+                                    <outletCollection property="gestureRecognizers" destination="PAF-i1-0IX" appends="YES" id="Fxy-Za-V5i"/>
+                                </connections>
                             </label>
                             <button opaque="NO" alpha="0.60000002384185791" contentMode="scaleToFill" horizontalHuggingPriority="1000" verticalHuggingPriority="1000" horizontalCompressionResistancePriority="1000" verticalCompressionResistancePriority="1000" contentHorizontalAlignment="center" contentVerticalAlignment="top" buttonType="roundedRect" lineBreakMode="clip" translatesAutoresizingMaskIntoConstraints="NO" id="RpG-8J-z4B">
                                 <rect key="frame" x="20" y="556" width="33" height="44"/>
@@ -485,6 +494,9 @@
                             <constraint firstItem="2HX-Mr-Mhw" firstAttribute="top" secondItem="RpG-8J-z4B" secondAttribute="bottom" id="xRr-bv-CD5"/>
                             <constraint firstItem="R33-4T-Bn9" firstAttribute="width" secondItem="7tU-wf-FhH" secondAttribute="width" id="zwo-11-ATP"/>
                         </constraints>
+                        <connections>
+                            <outletCollection property="gestureRecognizers" destination="PAF-i1-0IX" appends="YES" id="KYy-bT-sVq"/>
+                        </connections>
                     </view>
                     <connections>
                         <outlet property="_circleTimerProgress" destination="XqR-QA-b6a" id="qgb-Qv-cB1"/>
@@ -493,13 +505,18 @@
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="0pE-ke-P6e" userLabel="First Responder" sceneMemberID="firstResponder"/>
+                <swipeGestureRecognizer direction="right" id="PAF-i1-0IX">
+                    <connections>
+                        <action selector="onSwipeBackwards:" destination="2Aj-9g-5Ez" id="SEw-zQ-OAV"/>
+                    </connections>
+                </swipeGestureRecognizer>
             </objects>
             <point key="canvasLocation" x="271" y="194"/>
         </scene>
         <!--Alert View Controller-->
         <scene sceneID="bwh-xN-V9T">
             <objects>
-                <viewController storyboardIdentifier="DisconnectAlertView" id="szN-uc-xgc" customClass="AlertViewController" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="DisconnectAlertView" useStoryboardIdentifierAsRestorationIdentifier="YES" id="szN-uc-xgc" customClass="AlertViewController" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="zQz-dJ-HyO"/>
                         <viewControllerLayoutGuide type="bottom" id="dBu-An-5ob"/>

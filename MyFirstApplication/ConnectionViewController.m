@@ -241,6 +241,12 @@
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
 
+    // Reset notifications. This is in case we were waiting in the FB view contoller for the furation,
+    // a badge would appear on our icon which would only go away when user goes out of app and then back in again.
+    // This resets it as soon as user starts connecting again.
+    [[UIApplication sharedApplication] setApplicationIconBadgeNumber: 0];
+    [[UIApplication sharedApplication] cancelAllLocalNotifications];
+
     // A sanity call, in case anything was left running while we went away.
     [self terminateCurrentSession];
 

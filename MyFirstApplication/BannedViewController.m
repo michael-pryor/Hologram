@@ -11,7 +11,7 @@
 #define kPushNotificationRequestAlreadySeen @"pushNotificationsAlreadySeen"
 
 @implementation BannedViewController {
-    Timer * _destinationTime;
+    Timer *_destinationTime;
 
     __weak IBOutlet CircleProgressBar *_circleTimerProgress;
     __weak IBOutlet UILabel *_humanTimeStringProgress;
@@ -20,19 +20,27 @@
     bool _schedulePushNotification;
 }
 
+- (void)viewDidLoad {
+    [super viewDidLoad];
+
+    self.screenName = @"Banned";
+}
+
 - (void)viewDidAppear:(BOOL)animated {
-    if([[NSUserDefaults standardUserDefaults] boolForKey:kPushNotificationRequestAlreadySeen]) {
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:kPushNotificationRequestAlreadySeen]) {
         [self onPushNotificationsEnabled];
     } else {
         _schedulePushNotification = false;
     }
-    [self updateProgress];
+    [self updateProgress:true];
 }
+
 - (void)viewDidDisappear:(BOOL)animated {
     if (_schedulePushNotification) {
-        [self notifyBanExpired:(uint)[_destinationTime getSecondsUntilNextTick]];
+        [self notifyBanExpired:(uint) [_destinationTime getSecondsUntilNextTick]];
     }
 }
+
 - (void)setupNotificationSettings {
     UIUserNotificationType types = (UIUserNotificationType) (UIUserNotificationTypeBadge |
             UIUserNotificationTypeSound | UIUserNotificationTypeAlert);
@@ -59,7 +67,7 @@
     if (localNotif == nil)
         return;
 
-    localNotif.fireDate = [[NSDate date] dateByAddingTimeInterval: numSeconds];
+    localNotif.fireDate = [[NSDate date] dateByAddingTimeInterval:numSeconds];
     localNotif.timeZone = [NSTimeZone defaultTimeZone];
 
     localNotif.alertBody = @"Your karma has regenerated, you can logon to Hologram again";
@@ -72,6 +80,10 @@
     NSLog(@"Scheduled local notification to take place in %d seconds", numSeconds);
 }
 
+- (IBAction)onSwipeBackwards:(id)sender {
+    [self moveToFbViewController];
+}
+
 - (void)notifyBanExpired:(uint)numSeconds {
     [self setupNotificationSettings];
     [self scheduleNotification:numSeconds];
@@ -82,7 +94,7 @@
     [self onPushNotificationsEnabled];
 }
 
-- (void)updateProgress {
+- (void)updateProgress:(bool)updateNow {
     if (_circleTimerProgress == nil) {
         return;
     }
@@ -98,11 +110,22 @@
         return;
     }
 
-    dispatch_async_main(^ {
-        [_humanTimeStringProgress setText:[_destinationTime getSecondsSinceLastTickHumanString]];
-        [self updateProgress];
-    },500);
+    if (updateNow) {
+        dispatch_sync_main(^{
+            [self doUpdateProgress];
+        });
+    } else {
+        dispatch_async_main(^{
+            [self doUpdateProgress];
+        }, 500);
+    }
 }
+
+- (void)doUpdateProgress {
+    [_humanTimeStringProgress setText:[_destinationTime getSecondsSinceLastTickHumanString]];
+    [self updateProgress:false];
+}
+
 - (IBAction)onBackButtonPress:(id)sender {
     [self moveToFbViewController];
 }

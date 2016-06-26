@@ -3,7 +3,6 @@
 //
 
 #import "CustomNavigationController.h"
-#import "Orientation.h"
 
 @implementation CustomNavigationController {
 
@@ -17,15 +16,24 @@
     }
 }
 
+- (void)prepareAnimationForView:(UIView *)theWindow pushing:(bool)push {
+    CATransition *animation = [CATransition animation];
+    [animation setDuration:0.35f];
+    [animation setType:kCATransitionPush];
+    [animation setSubtype:[self getTransitionSubType:push]];
+    [animation setTimingFunction:[CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseOut]];
+    [[theWindow layer] addAnimation:animation forKey:@""];
+}
+
 - (void)pushViewController:(UIViewController *)viewController animated:(BOOL)animated {
-    UIView *theWindow = self.view;
     if (animated) {
-        CATransition *animation = [CATransition animation];
-        [animation setDuration:0.35f];
-        [animation setType:kCATransitionPush];
-        [animation setSubtype:[self getTransitionSubType:true]];
-        [animation setTimingFunction:[CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseOut]];
-        [[theWindow layer] addAnimation:animation forKey:@""];
+        NSString *identifier = [viewController restorationIdentifier];
+        if ([@"BannedViewController" isEqualToString:identifier]) {
+            [self prepareAnimationForView:self.view pushing:false];
+        } else {
+            [self prepareAnimationForView:self.view pushing:true];
+        }
+
     }
 
     //make sure we pass the super "animated:NO" or we will get both our
@@ -33,15 +41,17 @@
     [super pushViewController:viewController animated:NO];
 }
 
-- (UIViewController *)popViewControllerAnimated:(BOOL)animated {
-    UIView *theWindow = self.view;
+- (NSArray *)popToRootViewControllerAnimated:(BOOL)animated {
     if (animated) {
-        CATransition *animation = [CATransition animation];
-        [animation setDuration:0.35f];
-        [animation setType:kCATransitionPush];
-        [animation setSubtype:[self getTransitionSubType:false]];
-        [animation setTimingFunction:[CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseOut]];
-        [[theWindow layer] addAnimation:animation forKey:@""];
+        [self prepareAnimationForView:self.view pushing:false];
+    }
+
+    return [super popToRootViewControllerAnimated:NO];
+}
+
+- (UIViewController *)popViewControllerAnimated:(BOOL)animated {
+    if (animated) {
+        [self prepareAnimationForView:self.view pushing:false];
     }
     return [super popViewControllerAnimated:NO];
 }

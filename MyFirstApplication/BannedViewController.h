@@ -3,8 +3,9 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "GAITrackedViewController.h"
 
 
-@interface BannedViewController : UIViewController
+@interface BannedViewController : GAITrackedViewController
 - (void)setWaitTime:(uint)numSeconds;
 @end
