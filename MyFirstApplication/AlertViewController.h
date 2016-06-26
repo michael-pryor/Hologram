@@ -15,7 +15,7 @@
 
 @protocol ConversationRatingConsumer;
 
-@interface AlertViewController : UIViewController <FBAdViewDelegate, NewImageDelegate>
+@interface AlertViewController : UIViewController <FBAdViewDelegate, NewImageDelegate, ConversationRatingConsumer>
 - (void)setAlertShortText:(NSString *)shortText;
 
 - (Boolean)hideIfVisibleAndReady;
@@ -30,5 +30,5 @@
 
 - (void)setConversationEndedViewVisible:(bool)visible instantly:(bool)instant;
 
-- (void)setConversationRatingConsumer:(id <ConversationRatingConsumer>)consumer;
+- (void)setConversationRatingConsumer:(id <ConversationRatingConsumer>)consumer ratingTimeoutSeconds:(uint)ratingTimeoutSeconds;
 @end

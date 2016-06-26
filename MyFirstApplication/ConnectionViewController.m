@@ -685,9 +685,9 @@
                 }
             }
             // Set its content
+            [_disconnectViewController setConversationRatingConsumer:self ratingTimeoutSeconds:_ratingTimeoutSeconds];
             [_disconnectViewController setConversationEndedViewVisible:showConversationEndView instantly:true];
             [_disconnectViewController setAlertShortText:shortDescription];
-            [_disconnectViewController setConversationRatingConsumer:self];
 
             if (!alreadyPresented) {
                 [_disconnectViewController didMoveToParentViewController:self];

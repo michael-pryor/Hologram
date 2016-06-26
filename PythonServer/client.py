@@ -25,8 +25,10 @@ class Client(object):
     # TODO: set this back to 10, I changed it temporarily while testing rating system.
     PRIOR_MATCH_LIST_TIMEOUT_SECONDS = 0
 
-    # Clients have 5 seconds to give their rating before it defaults to an okay rating.
-    WAITING_FOR_RATING_TIMEOUT = 5
+    # Clients have absolute maximum of 10 seconds to give their rating before it defaults to an okay rating.
+    # App is advised to send within 5 seconds.
+    WAITING_FOR_RATING_ABSOLUTE_TIMEOUT = 10
+    WAITING_FOR_RATING_TIMEOUT = WAITING_FOR_RATING_ABSOLUTE_TIMEOUT / 2
 
     class ConnectionStatus:
         WAITING_LOGON = 1
@@ -420,7 +422,7 @@ class Client(object):
             return
 
         self.client_from_previous_conversation = clientFromPreviousConversation
-        self.waiting_for_rating_task = self.reactor.callLater(Client.WAITING_FOR_RATING_TIMEOUT, self._onWaitingForRatingTimeout)
+        self.waiting_for_rating_task = self.reactor.callLater(Client.WAITING_FOR_RATING_ABSOLUTE_TIMEOUT, self._onWaitingForRatingTimeout)
         logger.debug("Client [%s] is waiting for rating from previous conversation with client [%s]" % (self, clientFromPreviousConversation))
 
     def _onWaitingForRatingTimeout(self):

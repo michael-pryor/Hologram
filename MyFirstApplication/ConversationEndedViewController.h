@@ -23,4 +23,6 @@ typedef enum {
 
 @interface ConversationEndedViewController : UIViewController
 - (void)setConversationRatingConsumer:(id <ConversationRatingConsumer>) consumer;
+
+- (bool)onRatingsCompleted;
 @end

@@ -31,9 +31,12 @@
     bool _shouldShowAdverts;
     __weak IBOutlet UIView *_conversationEndView;
 
-    ConversationEndedViewController* _conversationEndViewController;
+    ConversationEndedViewController *_conversationEndViewController;
 
     bool _conversationEndViewControllerVisible;
+
+    id <ConversationRatingConsumer> _conversationRatingConsumer;
+    uint _ratingTimeoutSeconds;
 }
 
 - (void)setAlertShortText:(NSString *)shortText {
@@ -47,6 +50,8 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
 
+    _conversationRatingConsumer = nil;
+    _ratingTimeoutSeconds = 0;
     _conversationEndViewController = self.childViewControllers[0];
 
     // It should be shown at same time as camera, because it sits on top of camera.
@@ -114,6 +119,7 @@
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
+
     [_timerSinceAdvertCreated setSecondsFrequency:MINIMUM_WAIT_TIME];
     [_timerSinceAdvertCreated reset];
 
@@ -202,23 +208,44 @@
 - (void)setConversationEndedViewVisible:(bool)visible instantly:(bool)instant {
     float fadeDuration = instant ? 0.0f : 0.75f;
 
-    _conversationEndViewControllerVisible = visible;
-    if (_conversationEndViewControllerVisible) {
-        [_localImageViewVisible clear];
-        [ViewInteractions fadeOut:_localImageView completion:^(BOOL finished) {
-            if (!finished) {
-                return;
-            }
+    dispatch_sync_main(^{
+        _conversationEndViewControllerVisible = visible;
+        if (_conversationEndViewControllerVisible) {
+            [_localImageViewVisible clear];
+            [ViewInteractions fadeOut:_localImageView completion:^(BOOL finished) {
+                if (!finished) {
+                    return;
+                }
 
-            [ViewInteractions fadeIn:_conversationEndView completion:nil duration:fadeDuration];
-        }                duration:fadeDuration];
-    } else {
-        [ViewInteractions fadeOut:_conversationEndView completion:nil duration:fadeDuration];
-    }
+                [ViewInteractions fadeIn:_conversationEndView completion:nil duration:fadeDuration];
+            }                duration:fadeDuration];
+            
+            dispatch_async_main(^{
+                [_conversationEndViewController onRatingsCompleted];
+            }, _ratingTimeoutSeconds * 1000);
+            
+        } else {
+            [ViewInteractions fadeOut:_conversationEndView completion:^(BOOL finished) {
+                if (!finished) {
+                    return;
+                }
+
+                [ViewInteractions fadeIn:_localImageView completion:nil duration:fadeDuration];
+            } duration:fadeDuration];
+        }
+    });
 }
 
-- (void)setConversationRatingConsumer:(id <ConversationRatingConsumer>)consumer {
-    [_conversationEndViewController setConversationRatingConsumer:consumer];
+- (void)setConversationRatingConsumer:(id <ConversationRatingConsumer>)consumer ratingTimeoutSeconds:(uint)ratingTimeoutSeconds {
+    _conversationRatingConsumer = consumer;
+    _ratingTimeoutSeconds = ratingTimeoutSeconds;
+    [_conversationEndViewController setConversationRatingConsumer:self];
 }
+
+- (void)onConversationRating:(ConversationRating)conversationRating {
+    [self setConversationEndedViewVisible:false instantly:false];
+    [_conversationRatingConsumer onConversationRating:conversationRating];
+}
+
 @end
 

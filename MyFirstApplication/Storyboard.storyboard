@@ -525,9 +525,16 @@
                         <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
+                            <containerView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="QMu-Z6-TRi">
+                                <rect key="frame" x="45" y="40" width="510" height="428"/>
+                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                <connections>
+                                    <segue destination="kqn-7n-6Sq" kind="embed" id="OTa-FO-5Df"/>
+                                </connections>
+                            </containerView>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="center" horizontalHuggingPriority="1000" verticalHuggingPriority="1000" horizontalCompressionResistancePriority="1000" verticalCompressionResistancePriority="1000" text="Here is some sample text to talk about stuff" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="3" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="MuE-y5-gsJ">
                                 <rect key="frame" x="0.0" y="488" width="600" height="17"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                <fontDescription key="fontDescription" type="system" weight="heavy" pointSize="14"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="4GO-A5-5zk">
@@ -557,13 +564,6 @@
                                     <action selector="onGotoFbLogonViewButtonPress:" destination="szN-uc-xgc" eventType="touchUpInside" id="qwS-zV-bNt"/>
                                 </connections>
                             </button>
-                            <containerView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="QMu-Z6-TRi">
-                                <rect key="frame" x="45" y="40" width="510" height="428"/>
-                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
-                                <connections>
-                                    <segue destination="kqn-7n-6Sq" kind="embed" id="OTa-FO-5Df"/>
-                                </connections>
-                            </containerView>
                         </subviews>
                         <color key="backgroundColor" red="0.60392156862745094" green="0.99607843137254903" blue="0.94901960784313721" alpha="1" colorSpace="calibratedRGB"/>
                         <constraints>
@@ -612,38 +612,62 @@
                         <rect key="frame" x="0.0" y="0.0" width="510" height="428"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <button opaque="NO" contentMode="scaleToFill" horizontalCompressionResistancePriority="1000" verticalCompressionResistancePriority="1000" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="ErH-ds-blI">
-                                <rect key="frame" x="235" y="149" width="40" height="30"/>
-                                <accessibility key="accessibilityConfiguration" label="OKAY"/>
-                                <state key="normal" title="OKAY"/>
-                                <connections>
-                                    <action selector="onOkayRatingButtonPress:" destination="kqn-7n-6Sq" eventType="touchUpInside" id="gGZ-Vv-aw0"/>
-                                </connections>
-                            </button>
-                            <button opaque="NO" contentMode="scaleToFill" horizontalCompressionResistancePriority="1000" verticalCompressionResistancePriority="1000" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="o7m-AH-8Vp">
-                                <rect key="frame" x="90" y="199" width="31" height="30"/>
-                                <accessibility key="accessibilityConfiguration" label="OKAY"/>
-                                <state key="normal" title="BAD"/>
+                            <button opaque="NO" contentMode="scaleToFill" horizontalCompressionResistancePriority="1000" verticalCompressionResistancePriority="1000" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="o7m-AH-8Vp">
+                                <rect key="frame" x="47" y="185" width="116" height="58"/>
+                                <accessibility key="accessibilityConfiguration" label="OKAY">
+                                    <accessibilityTraits key="traits" button="YES" image="YES"/>
+                                </accessibility>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="116" id="7Ox-ou-asD"/>
+                                    <constraint firstAttribute="width" secondItem="o7m-AH-8Vp" secondAttribute="height" multiplier="917:458" id="VJr-Np-NCB"/>
+                                </constraints>
+                                <state key="normal" title="BAD" image="rating_sad"/>
                                 <connections>
                                     <action selector="onBadRatingButtonPress:" destination="kqn-7n-6Sq" eventType="touchUpInside" id="i8d-kV-vlR"/>
                                 </connections>
                             </button>
-                            <button opaque="NO" contentMode="scaleToFill" horizontalCompressionResistancePriority="1000" verticalCompressionResistancePriority="1000" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="mJ6-5h-TaN">
-                                <rect key="frame" x="383" y="199" width="45" height="30"/>
-                                <accessibility key="accessibilityConfiguration" label="OKAY"/>
-                                <state key="normal" title="GOOD"/>
+                            <button opaque="NO" contentMode="scaleToFill" horizontalCompressionResistancePriority="1000" verticalCompressionResistancePriority="1000" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="mJ6-5h-TaN">
+                                <rect key="frame" x="355" y="190" width="100" height="48"/>
+                                <accessibility key="accessibilityConfiguration" label="OKAY">
+                                    <accessibilityTraits key="traits" button="YES" image="YES"/>
+                                </accessibility>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="100" id="M7o-NC-oiZ"/>
+                                    <constraint firstAttribute="width" secondItem="mJ6-5h-TaN" secondAttribute="height" multiplier="787:382" id="dWY-Vi-c1f"/>
+                                </constraints>
+                                <state key="normal" title="GOOD" image="rating_good"/>
                                 <connections>
                                     <action selector="onGoodRatingButtonPress:" destination="kqn-7n-6Sq" eventType="touchUpInside" id="Mzv-DH-t8X"/>
                                 </connections>
                             </button>
-                            <button opaque="NO" contentMode="scaleToFill" horizontalCompressionResistancePriority="1000" verticalCompressionResistancePriority="1000" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="hHv-ej-2Dw">
-                                <rect key="frame" x="231" y="249" width="49" height="30"/>
-                                <accessibility key="accessibilityConfiguration" label="OKAY"/>
-                                <state key="normal" title="BLOCK">
+                            <button opaque="NO" contentMode="scaleToFill" horizontalCompressionResistancePriority="1000" verticalCompressionResistancePriority="1000" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="hHv-ej-2Dw">
+                                <rect key="frame" x="205" y="239" width="100" height="50"/>
+                                <accessibility key="accessibilityConfiguration" label="OKAY">
+                                    <accessibilityTraits key="traits" button="YES" image="YES"/>
+                                </accessibility>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="100" id="gJ7-t9-z4y"/>
+                                    <constraint firstAttribute="width" secondItem="hHv-ej-2Dw" secondAttribute="height" multiplier="2:1" id="vW2-9D-rSw"/>
+                                </constraints>
+                                <state key="normal" title="BLOCK" image="rating_block">
                                     <color key="titleColor" red="1" green="0.098894447135054353" blue="0.12030000076941849" alpha="1" colorSpace="calibratedRGB"/>
                                 </state>
                                 <connections>
                                     <action selector="onBlockButtonPress:" destination="kqn-7n-6Sq" eventType="touchUpInside" id="ujM-Yz-tn3"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" horizontalCompressionResistancePriority="1000" verticalCompressionResistancePriority="1000" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="ErH-ds-blI">
+                                <rect key="frame" x="206" y="140" width="100" height="48"/>
+                                <accessibility key="accessibilityConfiguration" label="OKAY">
+                                    <accessibilityTraits key="traits" button="YES" image="YES"/>
+                                </accessibility>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="100" id="1Ez-Of-pvK"/>
+                                    <constraint firstAttribute="width" secondItem="ErH-ds-blI" secondAttribute="height" multiplier="781:382" id="RKC-qG-IZF"/>
+                                </constraints>
+                                <state key="normal" title="OKAY" image="rating_okay"/>
+                                <connections>
+                                    <action selector="onOkayRatingButtonPress:" destination="kqn-7n-6Sq" eventType="touchUpInside" id="gGZ-Vv-aw0"/>
                                 </connections>
                             </button>
                         </subviews>
@@ -679,6 +703,10 @@
         <image name="audio_problem" width="2482" height="2420"/>
         <image name="fast_forward_audio" width="2440" height="2482"/>
         <image name="hologram_start_chat" width="785" height="194"/>
+        <image name="rating_block" width="734" height="382"/>
+        <image name="rating_good" width="734" height="382"/>
+        <image name="rating_okay" width="734" height="382"/>
+        <image name="rating_sad" width="881" height="458"/>
         <image name="video_problem" width="2482" height="1860"/>
     </resources>
 </document>
