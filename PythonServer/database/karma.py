@@ -87,6 +87,15 @@ class Karma(object):
         if self.should_link_times:
             self.karma_collection.update({"facebookId" : clientFacebookId}, {'$set' : {"date": utcNow}}, multi=True)
 
+    def clearKarma(self, client):
+        if client is None:
+            return
+
+        #assert isinstance(client, Client)
+        clientFacebookId = client.login_details.facebook_id
+
+        self.karma_collection.remove({"facebookId" : clientFacebookId})
+
     def incrementKarma(self, client):
         if client is None:
             return

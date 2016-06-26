@@ -434,8 +434,14 @@
                                 </userDefinedRuntimeAttributes>
                             </view>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="1000" verticalCompressionResistancePriority="1000" text="Label" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="R33-4T-Bn9">
-                                <rect key="frame" x="0.0" y="119" width="600" height="36"/>
+                                <rect key="frame" x="0.0" y="129" width="600" height="36"/>
                                 <fontDescription key="fontDescription" type="system" weight="heavy" pointSize="30"/>
+                                <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="1000" verticalCompressionResistancePriority="1000" text="You have run out of karma, please wait for it to regenerate" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="3" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="B4n-bL-s23">
+                                <rect key="frame" x="0.0" y="102" width="600" height="17"/>
+                                <fontDescription key="fontDescription" type="system" weight="heavy" pointSize="14"/>
                                 <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
@@ -446,31 +452,35 @@
                                 </accessibility>
                                 <fontDescription key="fontDescription" type="system" pointSize="26"/>
                                 <state key="normal" title="&lt;&lt;">
-                                    <color key="titleColor" red="1" green="0.97127305689999999" blue="0.01083243375" alpha="1" colorSpace="calibratedRGB"/>
+                                    <color key="titleColor" red="1" green="0.69772736052779027" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                 </state>
                                 <connections>
                                     <action selector="onBackButtonPress:" destination="2Aj-9g-5Ez" eventType="touchUpInside" id="mG2-sX-vvO"/>
                                     <action selector="onGotoFbLogonViewButtonPress:" destination="tQC-hy-qbI" eventType="touchUpInside" id="46c-2T-p1D"/>
                                 </connections>
                             </button>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="1000" verticalCompressionResistancePriority="1000" text="You have run out of karma, please wait for it to regenerate" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="B4n-bL-s23">
-                                <rect key="frame" x="0.0" y="82" width="600" height="17"/>
-                                <fontDescription key="fontDescription" type="system" weight="heavy" pointSize="14"/>
-                                <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
-                                <nil key="highlightedColor"/>
-                            </label>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="dKE-RT-GK5">
+                                <rect key="frame" x="0.0" y="435" width="600" height="30"/>
+                                <state key="normal" title="Press to notify when ready"/>
+                                <connections>
+                                    <action selector="onNotifyButtonPress:" destination="2Aj-9g-5Ez" eventType="touchUpInside" id="5lC-MP-y3S"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <color key="backgroundColor" red="0.5490196078431373" green="1" blue="0.93725490196078431" alpha="1" colorSpace="calibratedRGB"/>
                         <constraints>
                             <constraint firstItem="R33-4T-Bn9" firstAttribute="centerX" secondItem="XqR-QA-b6a" secondAttribute="centerX" id="91z-PH-zhZ"/>
                             <constraint firstAttribute="leadingMargin" secondItem="RpG-8J-z4B" secondAttribute="leading" id="ABO-IN-8kt"/>
+                            <constraint firstItem="2HX-Mr-Mhw" firstAttribute="top" relation="greaterThanOrEqual" secondItem="dKE-RT-GK5" secondAttribute="bottom" constant="10" id="DXZ-kz-Nq4"/>
                             <constraint firstItem="B4n-bL-s23" firstAttribute="top" relation="greaterThanOrEqual" secondItem="tio-fB-AaK" secondAttribute="bottom" constant="5" id="K0a-Kc-YoI"/>
-                            <constraint firstItem="2HX-Mr-Mhw" firstAttribute="top" relation="greaterThanOrEqual" secondItem="XqR-QA-b6a" secondAttribute="bottom" constant="20" id="LQp-KH-YfV"/>
                             <constraint firstItem="B4n-bL-s23" firstAttribute="centerX" secondItem="7tU-wf-FhH" secondAttribute="centerX" id="NST-0x-bi6"/>
-                            <constraint firstItem="R33-4T-Bn9" firstAttribute="bottom" secondItem="XqR-QA-b6a" secondAttribute="top" constant="-20" id="RAs-hj-bw7"/>
+                            <constraint firstItem="R33-4T-Bn9" firstAttribute="bottom" secondItem="XqR-QA-b6a" secondAttribute="top" constant="-10" id="RAs-hj-bw7"/>
+                            <constraint firstItem="dKE-RT-GK5" firstAttribute="width" secondItem="7tU-wf-FhH" secondAttribute="width" id="SZg-zH-1qK"/>
                             <constraint firstItem="XqR-QA-b6a" firstAttribute="centerX" secondItem="7tU-wf-FhH" secondAttribute="centerX" id="Tbo-5g-jTx"/>
-                            <constraint firstItem="B4n-bL-s23" firstAttribute="bottom" secondItem="R33-4T-Bn9" secondAttribute="top" constant="-20" id="dKQ-vb-eFZ"/>
+                            <constraint firstItem="dKE-RT-GK5" firstAttribute="centerX" secondItem="XqR-QA-b6a" secondAttribute="centerX" id="ZdT-vB-vYr"/>
+                            <constraint firstItem="B4n-bL-s23" firstAttribute="bottom" secondItem="R33-4T-Bn9" secondAttribute="top" constant="-10" id="dKQ-vb-eFZ"/>
                             <constraint firstItem="B4n-bL-s23" firstAttribute="width" secondItem="7tU-wf-FhH" secondAttribute="width" id="s5U-b0-N8P"/>
+                            <constraint firstItem="dKE-RT-GK5" firstAttribute="top" secondItem="XqR-QA-b6a" secondAttribute="bottom" constant="10" id="sS3-v7-VRF"/>
                             <constraint firstItem="XqR-QA-b6a" firstAttribute="centerY" secondItem="7tU-wf-FhH" secondAttribute="centerY" priority="500" id="to9-wr-Fwo"/>
                             <constraint firstItem="2HX-Mr-Mhw" firstAttribute="top" secondItem="RpG-8J-z4B" secondAttribute="bottom" id="xRr-bv-CD5"/>
                             <constraint firstItem="R33-4T-Bn9" firstAttribute="width" secondItem="7tU-wf-FhH" secondAttribute="width" id="zwo-11-ATP"/>
@@ -479,6 +489,7 @@
                     <connections>
                         <outlet property="_circleTimerProgress" destination="XqR-QA-b6a" id="qgb-Qv-cB1"/>
                         <outlet property="_humanTimeStringProgress" destination="R33-4T-Bn9" id="UqT-5c-Kp4"/>
+                        <outlet property="_notifyButton" destination="dKE-RT-GK5" id="rlN-ji-Nwx"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="0pE-ke-P6e" userLabel="First Responder" sceneMemberID="firstResponder"/>

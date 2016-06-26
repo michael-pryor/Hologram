@@ -123,12 +123,12 @@
         NSTimeInterval timeMinutes = timeSeconds / 60.0;
         if (timeMinutes > 120) {
             NSTimeInterval timeHours = timeMinutes / 60.0;
-            humanString = [NSString stringWithFormat:@"%.0f hours", timeHours];
+            humanString = [NSString stringWithFormat:@"%.0f hours", ceil(timeHours)];
         } else {
-            humanString = [NSString stringWithFormat:@"%.0f minutes", timeMinutes];
+            humanString = [NSString stringWithFormat:@"%.0f minutes", ceil(timeMinutes)];
         }
     } else {
-        humanString = [NSString stringWithFormat:@"%.0f seconds", timeSeconds];
+        humanString = [NSString stringWithFormat:@"%.0f seconds", ceil(timeSeconds)];
     }
     return humanString;
 }

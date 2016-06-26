@@ -78,6 +78,8 @@ class KarmaLeveled(object):
         if currentKarma > 0:
             return False
 
+        # Ban may expire a bit before the MongoDB cleanup thread hits Karma, so better to wipe it.
+        self.karma.clearKarma(client)
         for ban in self.bans:
             assert isinstance(ban, Karma)
             ban.pushKarmaDeduction(client)

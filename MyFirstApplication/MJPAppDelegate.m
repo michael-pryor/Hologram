@@ -14,6 +14,10 @@
 @implementation MJPAppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+    // Reset notifications.
+    [[UIApplication sharedApplication] setApplicationIconBadgeNumber: 0];
+    [[UIApplication sharedApplication] cancelAllLocalNotifications];
+
     // Setup Google analytics.
     // Configure tracker from GoogleService-Info.plist.
     NSError *configureError;
@@ -56,8 +60,7 @@
 
 - (void)application:(UIApplication *)application
         didRegisterUserNotificationSettings:(UIUserNotificationSettings *)notificationSettings {
-    NSLog(@"Received callback, exiting");
-    exit(0);
+
 }
 
 - (BOOL)application:(UIApplication *)application

@@ -8,15 +8,30 @@
 #import "Threading.h"
 #import "Timer.h"
 
+#define kPushNotificationRequestAlreadySeen @"pushNotificationsAlreadySeen"
 
 @implementation BannedViewController {
     Timer * _destinationTime;
 
     __weak IBOutlet CircleProgressBar *_circleTimerProgress;
     __weak IBOutlet UILabel *_humanTimeStringProgress;
+    __weak IBOutlet UIButton *_notifyButton;
+
+    bool _schedulePushNotification;
 }
-- (void)viewDidLoad {
+
+- (void)viewDidAppear:(BOOL)animated {
+    if([[NSUserDefaults standardUserDefaults] boolForKey:kPushNotificationRequestAlreadySeen]) {
+        [self onPushNotificationsEnabled];
+    } else {
+        _schedulePushNotification = false;
+    }
     [self updateProgress];
+}
+- (void)viewDidDisappear:(BOOL)animated {
+    if (_schedulePushNotification) {
+        [self notifyBanExpired:(uint)[_destinationTime getSecondsUntilNextTick]];
+    }
 }
 - (void)setupNotificationSettings {
     UIUserNotificationType types = (UIUserNotificationType) (UIUserNotificationTypeBadge |
@@ -26,6 +41,17 @@
             [UIUserNotificationSettings settingsForTypes:types categories:nil];
 
     [[UIApplication sharedApplication] registerUserNotificationSettings:mySettings];
+
+    [[UIApplication sharedApplication] cancelAllLocalNotifications];
+}
+
+- (void)onPushNotificationsEnabled {
+    _schedulePushNotification = true;
+    dispatch_sync_main(^{
+        [_notifyButton setEnabled:false];
+        [_notifyButton setTitle:@"You will be notified when ready" forState:UIControlStateNormal];
+    });
+    [[NSUserDefaults standardUserDefaults] setBool:YES forKey:kPushNotificationRequestAlreadySeen];
 }
 
 - (void)scheduleNotification:(uint)numSeconds {
@@ -51,6 +77,11 @@
     [self scheduleNotification:numSeconds];
 }
 
+- (IBAction)onNotifyButtonPress:(id)sender {
+    [self setupNotificationSettings]; // so we get the permissions dialog.
+    [self onPushNotificationsEnabled];
+}
+
 - (void)updateProgress {
     if (_circleTimerProgress == nil) {
         return;
@@ -61,16 +92,16 @@
     if (ratioProgress >= 1.0) {
         // Always will have got here via another view controller.
         dispatch_sync_main(^{
-            [self.navigationController popViewControllerAnimated:YES];
+            [self.navigationController popToRootViewControllerAnimated:YES];
         });
 
         return;
     }
 
     dispatch_async_main(^ {
-        [self updateProgress];
         [_humanTimeStringProgress setText:[_destinationTime getSecondsSinceLastTickHumanString]];
-    },100);
+        [self updateProgress];
+    },500);
 }
 - (IBAction)onBackButtonPress:(id)sender {
     [self moveToFbViewController];
@@ -87,6 +118,5 @@
 - (void)setWaitTime:(uint)numSeconds {
     NSLog(@"Blocked wait time of %d seconds loaded", numSeconds);
     _destinationTime = [[Timer alloc] initWithFrequencySeconds:numSeconds firingInitially:false];
-    [self updateProgress];
 }
 @end
