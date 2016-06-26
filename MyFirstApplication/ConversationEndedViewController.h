@@ -25,4 +25,6 @@ typedef enum {
 - (void)setConversationRatingConsumer:(id <ConversationRatingConsumer>) consumer;
 
 - (bool)onRatingsCompleted;
+
+- (void)reset;
 @end

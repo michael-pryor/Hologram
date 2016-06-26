@@ -28,11 +28,17 @@
 - (void)viewDidLoad {
     _ratingButtons = @[_okayRatingButton, _goodRatingButton, _badRatingButton, _blockButton];
     _ratingsCompleted = [[Signal alloc] initWithFlag:false];
-    _conversationRating = DEFAULT_CONVERSATION_RATING;
     _isFirstPress = [[Signal alloc] initWithFlag:false];
+    [self reset];
 }
 
-- (void)setConversationRatingConsumer:(id <ConversationRatingConsumer>) consumer {
+- (void)reset {
+    [_isFirstPress clear];
+    [_ratingsCompleted clear];
+    _conversationRating = DEFAULT_CONVERSATION_RATING;
+}
+
+- (void)setConversationRatingConsumer:(id <ConversationRatingConsumer>)consumer {
     _conversationRatingConsumer = consumer;
 }
 
@@ -44,7 +50,7 @@
     return true;
 }
 
-- (void)onRatingButtonPress:(id)sender rating:(ConversationRating)rating{
+- (void)onRatingButtonPress:(id)sender rating:(ConversationRating)rating {
     bool isFirstPress = [_isFirstPress signalAll];
     if (_conversationRating == rating && (!isFirstPress || _conversationRating != DEFAULT_CONVERSATION_RATING)) {
         [self onRatingsCompleted];
@@ -68,7 +74,7 @@
 }
 
 - (IBAction)onGoodRatingButtonPress:(id)sender {
-    [self onRatingButtonPress:sender  rating:S_GOOD];
+    [self onRatingButtonPress:sender rating:S_GOOD];
 }
 
 - (IBAction)onBadRatingButtonPress:(id)sender {

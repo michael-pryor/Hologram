@@ -211,6 +211,7 @@
     dispatch_sync_main(^{
         _conversationEndViewControllerVisible = visible;
         if (_conversationEndViewControllerVisible) {
+            [_conversationEndViewController reset];
             [_localImageViewVisible clear];
             [ViewInteractions fadeOut:_localImageView completion:^(BOOL finished) {
                 if (!finished) {

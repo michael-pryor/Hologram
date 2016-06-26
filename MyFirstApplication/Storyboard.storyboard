@@ -612,6 +612,20 @@
                         <rect key="frame" x="0.0" y="0.0" width="510" height="428"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
+                            <button opaque="NO" contentMode="scaleToFill" horizontalCompressionResistancePriority="1000" verticalCompressionResistancePriority="1000" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="ErH-ds-blI">
+                                <rect key="frame" x="205" y="290" width="100" height="48"/>
+                                <accessibility key="accessibilityConfiguration" label="OKAY">
+                                    <accessibilityTraits key="traits" button="YES" image="YES"/>
+                                </accessibility>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="100" id="1Ez-Of-pvK"/>
+                                    <constraint firstAttribute="width" secondItem="ErH-ds-blI" secondAttribute="height" multiplier="781:382" id="RKC-qG-IZF"/>
+                                </constraints>
+                                <state key="normal" title="OKAY" image="rating_okay"/>
+                                <connections>
+                                    <action selector="onOkayRatingButtonPress:" destination="kqn-7n-6Sq" eventType="touchUpInside" id="gGZ-Vv-aw0"/>
+                                </connections>
+                            </button>
                             <button opaque="NO" contentMode="scaleToFill" horizontalCompressionResistancePriority="1000" verticalCompressionResistancePriority="1000" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="o7m-AH-8Vp">
                                 <rect key="frame" x="47" y="185" width="116" height="58"/>
                                 <accessibility key="accessibilityConfiguration" label="OKAY">
@@ -641,7 +655,7 @@
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" horizontalCompressionResistancePriority="1000" verticalCompressionResistancePriority="1000" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="hHv-ej-2Dw">
-                                <rect key="frame" x="205" y="239" width="100" height="50"/>
+                                <rect key="frame" x="205" y="89" width="100" height="50"/>
                                 <accessibility key="accessibilityConfiguration" label="OKAY">
                                     <accessibilityTraits key="traits" button="YES" image="YES"/>
                                 </accessibility>
@@ -656,34 +670,56 @@
                                     <action selector="onBlockButtonPress:" destination="kqn-7n-6Sq" eventType="touchUpInside" id="ujM-Yz-tn3"/>
                                 </connections>
                             </button>
-                            <button opaque="NO" contentMode="scaleToFill" horizontalCompressionResistancePriority="1000" verticalCompressionResistancePriority="1000" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="ErH-ds-blI">
-                                <rect key="frame" x="206" y="140" width="100" height="48"/>
-                                <accessibility key="accessibilityConfiguration" label="OKAY">
-                                    <accessibilityTraits key="traits" button="YES" image="YES"/>
-                                </accessibility>
-                                <constraints>
-                                    <constraint firstAttribute="width" constant="100" id="1Ez-Of-pvK"/>
-                                    <constraint firstAttribute="width" secondItem="ErH-ds-blI" secondAttribute="height" multiplier="781:382" id="RKC-qG-IZF"/>
-                                </constraints>
-                                <state key="normal" title="OKAY" image="rating_okay"/>
-                                <connections>
-                                    <action selector="onOkayRatingButtonPress:" destination="kqn-7n-6Sq" eventType="touchUpInside" id="gGZ-Vv-aw0"/>
-                                </connections>
-                            </button>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Average" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="awD-Wl-OGL">
+                                <rect key="frame" x="205" y="338" width="100" height="17"/>
+                                <fontDescription key="fontDescription" type="system" weight="ultraLight" pointSize="14"/>
+                                <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Awesome!" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="7y4-KQ-nqy">
+                                <rect key="frame" x="355" y="238" width="100" height="17"/>
+                                <fontDescription key="fontDescription" type="system" weight="ultraLight" pointSize="14"/>
+                                <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Poor" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="UQM-WV-GRi">
+                                <rect key="frame" x="47" y="239" width="116" height="17"/>
+                                <fontDescription key="fontDescription" type="system" weight="ultraLight" pointSize="14"/>
+                                <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Block forever" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="rdE-qP-18I">
+                                <rect key="frame" x="205" y="139" width="100" height="17"/>
+                                <fontDescription key="fontDescription" type="system" weight="ultraLight" pointSize="14"/>
+                                <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                         <constraints>
                             <constraint firstItem="mJ6-5h-TaN" firstAttribute="centerX" secondItem="XAx-Mf-MRE" secondAttribute="centerX" priority="900" constant="150" id="0wV-ZS-Mzc"/>
+                            <constraint firstItem="WbH-zj-EdI" firstAttribute="top" relation="greaterThanOrEqual" secondItem="ErH-ds-blI" secondAttribute="bottom" id="5oL-Mj-aGG"/>
                             <constraint firstItem="o7m-AH-8Vp" firstAttribute="centerY" secondItem="XAx-Mf-MRE" secondAttribute="centerY" id="5pW-yT-qsd"/>
-                            <constraint firstItem="hHv-ej-2Dw" firstAttribute="centerY" secondItem="XAx-Mf-MRE" secondAttribute="centerY" priority="900" constant="50" id="9PS-ly-aPU"/>
+                            <constraint firstItem="hHv-ej-2Dw" firstAttribute="centerY" secondItem="XAx-Mf-MRE" secondAttribute="centerY" priority="900" constant="-100" id="9PS-ly-aPU"/>
+                            <constraint firstItem="UQM-WV-GRi" firstAttribute="centerX" secondItem="o7m-AH-8Vp" secondAttribute="centerX" id="HtU-xA-Ogl"/>
                             <constraint firstItem="mJ6-5h-TaN" firstAttribute="centerY" secondItem="o7m-AH-8Vp" secondAttribute="centerY" id="JwP-xr-xHm"/>
+                            <constraint firstItem="7y4-KQ-nqy" firstAttribute="top" secondItem="mJ6-5h-TaN" secondAttribute="bottom" id="K9U-1l-LHw"/>
+                            <constraint firstItem="7y4-KQ-nqy" firstAttribute="centerX" secondItem="mJ6-5h-TaN" secondAttribute="centerX" id="Odq-EZ-RKQ"/>
                             <constraint firstItem="o7m-AH-8Vp" firstAttribute="centerX" secondItem="XAx-Mf-MRE" secondAttribute="centerX" priority="900" constant="-150" id="PaV-jx-xvf"/>
-                            <constraint firstItem="ErH-ds-blI" firstAttribute="centerY" secondItem="XAx-Mf-MRE" secondAttribute="centerY" priority="900" constant="-50" id="Pxl-Sb-zvR"/>
-                            <constraint firstItem="ErH-ds-blI" firstAttribute="top" relation="greaterThanOrEqual" secondItem="XAx-Mf-MRE" secondAttribute="topMargin" id="SDQ-7g-THL"/>
+                            <constraint firstItem="ErH-ds-blI" firstAttribute="centerY" secondItem="XAx-Mf-MRE" secondAttribute="centerY" priority="900" constant="100" id="Pxl-Sb-zvR"/>
+                            <constraint firstItem="7y4-KQ-nqy" firstAttribute="width" secondItem="mJ6-5h-TaN" secondAttribute="width" id="T2a-09-3Ns"/>
+                            <constraint firstItem="awD-Wl-OGL" firstAttribute="centerX" secondItem="ErH-ds-blI" secondAttribute="centerX" id="VTD-lR-wd8"/>
                             <constraint firstAttribute="trailingMargin" relation="greaterThanOrEqual" secondItem="mJ6-5h-TaN" secondAttribute="trailing" id="Xo9-tb-tKn"/>
-                            <constraint firstAttribute="bottomMargin" relation="greaterThanOrEqual" secondItem="hHv-ej-2Dw" secondAttribute="bottom" constant="50" id="ftf-Eo-aW9"/>
+                            <constraint firstItem="rdE-qP-18I" firstAttribute="width" secondItem="hHv-ej-2Dw" secondAttribute="width" id="Z2r-fR-6ib"/>
+                            <constraint firstItem="rdE-qP-18I" firstAttribute="top" secondItem="hHv-ej-2Dw" secondAttribute="bottom" id="dv8-ly-Etb"/>
+                            <constraint firstItem="UQM-WV-GRi" firstAttribute="width" secondItem="o7m-AH-8Vp" secondAttribute="width" id="hKa-DS-elU"/>
                             <constraint firstItem="o7m-AH-8Vp" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="XAx-Mf-MRE" secondAttribute="leadingMargin" id="lyI-1Q-ALF"/>
+                            <constraint firstItem="awD-Wl-OGL" firstAttribute="top" secondItem="ErH-ds-blI" secondAttribute="bottom" id="pot-VB-Yjl"/>
+                            <constraint firstItem="hHv-ej-2Dw" firstAttribute="top" relation="greaterThanOrEqual" secondItem="hxz-fD-u2V" secondAttribute="bottom" id="qEL-Sr-374"/>
+                            <constraint firstItem="UQM-WV-GRi" firstAttribute="top" secondItem="o7m-AH-8Vp" secondAttribute="bottom" constant="-4" id="uZh-v5-XX4"/>
+                            <constraint firstItem="awD-Wl-OGL" firstAttribute="width" secondItem="ErH-ds-blI" secondAttribute="width" id="uwb-6G-alw"/>
                             <constraint firstItem="hHv-ej-2Dw" firstAttribute="centerX" secondItem="ErH-ds-blI" secondAttribute="centerX" id="xHI-Zj-Bgp"/>
+                            <constraint firstItem="rdE-qP-18I" firstAttribute="centerX" secondItem="hHv-ej-2Dw" secondAttribute="centerX" id="yF3-mG-9CU"/>
                             <constraint firstItem="ErH-ds-blI" firstAttribute="centerX" secondItem="XAx-Mf-MRE" secondAttribute="centerX" id="zB4-Sx-uCl"/>
                         </constraints>
                     </view>
