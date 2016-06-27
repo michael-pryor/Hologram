@@ -91,10 +91,10 @@
     DeferredEvent *_videoDataLossAnalytics;
     DeferredEvent *_audioDataLossAnalytics;
     DeferredEvent *_audioResetAnalytics;
-    
+
     __weak IBOutlet UIProgressView *_remoteKarma;
     __weak IBOutlet UIProgressView *_ownerKarma;
-    
+
     uint _karmaMax;
     uint _ratingTimeoutSeconds;
 }
@@ -161,7 +161,7 @@
     _videoDataLossAnalytics = [[Analytics getInstance] deferEventWithFrequencySeconds:analyticsPublishFreqSeconds category:@"network" action:@"video_loss"];
     _audioDataLossAnalytics = [[Analytics getInstance] deferEventWithFrequencySeconds:analyticsPublishFreqSeconds category:@"network" action:@"audio_loss"];
     _audioResetAnalytics = [[Analytics getInstance] deferEventWithFrequencySeconds:analyticsPublishFreqSeconds category:@"network" action:@"audio_reset"];
-    
+
     _karmaMax = 0;
 }
 
@@ -190,12 +190,8 @@
 // View disappears; happens if user switches app or moves from a different view controller.
 - (void)viewDidDisappear:(BOOL)animated {
     [super viewDidDisappear:animated];
-    // Put in main thread so we have guarenteed ordering with isScreenInUse.
-    // I don't want to start the commander when not in this view; this
-    // prevents a race conditon.
-    dispatch_sync_main(^{
-        _isScreenInUse = false;
-    });
+
+    _isScreenInUse = false;
 
     [self stop];
 }
@@ -205,6 +201,9 @@
 // down the usual disconnection logic).
 - (void)appWillResignActive:(NSNotification *)note {
     _isInBackground = true;
+    if (!_isScreenInUse) {
+        return;
+    }
 
     // After 10 seconds, disconnect. iOS may let app run in background for a long time, don't want to
     // match with somebody if this is the case.
@@ -228,6 +227,9 @@
 
 - (void)appWillRetakeActive:(NSNotification *)note {
     _isInBackground = false;
+    if (!_isScreenInUse) {
+        return;
+    }
 
     @synchronized (_resumeAfterBecomeActive) {
         _backgroundCounter++;
@@ -248,7 +250,7 @@
     // Reset notifications. This is in case we were waiting in the FB view contoller for the furation,
     // a badge would appear on our icon which would only go away when user goes out of app and then back in again.
     // This resets it as soon as user starts connecting again.
-    [[UIApplication sharedApplication] setApplicationIconBadgeNumber: 0];
+    [[UIApplication sharedApplication] setApplicationIconBadgeNumber:0];
     [[UIApplication sharedApplication] cancelAllLocalNotifications];
 
     // A sanity call, in case anything was left running while we went away.
@@ -516,7 +518,7 @@
     dispatch_async_main(^{
         [self updateKarmaUsingProgressView:_remoteKarma ratio:remoteKarmaPercentage];
         [self updateKarmaUsingProgressView:_ownerKarma ratio:ourKarmaPercentage];
-    },0);
+    }, 0);
 }
 
 
@@ -866,9 +868,9 @@
                     return;
                 }
                 [ViewInteractions fadeIn:_remoteDistance completion:nil duration:2.0f];
-            } duration:2.0f];
-        } duration:2.0f];
-    } duration:2.0f];
+            }               duration:2.0f];
+        }               duration:2.0f];
+    }               duration:2.0f];
 
     [ViewInteractions fadeIn:_ownerKarma completion:^(BOOL completed) {
         if (!completed || _disconnectViewController != nil) {
@@ -879,12 +881,12 @@
                 return;
             }
             [ViewInteractions fadeIn:_ownerAge completion:nil duration:2.0f];
-        } duration:2.0f];
-    } duration:2.0f];
+        }               duration:2.0f];
+    }               duration:2.0f];
 }
 
 - (void)onConversationRating:(ConversationRating)conversationRating {
-    ByteBuffer * buffer = [[ByteBuffer alloc] init];
+    ByteBuffer *buffer = [[ByteBuffer alloc] init];
     [buffer addUnsignedInteger8:PREVIOUS_CONVERSATION_RATING];
     [buffer addUnsignedInteger8:conversationRating];
     [_connection sendTcpPacket:buffer];

@@ -18,27 +18,59 @@
     __weak IBOutlet UIButton *_notifyButton;
 
     bool _schedulePushNotification;
+    bool _isScreenInUse;
 }
 
 - (void)viewDidLoad {
     [super viewDidLoad];
 
     self.screenName = @"Banned";
+
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(appWillResignActive:) name:UIApplicationWillResignActiveNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(appWillRetakeActive:) name:UIApplicationDidBecomeActiveNotification object:nil];
+    _isScreenInUse = false;
+}
+
+- (void)appWillResignActive:(NSNotification *)note {
+    if (!_isScreenInUse) {
+        return;
+    }
+
+    [self onScreenNoLongerVisible];
+}
+
+- (void)appWillRetakeActive:(NSNotification *)note {
+    if (_isScreenInUse) {
+        return;
+    }
+
+    [self onScreenVisible];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
+    _isScreenInUse = true;
     if ([[NSUserDefaults standardUserDefaults] boolForKey:kPushNotificationRequestAlreadySeen]) {
         [self onPushNotificationsEnabled];
     } else {
         _schedulePushNotification = false;
     }
     [self updateProgress:true];
+    [self onScreenVisible];
 }
 
 - (void)viewDidDisappear:(BOOL)animated {
+    _isScreenInUse = false;
+    [self onScreenNoLongerVisible];
+}
+
+- (void)onScreenNoLongerVisible {
     if (_schedulePushNotification) {
         [self notifyBanExpired:(uint) [_destinationTime getSecondsUntilNextTick]];
     }
+}
+
+- (void)onScreenVisible {
+    [[UIApplication sharedApplication] cancelAllLocalNotifications];
 }
 
 - (void)setupNotificationSettings {
@@ -49,8 +81,6 @@
             [UIUserNotificationSettings settingsForTypes:types categories:nil];
 
     [[UIApplication sharedApplication] registerUserNotificationSettings:mySettings];
-
-    [[UIApplication sharedApplication] cancelAllLocalNotifications];
 }
 
 - (void)onPushNotificationsEnabled {
