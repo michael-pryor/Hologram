@@ -40,7 +40,7 @@
 }
 
 - (void)appWillRetakeActive:(NSNotification *)note {
-    if (_isScreenInUse) {
+    if (!_isScreenInUse) {
         return;
     }
 

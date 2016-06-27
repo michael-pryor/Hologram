@@ -17,6 +17,10 @@
 
     VideoCompression *_compression;
     AVCaptureConnection *_connection;
+    
+    AVCaptureDevice *_device;
+
+    int _currentFps;
 }
 - (id)initWithVideoCompression:(VideoCompression *)videoCompression {
     self = [super init];
@@ -26,6 +30,8 @@
         _compression = videoCompression;
 
         _videoOutputQueue = dispatch_queue_create("CameraOutputQueue", NULL);
+
+        _currentFps = 0;
     }
     return self;
 }
@@ -40,22 +46,22 @@
 
     // Setup AVCaptureDeviceInput and load this into the session.
     {
+        _device = nil;
         AVCaptureDeviceInput *input;
         {
             // Select the AVCaptureDevice, choose the front facing camera.
-            AVCaptureDevice *device = nil;
             NSArray *devices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
             for (AVCaptureDevice *d in devices) {
                 if ([d position] == AVCaptureDevicePositionFront) {
-                    device = d;
+                    _device = d;
                     break;
                 }
             }
 
-            if (device == nil) {
+            if (_device == nil) {
                 if ([devices count] > 0) {
                     NSLog(@"No video output device found matching specification, defaulting to first in list");
-                    device = devices[0];
+                    _device = devices[0];
                 } else {
                     NSLog(@"No video output devices found, failure to setup video");
                     return nil;
@@ -65,7 +71,7 @@
             // From the device, create an AVCaptureDeviceInput.
             // This initializes the device, the camera is now active.
             NSError *error = nil;
-            input = [AVCaptureDeviceInput deviceInputWithDevice:device error:&error];
+            input = [AVCaptureDeviceInput deviceInputWithDevice:_device error:&error];
             if (!input) {
                 NSLog(@"Could not access input device: %@", error);
                 return nil;
@@ -103,6 +109,27 @@
     [self onOrientationChange:nil];
 
     return session;
+}
+
+- (void)setFrameRate:(int)fps {
+    @synchronized(self) {
+        if (fps == _currentFps) {
+            return;
+        }
+        _currentFps = fps;
+    }
+    [_device lockForConfiguration:nil];
+    CMTime time;
+    if (fps == 0) {
+        // Return to default state.
+        time = kCMTimeInvalid;
+    } else {
+        time = CMTimeMake(1, fps);
+    }
+
+    [_device setActiveVideoMinFrameDuration:time];
+    [_device setActiveVideoMaxFrameDuration:time];
+    [_device unlockForConfiguration];
 }
 
 - (void)onOrientationChange:(NSNotification *)notification {

@@ -22,4 +22,6 @@
 - (UIImage *)getImageFromByteBuffer:(ByteBuffer *)buffer;
 
 - (UIImage *)convertSampleBufferToUiImage:(CMSampleBufferRef)sampleBuffer;
+
+- (void)setFrameRate:(int)fps;
 @end

@@ -16,6 +16,9 @@
 #import "TimedCounterLogging.h"
 #import "Threading.h"
 
+
+#define ENCODING_FRAME_RATE 10
+
 @implementation PacketToImageProcessor {
     id <NewImageDelegate> _newImageDelegate;
     VideoEncoding *_videoEncoder;
@@ -42,7 +45,6 @@
     if (image == nil) {
         return;
     }
-
     [_newImageDelegate onNewImage:image];
 }
 
@@ -164,6 +166,10 @@
 }
 
 - (void)setOutputSession:(id <NewPacketDelegate>)newPacketDelegate {
+    if (_loopbackEnabled) {
+        return;
+    }
+
     [_encodingPipeVideo setOutputSession:newPacketDelegate];
 }
 
@@ -176,7 +182,9 @@
 }
 
 - (void)clearLocalImageDelegate {
-    _localImageDelegate = nil;
+    if (!_loopbackEnabled) {
+        _localImageDelegate = nil;
+    }
 }
 
 - (void)startCapturing {
@@ -245,17 +253,21 @@
 // Handle data from camera device and push out to network.
 - (void)captureOutput:(AVCaptureOutput *)captureOutput didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection {
     if (_localImageDelegate != nil && !_loopbackEnabled) {
+        [_videoEncoder setFrameRate:0];
         UIImage *localImage = [_videoEncoder convertSampleBufferToUiImage:sampleBuffer];
         if (localImage != nil) {
             // Make a copy, incase reference count goes to 0 mid way through operation.
             id <NewImageDelegate> delegate = _localImageDelegate;
             [delegate onNewImage:localImage];
-            _fpsCount++;
         }
-        if ([_fpsTracker getState]) {
-            NSLog(@"Frame rate = %ufps", _fpsCount);
-            _fpsCount = 0;
-        }
+    } else {
+        [_videoEncoder setFrameRate:ENCODING_FRAME_RATE];
+    }
+
+    _fpsCount++;
+    if ([_fpsTracker getState]) {
+        NSLog(@"Frame rate = %ufps", _fpsCount);
+        _fpsCount = 0;
     }
 
     // Send image as packet.

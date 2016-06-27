@@ -41,9 +41,6 @@
                                 <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                 <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                 <nil key="highlightedColor"/>
-                                <connections>
-                                    <outletCollection property="gestureRecognizers" destination="Sgw-EM-6X0" appends="YES" id="6sJ-oD-7iC"/>
-                                </connections>
                             </label>
                             <view opaque="NO" clipsSubviews="YES" alpha="0.94999999999999996" contentMode="center" horizontalCompressionResistancePriority="250" verticalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="Tqe-eB-ZAO" customClass="FBSDKProfilePictureView">
                                 <rect key="frame" x="214" y="25" width="175" height="175"/>
@@ -53,9 +50,6 @@
                                     <constraint firstAttribute="height" relation="greaterThanOrEqual" priority="900" constant="50" id="UH8-x1-bhd"/>
                                     <constraint firstAttribute="width" secondItem="Tqe-eB-ZAO" secondAttribute="height" multiplier="1:1" id="ip7-Ip-9SA"/>
                                 </constraints>
-                                <connections>
-                                    <outletCollection property="gestureRecognizers" destination="Sgw-EM-6X0" appends="YES" id="iZl-IK-ekC"/>
-                                </connections>
                             </view>
                             <view opaque="NO" alpha="0.69999999999999973" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="vn7-7t-VXi" customClass="FBSDKLoginButton">
                                 <rect key="frame" x="20" y="255" width="560" height="40"/>
@@ -107,7 +101,6 @@
                                         </constraints>
                                         <connections>
                                             <outletCollection property="gestureRecognizers" destination="Y9G-Ef-KY1" appends="YES" id="sEm-9W-LSH"/>
-                                            <outletCollection property="gestureRecognizers" destination="Sgw-EM-6X0" appends="YES" id="tik-5g-EHc"/>
                                         </connections>
                                     </imageView>
                                 </subviews>
@@ -119,9 +112,6 @@
                                     <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="60" id="knz-rg-hJa"/>
                                     <constraint firstItem="W0y-Zd-RaT" firstAttribute="centerY" secondItem="2ei-fQ-3lJ" secondAttribute="centerY" id="wZH-EK-Kog"/>
                                 </constraints>
-                                <connections>
-                                    <outletCollection property="gestureRecognizers" destination="Sgw-EM-6X0" appends="YES" id="HdF-7m-htY"/>
-                                </connections>
                             </view>
                         </subviews>
                         <color key="backgroundColor" red="0.5490196078431373" green="1" blue="0.93725490196078431" alpha="1" colorSpace="calibratedRGB"/>
@@ -443,27 +433,18 @@
                                         <real key="value" value="0.0"/>
                                     </userDefinedRuntimeAttribute>
                                 </userDefinedRuntimeAttributes>
-                                <connections>
-                                    <outletCollection property="gestureRecognizers" destination="PAF-i1-0IX" appends="YES" id="HZn-TS-T3g"/>
-                                </connections>
                             </view>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="1000" verticalCompressionResistancePriority="1000" text="Label" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="R33-4T-Bn9">
                                 <rect key="frame" x="0.0" y="129" width="600" height="36"/>
                                 <fontDescription key="fontDescription" type="system" weight="heavy" pointSize="30"/>
                                 <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                 <nil key="highlightedColor"/>
-                                <connections>
-                                    <outletCollection property="gestureRecognizers" destination="PAF-i1-0IX" appends="YES" id="r1c-Lk-j9e"/>
-                                </connections>
                             </label>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="1000" verticalCompressionResistancePriority="1000" text="You have run out of karma, please wait for it to regenerate" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="3" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="B4n-bL-s23">
                                 <rect key="frame" x="0.0" y="102" width="600" height="17"/>
                                 <fontDescription key="fontDescription" type="system" weight="heavy" pointSize="14"/>
                                 <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                 <nil key="highlightedColor"/>
-                                <connections>
-                                    <outletCollection property="gestureRecognizers" destination="PAF-i1-0IX" appends="YES" id="Fxy-Za-V5i"/>
-                                </connections>
                             </label>
                             <button opaque="NO" alpha="0.60000002384185791" contentMode="scaleToFill" horizontalHuggingPriority="1000" verticalHuggingPriority="1000" horizontalCompressionResistancePriority="1000" verticalCompressionResistancePriority="1000" contentHorizontalAlignment="center" contentVerticalAlignment="top" buttonType="roundedRect" lineBreakMode="clip" translatesAutoresizingMaskIntoConstraints="NO" id="RpG-8J-z4B">
                                 <rect key="frame" x="20" y="556" width="33" height="44"/>
