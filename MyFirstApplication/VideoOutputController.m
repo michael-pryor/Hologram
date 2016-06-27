@@ -17,7 +17,7 @@
 #import "Threading.h"
 
 
-#define ENCODING_FRAME_RATE 10
+#define ENCODING_FRAME_RATE 15
 
 @implementation PacketToImageProcessor {
     id <NewImageDelegate> _newImageDelegate;
