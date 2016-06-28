@@ -293,8 +293,9 @@
         [alert show];
     } else if (rejectCode == REJECT_BANNED) {
         [self disableReconnecting];
+        uint8_t magnitude = [packet getUnsignedInteger8];
         uint expiryTimeSeconds = [packet getUnsignedInteger];
-        [_connectionStatusDelegate onBanned:expiryTimeSeconds];
+        [_connectionStatusDelegate onBannedWithMagnitude:magnitude expiryTimeSeconds:expiryTimeSeconds];
     }
 }
 

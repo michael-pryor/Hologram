@@ -97,6 +97,8 @@
 
     uint _karmaMax;
     uint _ratingTimeoutSeconds;
+
+    Payments *_payments;
 }
 
 // View initially load; happens once per process.
@@ -108,12 +110,10 @@
 
     _backgroundCounter = 0;
 
-    /*
     // Hack for arden crescent, should be nil.
     _cachedResolvedDns = @"192.168.1.92";
-    */
 
-    _cachedResolvedDns = nil;
+    _payments = [[Payments alloc] initWithDelegate:self];
 
     _screenName = @"VideoChat";
     _connectionStateTimer = [[Timer alloc] init];
@@ -328,13 +328,20 @@
             [_ownerAge setHidden:true];
         }
 
-        [self setDisconnectStateWithShortDescription:@"Loading GPS details" showConversationEndView:false];
-        [_gpsState update];
+        [self setDisconnectStateWithShortDescription:@"Loading payments information" showConversationEndView:false];
+        [_payments queryProducts];
     });
 }
 
+// Callback for payments data loading.
+// Triggers GPS loading.
+- (void)onPaymentProductsLoaded {
+    [self setDisconnectStateWithShortDescription:@"Loading GPS details" showConversationEndView:false];
+    [_gpsState update];
+}
+
 // Callback for GPS data.
-// Starts connection.
+// Triggers DNS resolution.
 - (void)onGpsDataLoaded:(GpsState *)state {
     if (!_isScreenInUse) {
         return;
@@ -352,6 +359,8 @@
     [_dnsResolver startResolvingDns];
 }
 
+// Callback for DNS resolution.
+// Triggers connection to commander.
 - (void)onDnsSuccess:(NSString *)resolvedHostName {
     if (!_isScreenInUse) {
         return;
@@ -651,12 +660,15 @@
     }
 }
 
-- (void)onBanned:(uint)numSeconds {
+- (void)onBannedWithMagnitude:(uint8_t)magnitude expiryTimeSeconds:(uint)numSeconds {
     dispatch_sync_main(^{
         _inDifferentView = true;
         UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Storyboard" bundle:nil];
         BannedViewController *viewController = [storyboard instantiateViewControllerWithIdentifier:@"BannedViewController"];
-        [viewController setWaitTime:numSeconds];
+
+        SKProduct * product = [_payments getKarmaProductWithMagnitude:magnitude];
+
+        [viewController setWaitTime:numSeconds paymentProduct:product];
         [self.navigationController pushViewController:viewController animated:YES];
     });
 }
@@ -891,6 +903,5 @@
     [buffer addUnsignedInteger8:conversationRating];
     [_connection sendTcpPacket:buffer];
 }
-
 
 @end

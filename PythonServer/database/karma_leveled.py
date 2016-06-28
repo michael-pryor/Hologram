@@ -86,15 +86,15 @@ class KarmaLeveled(object):
 
         return True
 
-    def getBanTime(self, client):
+    def getBanMagnitudeAndExpirationTime(self, client):
         for banTimeMultiplier, karmaTracker in zip(range(KarmaLeveled.MAX_EXPONENTIAL_INCREASES, 0, -1), self.bans):
             assert isinstance(karmaTracker, Karma)
 
             banEntries, expirationTime = karmaTracker.getKarmaDeductionAndExpirationTime(client)
             if banEntries >= banTimeMultiplier:
-                return expirationTime
+                return banTimeMultiplier, expirationTime
 
-        return None
+        return None, None
 
     def incrementKarma(self, client):
         if client is None:

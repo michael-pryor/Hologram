@@ -4,9 +4,12 @@
 
 
 #import <CircleProgressBar/CircleProgressBar.h>
+#import <StoreKit/StoreKit.h>
 #import "BannedViewController.h"
 #import "Threading.h"
 #import "Timer.h"
+#import "ViewInteractions.h"
+#import "BanPaymentsViewController.h"
 
 #define kPushNotificationRequestAlreadySeen @"pushNotificationsAlreadySeen"
 
@@ -19,6 +22,10 @@
 
     bool _schedulePushNotification;
     bool _isScreenInUse;
+
+    __weak IBOutlet UIView *_purchaseView;
+    __weak IBOutlet BanPaymentsViewController *_purchaseViewController;
+    SKProduct *_paymentProduct;
 }
 
 - (void)viewDidLoad {
@@ -29,6 +36,11 @@
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(appWillResignActive:) name:UIApplicationWillResignActiveNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(appWillRetakeActive:) name:UIApplicationDidBecomeActiveNotification object:nil];
     _isScreenInUse = false;
+
+    _purchaseViewController = self.childViewControllers[0];
+    [_purchaseViewController setOnFinishedFunc:^{
+        [self onPaymentsViewTap:self];
+    }];
 }
 
 - (void)appWillResignActive:(NSNotification *)note {
@@ -54,6 +66,7 @@
     } else {
         _schedulePushNotification = false;
     }
+
     [self updateProgress:true];
     [self onScreenVisible];
 }
@@ -168,8 +181,21 @@
     });
 }
 
-- (void)setWaitTime:(uint)numSeconds {
+- (IBAction)onProgressTap:(id)sender {
+    dispatch_sync_main(^{
+        [ViewInteractions fadeOut:_circleTimerProgress thenIn:_purchaseView duration:0.75f];
+    });
+}
+
+- (void)onPaymentsViewTap:(id)sender {
+    dispatch_sync_main(^{
+        [ViewInteractions fadeOut:_purchaseView thenIn:_circleTimerProgress duration:0.75f];
+    });
+}
+
+- (void)setWaitTime:(uint)numSeconds paymentProduct:(SKProduct *)product {
     NSLog(@"Blocked wait time of %d seconds loaded", numSeconds);
     _destinationTime = [[Timer alloc] initWithFrequencySeconds:numSeconds firingInitially:false];
+    _paymentProduct = product;
 }
 @end

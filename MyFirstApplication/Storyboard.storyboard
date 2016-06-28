@@ -420,13 +420,24 @@
                         <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="XqR-QA-b6a" customClass="CircleProgressBar">
+                            <view opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="XqR-QA-b6a" customClass="CircleProgressBar">
                                 <rect key="frame" x="175" y="175" width="250" height="250"/>
+                                <subviews>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Tap to skip" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="tSA-13-icM">
+                                        <rect key="frame" x="95" y="138" width="61" height="15"/>
+                                        <fontDescription key="fontDescription" type="system" weight="ultraLight" pointSize="12"/>
+                                        <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                </subviews>
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                <gestureRecognizers/>
                                 <constraints>
                                     <constraint firstAttribute="width" priority="700" constant="250" id="AuL-Se-vfj"/>
                                     <constraint firstAttribute="width" secondItem="XqR-QA-b6a" secondAttribute="height" multiplier="1:1" id="FAt-Yx-cNP"/>
+                                    <constraint firstItem="tSA-13-icM" firstAttribute="centerY" secondItem="XqR-QA-b6a" secondAttribute="centerY" constant="20" id="ly7-EU-Upq"/>
                                     <constraint firstAttribute="height" priority="700" constant="250" id="nqm-nz-Xyg"/>
+                                    <constraint firstItem="tSA-13-icM" firstAttribute="centerX" secondItem="XqR-QA-b6a" secondAttribute="centerX" id="pDR-yv-EXN"/>
                                 </constraints>
                                 <userDefinedRuntimeAttributes>
                                     <userDefinedRuntimeAttribute type="number" keyPath="progress">
@@ -467,6 +478,12 @@
                                     <action selector="onNotifyButtonPress:" destination="2Aj-9g-5Ez" eventType="touchUpInside" id="5lC-MP-y3S"/>
                                 </connections>
                             </button>
+                            <containerView opaque="NO" alpha="0.0" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Z1W-kS-zst">
+                                <rect key="frame" x="175" y="175" width="250" height="250"/>
+                                <connections>
+                                    <segue destination="IR6-77-93L" kind="embed" id="ceA-O9-g2F"/>
+                                </connections>
+                            </containerView>
                         </subviews>
                         <color key="backgroundColor" red="0.5490196078431373" green="1" blue="0.93725490196078431" alpha="1" colorSpace="calibratedRGB"/>
                         <constraints>
@@ -477,23 +494,29 @@
                             <constraint firstItem="B4n-bL-s23" firstAttribute="centerX" secondItem="7tU-wf-FhH" secondAttribute="centerX" id="NST-0x-bi6"/>
                             <constraint firstItem="R33-4T-Bn9" firstAttribute="bottom" secondItem="XqR-QA-b6a" secondAttribute="top" constant="-10" id="RAs-hj-bw7"/>
                             <constraint firstItem="dKE-RT-GK5" firstAttribute="width" secondItem="7tU-wf-FhH" secondAttribute="width" id="SZg-zH-1qK"/>
+                            <constraint firstItem="Z1W-kS-zst" firstAttribute="height" secondItem="XqR-QA-b6a" secondAttribute="height" id="T60-e9-pfW"/>
                             <constraint firstItem="XqR-QA-b6a" firstAttribute="centerX" secondItem="7tU-wf-FhH" secondAttribute="centerX" id="Tbo-5g-jTx"/>
+                            <constraint firstItem="Z1W-kS-zst" firstAttribute="centerY" secondItem="XqR-QA-b6a" secondAttribute="centerY" id="Ujp-1X-YXq"/>
                             <constraint firstItem="dKE-RT-GK5" firstAttribute="centerX" secondItem="XqR-QA-b6a" secondAttribute="centerX" id="ZdT-vB-vYr"/>
                             <constraint firstItem="B4n-bL-s23" firstAttribute="bottom" secondItem="R33-4T-Bn9" secondAttribute="top" constant="-10" id="dKQ-vb-eFZ"/>
+                            <constraint firstItem="Z1W-kS-zst" firstAttribute="width" secondItem="XqR-QA-b6a" secondAttribute="width" id="mLF-Kn-qIh"/>
                             <constraint firstItem="B4n-bL-s23" firstAttribute="width" secondItem="7tU-wf-FhH" secondAttribute="width" id="s5U-b0-N8P"/>
                             <constraint firstItem="dKE-RT-GK5" firstAttribute="top" secondItem="XqR-QA-b6a" secondAttribute="bottom" constant="10" id="sS3-v7-VRF"/>
                             <constraint firstItem="XqR-QA-b6a" firstAttribute="centerY" secondItem="7tU-wf-FhH" secondAttribute="centerY" priority="500" id="to9-wr-Fwo"/>
+                            <constraint firstItem="Z1W-kS-zst" firstAttribute="centerX" secondItem="XqR-QA-b6a" secondAttribute="centerX" id="wNd-Qe-vVk"/>
                             <constraint firstItem="2HX-Mr-Mhw" firstAttribute="top" secondItem="RpG-8J-z4B" secondAttribute="bottom" id="xRr-bv-CD5"/>
                             <constraint firstItem="R33-4T-Bn9" firstAttribute="width" secondItem="7tU-wf-FhH" secondAttribute="width" id="zwo-11-ATP"/>
                         </constraints>
                         <connections>
                             <outletCollection property="gestureRecognizers" destination="PAF-i1-0IX" appends="YES" id="KYy-bT-sVq"/>
+                            <outletCollection property="gestureRecognizers" destination="fVh-UO-cFc" appends="YES" id="UWE-qy-avu"/>
                         </connections>
                     </view>
                     <connections>
                         <outlet property="_circleTimerProgress" destination="XqR-QA-b6a" id="qgb-Qv-cB1"/>
                         <outlet property="_humanTimeStringProgress" destination="R33-4T-Bn9" id="UqT-5c-Kp4"/>
                         <outlet property="_notifyButton" destination="dKE-RT-GK5" id="rlN-ji-Nwx"/>
+                        <outlet property="_purchaseView" destination="Z1W-kS-zst" id="RfS-ea-YWD"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="0pE-ke-P6e" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -502,6 +525,11 @@
                         <action selector="onSwipeBackwards:" destination="2Aj-9g-5Ez" id="SEw-zQ-OAV"/>
                     </connections>
                 </swipeGestureRecognizer>
+                <tapGestureRecognizer id="fVh-UO-cFc">
+                    <connections>
+                        <action selector="onProgressTap:" destination="2Aj-9g-5Ez" id="SLK-pc-jee"/>
+                    </connections>
+                </tapGestureRecognizer>
             </objects>
             <point key="canvasLocation" x="271" y="194"/>
         </scene>
@@ -725,6 +753,41 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="0Gj-gu-4NA" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="1540" y="165"/>
+        </scene>
+        <!--Ban Payments View Controller-->
+        <scene sceneID="1oU-KI-fRT">
+            <objects>
+                <viewController id="IR6-77-93L" customClass="BanPaymentsViewController" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="gtn-lL-1RU">
+                        <rect key="frame" x="0.0" y="0.0" width="250" height="250"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="HELLO WORLD" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Uif-Gk-3pn">
+                                <rect key="frame" x="66" y="115" width="118" height="21"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                        </subviews>
+                        <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                        <gestureRecognizers/>
+                        <constraints>
+                            <constraint firstItem="Uif-Gk-3pn" firstAttribute="centerX" secondItem="gtn-lL-1RU" secondAttribute="centerX" id="Dig-7D-MrG"/>
+                            <constraint firstItem="Uif-Gk-3pn" firstAttribute="centerY" secondItem="gtn-lL-1RU" secondAttribute="centerY" id="GQK-XP-w1U"/>
+                        </constraints>
+                        <connections>
+                            <outletCollection property="gestureRecognizers" destination="JaZ-Hs-qE0" appends="YES" id="QTd-D6-aOP"/>
+                        </connections>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="8hw-2f-ppm" userLabel="First Responder" sceneMemberID="firstResponder"/>
+                <tapGestureRecognizer id="JaZ-Hs-qE0">
+                    <connections>
+                        <action selector="onTap:" destination="IR6-77-93L" id="InF-dK-cvX"/>
+                    </connections>
+                </tapGestureRecognizer>
+            </objects>
+            <point key="canvasLocation" x="354" y="780"/>
         </scene>
     </scenes>
     <resources>

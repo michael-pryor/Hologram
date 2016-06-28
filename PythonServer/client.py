@@ -212,8 +212,8 @@ class Client(object):
         self.connection_status = Client.ConnectionStatus.NOT_CONNECTED
         self.tcp.transport.loseConnection()
 
-    def getRejectBannedArguments(self, expiryTime):
-        return Client.RejectCodes.REJECT_BANNED, "You have run out of karma, please wait to regenerate\nMaximum wait time is: %.1f minutes" % (float(expiryTime) / 60.0), expiryTime
+    def getRejectBannedArguments(self, banMagnitude, expiryTime):
+        return Client.RejectCodes.REJECT_BANNED, "You have run out of karma, please wait to regenerate\nMaximum wait time is: %.1f minutes" % (float(expiryTime) / 60.0), banMagnitude, expiryTime
 
     def handleLogon(self, packet):
         assert isinstance(packet, ByteBuffer)
@@ -223,7 +223,7 @@ class Client(object):
             # Reconnection attempt, UDP hash included in logon.
             self.udp_hash = packet.getString()
             if self.udp_hash not in self.udp_connection_linker.clients_by_udp_hash:
-                return Client.RejectCodes.REJECT_HASH_TIMEOUT, "Hash timed out, please reconnect fresh", None
+                return Client.RejectCodes.REJECT_HASH_TIMEOUT, "Hash timed out, please reconnect fresh", None, None
 
             # This indicates that a logon ACK should be sent via TCP.
             self.udp_hash = self.udp_connection_linker.registerInterestGenerated(self, self.udp_hash)
@@ -235,7 +235,7 @@ class Client(object):
         version = packet.getUnsignedInteger()
         if version < Client.MINIMUM_VERSION:
             rejectText = "Invalid version %d vs required %d" % (version, Client.MINIMUM_VERSION)
-            return Client.RejectCodes.REJECT_VERSION, rejectText, None
+            return Client.RejectCodes.REJECT_VERSION, rejectText, None, None
 
         # See hologram login on app side.
         facebookId = packet.getString()
@@ -251,19 +251,18 @@ class Client(object):
 
         self.login_details = Client.LoginDetails(self.udp_hash, facebookId, facebookUrl, fullName, shortName, age, gender, interestedIn, longitude, latitude)
 
-        banTime = self.karma_database.getBanTime(self)
+        banMagnitude, banTime = self.karma_database.getBanMagnitudeAndExpirationTime(self)
         if banTime is not None:
-            return self.getRejectBannedArguments(banTime)
+            return self.getRejectBannedArguments(banMagnitude, banTime)
 
         self.karma_rating = self.karma_database.getKarma(self)
 
         logger.debug("(Full details) Login processed with details, udp hash: [%s], full name: [%s], short name: [%s], age: [%d], gender [%d], interested in [%d], GPS: [(%d,%d)], Karma [%d]" % (self.udp_hash, fullName, shortName, age, gender, interestedIn, longitude, latitude, self.karma_rating))
         logger.info("Login processed with udp hash: [%s]; identifier: [%s/%d]; karma: [%d]" % (self.udp_hash, shortName, age, self.karma_rating))
 
+        return Client.RejectCodes.SUCCESS, self.udp_hash, None, None
 
-        return Client.RejectCodes.SUCCESS, self.udp_hash, None
-
-    def buildRejectPacket(self, rejectCode, dataString, expiryTime= None, response=None):
+    def buildRejectPacket(self, rejectCode, dataString, magnitude=None, expiryTime=None, response=None):
         if response is None:
             response = ByteBuffer()
 
@@ -271,6 +270,9 @@ class Client(object):
         response.addUnsignedInteger8(Client.TcpOperationCodes.OP_REJECT_LOGON)
         response.addUnsignedInteger8(rejectCode)
         response.addString(dataString)
+        if magnitude is not None:
+            response.addUnsignedInteger8(magnitude)
+
         if expiryTime is not None:
             response.addUnsignedInteger(expiryTime)
 
@@ -281,7 +283,7 @@ class Client(object):
         if self.connection_status == Client.ConnectionStatus.WAITING_LOGON:
             response = ByteBuffer()
 
-            rejectCode, dataString, expiryTime = self.handleLogon(packet)
+            rejectCode, dataString, magnitude, expiryTime = self.handleLogon(packet)
             rejected = rejectCode != Client.RejectCodes.SUCCESS
             if not rejected:
                 self.connection_status = Client.ConnectionStatus.WAITING_UDP
@@ -290,7 +292,7 @@ class Client(object):
                 response.addUnsignedInteger8(Client.TcpOperationCodes.OP_ACCEPT_LOGON)
                 response.addString(dataString) # the UDP hash code.
             else:
-                response = self.buildRejectPacket(rejectCode, dataString, expiryTime)
+                response = self.buildRejectPacket(rejectCode, dataString, magnitude, expiryTime)
 
             logger.debug("Sending response accept/reject to TCP client: %s", self.tcp)
             self.tcp.sendByteBuffer(response)
@@ -364,8 +366,8 @@ class Client(object):
 
         self.waiting_for_rating_task = None
 
-    def sendBanMessage(self, expiryTime):
-        packet = self.buildRejectPacket(*self.getRejectBannedArguments(expiryTime))
+    def sendBanMessage(self, magnitude, expiryTime):
+        packet = self.buildRejectPacket(*self.getRejectBannedArguments(magnitude, expiryTime))
         self.tcp.sendByteBuffer(packet)
         self.closeConnection()
 
@@ -383,11 +385,11 @@ class Client(object):
             if not isBanned:
                 return
 
-            banTime = self.karma_database.getBanTime(self)
+            banMagnitude, banTime = self.karma_database.getBanMagnitudeAndExpirationTime(self)
             if banTime is None:
                 return
 
-            self.sendBanMessage(banTime)
+            self.sendBanMessage(banMagnitude, banTime)
 
         def incrementKarma():
             currentKarma[0] += 1

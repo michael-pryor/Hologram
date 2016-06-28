@@ -67,8 +67,8 @@
     [_connectionStatusDelegate connectionStatusChange:status withDescription:description];
 }
 
-- (void)onBanned:(uint)numSeconds {
-    [_connectionStatusDelegate onBanned:numSeconds];
+- (void)onBannedWithMagnitude:(uint8_t)magnitude expiryTimeSeconds:(uint)numSeconds; {
+    [_connectionStatusDelegate onBannedWithMagnitude:magnitude expiryTimeSeconds:numSeconds];
 }
 
 - (void)connectionStatusChangeTcp:(ConnectionStatusTcp)status withDescription:(NSString *)description {
