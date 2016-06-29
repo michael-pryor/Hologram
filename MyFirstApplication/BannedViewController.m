@@ -19,6 +19,7 @@
     __weak IBOutlet CircleProgressBar *_circleTimerProgress;
     __weak IBOutlet UILabel *_humanTimeStringProgress;
     __weak IBOutlet UIButton *_notifyButton;
+    __weak IBOutlet UILabel *_tapToSkipLabel;
 
     bool _schedulePushNotification;
     bool _isScreenInUse;
@@ -41,6 +42,16 @@
     [_purchaseViewController setOnFinishedFunc:^{
         [self onPaymentsViewTap:self];
     }];
+    if (_paymentProduct != nil) {
+        [_purchaseViewController setProduct:_paymentProduct];
+    }
+    if ([self canAcceptPayments]) {
+        [_circleTimerProgress setHintTextColor:[UIColor greenColor]];
+        [_tapToSkipLabel setHidden:false];
+    } else {
+        [_circleTimerProgress setHintTextColor:[UIColor redColor]];
+        [_tapToSkipLabel setHidden:true];
+    }
 }
 
 - (void)appWillResignActive:(NSNotification *)note {
@@ -65,6 +76,11 @@
         [self onPushNotificationsEnabled];
     } else {
         _schedulePushNotification = false;
+    }
+
+    if ([self canAcceptPayments]) {
+        [_tapToSkipLabel setAlpha:1.0f];
+        [ViewInteractions fadeOut:_tapToSkipLabel completion:nil duration:10];
     }
 
     [self updateProgress:true];
@@ -182,15 +198,23 @@
 }
 
 - (IBAction)onProgressTap:(id)sender {
+    if (![self canAcceptPayments]) {
+        return;
+    }
+
     dispatch_sync_main(^{
-        [ViewInteractions fadeOut:_circleTimerProgress thenIn:_purchaseView duration:0.75f];
+        [ViewInteractions fadeOut:_circleTimerProgress thenIn:_purchaseView duration:0.3f];
     });
 }
 
 - (void)onPaymentsViewTap:(id)sender {
     dispatch_sync_main(^{
-        [ViewInteractions fadeOut:_purchaseView thenIn:_circleTimerProgress duration:0.75f];
+        [ViewInteractions fadeOut:_purchaseView thenIn:_circleTimerProgress duration:0.3f];
     });
+}
+
+- (bool)canAcceptPayments {
+    return _paymentProduct != nil && [SKPaymentQueue canMakePayments];
 }
 
 - (void)setWaitTime:(uint)numSeconds paymentProduct:(SKProduct *)product {

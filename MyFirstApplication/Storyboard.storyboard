@@ -420,13 +420,19 @@
                         <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
+                            <containerView opaque="NO" alpha="0.0" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Z1W-kS-zst">
+                                <rect key="frame" x="0.0" y="175" width="600" height="250"/>
+                                <connections>
+                                    <segue destination="IR6-77-93L" kind="embed" id="ceA-O9-g2F"/>
+                                </connections>
+                            </containerView>
                             <view opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="XqR-QA-b6a" customClass="CircleProgressBar">
                                 <rect key="frame" x="175" y="175" width="250" height="250"/>
                                 <subviews>
-                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Tap to skip" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="tSA-13-icM">
-                                        <rect key="frame" x="95" y="138" width="61" height="15"/>
+                                    <label opaque="NO" userInteractionEnabled="NO" alpha="0.65000000000000002" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" text="Tap Here" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="tSA-13-icM">
+                                        <rect key="frame" x="95" y="142" width="61" height="15"/>
                                         <fontDescription key="fontDescription" type="system" weight="ultraLight" pointSize="12"/>
-                                        <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
+                                        <color key="textColor" red="0.0" green="1" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                         <nil key="highlightedColor"/>
                                     </label>
                                 </subviews>
@@ -435,7 +441,7 @@
                                 <constraints>
                                     <constraint firstAttribute="width" priority="700" constant="250" id="AuL-Se-vfj"/>
                                     <constraint firstAttribute="width" secondItem="XqR-QA-b6a" secondAttribute="height" multiplier="1:1" id="FAt-Yx-cNP"/>
-                                    <constraint firstItem="tSA-13-icM" firstAttribute="centerY" secondItem="XqR-QA-b6a" secondAttribute="centerY" constant="20" id="ly7-EU-Upq"/>
+                                    <constraint firstItem="tSA-13-icM" firstAttribute="centerY" secondItem="XqR-QA-b6a" secondAttribute="centerY" constant="24" id="ly7-EU-Upq"/>
                                     <constraint firstAttribute="height" priority="700" constant="250" id="nqm-nz-Xyg"/>
                                     <constraint firstItem="tSA-13-icM" firstAttribute="centerX" secondItem="XqR-QA-b6a" secondAttribute="centerX" id="pDR-yv-EXN"/>
                                 </constraints>
@@ -478,12 +484,6 @@
                                     <action selector="onNotifyButtonPress:" destination="2Aj-9g-5Ez" eventType="touchUpInside" id="5lC-MP-y3S"/>
                                 </connections>
                             </button>
-                            <containerView opaque="NO" alpha="0.0" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Z1W-kS-zst">
-                                <rect key="frame" x="175" y="175" width="250" height="250"/>
-                                <connections>
-                                    <segue destination="IR6-77-93L" kind="embed" id="ceA-O9-g2F"/>
-                                </connections>
-                            </containerView>
                         </subviews>
                         <color key="backgroundColor" red="0.5490196078431373" green="1" blue="0.93725490196078431" alpha="1" colorSpace="calibratedRGB"/>
                         <constraints>
@@ -499,7 +499,7 @@
                             <constraint firstItem="Z1W-kS-zst" firstAttribute="centerY" secondItem="XqR-QA-b6a" secondAttribute="centerY" id="Ujp-1X-YXq"/>
                             <constraint firstItem="dKE-RT-GK5" firstAttribute="centerX" secondItem="XqR-QA-b6a" secondAttribute="centerX" id="ZdT-vB-vYr"/>
                             <constraint firstItem="B4n-bL-s23" firstAttribute="bottom" secondItem="R33-4T-Bn9" secondAttribute="top" constant="-10" id="dKQ-vb-eFZ"/>
-                            <constraint firstItem="Z1W-kS-zst" firstAttribute="width" secondItem="XqR-QA-b6a" secondAttribute="width" id="mLF-Kn-qIh"/>
+                            <constraint firstItem="Z1W-kS-zst" firstAttribute="width" secondItem="7tU-wf-FhH" secondAttribute="width" id="idf-8p-iff"/>
                             <constraint firstItem="B4n-bL-s23" firstAttribute="width" secondItem="7tU-wf-FhH" secondAttribute="width" id="s5U-b0-N8P"/>
                             <constraint firstItem="dKE-RT-GK5" firstAttribute="top" secondItem="XqR-QA-b6a" secondAttribute="bottom" constant="10" id="sS3-v7-VRF"/>
                             <constraint firstItem="XqR-QA-b6a" firstAttribute="centerY" secondItem="7tU-wf-FhH" secondAttribute="centerY" priority="500" id="to9-wr-Fwo"/>
@@ -517,6 +517,7 @@
                         <outlet property="_humanTimeStringProgress" destination="R33-4T-Bn9" id="UqT-5c-Kp4"/>
                         <outlet property="_notifyButton" destination="dKE-RT-GK5" id="rlN-ji-Nwx"/>
                         <outlet property="_purchaseView" destination="Z1W-kS-zst" id="RfS-ea-YWD"/>
+                        <outlet property="_tapToSkipLabel" destination="tSA-13-icM" id="Jlc-Ns-xlE"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="0pE-ke-P6e" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -758,27 +759,68 @@
         <scene sceneID="1oU-KI-fRT">
             <objects>
                 <viewController id="IR6-77-93L" customClass="BanPaymentsViewController" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="RFF-MW-omX"/>
+                        <viewControllerLayoutGuide type="bottom" id="Bg5-0B-HVv"/>
+                    </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="gtn-lL-1RU">
-                        <rect key="frame" x="0.0" y="0.0" width="250" height="250"/>
+                        <rect key="frame" x="0.0" y="0.0" width="600" height="250"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="HELLO WORLD" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Uif-Gk-3pn">
-                                <rect key="frame" x="66" y="115" width="118" height="21"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
-                                <nil key="highlightedColor"/>
-                            </label>
+                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" distribution="fillProportionally" translatesAutoresizingMaskIntoConstraints="NO" id="kkB-La-xEn">
+                                <rect key="frame" x="0.0" y="0.0" width="600" height="250"/>
+                                <subviews>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="top" horizontalHuggingPriority="251" verticalHuggingPriority="251" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="3" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="x8I-eP-HFp">
+                                        <rect key="frame" x="0.0" y="0.0" width="600" height="60"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="60" id="J38-N2-vzi"/>
+                                        </constraints>
+                                        <string key="text">Or...Regenerate your karma instantly</string>
+                                        <fontDescription key="fontDescription" type="boldSystem" pointSize="16"/>
+                                        <color key="textColor" red="0.16078431372549021" green="0.47058823529411764" blue="0.031372549019607843" alpha="1" colorSpace="calibratedRGB"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                    <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="100" verticalHuggingPriority="100" horizontalCompressionResistancePriority="500" verticalCompressionResistancePriority="500" image="rating_good" translatesAutoresizingMaskIntoConstraints="NO" id="e6c-kq-ylO">
+                                        <rect key="frame" x="0.0" y="60" width="600" height="100"/>
+                                    </imageView>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="£1" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Uif-Gk-3pn">
+                                        <rect key="frame" x="0.0" y="160" width="600" height="50"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="50" id="HPz-h3-kvD"/>
+                                        </constraints>
+                                        <fontDescription key="fontDescription" type="system" weight="heavy" pointSize="30"/>
+                                        <color key="textColor" red="0.24178310974788264" green="0.66666666666666663" blue="0.026378843897115384" alpha="1" colorSpace="calibratedRGB"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="top" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="YMF-Jk-uZD">
+                                        <rect key="frame" x="0.0" y="210" width="600" height="40"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="40" id="TXg-lL-7ai"/>
+                                        </constraints>
+                                        <fontDescription key="fontDescription" type="system" pointSize="16"/>
+                                        <state key="normal" title="Purchase"/>
+                                        <connections>
+                                            <action selector="onPurchasePress:" destination="IR6-77-93L" eventType="touchUpInside" id="eVK-ys-l0d"/>
+                                        </connections>
+                                    </button>
+                                </subviews>
+                            </stackView>
                         </subviews>
                         <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                         <gestureRecognizers/>
                         <constraints>
-                            <constraint firstItem="Uif-Gk-3pn" firstAttribute="centerX" secondItem="gtn-lL-1RU" secondAttribute="centerX" id="Dig-7D-MrG"/>
-                            <constraint firstItem="Uif-Gk-3pn" firstAttribute="centerY" secondItem="gtn-lL-1RU" secondAttribute="centerY" id="GQK-XP-w1U"/>
+                            <constraint firstItem="kkB-La-xEn" firstAttribute="height" secondItem="gtn-lL-1RU" secondAttribute="height" id="HFb-Kb-11S"/>
+                            <constraint firstItem="kkB-La-xEn" firstAttribute="width" secondItem="gtn-lL-1RU" secondAttribute="width" id="Yc8-BH-BvJ"/>
+                            <constraint firstItem="kkB-La-xEn" firstAttribute="centerY" secondItem="gtn-lL-1RU" secondAttribute="centerY" id="fvC-PX-D9D"/>
+                            <constraint firstItem="kkB-La-xEn" firstAttribute="centerX" secondItem="gtn-lL-1RU" secondAttribute="centerX" id="gM2-Af-Kc8"/>
                         </constraints>
                         <connections>
                             <outletCollection property="gestureRecognizers" destination="JaZ-Hs-qE0" appends="YES" id="QTd-D6-aOP"/>
                         </connections>
                     </view>
+                    <connections>
+                        <outlet property="_price" destination="Uif-Gk-3pn" id="VWd-gE-Sg2"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="8hw-2f-ppm" userLabel="First Responder" sceneMemberID="firstResponder"/>
                 <tapGestureRecognizer id="JaZ-Hs-qE0">
@@ -787,7 +829,7 @@
                     </connections>
                 </tapGestureRecognizer>
             </objects>
-            <point key="canvasLocation" x="354" y="780"/>
+            <point key="canvasLocation" x="322" y="753"/>
         </scene>
     </scenes>
     <resources>

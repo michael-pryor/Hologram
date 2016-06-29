@@ -33,6 +33,11 @@
 }
 
 - (void)queryProducts {
+    if (_products != nil && [_products count] > 0) {
+        [_notifier onPaymentProductsLoaded];
+        return;
+    }
+
     _productsRequest = [[SKProductsRequest alloc]
             initWithProductIdentifiers:[NSSet setWithArray:_productIds]];
 
@@ -42,12 +47,21 @@
 }
 
 - (SKProduct *)getKarmaProductWithMagnitude:(uint8_t)magnitude {
-    NSString* _productId = [NSString stringWithFormat:@"karma_%d", magnitude];
-    for (NSUInteger n = 0; n<_products.count; n++) {
+    NSString *_productId = [NSString stringWithFormat:@"karma_%d", magnitude];
+    for (NSUInteger n = 0; n < _products.count; n++) {
         if ([_productId isEqualToString:_products[n].productIdentifier]) {
             return _products[n];
         }
     }
     return nil;
+}
+
++ (NSString *)getPriceOfProduct:(SKProduct *)product {
+    NSNumberFormatter *numberFormatter = [[NSNumberFormatter alloc] init];
+    [numberFormatter setFormatterBehavior:NSNumberFormatterBehavior10_4];
+    [numberFormatter setNumberStyle:NSNumberFormatterCurrencyStyle];
+    [numberFormatter setLocale:product.priceLocale];
+    NSString *formattedPrice = [numberFormatter stringFromNumber:product.price];
+    return formattedPrice;
 }
 @end

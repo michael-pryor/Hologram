@@ -7,4 +7,6 @@
 
 @interface BanPaymentsViewController : UIViewController
 - (void)setOnFinishedFunc:(void (^)())onFinishedFunc;
+
+- (void)setProduct:(SKProduct *)product;
 @end
