@@ -14,4 +14,6 @@
 - (id)initWithGpsState:(GpsState *)gpsState regenerateKarmaReceipt:(NSData *)receipt;
 
 - (ByteBuffer *)getLoginBuffer;
+
+- (void)clearKarmaRegeneration;
 @end

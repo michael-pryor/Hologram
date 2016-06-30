@@ -351,7 +351,7 @@
 
     HologramLogin *loginProvider = [[HologramLogin alloc] initWithGpsState:state regenerateKarmaReceipt:_karmaRegenerationReceipt];
     _karmaRegenerationReceipt = nil; // It's been used in this login now, regardless of whether it is successful.
-    
+
     _connectionCommander = [[ConnectionCommander alloc] initWithRecvDelegate:self connectionStatusDelegate:self governorSetupDelegate:self loginProvider:loginProvider punchthroughNotifier:self];
 
     if (_cachedResolvedDns != nil) {

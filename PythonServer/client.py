@@ -62,6 +62,7 @@ class Client(object):
         REJECT_HASH_TIMEOUT = 1
         REJECT_VERSION = 2
         REJECT_BANNED = 3
+        KARMA_REGENERATION_FAILED = 4
 
     class ConversationRating:
         OKAY = 0
@@ -121,9 +122,10 @@ class Client(object):
                                                         random.randint(0, 180), random.randint(0, 90))
         return item
 
-    def __init__(self, reactor, tcp, onCloseFunc, udpConnectionLinker, house, blockingDatabase, karmaDatabase):
+    def __init__(self, reactor, tcp, onCloseFunc, udpConnectionLinker, house, blockingDatabase, karmaDatabase, paymentVerifier):
         super(Client, self).__init__()
         assert isinstance(tcp, ClientTcp)
+        #assert isinstance(paymentVerifier, Payments)
 
         if blockingDatabase is not None:
             assert isinstance(blockingDatabase, Blocking)
@@ -144,6 +146,8 @@ class Client(object):
         self.blocking_database = blockingDatabase
 
         self.last_received_data = None
+        self.payment_verifier = paymentVerifier
+
 
         def timeoutCheck():
             if self.last_received_data is not None:
@@ -249,10 +253,16 @@ class Client(object):
         latitude = packet.getFloat()
         longitude = packet.getFloat()
 
+        karmaRegenerationReceipt = packet.getByteBuffer()
+        assert isinstance(karmaRegenerationReceipt, ByteBuffer)
+
+        if karmaRegenerationReceipt.used_size == 0:
+            karmaRegenerationReceipt = None
+
         self.login_details = Client.LoginDetails(self.udp_hash, facebookId, facebookUrl, fullName, shortName, age, gender, interestedIn, longitude, latitude)
 
         banMagnitude, banTime = self.karma_database.getBanMagnitudeAndExpirationTime(self)
-        if banTime is not None:
+        if banTime is not None and karmaRegenerationReceipt is None:
             return self.getRejectBannedArguments(banMagnitude, banTime)
 
         self.karma_rating = self.karma_database.getKarma(self)
@@ -260,7 +270,7 @@ class Client(object):
         logger.debug("(Full details) Login processed with details, udp hash: [%s], full name: [%s], short name: [%s], age: [%d], gender [%d], interested in [%d], GPS: [(%d,%d)], Karma [%d]" % (self.udp_hash, fullName, shortName, age, gender, interestedIn, longitude, latitude, self.karma_rating))
         logger.info("Login processed with udp hash: [%s]; identifier: [%s/%d]; karma: [%d]" % (self.udp_hash, shortName, age, self.karma_rating))
 
-        return Client.RejectCodes.SUCCESS, self.udp_hash, None, None
+        return Client.RejectCodes.SUCCESS, self.udp_hash, karmaRegenerationReceipt, None
 
     def buildRejectPacket(self, rejectCode, dataString, magnitude=None, expiryTime=None, response=None):
         if response is None:
@@ -278,27 +288,42 @@ class Client(object):
 
         return response
 
+    def onLoginSuccess(self, dataString):
+        if self.connection_status != Client.ConnectionStatus.WAITING_LOGON:
+            return
+
+        self.connection_status = Client.ConnectionStatus.WAITING_UDP
+        logger.debug("Logon accepted, waiting for UDP connection")
+
+        logger.debug("Sending acceptance response to TCP client: %s", self.tcp)
+        response = ByteBuffer()
+        response.addUnsignedInteger8(Client.TcpOperationCodes.OP_ACCEPT_LOGON)
+        response.addString(dataString)  # the UDP hash code.
+        self.tcp.sendByteBuffer(response)
+
+    def onLoginFailure(self, rejectCode, dataString, magnitude = None, expiryTime = None):
+        if self.connection_status != Client.ConnectionStatus.WAITING_LOGON:
+            return
+
+        response = self.buildRejectPacket(rejectCode, dataString, magnitude, expiryTime)
+        logger.debug("Sending reject response to TCP client: %s", self.tcp)
+        self.tcp.sendByteBuffer(response)
+        self.closeConnection()
+
     def handleTcpPacket(self, packet):
         assert isinstance(packet, ByteBuffer)
         if self.connection_status == Client.ConnectionStatus.WAITING_LOGON:
-            response = ByteBuffer()
-
             rejectCode, dataString, magnitude, expiryTime = self.handleLogon(packet)
             rejected = rejectCode != Client.RejectCodes.SUCCESS
             if not rejected:
-                self.connection_status = Client.ConnectionStatus.WAITING_UDP
-                logger.debug("Logon accepted, waiting for UDP connection")
-
-                response.addUnsignedInteger8(Client.TcpOperationCodes.OP_ACCEPT_LOGON)
-                response.addString(dataString) # the UDP hash code.
+                if magnitude is None:
+                    self.onLoginSuccess(dataString)
+                else:
+                    # magnitude is the karma regeneration transaction which needs to be verified.
+                    # It is a ByteBuffer object.
+                    self.payment_verifier.pushEvent(magnitude, self, dataString)
             else:
-                response = self.buildRejectPacket(rejectCode, dataString, magnitude, expiryTime)
-
-            logger.debug("Sending response accept/reject to TCP client: %s", self.tcp)
-            self.tcp.sendByteBuffer(response)
-
-            if rejected:
-                self.closeConnection()
+                self.onLoginFailure(rejectCode, dataString, magnitude, expiryTime)
 
         elif self.connection_status == Client.ConnectionStatus.WAITING_UDP:
             logger.debug("TCP packet received while waiting for UDP connection to be established, dropping packet")
@@ -478,6 +503,9 @@ class Client(object):
     def onSuccessfulMatch(self):
         self.started_waiting_for_match_timer = None
 
+    def clearKarma(self):
+        self.karma_database.clearKarma(self)
+        self.karma_rating = KarmaLeveled.KARMA_MAXIMUM
 
     def onFriendlyPacketUdp(self, packet):
         self.house.handleUdpPacket(self, packet)

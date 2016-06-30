@@ -11,4 +11,6 @@
 
 @protocol LoginProvider
 - (ByteBuffer *)getLoginBuffer;
+
+- (void)clearKarmaRegeneration;
 @end

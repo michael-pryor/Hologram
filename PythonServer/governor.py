@@ -18,6 +18,7 @@ import pymongo
 from database.matching import Matching
 from database.blocking import Blocking
 from database.karma_leveled import KarmaLeveled
+from payments import Payments
 
 __author__ = 'pryormic'
 
@@ -51,6 +52,7 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
         self.governor_name = governorName
         self.blocking_database = blockingDatabase
         self.karma_database = karmaDatabase
+        self.payments_verifier = Payments(100)
 
     # Higher = under more stress, handling more traffic, lower = handling less.
     def getLoad(self):
@@ -189,7 +191,7 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
         logger.debug('TCP connection initiated with new client [%s]' % addr)
 
         tcpCon = ClientTcp(addr)
-        client = Client(reactor, tcpCon, self.clientDisconnected, self.udp_connection_linker, self.house, self.blocking_database, self.karma_database)
+        client = Client(reactor, tcpCon, self.clientDisconnected, self.udp_connection_linker, self.house, self.blocking_database, self.karma_database, self.payments_verifier)
 
         self._lockClm()
         try:

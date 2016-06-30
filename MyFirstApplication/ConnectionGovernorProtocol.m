@@ -22,6 +22,9 @@
 // You were banned from the server previously, and so cannot join.
 #define REJECT_BANNED 3
 
+// Payment could not be verified.
+#define REJECT_KARMA_REGENERATION_FAILED 4
+
 // Version to include in connection attempts.
 // Must be >= to server's expectation, otherwise we'l be rejected.
 #define VERSION 2
@@ -54,6 +57,9 @@
     Boolean _isNewSession;
 
     Boolean _exitDialogShown;
+
+    UIAlertView *_alertUpdateApplication;
+    UIAlertView *_karmaRegenerationFailed;
 
     // Must be kept in sync with server.
 #define OP_REJECT_LOGON 1
@@ -96,6 +102,18 @@
                                                 object:nil];
         [_pingThread setName:@"Pinger"];
         [_pingThread start];
+
+        _alertUpdateApplication = [[UIAlertView alloc] initWithTitle:@"Please update the application"
+                                                        message:nil
+                                                       delegate:self
+                                              cancelButtonTitle:@"Exit"
+                                              otherButtonTitles:nil];
+
+        _karmaRegenerationFailed = [[UIAlertView alloc] initWithTitle:@"Karma Regeneration Failed"
+                                                             message:nil
+                                                            delegate:self
+                                                   cancelButtonTitle:@"Retry"
+                                                   otherButtonTitles:@"Abort", nil];
     }
     return self;
 }
@@ -285,24 +303,32 @@
         _exitDialogShown = true;
 
         NSString *alertText = [NSString stringWithFormat:@"The version of the application you are running is too old; please update it in the Apple app store.\n\nThe server rejected our connection request with details: [%@]", rejectDescription];
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Please update the application"
-                                                        message:alertText
-                                                       delegate:self
-                                              cancelButtonTitle:@"Exit"
-                                              otherButtonTitles:nil];
-        [alert show];
+        [_alertUpdateApplication setMessage:alertText];
+        [_alertUpdateApplication show];
     } else if (rejectCode == REJECT_BANNED) {
         [self disableReconnecting];
         uint8_t magnitude = [packet getUnsignedInteger8];
         uint expiryTimeSeconds = [packet getUnsignedInteger];
         [_connectionStatusDelegate onBannedWithMagnitude:magnitude expiryTimeSeconds:expiryTimeSeconds];
+    } else if (rejectCode == REJECT_KARMA_REGENERATION_FAILED) {
+        [self terminateWithConnectionStatus:P_NOT_CONNECTED withDescription:@"Karma regeneration failed"];
+        [_karmaRegenerationFailed setMessage:rejectDescription];
+        [_karmaRegenerationFailed show];
     }
 }
 
 - (void)alertView:(UIAlertView *)alertView didDismissWithButtonIndex:(NSInteger)buttonIndex {
-    if ([alertView cancelButtonIndex] == buttonIndex) {
-        NSLog(@"Exiting the application because rejected by server (bad version)");
-        exit(0);
+    if (alertView == _alertUpdateApplication) {
+        if ([alertView cancelButtonIndex] == buttonIndex) {
+            NSLog(@"Exiting the application because rejected by server (bad version)");
+            exit(0);
+        }
+    } else if (alertView == _karmaRegenerationFailed) {
+        if ([alertView cancelButtonIndex] != buttonIndex) {
+            // We think this receipt will repeatedly fail, so reconnect again without it.
+            [_loginProvider clearKarmaRegeneration];
+        }
+        [self reconnect];
     }
 }
 
@@ -315,8 +341,8 @@
             if (rejectReason == nil) {
                 rejectReason = @"[No reject reason]";
             }
-            NSString *rejectDescription = [@"Logon rejected with reason: " stringByAppendingString:rejectReason];
-            [self handleRejectCode:rejectCode description:rejectDescription packet:packet];
+
+            [self handleRejectCode:rejectCode description:rejectReason packet:packet];
             return;
         }
 

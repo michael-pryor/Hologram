@@ -105,4 +105,6 @@
 - (void)addFloat:(Float32)theFloat;
 
 - (float)getFloat;
+
+- (void)addData:(NSData *)data;
 @end

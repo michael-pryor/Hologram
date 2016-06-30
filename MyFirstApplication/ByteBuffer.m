@@ -330,7 +330,9 @@
         [self addUnsignedInteger:length atPosition:position];
         position += sizeof(uint);
     }
-    memcpy(_buffer + position, data, dataSize);
+    if (dataSize > 0) {
+        memcpy(_buffer + position, data, dataSize);
+    }
 
     if (includePrefix) {
         dataSize += sizeof(uint);
@@ -367,9 +369,21 @@
 
 - (void)addString:(NSString *)string {
     NSData *data = [string dataUsingEncoding:NSUTF8StringEncoding];
-    const void *bytes = [data bytes];
-    uint length = (uint) [data length];
-    uint8_t *rawData = (uint8_t *) bytes;
+    [self addData:data];
+}
+
+- (void)addData:(NSData *)data {
+    uint8_t *rawData;
+    uint length;
+    if (data != nil) {
+        const void *bytes = [data bytes];
+        length = (uint) [data length];
+        rawData = (uint8_t *) bytes;
+    } else {
+        length = 0;
+        rawData = nil;
+    }
+
     [self addVariableLengthData:rawData withLength:length];
 }
 

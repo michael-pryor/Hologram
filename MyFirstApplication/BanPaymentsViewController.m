@@ -56,10 +56,8 @@
 
 - (IBAction)onPurchasePress:(id)sender {
     if (![_paymentInProgress signalAll]) {
-     //   return;
+        return;
     }
-
-
 
     [_payments payForProduct:_product];
 }

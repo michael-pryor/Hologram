@@ -11,11 +11,13 @@
 
 @implementation HologramLogin {
     GpsState *_gpsState;
+    NSData *_regenerateKarmaReceipt;
 }
 - (id)initWithGpsState:(GpsState *)gpsState regenerateKarmaReceipt:(NSData *)receipt {
     self = [super init];
     if (self) {
         _gpsState = gpsState;
+        _regenerateKarmaReceipt = receipt;
     }
     return self;
 }
@@ -36,8 +38,13 @@
     {
         [buffer addFloat:[_gpsState latitude]];
         [buffer addFloat:[_gpsState longitude]];
+        [buffer addData:_regenerateKarmaReceipt];
     }
 
     return buffer;
+}
+
+- (void)clearKarmaRegeneration {
+    _regenerateKarmaReceipt = nil;
 }
 @end
