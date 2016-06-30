@@ -99,6 +99,7 @@
     uint _ratingTimeoutSeconds;
 
     Payments *_payments;
+    NSData *_karmaRegenerationReceipt;
 }
 
 // View initially load; happens once per process.
@@ -163,6 +164,7 @@
     _audioResetAnalytics = [[Analytics getInstance] deferEventWithFrequencySeconds:analyticsPublishFreqSeconds category:@"network" action:@"audio_reset"];
 
     _karmaMax = 0;
+    _karmaRegenerationReceipt = nil;
 }
 
 // Permanently close our session on the server, disconnect and stop media input/output.
@@ -329,7 +331,7 @@
         }
 
         [self setDisconnectStateWithShortDescription:@"Loading payments information" showConversationEndView:false];
-        [_payments queryProducts];
+        [_payments queryProducts:[state facebookId]];
     });
 }
 
@@ -347,7 +349,9 @@
         return;
     }
 
-    HologramLogin *loginProvider = [[HologramLogin alloc] initWithGpsState:state];
+    HologramLogin *loginProvider = [[HologramLogin alloc] initWithGpsState:state regenerateKarmaReceipt:_karmaRegenerationReceipt];
+    _karmaRegenerationReceipt = nil; // It's been used in this login now, regardless of whether it is successful.
+    
     _connectionCommander = [[ConnectionCommander alloc] initWithRecvDelegate:self connectionStatusDelegate:self governorSetupDelegate:self loginProvider:loginProvider punchthroughNotifier:self];
 
     if (_cachedResolvedDns != nil) {
@@ -666,9 +670,9 @@
         UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Storyboard" bundle:nil];
         BannedViewController *viewController = [storyboard instantiateViewControllerWithIdentifier:@"BannedViewController"];
 
-        SKProduct * product = [_payments getKarmaProductWithMagnitude:magnitude];
+        SKProduct *product = [_payments getKarmaProductWithMagnitude:magnitude];
 
-        [viewController setWaitTime:numSeconds paymentProduct:product];
+        [viewController setWaitTime:numSeconds paymentProduct:product payments:_payments transactionCompletedNotifier:self];
         [self.navigationController pushViewController:viewController animated:YES];
     });
 }
@@ -903,5 +907,10 @@
     [buffer addUnsignedInteger8:conversationRating];
     [_connection sendTcpPacket:buffer];
 }
+
+- (void)onTransactionCompleted:(NSData *)data {
+    _karmaRegenerationReceipt = data;
+}
+
 
 @end

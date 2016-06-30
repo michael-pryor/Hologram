@@ -23,7 +23,7 @@ class Client(object):
     # Don't rematch with a previously skipped client for first x seconds while we
     # wait for a more suitable match, after x seconds give up and match anyways.
     # TODO: set this back to 10, I changed it temporarily while testing rating system.
-    PRIOR_MATCH_LIST_TIMEOUT_SECONDS = 10
+    PRIOR_MATCH_LIST_TIMEOUT_SECONDS = 0
 
     # Clients have absolute maximum of 10 seconds to give their rating before it defaults to an okay rating.
     # App is advised to send within 5 seconds.

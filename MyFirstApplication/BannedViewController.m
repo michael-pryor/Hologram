@@ -10,6 +10,7 @@
 #import "Timer.h"
 #import "ViewInteractions.h"
 #import "BanPaymentsViewController.h"
+#import "Payments.h"
 
 #define kPushNotificationRequestAlreadySeen @"pushNotificationsAlreadySeen"
 
@@ -27,6 +28,9 @@
     __weak IBOutlet UIView *_purchaseView;
     __weak IBOutlet BanPaymentsViewController *_purchaseViewController;
     SKProduct *_paymentProduct;
+
+    Payments *_payments;
+    id<TransactionCompletedNotifier> _completedNotifier;
 }
 
 - (void)viewDidLoad {
@@ -43,7 +47,7 @@
         [self onPaymentsViewTap:self];
     }];
     if (_paymentProduct != nil) {
-        [_purchaseViewController setProduct:_paymentProduct];
+        [_purchaseViewController setProduct:_paymentProduct payments:_payments transactionCompletedNotifier:self];
     }
     if ([self canAcceptPayments]) {
         [_circleTimerProgress setHintTextColor:[UIColor greenColor]];
@@ -217,9 +221,17 @@
     return _paymentProduct != nil && [SKPaymentQueue canMakePayments];
 }
 
-- (void)setWaitTime:(uint)numSeconds paymentProduct:(SKProduct *)product {
+- (void)setWaitTime:(uint)numSeconds paymentProduct:(SKProduct *)product payments:(Payments*)payments transactionCompletedNotifier:(id<TransactionCompletedNotifier>)completedNotifier {
     NSLog(@"Blocked wait time of %d seconds loaded", numSeconds);
     _destinationTime = [[Timer alloc] initWithFrequencySeconds:numSeconds firingInitially:false];
     _paymentProduct = product;
+    _payments = payments;
+    _completedNotifier = completedNotifier;
 }
+
+- (void)onTransactionCompleted:(NSData *)data {
+    [_completedNotifier onTransactionCompleted:data];
+    [self.navigationController popViewControllerAnimated:true];
+}
+
 @end

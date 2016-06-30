@@ -9,12 +9,18 @@
 - (void)onPaymentProductsLoaded;
 @end
 
+@protocol TransactionCompletedNotifier
+- (void)onTransactionCompleted:(NSData*)data;
+@end
+
 @interface Payments : NSObject <SKProductsRequestDelegate>
 - (id)initWithDelegate:(id <PaymentProductsLoadedNotifier>)notifier;
 
-- (void)queryProducts;
+- (void)queryProducts:(NSString*)userAccountId;
 
 - (SKProduct *)getKarmaProductWithMagnitude:(uint8_t)magnitude;
 
 + (NSString *)getPriceOfProduct:(SKProduct *)product;
+
+- (void)payForProduct:(SKProduct*)product;
 @end

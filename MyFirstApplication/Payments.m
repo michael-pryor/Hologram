@@ -3,7 +3,7 @@
 //
 
 #import "Payments.h"
-
+#import <CommonCrypto/CommonCrypto.h>
 
 @implementation Payments {
     SKProductsRequest *_productsRequest;
@@ -11,12 +11,14 @@
     id <PaymentProductsLoadedNotifier> _notifier;
 
     NSArray *_productIds;
+    NSString *_hashedAccountId;
+
 }
 - (id)initWithDelegate:(id <PaymentProductsLoadedNotifier>)notifier {
     self = [super init];
     if (self) {
         _notifier = notifier;
-
+        _hashedAccountId = nil;
         _productIds = @[@"karma_1"];
     }
     return self;
@@ -32,10 +34,14 @@
     [_notifier onPaymentProductsLoaded];
 }
 
-- (void)queryProducts {
+- (void)queryProducts:(NSString*)userAccountId {
     if (_products != nil && [_products count] > 0) {
         [_notifier onPaymentProductsLoaded];
         return;
+    }
+
+    if (userAccountId != nil) {
+        _hashedAccountId = [Payments hashedValueForAccountName:userAccountId];
     }
 
     _productsRequest = [[SKProductsRequest alloc]
@@ -64,4 +70,44 @@
     NSString *formattedPrice = [numberFormatter stringFromNumber:product.price];
     return formattedPrice;
 }
+
+// Custom method to calculate the SHA-256 hash using Common Crypto
++ (NSString *)hashedValueForAccountName:(NSString*)userAccountName {
+    const int HASH_SIZE = 32;
+    unsigned char hashedChars[HASH_SIZE];
+    const char *accountName = [userAccountName UTF8String];
+    size_t accountNameLen = strlen(accountName);
+    
+    // Confirm that the length of the user name is small enough
+    // to be recast when calling the hash function.
+    if (accountNameLen > UINT32_MAX) {
+        NSLog(@"Account name too long to hash: %@", userAccountName);
+        return nil;
+    }
+    CC_SHA256(accountName, (CC_LONG)accountNameLen, hashedChars);
+    
+    // Convert the array of bytes into a string showing its hex representation.
+    NSMutableString *userAccountHash = [[NSMutableString alloc] init];
+    for (int i = 0; i < HASH_SIZE; i++) {
+        // Add a dash every four bytes, for readability.
+        if (i != 0 && i%4 == 0) {
+            [userAccountHash appendString:@"-"];
+        }
+        [userAccountHash appendFormat:@"%02x", hashedChars[i]];
+    }
+    
+    return userAccountHash;
+}
+
+- (void)payForProduct:(SKProduct*)product {
+    SKMutablePayment *payment = [SKMutablePayment paymentWithProduct:product];
+    payment.quantity = 1;
+
+    if (_hashedAccountId != nil) {
+        payment.applicationUsername = _hashedAccountId;
+    }
+
+    [[SKPaymentQueue defaultQueue] addPayment:payment];
+}
+
 @end

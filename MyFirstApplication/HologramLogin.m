@@ -12,7 +12,7 @@
 @implementation HologramLogin {
     GpsState *_gpsState;
 }
-- (id)initWithGpsState:(GpsState *)gpsState {
+- (id)initWithGpsState:(GpsState *)gpsState regenerateKarmaReceipt:(NSData *)receipt {
     self = [super init];
     if (self) {
         _gpsState = gpsState;

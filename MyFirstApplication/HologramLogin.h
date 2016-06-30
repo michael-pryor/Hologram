@@ -11,7 +11,7 @@
 #import "GpsState.h"
 
 @interface HologramLogin : NSObject <LoginProvider>
-- (id)initWithGpsState:(GpsState *)gpsState;
+- (id)initWithGpsState:(GpsState *)gpsState regenerateKarmaReceipt:(NSData *)receipt;
 
 - (ByteBuffer *)getLoginBuffer;
 @end
