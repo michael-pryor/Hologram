@@ -142,4 +142,24 @@ static Analytics *instance = nil;
 - (DeferredEvent *)deferEventWithFrequencySeconds:(NSTimeInterval)frequency category:(NSString *)category action:(NSString *)action {
     return [self deferEventWithFrequencySeconds:frequency category:category action:action label:nil];
 }
+
+
++ (void)updateAnalyticsUser:(NSString*)UUID {
+    NSLog(@"Prepared Google analytics tracker with UUID: %@", UUID);
+
+    id <GAITracker> tracker = [[GAI sharedInstance] defaultTracker];
+
+    // User tracking must be enabled in Google analytics.
+    [tracker set:kGAIUserId value:UUID];
+}
+
++ (void)updateGender:(NSString*)gender {
+    // The dimension index must be setup in Google analytics.
+    [[[GAI sharedInstance] defaultTracker] set:[GAIFields customDimensionForIndex:2] value:gender];
+}
+
++ (void)updateAge:(int)age {
+    // The dimension index must be setup in Google analytics.
+    [[[GAI sharedInstance] defaultTracker] set:[GAIFields customDimensionForIndex:1] value:[[NSString alloc] initWithFormat:@"%d", age]];
+}
 @end

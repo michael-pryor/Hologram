@@ -36,4 +36,10 @@
 - (DeferredEvent *)deferEventWithFrequencySeconds:(NSTimeInterval)frequency category:(NSString *)category action:(NSString *)action label:(NSString *)label;
 
 - (DeferredEvent *)deferEventWithFrequencySeconds:(NSTimeInterval)frequency category:(NSString *)category action:(NSString *)action;
+
++ (void)updateAnalyticsUser:(NSString*)UUID;
+
++ (void)updateGender:(NSString*)gender;
+
++ (void)updateAge:(int)age;
 @end

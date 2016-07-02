@@ -13,22 +13,28 @@
 @implementation FacebookLoginViewController {
     IBOutlet UISegmentedControl *_desiredGenderChooser;
     __weak IBOutlet UIImageView *_buttonDone;
-    __weak IBOutlet UIView *_manualLoginButton;
-    __weak IBOutlet UILabel *_manualLoginLabel;
     __weak IBOutlet UITextField *_dateOfBirthTextBox;
 
     NSDateFormatter *_dateOfBirthFormatter;
+    __weak IBOutlet UITextField *_fullNameTextBox;
+    __weak IBOutlet UISegmentedControl *_ownerGenderChooser;
 }
 
 - (void)cancelEditingTextBoxes {
     [self.view endEditing:YES];
 }
 
+- (void)saveTextBoxes {
+
+}
+
 - (IBAction)onTextBoxDonePressed:(id)sender {
     [self cancelEditingTextBoxes];
+    [self saveTextBoxes];
 }
 - (IBAction)onViewControllerTap:(id)sender {
     [self cancelEditingTextBoxes];
+    [self saveTextBoxes];
 }
 
 
@@ -37,8 +43,6 @@
 }
 - (IBAction)onSwipeGesture:(UISwipeGestureRecognizer *)recognizer  {
     [self _switchToChatView];
-}
-- (IBAction)onLoginManuallyButtonPress:(id)sender {
 }
 
 -(void)updateTextField:(UIDatePicker *)sender{
@@ -59,8 +63,12 @@
     [datePicker addTarget:self action:@selector(updateTextField:)
          forControlEvents:UIControlEventValueChanged];
     [_dateOfBirthTextBox setInputView:datePicker];
-    
-    _desiredGenderChooser.selectedSegmentIndex = [[SocialState getFacebookInstance] interestedInSegmentIndex];
+
+    SocialState *socialState = [SocialState getFacebookInstance];
+    _desiredGenderChooser.selectedSegmentIndex = [socialState interestedInSegmentIndex];
+    _ownerGenderChooser.selectedSegmentIndex = [socialState genderSegmentIndex];
+
+    _fullNameTextBox.text = [socialState humanFullName];
 
     [FBSDKProfile enableUpdatesOnAccessTokenChange:true];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onProfileUpdated:) name:FBSDKProfileDidChangeNotification object:nil];
@@ -75,7 +83,10 @@
 }
 
 - (IBAction)onDesiredGenderChanged:(id)sender {
-    [[SocialState getFacebookInstance] setInterestedInWithSegmentIndex:[_desiredGenderChooser selectedSegmentIndex]];
+    [[SocialState getFacebookInstance] persistInterestedInWithSegmentIndex:[_desiredGenderChooser selectedSegmentIndex]];
+}
+- (IBAction)onOwnerGenderChanged:(id)sender {
+    [[SocialState getFacebookInstance] setOwnerGenderWithSegmentIndex:[sender selectedSegmentIndex]];
 }
 
 - (void)_updateDisplay {
@@ -84,21 +95,17 @@
     if ([state isBasicDataLoaded]) {
         dispatch_sync_main(^{
             [_displayName setText:[state humanFullName]];
-            [_displayPicture setProfileID:[state facebookId]];
+            //[_displayPicture setProfileID:[state persistedUniqueId]];
 
             [_displayName setHidden:false];
             [_displayPicture setHidden:false];
             [_buttonDone setHidden:false];
-            [_manualLoginButton setHidden:true];
-            [_manualLoginLabel setHidden:true];
         });
     } else {
         dispatch_sync_main(^{
             [_displayName setHidden:true];
             [_displayPicture setHidden:true];
             [_buttonDone setHidden:true];
-            [_manualLoginButton setHidden:false];
-            [_manualLoginLabel setHidden:false];
 
             [_displayName setText:@""];
             [_displayPicture setProfileID:nil];

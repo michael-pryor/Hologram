@@ -343,7 +343,7 @@
         }
 
         [self setDisconnectStateWithShortDescription:@"Loading payments information" showConversationEndView:false];
-        [_payments queryProducts:[state facebookId]];
+        [_payments queryProducts:[state persistedUniqueId]];
     });
 }
 
@@ -789,7 +789,7 @@
             NSString *remoteProfileUrl = [packet getString];
             NSString *remoteFullName = [packet getString];
 
-            NSString *localFacebookId = [_socialState facebookId];
+            NSString *localFacebookId = [_socialState persistedUniqueId];
             NSString *localFullName = [_socialState humanFullName];
 
             UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Storyboard" bundle:nil];

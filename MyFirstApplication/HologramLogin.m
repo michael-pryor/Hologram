@@ -26,13 +26,13 @@
     ByteBuffer *buffer = [[ByteBuffer alloc] init];
     {
         SocialState *state = [SocialState getFacebookInstance];
-        [buffer addString:[state facebookId]];
-        [buffer addString:[[state facebookUrl] absoluteString]];
-        [buffer addString:[[state facebookProfilePictureUrl] absoluteString]];
+        [buffer addString:[state persistedUniqueId]];
+      //  [buffer addString:[[state facebookUrl] absoluteString]];
+      //  [buffer addString:[[state facebookProfilePictureUrl] absoluteString]];
         [buffer addString:[state humanFullName]];
         [buffer addString:[state humanShortName]];
         [buffer addUnsignedInteger:[state age]];
-        [buffer addUnsignedInteger:[state genderI]];
+        [buffer addUnsignedInteger:[state genderEnum]];
         [buffer addUnsignedInteger:[state interestedIn]];
     }
 

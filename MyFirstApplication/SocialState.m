@@ -9,15 +9,25 @@
 #import "SocialState.h"
 #import "Timer.h"
 #import "Analytics.h"
+#import "KeychainItemWrapper.h"
+#import "UniqueId.h"
+#import "GenderParsing.h"
+#import "DobParsing.h"
+#import "NameParsing.h"
 #import <FBSDKCoreKit/FBSDKCoreKit.h>
 #import <Google/Analytics.h>
 
-const NSString* selectedGenderPreferenceKey = @"selectedGenderPreference";
+const NSString *selectedGenderPreferenceKey = @"selectedGenderPreference";
+const NSString *ownerGenderKey = @"ownerGender";
+const NSString *humanFullNameKey = @"humanFullName";
+const NSString *humanShortNameKey = @"humanShortName";
+const NSString *dobKey = @"dob";
 
 static SocialState *instance = nil;
+
 typedef void (^Block)(id);
 
-#define INTERESTED_IN_BOTH_SEGMENT_ID 2
+
 
 @implementation SocialState {
     id <SocialStateDataLoadNotification> _notifier;
@@ -26,16 +36,55 @@ typedef void (^Block)(id);
 - (id)init {
     self = [super init];
     if (self) {
+        [self reset];
+
         // Initialize here instead of in reset because this value doesn't come from Facebook.
         // It comes form a GUI item (direct from user).
-        if([[NSUserDefaults standardUserDefaults] objectForKey:selectedGenderPreferenceKey] != nil) {
+        if ([[NSUserDefaults standardUserDefaults] objectForKey:selectedGenderPreferenceKey] != nil) {
             const int selectedGenderPreference = [[NSUserDefaults standardUserDefaults] integerForKey:selectedGenderPreferenceKey];
             NSLog(@"Loaded previous gender preference selection from storage: %d", selectedGenderPreference);
-            [self setInterestedInWithSegmentIndex:selectedGenderPreference saving:false];
+            [self persistInterestedInWithSegmentIndex:selectedGenderPreference saving:false];
         } else {
             NSLog(@"No previous gender preference selection found in storage, defaulting to BOTH");
-            [self setInterestedInBoth];
+            [self persistInterestedInBoth];
         }
+
+        if ([[NSUserDefaults standardUserDefaults] objectForKey:ownerGenderKey] != nil) {
+            const int ownerGender = [[NSUserDefaults standardUserDefaults] integerForKey:ownerGenderKey];
+            NSLog(@"Loaded previous owner gender selection from storage: %d", ownerGender);
+            [self persistOwnerGenderWithSegmentIndex:ownerGender saving:false];
+        } else {
+            NSLog(@"No previous owner gender selection found in storage");
+        }
+
+        NSString *humanFullName;
+        NSString *humanShortName;
+        if ([[NSUserDefaults standardUserDefaults] objectForKey:humanFullNameKey] != nil) {
+            humanFullName = [[NSUserDefaults standardUserDefaults] stringForKey:humanFullNameKey];
+            [self persistHumanFullName:humanFullName saving:false];
+            NSLog(@"Loaded previous human name from storage: %@", humanFullName);
+        } else {
+            NSLog(@"No previous human full name found in storage");
+        }
+
+        if ([[NSUserDefaults standardUserDefaults] objectForKey:humanShortNameKey] != nil) {
+            humanShortName = [[NSUserDefaults standardUserDefaults] stringForKey:humanShortNameKey];
+            [self persistHumanFullName:humanShortName saving:false];
+            NSLog(@"Loaded previous human short name from storage: %@", humanShortName);
+        } else {
+            NSLog(@"No previous human short name found in storage");
+        }
+
+        if ([[NSUserDefaults standardUserDefaults] objectForKey:dobKey] != nil) {
+            NSString *dob = [[NSUserDefaults standardUserDefaults] stringForKey:dobKey];
+            [self persistDateOfBirth:dob saving:false];
+            NSLog(@"Loaded dob from storage: %@, age: %d", dob, _age);
+        } else {
+            NSLog(@"No date of birth found in storage");
+        }
+
+        _persistedUniqueId = [UniqueId pullUUID];
+        [Analytics updateAnalyticsUser:_persistedUniqueId];
     }
     return self;
 }
@@ -52,171 +101,94 @@ typedef void (^Block)(id);
     return _isBasicDataLoaded && _isGraphDataLoaded;
 }
 
-+ (SocialState *)getFacebookInstance {
-    @synchronized (self) {
-        if (instance == nil) {
-            instance = [[SocialState alloc] init];
-        }
+- (void)persistHumanFullName:(NSString*)humanFullName saving:(bool)doSave {
+    _humanFullName = humanFullName;
 
-        return instance;
+    if (doSave) {
+        [[NSUserDefaults standardUserDefaults] setObject:_humanFullName forKey:humanFullNameKey];
     }
 }
 
-- (void)loadStateFromFirstName:(NSString *)firstName middleName:(NSString *)middleName lastName:(NSString *)lastName facebookUrl:(NSURL *)facebookUrl facebookId:(NSString *)facebookId facebookProfilePictureUrl:(NSURL *)profilePictureUrl {
-    _firstName = firstName;
-    _middleName = middleName;
-    _lastName = lastName;
-    _facebookUrl = facebookUrl;
-    _facebookId = facebookId;
-    _facebookProfilePictureUrl = profilePictureUrl;
+- (void)persistHumanShortName:(NSString*)humanShortName saving:(bool)doSave {
+    _humanShortName = humanShortName;
+    _isBasicDataLoaded = _humanShortName != nil;
 
-    NSString *seperator = @" ";
-    NSMutableString *aux = [[NSMutableString alloc] init];
-    Boolean setShortName = false;
-    if (_firstName != nil) {
-        [aux appendString:_firstName];
-        [aux appendString:seperator];
-        _humanShortName = _firstName;
-        setShortName = true;
-
-    }
-
-    if (_middleName != nil) {
-        [aux appendString:_middleName];
-        [aux appendString:seperator];
-    }
-
-    if (_lastName != nil) {
-        [aux appendString:_lastName];
-        [aux appendString:seperator];
-
-        if (!setShortName) {
-            _humanShortName = _lastName;
-            setShortName = true;
-        }
-    }
-
-    if (!setShortName) {
-        if (_middleName != nil) {
-            _humanShortName = _middleName;
-            setShortName = true;
-        } else {
-            _humanShortName = @"?";
-        }
-    } else {
-        // Delete the last character.
-        // I know.. dat syntax...
-        [aux deleteCharactersInRange:NSMakeRange([aux length] - 1, 1)];
-    }
-
-    _humanFullName = aux;
-    _isBasicDataLoaded = setShortName;
-
-    if (_isBasicDataLoaded) {
-        NSLog(@"Loaded social details: Full name = [%@], Short name: [%@], Facebook URL: [%@], Facebook ID: [%@]", _humanFullName, _humanShortName, _facebookUrl, _facebookId);
-        [self _updateAnalyticsUser];
-    } else {
-        NSLog(@"Failed to load social details");
-        [self reset];
+    if (doSave) {
+        [[NSUserDefaults standardUserDefaults] setObject:_humanShortName forKey:humanShortNameKey];
     }
 }
 
-- (NSString*)_retrieveUserUUID: (NSString*)facebookID {
-    // Unique ID used to identify this user going forwards.
-    NSString *UUID = [[NSUUID UUID] UUIDString];
-    NSString *masterKey = @"trackedFacebookUUIDs";
-
-    NSDictionary *result = [[NSUserDefaults standardUserDefaults] dictionaryForKey:masterKey];
-    if (result == nil) {
-        // This is the first item, so add it and we're done.
-        [[NSUserDefaults standardUserDefaults] setObject:@{facebookID : UUID} forKey:masterKey];
-        NSLog(@"Associated first facebook ID [%@] with UUID [%@]", facebookID, UUID);
-    } else {
-        NSString * existingId = result[facebookID];
-        if (existingId == nil) {
-            NSMutableDictionary *mutableDict = [result mutableCopy];
-            mutableDict[facebookID] = UUID;
-            [[NSUserDefaults standardUserDefaults] setObject:mutableDict forKey:masterKey];
-            NSLog(@"Associated another facebook ID [%@] with UUID [%@]", facebookID, UUID);
-        } else {
-            UUID = existingId;
-            NSLog(@"Retrieved existing facebook ID [%@] with UUID [%@]", facebookID, UUID);
-        }
-    }
-
-    return UUID;
+- (void)persistStateFromFirstName:(NSString *)firstName middleName:(NSString *)middleName lastName:(NSString *)lastName saving:(bool)doSave{
+    NSString * humanFullName = [[NSMutableString alloc] init];
+    NSString * humanShortName = [NameParsing getShortNameAndBuildLongName:(NSMutableString *) _humanFullName firstName:firstName middleName:middleName lastName:lastName];
+    [self persistHumanFullName:humanFullName saving:doSave];
+    [self persistHumanShortName:humanShortName saving:doSave];
 }
 
-- (void)_updateAnalyticsUser {
-    NSString* UUID = [self _retrieveUserUUID:_facebookId];
-    NSLog(@"Prepared Google analytics tracker with UUID: %@", UUID);
+- (void)persistDateOfBirthObject:(NSDate*)dateOfBirth saving:(bool)doSave {
+    [self persistDateOfBirth:[DobParsing getDateStringFromDateObject:dateOfBirth] saving:doSave];
+}
 
-    id <GAITracker> tracker = [[GAI sharedInstance] defaultTracker];
+- (void)persistDateOfBirth:(NSString*)dateOfBirth saving:(bool)doSave {
+    NSString *dob = dateOfBirth;
+    _age = [DobParsing getAgeFromDateOfBirth:dob];
 
-    // User tracking must be enabled in Google analytics.
-    [tracker set:kGAIUserId value:UUID];
+    if (doSave) {
+        [[NSUserDefaults standardUserDefaults] setObject:dob forKey:dobKey];
+    }
 }
 
 - (void)reset {
     _humanFullName = nil;
     _humanShortName = nil;
-    _facebookId = nil;
-    _facebookUrl = nil;
-    _firstName = nil;
-    _lastName = nil;
-    _middleName = nil;
-    _genderI = 0;
-    _gender = nil;
+    _persistedUniqueId = nil;
+    _genderSegmentIndex = UISegmentedControlNoSegment;
+    _genderEnum = 0;
+    _genderString = nil;
     _age = 0;
     _isBasicDataLoaded = false;
     _isGraphDataLoaded = false;
 }
 
-- (void)updateCoreFacebookInformation {
+- (bool)updateCoreFacebookInformation {
+    if (_isBasicDataLoaded) {
+        return true;
+    }
+
     // It is possible for the two conditions to be disjoint i.e. profile to be non nil while access token is nil.
     // That is why we check both, because graph API requires token.
     FBSDKProfile *profile = nil;
     if ([FBSDKAccessToken currentAccessToken]) {
-       profile = [FBSDKProfile currentProfile];
+        profile = [FBSDKProfile currentProfile];
     }
 
     if (profile == nil) {
         [self reset];
         NSLog(@"Facebook state not ready yet, please request details from user");
-        return;
+        return false;
     }
+
+    /*
     CGSize size;
     size.width = 100;
     size.height = 100;
-    NSURL * profilePictureUrl = [profile imageURLForPictureMode:FBSDKProfilePictureModeSquare size: size];
-    [self loadStateFromFirstName:[profile firstName] middleName:[profile middleName] lastName:[profile lastName] facebookUrl:[profile linkURL] facebookId:[profile userID] facebookProfilePictureUrl:profilePictureUrl];
+    NSURL *profilePictureUrl = [profile imageURLForPictureMode:FBSDKProfilePictureModeSquare size:size];*/
+
+    [self persistStateFromFirstName:[profile firstName] middleName:[profile middleName] lastName:[profile lastName] saving:true];
+    return true;
 }
 
-- (uint)parseGenderFromFacebookApi:(NSString *)gender {
-    if (gender == nil) {
-        return BOTH;
-    } else if ([@"male" isEqualToString:gender]) {
-        return MALE;
-    } else if ([@"female" isEqualToString:gender]) {
-        return FEMALE;
-    } else {
-        // Facebook API tells us that this can't happen.
-        NSLog(@"Unknown gender: %@", gender);
-        return BOTH;
-    }
+
+- (void)persistInterestedInBoth {
+    [self persistInterestedInWithSegmentIndex:INTERESTED_IN_BOTH_SEGMENT_ID];
 }
 
-- (void)setInterestedInWithSegmentIndex:(int)segmentIndex saving:(bool)doSave {
-    if (segmentIndex == 0) {
-        [self setInterestedIn:@"male"];
-    } else if (segmentIndex == 1) {
-        [self setInterestedIn:@"female"];
-    } else if (segmentIndex == INTERESTED_IN_BOTH_SEGMENT_ID) {
-        [self setInterestedIn:nil];
-    } else {
-        [NSException raise:@"Invalid interested in segment index" format:@"segment index %d is invalid", segmentIndex];
-    }
+- (void)persistInterestedInWithSegmentIndex:(int)segmentIndex {
+    [self persistInterestedInWithSegmentIndex:segmentIndex saving:true];
+}
 
+- (void)persistInterestedInWithSegmentIndex:(int)segmentIndex saving:(bool)doSave {
+    _interestedIn = [GenderParsing parseGenderSegmentIndex:segmentIndex];
     _interestedInSegmentIndex = segmentIndex;
 
     if (doSave) {
@@ -225,36 +197,26 @@ typedef void (^Block)(id);
     }
 }
 
-- (void)setInterestedInBoth {
-    [self setInterestedInWithSegmentIndex:INTERESTED_IN_BOTH_SEGMENT_ID];
+- (void)setOwnerGenderWithSegmentIndex:(int)segmentIndex {
+    [self persistOwnerGenderWithSegmentIndex:segmentIndex saving:true];
 }
 
-- (void)setInterestedInWithSegmentIndex:(int)segmentIndex {
-    [self setInterestedInWithSegmentIndex:segmentIndex saving:true];
-}
+- (void)setOwnerGenderWithString:(NSString*)genderString saving:(bool)doSave {
+    _genderString = genderString;
+    _genderEnum = [GenderParsing parseGenderString:genderString];
+    _genderSegmentIndex = [GenderParsing parseGenderStringToSegmentIndex:genderString];
 
-- (uint)getAgeFromDateOfBirth:(NSString *)dob {
-    NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+    [Analytics updateGender:genderString];
 
-    if ([dob length] == 4) {
-        [dateFormatter setDateFormat:@"yyyy"];
-    } else if ([dob length] == 5) {
-        [dateFormatter setDateFormat:@"MM/dd"];
-    } else {
-        [dateFormatter setDateFormat:@"MM/dd/yyyy"];
+    if (doSave) {
+        NSLog(@"Saving owner gender segment index of %d", _genderSegmentIndex);
+        [[NSUserDefaults standardUserDefaults] setInteger:_genderSegmentIndex forKey:ownerGenderKey];
     }
+}
 
-    NSDate *date = [dateFormatter dateFromString:dob];
-
-
-    NSDate *now = [NSDate date];
-    NSDateComponents *ageComponents = [[NSCalendar currentCalendar]
-            components:NSCalendarUnitYear
-              fromDate:date
-                toDate:now
-               options:0];
-    NSInteger age = [ageComponents year];
-    return (uint) age;
+- (void)persistOwnerGenderWithSegmentIndex:(int)segmentIndex saving:(bool)doSave {
+    NSString *gender = [GenderParsing parseGenderSegmentIndexToString:segmentIndex];
+    [self setOwnerGenderWithString:gender saving:doSave];
 }
 
 - (bool)updateGraphFacebookInformation {
@@ -266,7 +228,7 @@ typedef void (^Block)(id);
     NSDictionary *parameters = @{@"fields" : @"id,name,birthday,gender"};
     FBSDKGraphRequest *fbGraphRequest = [[FBSDKGraphRequest alloc] initWithGraphPath:@"me" parameters:parameters];
 
-    __block Timer * fbGraphRequestTimer = [[Timer alloc] init];
+    __block Timer *fbGraphRequestTimer = [[Timer alloc] init];
 
     // Repeatedly runs block (polling graph API) until successful.
     // This is useful if there are network issues temporarily, ensures we don't get stuck loading Facebook data.
@@ -289,29 +251,21 @@ typedef void (^Block)(id);
                 return;
             }
 
-            id <GAITracker> tracker = [[GAI sharedInstance] defaultTracker];
-
-            _dob = [result objectForKey:@"birthday"];
-            if (_dob == nil) {
-                NSLog(@"Failed to retrieve date of birth from Facebook API, defaulting to 0 - server will handle this");
-                _age = 0;
+            NSString* dob = [result objectForKey:@"birthday"];
+            if (dob == nil) {
+                NSLog(@"Failed to retrieve date of birth from Facebook API");
             } else {
-                _age = [self getAgeFromDateOfBirth:_dob];
-
-                // The dimension index must be setup in Google analytics.
-                [tracker set:[GAIFields customDimensionForIndex:1] value:[[NSString alloc] initWithFormat:@"%d", _age]];
+                [self persistDateOfBirth:dob saving:true];
             }
 
-            _gender = [result objectForKey:@"gender"];
-            if (_gender == nil) {
-                NSLog(@"Failed to retrieve gender from Facebook API, defaulting to nil which will equate to BOTH - server will handle this");
+            NSString * gender = [result objectForKey:@"gender"];
+            if (gender == nil) {
+                NSLog(@"Failed to retrieve gender from Facebook graph API");
             } else {
-                // The dimension index must be setup in Google analytics.
-                [tracker set:[GAIFields customDimensionForIndex:2] value:_gender];
+                [self setOwnerGenderWithString:gender saving:true];
             }
-            _genderI = [self parseGenderFromFacebookApi:_gender];
 
-            NSLog(@"Loaded DOB: [%@], gender: [%@] from Facebook graph API", _dob, _gender);
+            NSLog(@"Loaded DOB: [%@], gender: [%@] from Facebook graph API", dob, _genderString);
             _isGraphDataLoaded = true;
             [[Analytics getInstance] pushTimer:fbGraphRequestTimer withCategory:@"setup" name:@"facebook_graph"];
             if (_notifier != nil) {
@@ -320,20 +274,27 @@ typedef void (^Block)(id);
         }];
     };
 
-    dispatch_async(dispatch_get_main_queue(), ^ {
+    dispatch_async(dispatch_get_main_queue(), ^{
         block(block);
     });
 
     return true;
 }
 
-- (void)update {
+- (bool)update {
     [self updateCoreFacebookInformation];
-    [self updateGraphFacebookInformation];
+    return [self updateGraphFacebookInformation];
 }
 
-- (void)setInterestedIn:(NSString *)interestedIn {
-    _interestedIn = [self parseGenderFromFacebookApi:interestedIn];
+
++ (SocialState *)getFacebookInstance {
+    @synchronized (self) {
+        if (instance == nil) {
+            instance = [[SocialState alloc] init];
+        }
+
+        return instance;
+    }
 }
 
 @end

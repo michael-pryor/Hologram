@@ -8,11 +8,9 @@
 
 #import <Foundation/Foundation.h>
 
-#define MALE 1
-#define FEMALE 2
-#define BOTH 3
 
 extern const NSString* selectedGenderPreferenceKey;
+extern const NSString* ownerGenderKey;
 
 @class SocialState;
 @protocol SocialStateDataLoadNotification <NSObject>
@@ -22,35 +20,30 @@ extern const NSString* selectedGenderPreferenceKey;
 @interface SocialState : NSObject
 @property(readonly) Boolean isBasicDataLoaded;
 @property(readonly) Boolean isGraphDataLoaded;
-@property(readonly) NSString *firstName;
-@property(readonly) NSString *middleName;
-@property(readonly) NSString *lastName;
-@property(readonly) NSURL *facebookUrl;
-@property(readonly) NSURL *facebookProfilePictureUrl;
-@property(readonly) NSString *facebookId;
+@property(readonly) NSString *persistedUniqueId;
 
 @property(readonly) NSString *humanFullName;
 @property(readonly) NSString *humanShortName;
 
-@property(readonly) NSString *gender;
-@property(readonly) NSString *dob;
+@property(readonly) NSString *genderString;
 @property(readonly) uint age;
-@property(readonly) uint genderI;
+@property(readonly) uint genderEnum;
 @property(readonly) uint interestedIn;
 
 // This relates to the Facebook login view, the index of the selected button.
 // Used to rebuild this during initialization.
 @property(readonly) int interestedInSegmentIndex;
+@property(readonly) int genderSegmentIndex;
 
 - (void)reset;
 
-- (void)updateCoreFacebookInformation;
+- (bool)updateCoreFacebookInformation;
 
 - (bool)updateGraphFacebookInformation;
 
-- (void)update;
+- (bool)update;
 
-- (void)setInterestedInWithSegmentIndex:(int)segmentIndex;
+- (void)persistInterestedInWithSegmentIndex:(int)segmentIndex;
 
 + (SocialState *)getFacebookInstance;
 
@@ -58,8 +51,8 @@ extern const NSString* selectedGenderPreferenceKey;
 
 - (void)unregisterNotifier;
 
-- (Boolean)isDataLoaded;
+- (bool)isDataLoaded;
 
-- (void)setInterestedIn:(NSString *)interestedIn;
+- (void)setOwnerGenderWithSegmentIndex:(int)segmentIndex;
 @end
 
