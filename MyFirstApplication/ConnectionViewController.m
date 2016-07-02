@@ -17,6 +17,7 @@
 #import "Timer.h"
 #import "Analytics.h"
 #import "BannedViewController.h"
+#import "FacebookSharedViewController.h"
 
 @implementation ConnectionViewController {
     // Connection
@@ -100,6 +101,13 @@
 
     Payments *_payments;
     NSData *_karmaRegenerationReceipt;
+
+
+    __weak IBOutlet UIImageView *_remoteFacebookLiked;
+    __weak IBOutlet UIImageView *_localFacebookLiked;
+    bool _facebookLiked;
+
+    SocialState *_socialState;
 }
 
 // View initially load; happens once per process.
@@ -108,6 +116,9 @@
     [super viewDidLoad];
 
     _hasHadAtLeastOneConversation = false;
+    _facebookLiked = false;
+
+    _socialState = nil;
 
     _backgroundCounter = 0;
 
@@ -318,6 +329,7 @@
 // Callback for social data (Facebook).
 // Triggers GPS loading.
 - (void)onSocialDataLoaded:(SocialState *)state {
+    _socialState = state;
     [state unregisterNotifier];
     dispatch_sync_main(^{
         [_ownerName setText:[state humanShortName]];
@@ -474,6 +486,10 @@
 - (void)handleUserName:(NSString *)name age:(uint)age distance:(uint)distance {
     dispatch_sync_main(^{
         NSLog(@"Connected with user named [%@] with age [%u]", name, age);
+        _facebookLiked = false;
+        [_localFacebookLiked setHidden:true];
+        [_remoteFacebookLiked setHidden:true];
+
         [_remoteName setText:name];
 
         if (age > 0) {
@@ -761,6 +777,25 @@
         } else if (operation == DISCONNECT_SKIPPED) {
             [self setDisconnectStateWithShortDescription:@"Matching you with somebody to talk with\nThe other person skipped you" showConversationEndView:true];
             NSLog(@"End point skipped us");
+        } else if (operation == SHARE_FACEBOOK_INFO) {
+            NSLog(@"Endpoint has shared Facebook information with us");
+            dispatch_sync_main(^{
+                [_remoteFacebookLiked setHidden:false];
+            });
+        } else if (operation == SHARE_FACEBOOK_INFO_PAYLOAD) {
+            NSLog(@"Facebook shared information payload received");
+            [packet getUnsignedInteger8];
+            NSString *remoteFacebookId = [packet getString];
+            NSString *remoteProfileUrl = [packet getString];
+            NSString *remoteFullName = [packet getString];
+
+            NSString *localFacebookId = [_socialState facebookId];
+            NSString *localFullName = [_socialState humanFullName];
+
+            UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Storyboard" bundle:nil];
+            FacebookSharedViewController *viewController = [storyboard instantiateViewControllerWithIdentifier:@"FacebookSharedViewController"];
+            [viewController setRemoteFacebookId:remoteFacebookId remoteProfileUrl:remoteProfileUrl remoteFullName:remoteFullName localFacebookId:localFacebookId localFullName:localFullName];
+            [self.navigationController pushViewController:viewController animated:YES];
         } else {
             if (_mediaController != nil) {
                 [_mediaController onNewPacket:packet fromProtocol:protocol];
@@ -912,5 +947,14 @@
     _karmaRegenerationReceipt = data;
 }
 
+- (IBAction)onFacebookLikeButtonPressed:(id)sender {
+    dispatch_sync_main(^{
+        [_localFacebookLiked setHidden:false];
+
+        ByteBuffer *buffer = [[ByteBuffer alloc] init];
+        [buffer addUnsignedInteger8:SHARE_FACEBOOK_INFO];
+        [_connection sendTcpPacket:buffer];
+    });
+}
 
 @end

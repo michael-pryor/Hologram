@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="10117" systemVersion="15F34" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="0oT-De-dHC">
     <dependencies>
-        <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="10085"/>
         <capability name="Alignment constraints with different attributes" minToolsVersion="5.1"/>
         <capability name="Aspect ratio constraints" minToolsVersion="5.1"/>
@@ -52,7 +51,7 @@
                                 </constraints>
                             </view>
                             <view opaque="NO" alpha="0.69999999999999973" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="vn7-7t-VXi" customClass="FBSDKLoginButton">
-                                <rect key="frame" x="20" y="255" width="560" height="40"/>
+                                <rect key="frame" x="20" y="255" width="561" height="40"/>
                                 <color key="backgroundColor" red="0.027450980392156862" green="0.031372549019607843" blue="0.29019607843137252" alpha="1" colorSpace="calibratedRGB"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="40" id="5em-0X-sGX"/>
@@ -61,7 +60,7 @@
                                     <outlet property="delegate" destination="HPd-0g-j2K" id="8aN-tL-cNW"/>
                                 </connections>
                             </view>
-                            <label opaque="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Facebook" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="VbS-z8-oK5" userLabel="Facebook Label">
+                            <label opaque="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Login with Facebook" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="VbS-z8-oK5" userLabel="Facebook Label">
                                 <rect key="frame" x="20" y="232" width="560" height="18"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="15"/>
                                 <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
@@ -113,32 +112,65 @@
                                     <constraint firstItem="W0y-Zd-RaT" firstAttribute="centerY" secondItem="2ei-fQ-3lJ" secondAttribute="centerY" id="wZH-EK-Kog"/>
                                 </constraints>
                             </view>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="gtn-M1-Zyd">
+                                <rect key="frame" x="20" y="172" width="561" height="40"/>
+                                <subviews>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="waX-D3-o8U">
+                                        <rect key="frame" x="250" y="5" width="62" height="30"/>
+                                        <state key="normal" title="Manually">
+                                            <color key="titleColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                        </state>
+                                    </button>
+                                </subviews>
+                                <color key="backgroundColor" red="0.13725490196078433" green="0.24705882352941178" blue="0.40784313725490196" alpha="1" colorSpace="calibratedRGB"/>
+                                <gestureRecognizers/>
+                                <constraints>
+                                    <constraint firstItem="waX-D3-o8U" firstAttribute="centerY" secondItem="gtn-M1-Zyd" secondAttribute="centerY" id="9Mz-Ek-xBi"/>
+                                    <constraint firstItem="waX-D3-o8U" firstAttribute="centerX" secondItem="gtn-M1-Zyd" secondAttribute="centerX" id="evd-jX-030"/>
+                                </constraints>
+                                <connections>
+                                    <outletCollection property="gestureRecognizers" destination="aU4-JQ-OWH" appends="YES" id="rnR-nY-vd0"/>
+                                </connections>
+                            </view>
+                            <label opaque="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Login manually" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="wit-HT-OOh" userLabel="Facebook Label">
+                                <rect key="frame" x="20" y="149" width="561" height="18"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="15"/>
+                                <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <color key="backgroundColor" red="0.5490196078431373" green="1" blue="0.93725490196078431" alpha="1" colorSpace="calibratedRGB"/>
                         <gestureRecognizers/>
                         <constraints>
                             <constraint firstItem="vn7-7t-VXi" firstAttribute="bottom" secondItem="9Bj-2i-1uF" secondAttribute="top" constant="-20" id="2z5-wP-OwQ" userLabel="LoginButton bottom"/>
+                            <constraint firstItem="wit-HT-OOh" firstAttribute="width" secondItem="gtn-M1-Zyd" secondAttribute="width" id="62D-zy-pc4"/>
+                            <constraint firstItem="wit-HT-OOh" firstAttribute="bottom" secondItem="gtn-M1-Zyd" secondAttribute="top" constant="-5" id="77e-ib-gxr"/>
                             <constraint firstItem="VbS-z8-oK5" firstAttribute="trailing" secondItem="a3M-hh-5zc" secondAttribute="trailingMargin" id="8QI-08-n0D" userLabel="FacebookLabel right"/>
                             <constraint firstItem="VbS-z8-oK5" firstAttribute="bottom" secondItem="vn7-7t-VXi" secondAttribute="top" constant="-5" id="8sm-52-djg" userLabel="LoginButtonLabel bottom"/>
                             <constraint firstItem="OOB-gH-KCT" firstAttribute="leading" relation="lessThanOrEqual" secondItem="a3M-hh-5zc" secondAttribute="leadingMargin" id="IbV-Sb-ifP" userLabel="GenderChooser left"/>
                             <constraint firstItem="9Bj-2i-1uF" firstAttribute="leading" secondItem="a3M-hh-5zc" secondAttribute="leadingMargin" id="Ity-22-pIs" userLabel="GenderChooserLabel left"/>
+                            <constraint firstItem="vn7-7t-VXi" firstAttribute="width" secondItem="OOB-gH-KCT" secondAttribute="width" id="LKz-W8-MYD"/>
+                            <constraint firstItem="gtn-M1-Zyd" firstAttribute="height" secondItem="vn7-7t-VXi" secondAttribute="height" id="Ow4-0k-7wG"/>
                             <constraint firstItem="cSh-QE-Wji" firstAttribute="centerX" secondItem="a3M-hh-5zc" secondAttribute="centerX" id="PKI-l9-Mgl" userLabel="DisplayName centre"/>
-                            <constraint firstItem="vn7-7t-VXi" firstAttribute="width" secondItem="OOB-gH-KCT" secondAttribute="width" constant="-1" id="REq-ag-V4V" userLabel="LoginButton width"/>
                             <constraint firstItem="2ei-fQ-3lJ" firstAttribute="width" secondItem="a3M-hh-5zc" secondAttribute="width" id="RiA-b3-pl6"/>
                             <constraint firstItem="Tqe-eB-ZAO" firstAttribute="centerX" secondItem="a3M-hh-5zc" secondAttribute="centerX" constant="1" id="Rln-pH-h4p" userLabel="DisplayPicture centre"/>
                             <constraint firstItem="2ei-fQ-3lJ" firstAttribute="centerX" secondItem="a3M-hh-5zc" secondAttribute="centerX" id="T0Z-Bc-VHr"/>
                             <constraint firstItem="b6S-Yq-msf" firstAttribute="top" secondItem="2ei-fQ-3lJ" secondAttribute="bottom" constant="10" id="YbD-kx-jb1"/>
+                            <constraint firstItem="gtn-M1-Zyd" firstAttribute="centerX" secondItem="vn7-7t-VXi" secondAttribute="centerX" id="ZDE-iN-g70"/>
                             <constraint firstItem="2ei-fQ-3lJ" firstAttribute="top" secondItem="OOB-gH-KCT" secondAttribute="bottom" constant="20" id="ZiO-xL-bP8"/>
                             <constraint firstItem="OOB-gH-KCT" firstAttribute="centerX" secondItem="a3M-hh-5zc" secondAttribute="centerX" id="ZnM-6q-7sZ" userLabel="GenderChooser centred"/>
+                            <constraint firstItem="wit-HT-OOh" firstAttribute="leading" secondItem="gtn-M1-Zyd" secondAttribute="leading" id="bsQ-97-PNm"/>
                             <constraint firstItem="Tqe-eB-ZAO" firstAttribute="top" secondItem="lWr-th-MY7" secondAttribute="bottom" constant="5" id="eCf-c9-qe8"/>
                             <constraint firstItem="cSh-QE-Wji" firstAttribute="bottom" secondItem="VbS-z8-oK5" secondAttribute="top" constant="-5" id="hlW-4q-xU6" userLabel="DisplayName bottom minimum"/>
                             <constraint firstItem="9Bj-2i-1uF" firstAttribute="bottom" secondItem="OOB-gH-KCT" secondAttribute="top" constant="-5" id="nb5-G1-kkz" userLabel="GenderChooserLabel bottom"/>
+                            <constraint firstItem="gtn-M1-Zyd" firstAttribute="bottom" secondItem="VbS-z8-oK5" secondAttribute="top" constant="-20" id="ouq-9h-ibA"/>
                             <constraint firstItem="9Bj-2i-1uF" firstAttribute="trailing" secondItem="a3M-hh-5zc" secondAttribute="trailingMargin" id="pYJ-iG-QUR" userLabel="GenderChooserLabel right"/>
                             <constraint firstAttribute="trailingMargin" relation="lessThanOrEqual" secondItem="OOB-gH-KCT" secondAttribute="trailing" id="pvo-5H-tOP" userLabel="GenderChooser right"/>
+                            <constraint firstItem="gtn-M1-Zyd" firstAttribute="width" secondItem="OOB-gH-KCT" secondAttribute="width" id="qMi-Qn-IQO"/>
                             <constraint firstItem="cSh-QE-Wji" firstAttribute="bottom" secondItem="VbS-z8-oK5" secondAttribute="top" priority="750" constant="-5" id="qal-hY-cxH" userLabel="DisplayPicture expanding"/>
                             <constraint firstItem="cSh-QE-Wji" firstAttribute="top" secondItem="Tqe-eB-ZAO" secondAttribute="bottom" constant="10" id="vjk-oo-qNP" userLabel="DisplayName top"/>
                             <constraint firstItem="VbS-z8-oK5" firstAttribute="leading" secondItem="a3M-hh-5zc" secondAttribute="leadingMargin" id="xGa-sL-Nio" userLabel="FacebookLabel left"/>
-                            <constraint firstItem="vn7-7t-VXi" firstAttribute="centerX" secondItem="a3M-hh-5zc" secondAttribute="centerX" id="zsN-4U-STk" userLabel="LoginButton centred"/>
+                            <constraint firstItem="vn7-7t-VXi" firstAttribute="leading" secondItem="a3M-hh-5zc" secondAttribute="leadingMargin" id="zsN-4U-STk" userLabel="LoginButton centred"/>
                         </constraints>
                         <connections>
                             <outletCollection property="gestureRecognizers" destination="Sgw-EM-6X0" appends="YES" id="tKa-AI-9go"/>
@@ -148,6 +180,8 @@
                     <connections>
                         <outlet property="_buttonDone" destination="W0y-Zd-RaT" id="Bwa-ig-Wig"/>
                         <outlet property="_desiredGenderChooser" destination="OOB-gH-KCT" id="qsG-k1-h1a"/>
+                        <outlet property="_manualLoginButton" destination="gtn-M1-Zyd" id="uNZ-u4-1ax"/>
+                        <outlet property="_manualLoginLabel" destination="wit-HT-OOh" id="WYv-Nx-Dmb"/>
                         <outlet property="displayName" destination="cSh-QE-Wji" id="rRq-yg-MED"/>
                         <outlet property="displayPicture" destination="Tqe-eB-ZAO" id="8Hu-Cb-xqY"/>
                         <outlet property="loginButton" destination="vn7-7t-VXi" id="ddF-9e-uZo"/>
@@ -162,6 +196,11 @@
                 <tapGestureRecognizer id="Y9G-Ef-KY1">
                     <connections>
                         <action selector="onFinishedButtonClick:" destination="HPd-0g-j2K" id="9ni-XB-iCE"/>
+                    </connections>
+                </tapGestureRecognizer>
+                <tapGestureRecognizer id="aU4-JQ-OWH">
+                    <connections>
+                        <action selector="onLoginManuallyButtonPress:" destination="HPd-0g-j2K" id="iEg-K6-jQR"/>
                     </connections>
                 </tapGestureRecognizer>
             </objects>
@@ -184,6 +223,9 @@
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                 <color key="tintColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                 <gestureRecognizers/>
+                                <connections>
+                                    <outletCollection property="gestureRecognizers" destination="iok-b6-nmC" appends="YES" id="CCY-rk-7f9"/>
+                                </connections>
                             </imageView>
                             <label hidden="YES" opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="hack so we can use top layout guide on progress bar..." textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="goQ-8u-8Kt">
                                 <rect key="frame" x="244" y="20" width="112" height="5"/>
@@ -241,7 +283,7 @@
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="TEST" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="UGl-Rn-eIt">
                                 <rect key="frame" x="10" y="566" width="28" height="14"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="11"/>
-                                <color key="textColor" red="0.49411764705882355" green="1" blue="0.92156862745098034" alpha="1" colorSpace="calibratedRGB"/>
+                                <color key="textColor" red="0.0" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="11e-ce-u2V">
@@ -320,6 +362,20 @@
                                     <action selector="onSkipPersonButtonPress:" destination="tQC-hy-qbI" eventType="touchDown" id="ufg-rc-dLg"/>
                                 </connections>
                             </button>
+                            <imageView userInteractionEnabled="NO" alpha="0.75" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" restorationIdentifier="owner_fbshared" image="facebook_shared" translatesAutoresizingMaskIntoConstraints="NO" id="GyE-mL-D8O">
+                                <rect key="frame" x="10" y="527" width="20" height="20"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="20" id="2kE-IW-YiH"/>
+                                    <constraint firstAttribute="width" secondItem="GyE-mL-D8O" secondAttribute="height" multiplier="1:1" id="z0F-GQ-wWN"/>
+                                </constraints>
+                            </imageView>
+                            <imageView userInteractionEnabled="NO" alpha="0.75" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" restorationIdentifier="remote_fbshared" image="facebook_shared" translatesAutoresizingMaskIntoConstraints="NO" id="A17-OE-1jq">
+                                <rect key="frame" x="570" y="85" width="20" height="20"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="20" id="SSl-Ze-gUC"/>
+                                    <constraint firstAttribute="width" secondItem="A17-OE-1jq" secondAttribute="height" multiplier="1:1" id="mLG-RD-B4D"/>
+                                </constraints>
+                            </imageView>
                         </subviews>
                         <color key="backgroundColor" red="0.081339869195487968" green="0.22745098039215686" blue="0.0041172287612304863" alpha="1" colorSpace="calibratedRGB"/>
                         <gestureRecognizers/>
@@ -338,13 +394,16 @@
                             <constraint firstItem="EFB-GX-YTW" firstAttribute="top" secondItem="11e-ce-u2V" secondAttribute="bottom" id="CWZ-oK-XL5" userLabel="RemoteAge top"/>
                             <constraint firstItem="0Z4-8y-t8q" firstAttribute="top" secondItem="5yT-Gv-8LY" secondAttribute="top" id="D8q-4h-0KH" userLabel="DC Audio top"/>
                             <constraint firstItem="EFB-GX-YTW" firstAttribute="leading" secondItem="11e-ce-u2V" secondAttribute="leading" id="ESk-QL-c9T" userLabel="RemoteAge left"/>
+                            <constraint firstItem="GyE-mL-D8O" firstAttribute="leading" secondItem="UGl-Rn-eIt" secondAttribute="leading" id="GHN-m1-Jfs"/>
                             <constraint firstItem="SN4-gs-A3A" firstAttribute="top" secondItem="Wt1-7M-iep" secondAttribute="bottom" constant="6" id="H2G-EK-OrX"/>
                             <constraint firstItem="GLg-2U-XhO" firstAttribute="leading" secondItem="BlS-3L-w4D" secondAttribute="leading" id="HDX-qr-kxS" userLabel="CameraView left"/>
                             <constraint firstItem="goQ-8u-8Kt" firstAttribute="top" secondItem="uJU-NG-i7x" secondAttribute="bottom" id="HgU-Ot-sWx"/>
                             <constraint firstItem="GLg-2U-XhO" firstAttribute="top" secondItem="BlS-3L-w4D" secondAttribute="top" id="LLn-1G-xya" userLabel="CameraView top"/>
+                            <constraint firstItem="GyE-mL-D8O" firstAttribute="bottom" secondItem="cbc-sf-j5j" secondAttribute="top" constant="-5" id="Lt8-4h-j6y"/>
                             <constraint firstItem="goQ-8u-8Kt" firstAttribute="centerX" secondItem="BlS-3L-w4D" secondAttribute="centerX" id="MNF-cA-xxq"/>
                             <constraint firstItem="dDa-yk-yWa" firstAttribute="centerX" secondItem="GLg-2U-XhO" secondAttribute="centerX" constant="50" id="P0g-km-a5z"/>
                             <constraint firstItem="cd6-78-3Jp" firstAttribute="trailing" secondItem="11e-ce-u2V" secondAttribute="trailing" id="PgC-Sn-GCh"/>
+                            <constraint firstItem="A17-OE-1jq" firstAttribute="top" secondItem="cd6-78-3Jp" secondAttribute="bottom" constant="5" id="QCt-0C-YpC"/>
                             <constraint firstItem="EFB-GX-YTW" firstAttribute="width" secondItem="11e-ce-u2V" secondAttribute="width" id="QaP-Dn-mcp" userLabel="RemoteAge width"/>
                             <constraint firstItem="11e-ce-u2V" firstAttribute="trailing" secondItem="BlS-3L-w4D" secondAttribute="trailing" constant="-10" id="UCc-UT-0Ht" userLabel="RemoteName right"/>
                             <constraint firstItem="pgN-Gq-UFL" firstAttribute="bottom" secondItem="rhH-1x-tXl" secondAttribute="top" constant="-10" id="WIe-YY-Xlg"/>
@@ -354,6 +413,7 @@
                             <constraint firstAttribute="trailing" secondItem="GLg-2U-XhO" secondAttribute="trailing" id="e0w-kQ-nDF" userLabel="CameraView right"/>
                             <constraint firstItem="dDa-yk-yWa" firstAttribute="centerY" secondItem="4xm-sU-sjm" secondAttribute="centerY" id="g4R-tI-Xcz"/>
                             <constraint firstItem="cd6-78-3Jp" firstAttribute="leading" secondItem="11e-ce-u2V" secondAttribute="leading" id="gA1-lr-dfa"/>
+                            <constraint firstItem="A17-OE-1jq" firstAttribute="trailing" secondItem="cd6-78-3Jp" secondAttribute="trailing" id="gGq-go-cFW"/>
                             <constraint firstItem="4xm-sU-sjm" firstAttribute="bottom" secondItem="GLg-2U-XhO" secondAttribute="bottom" id="gtI-o8-PKW"/>
                             <constraint firstItem="Wt1-7M-iep" firstAttribute="trailing" secondItem="BlS-3L-w4D" secondAttribute="trailing" constant="-5" id="hFh-B7-HaM" userLabel="NAT right"/>
                             <constraint firstAttribute="bottom" secondItem="GLg-2U-XhO" secondAttribute="bottom" id="hrJ-L3-rnv" userLabel="CameraView bottom"/>
@@ -361,6 +421,7 @@
                             <constraint firstItem="5yT-Gv-8LY" firstAttribute="leading" secondItem="GLg-2U-XhO" secondAttribute="leadingMargin" id="lct-cm-ncm" userLabel="DC Video left"/>
                             <constraint firstItem="4xm-sU-sjm" firstAttribute="centerX" secondItem="GLg-2U-XhO" secondAttribute="centerX" constant="-50" id="mph-6o-yGc"/>
                             <constraint firstItem="cbc-sf-j5j" firstAttribute="height" secondItem="UGl-Rn-eIt" secondAttribute="height" id="nHK-nP-fLn" userLabel="OwnerAge height"/>
+                            <constraint firstItem="A17-OE-1jq" firstAttribute="width" secondItem="A17-OE-1jq" secondAttribute="height" multiplier="1:1" id="nZY-Zw-PTE"/>
                             <constraint firstItem="5yT-Gv-8LY" firstAttribute="top" secondItem="11e-ce-u2V" secondAttribute="top" id="nxx-hi-cx6" userLabel="DC Video top"/>
                             <constraint firstItem="UGl-Rn-eIt" firstAttribute="bottom" secondItem="BIz-fU-nrs" secondAttribute="top" constant="-5" id="ovs-Cd-h5s"/>
                             <constraint firstItem="F1S-Hc-p7x" firstAttribute="top" secondItem="0Z4-8y-t8q" secondAttribute="top" id="p9I-4s-bYp" userLabel="DC Audio Clear top"/>
@@ -382,12 +443,14 @@
                         <outlet property="_dcAudio" destination="0Z4-8y-t8q" id="fE9-Fk-cwr"/>
                         <outlet property="_dcAudioClear" destination="F1S-Hc-p7x" id="qnS-NM-tpu"/>
                         <outlet property="_dcVideo" destination="5yT-Gv-8LY" id="qYu-2s-YMw"/>
+                        <outlet property="_localFacebookLiked" destination="GyE-mL-D8O" id="Iho-V5-4Nh"/>
                         <outlet property="_natPunchthroughIndicator" destination="Wt1-7M-iep" id="QkT-gO-Zx1"/>
                         <outlet property="_ownerAge" destination="cbc-sf-j5j" id="cmb-cr-zqc"/>
                         <outlet property="_ownerKarma" destination="BIz-fU-nrs" id="TsO-Cg-PEf"/>
                         <outlet property="_ownerName" destination="UGl-Rn-eIt" id="tP2-31-106"/>
                         <outlet property="_remoteAge" destination="EFB-GX-YTW" id="Pdx-dp-id0"/>
                         <outlet property="_remoteDistance" destination="cd6-78-3Jp" id="2dS-LP-5dZ"/>
+                        <outlet property="_remoteFacebookLiked" destination="A17-OE-1jq" id="nUC-q1-kk4"/>
                         <outlet property="_remoteKarma" destination="Wkl-aq-hIG" id="hF4-BT-796"/>
                         <outlet property="_remoteName" destination="11e-ce-u2V" id="eMq-rq-vK1"/>
                         <outlet property="_swipeTutorialChangeSettings" destination="pgN-Gq-UFL" id="Fco-DG-xgK"/>
@@ -405,8 +468,13 @@
                         <action selector="showGestureForSwipeRecognizer:" destination="tQC-hy-qbI" id="Ewr-6a-3UK"/>
                     </connections>
                 </swipeGestureRecognizer>
+                <pongPressGestureRecognizer allowableMovement="10" minimumPressDuration="0.5" id="iok-b6-nmC">
+                    <connections>
+                        <action selector="onFacebookLikeButtonPressed:" destination="tQC-hy-qbI" id="Z6a-Fd-a8s"/>
+                    </connections>
+                </pongPressGestureRecognizer>
             </objects>
-            <point key="canvasLocation" x="823" y="-524"/>
+            <point key="canvasLocation" x="795" y="-531"/>
         </scene>
         <!--Banned View Controller-->
         <scene sceneID="KkO-9d-jiX">
@@ -755,6 +823,120 @@
             </objects>
             <point key="canvasLocation" x="1540" y="165"/>
         </scene>
+        <!--Facebook Shared View Controller-->
+        <scene sceneID="tez-Aj-cGZ">
+            <objects>
+                <viewController storyboardIdentifier="FacebookSharedViewController" useStoryboardIdentifierAsRestorationIdentifier="YES" id="W5t-05-vTX" customClass="FacebookSharedViewController" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="FNT-Bk-v5v"/>
+                        <viewControllerLayoutGuide type="bottom" id="xvs-6f-1RC"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="orK-LY-yBp">
+                        <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="o7K-fr-xbe" userLabel="OwnerProfilePictureView" customClass="FBSDKProfilePictureView">
+                                <rect key="frame" x="100" y="150" width="100" height="100"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" secondItem="o7K-fr-xbe" secondAttribute="height" multiplier="1:1" id="orL-c1-hAY"/>
+                                    <constraint firstAttribute="height" constant="100" id="zMi-8A-9QA"/>
+                                </constraints>
+                            </view>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Owner Name" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="FRk-kc-3mb">
+                                <rect key="frame" x="100" y="255" width="100" height="17"/>
+                                <fontDescription key="fontDescription" type="system" weight="ultraLight" pointSize="14"/>
+                                <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Remote Name" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="g88-0U-t2b">
+                                <rect key="frame" x="400" y="255" width="100" height="17"/>
+                                <fontDescription key="fontDescription" type="system" weight="ultraLight" pointSize="14"/>
+                                <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <button opaque="NO" alpha="0.60000002384185791" contentMode="scaleToFill" horizontalHuggingPriority="1000" verticalHuggingPriority="1000" horizontalCompressionResistancePriority="1000" verticalCompressionResistancePriority="1000" contentHorizontalAlignment="center" contentVerticalAlignment="top" buttonType="roundedRect" lineBreakMode="clip" translatesAutoresizingMaskIntoConstraints="NO" id="Pfa-qz-umj">
+                                <rect key="frame" x="20" y="556" width="33" height="44"/>
+                                <accessibility key="accessibilityConfiguration">
+                                    <accessibilityTraits key="traits" button="YES" image="YES"/>
+                                </accessibility>
+                                <fontDescription key="fontDescription" type="system" pointSize="26"/>
+                                <state key="normal" title="&lt;&lt;">
+                                    <color key="titleColor" red="1" green="0.69772736049999995" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                                </state>
+                                <connections>
+                                    <action selector="onBackButtonPress:" destination="W5t-05-vTX" eventType="touchUpInside" id="Dfj-eI-opM"/>
+                                    <action selector="onBackButtonPress:" destination="2Aj-9g-5Ez" eventType="touchUpInside" id="w5B-WD-MeB"/>
+                                    <action selector="onGotoFbLogonViewButtonPress:" destination="tQC-hy-qbI" eventType="touchUpInside" id="FEQ-Pm-87X"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" alpha="0.60000002384185791" contentMode="scaleToFill" horizontalHuggingPriority="1000" verticalHuggingPriority="1000" horizontalCompressionResistancePriority="1000" verticalCompressionResistancePriority="1000" contentHorizontalAlignment="center" contentVerticalAlignment="top" buttonType="roundedRect" lineBreakMode="clip" translatesAutoresizingMaskIntoConstraints="NO" id="aKI-QK-TTe">
+                                <rect key="frame" x="547" y="556" width="33" height="44"/>
+                                <accessibility key="accessibilityConfiguration">
+                                    <accessibilityTraits key="traits" button="YES" image="YES"/>
+                                </accessibility>
+                                <fontDescription key="fontDescription" type="system" pointSize="26"/>
+                                <state key="normal" title="&gt;&gt;">
+                                    <color key="titleColor" red="1" green="0.69772736049999995" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                                </state>
+                                <connections>
+                                    <action selector="onBackButtonPress:" destination="2Aj-9g-5Ez" eventType="touchUpInside" id="d5v-dd-kDy"/>
+                                    <action selector="onBackButtonPress:" destination="W5t-05-vTX" eventType="touchUpInside" id="v4W-sN-50L"/>
+                                    <action selector="onForwardButtonPress:" destination="W5t-05-vTX" eventType="touchUpInside" id="yPY-k5-vsp"/>
+                                    <action selector="onGotoFbLogonViewButtonPress:" destination="tQC-hy-qbI" eventType="touchUpInside" id="I6u-mY-jQX"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="qZO-mD-IEd">
+                                <rect key="frame" x="229" y="451" width="143" height="30"/>
+                                <state key="normal" title="Goto Facebook Page"/>
+                                <connections>
+                                    <action selector="onGotoFacebookPageButtonPress:" destination="W5t-05-vTX" eventType="touchUpInside" id="Rah-B6-5rw"/>
+                                </connections>
+                            </button>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="XpV-GD-Q0t" userLabel="RemoteProfilePictureView" customClass="FBSDKProfilePictureView">
+                                <rect key="frame" x="400" y="150" width="100" height="100"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="100" id="1yj-MG-isu"/>
+                                    <constraint firstAttribute="width" secondItem="XpV-GD-Q0t" secondAttribute="height" multiplier="1:1" id="Hbd-Ct-9RU"/>
+                                </constraints>
+                            </view>
+                        </subviews>
+                        <color key="backgroundColor" red="0.5490196078431373" green="1" blue="0.93725490196078431" alpha="1" colorSpace="calibratedRGB"/>
+                        <constraints>
+                            <constraint firstItem="qZO-mD-IEd" firstAttribute="centerX" secondItem="orK-LY-yBp" secondAttribute="centerX" id="8ym-Bk-r3l"/>
+                            <constraint firstItem="xvs-6f-1RC" firstAttribute="top" secondItem="aKI-QK-TTe" secondAttribute="bottom" id="EBk-dq-oY8"/>
+                            <constraint firstItem="o7K-fr-xbe" firstAttribute="top" relation="greaterThanOrEqual" secondItem="FNT-Bk-v5v" secondAttribute="bottom" constant="10" id="ElQ-EU-8L0"/>
+                            <constraint firstItem="o7K-fr-xbe" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="orK-LY-yBp" secondAttribute="leadingMargin" id="FSb-GT-HiI"/>
+                            <constraint firstItem="XpV-GD-Q0t" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="o7K-fr-xbe" secondAttribute="trailing" constant="5" id="Gzl-6x-c2O"/>
+                            <constraint firstItem="o7K-fr-xbe" firstAttribute="centerY" secondItem="orK-LY-yBp" secondAttribute="centerY" constant="-100" id="Ljw-Ce-muF"/>
+                            <constraint firstItem="g88-0U-t2b" firstAttribute="width" secondItem="XpV-GD-Q0t" secondAttribute="width" id="NLu-Jc-yTB"/>
+                            <constraint firstItem="xvs-6f-1RC" firstAttribute="top" secondItem="Pfa-qz-umj" secondAttribute="bottom" id="OSU-lf-BnP"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="aKI-QK-TTe" secondAttribute="trailing" id="QVE-rL-lT4"/>
+                            <constraint firstItem="xvs-6f-1RC" firstAttribute="top" secondItem="qZO-mD-IEd" secondAttribute="bottom" constant="119" id="R2R-kd-jhs"/>
+                            <constraint firstItem="FRk-kc-3mb" firstAttribute="top" secondItem="o7K-fr-xbe" secondAttribute="bottom" constant="5" id="VdC-qL-Roq"/>
+                            <constraint firstItem="XpV-GD-Q0t" firstAttribute="centerY" secondItem="o7K-fr-xbe" secondAttribute="centerY" id="We4-KE-pZ0"/>
+                            <constraint firstAttribute="trailingMargin" relation="greaterThanOrEqual" secondItem="XpV-GD-Q0t" secondAttribute="trailing" id="XTf-Fg-juu"/>
+                            <constraint firstItem="g88-0U-t2b" firstAttribute="centerX" secondItem="XpV-GD-Q0t" secondAttribute="centerX" id="afU-Kg-78S"/>
+                            <constraint firstItem="FRk-kc-3mb" firstAttribute="centerX" secondItem="o7K-fr-xbe" secondAttribute="centerX" id="dIm-lG-iJ8"/>
+                            <constraint firstItem="FRk-kc-3mb" firstAttribute="width" secondItem="o7K-fr-xbe" secondAttribute="width" id="g6U-XJ-oDY"/>
+                            <constraint firstItem="Pfa-qz-umj" firstAttribute="leading" secondItem="orK-LY-yBp" secondAttribute="leadingMargin" id="geJ-9s-Dqj"/>
+                            <constraint firstItem="o7K-fr-xbe" firstAttribute="centerX" secondItem="orK-LY-yBp" secondAttribute="centerX" priority="500" constant="-150" id="loM-85-SP8"/>
+                            <constraint firstItem="g88-0U-t2b" firstAttribute="top" secondItem="XpV-GD-Q0t" secondAttribute="bottom" constant="5" id="m03-Dc-hHI"/>
+                            <constraint firstItem="XpV-GD-Q0t" firstAttribute="centerX" secondItem="orK-LY-yBp" secondAttribute="centerX" priority="500" constant="150" id="zaP-2X-vKo"/>
+                        </constraints>
+                    </view>
+                    <connections>
+                        <outlet property="_ownerName" destination="FRk-kc-3mb" id="pEB-68-hnI"/>
+                        <outlet property="_ownerProfilePicture" destination="o7K-fr-xbe" id="LRU-IU-Kxy"/>
+                        <outlet property="_remoteName" destination="g88-0U-t2b" id="jbe-wQ-bzS"/>
+                        <outlet property="_remoteProfilePicture" destination="XpV-GD-Q0t" id="1rA-2r-9SI"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="EeC-I8-65b" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1585" y="775"/>
+        </scene>
         <!--Ban Payments View Controller-->
         <scene sceneID="1oU-KI-fRT">
             <objects>
@@ -775,7 +957,8 @@
                                         <constraints>
                                             <constraint firstAttribute="height" constant="60" id="J38-N2-vzi"/>
                                         </constraints>
-                                        <string key="text">Or...Regenerate your karma instantly</string>
+                                        <string key="text">Or...
+Regenerate your karma instantly</string>
                                         <fontDescription key="fontDescription" type="boldSystem" pointSize="16"/>
                                         <color key="textColor" red="0.16078431372549021" green="0.47058823529411764" blue="0.031372549019607843" alpha="1" colorSpace="calibratedRGB"/>
                                         <nil key="highlightedColor"/>
@@ -834,6 +1017,7 @@
     </scenes>
     <resources>
         <image name="audio_problem" width="2482" height="2420"/>
+        <image name="facebook_shared" width="2048" height="1865"/>
         <image name="fast_forward_audio" width="2440" height="2482"/>
         <image name="hologram_start_chat" width="785" height="194"/>
         <image name="rating_block" width="734" height="382"/>

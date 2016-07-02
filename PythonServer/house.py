@@ -122,6 +122,30 @@ class House:
         finally:
             self.house_lock.release()
 
+    # Retrieve person that client is currently matched with.
+    def shareFacebookInformation(self, sourceClient):
+        self.house_lock.acquire()
+        try:
+            # Even if not matched with anyone, still set to true, because there's no ack/nack system in place,
+            # so client's GUI will show as if their information is shared. This is okay, means next share
+            # will go through which is what client expects.
+            sourceClient.has_shared_facebook_information = True
+
+            clientB = self.room_participant.get(sourceClient)
+            if clientB is None:
+                return
+
+            hasOtherClientShared = clientB.has_shared_facebook_information
+        finally:
+            self.house_lock.release()
+
+        clientB.notifyFacebookInformationShared()
+        if not hasOtherClientShared:
+            return
+
+        sourceClient.shareFacebookInformationWith(clientB)
+        clientB.shareFacebookInformationWith(sourceClient)
+
     def adviseAbortNatPunchthrough(self, client):
         assert isinstance(client, Client)
         client.tcp.sendByteBuffer(self.abort_nat_punchthrough_packet)

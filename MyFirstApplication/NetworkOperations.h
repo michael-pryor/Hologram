@@ -49,6 +49,11 @@
 // Client is rating a previous conversation.
 #define PREVIOUS_CONVERSATION_RATING 9
 
+// Client wants to share facebook information.
+#define SHARE_FACEBOOK_INFO_PAYLOAD 11
+
+#define SHARE_FACEBOOK_INFO 12
+
 #define COMMANDER_SUCCESS 1
 #define COMMANDER_FAILURE 2
 

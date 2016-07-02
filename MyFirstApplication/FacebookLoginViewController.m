@@ -13,6 +13,8 @@
 @implementation FacebookLoginViewController {
     IBOutlet UISegmentedControl *_desiredGenderChooser;
     __weak IBOutlet UIImageView *_buttonDone;
+    __weak IBOutlet UIView *_manualLoginButton;
+    __weak IBOutlet UILabel *_manualLoginLabel;
 }
 
 - (IBAction)onFinishedButtonClick:(id)sender {
@@ -20,6 +22,8 @@
 }
 - (IBAction)onSwipeGesture:(UISwipeGestureRecognizer *)recognizer  {
     [self _switchToChatView];
+}
+- (IBAction)onLoginManuallyButtonPress:(id)sender {
 }
 
 - (void)viewDidLoad {
@@ -56,12 +60,16 @@
             [_displayName setHidden:false];
             [_displayPicture setHidden:false];
             [_buttonDone setHidden:false];
+            [_manualLoginButton setHidden:true];
+            [_manualLoginLabel setHidden:true];
         });
     } else {
         dispatch_sync_main(^{
             [_displayName setHidden:true];
             [_displayPicture setHidden:true];
             [_buttonDone setHidden:true];
+            [_manualLoginButton setHidden:false];
+            [_manualLoginLabel setHidden:false];
 
             [_displayName setText:@""];
             [_displayPicture setProfileID:nil];

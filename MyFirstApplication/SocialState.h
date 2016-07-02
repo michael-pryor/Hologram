@@ -26,6 +26,7 @@ extern const NSString* selectedGenderPreferenceKey;
 @property(readonly) NSString *middleName;
 @property(readonly) NSString *lastName;
 @property(readonly) NSURL *facebookUrl;
+@property(readonly) NSURL *facebookProfilePictureUrl;
 @property(readonly) NSString *facebookId;
 
 @property(readonly) NSString *humanFullName;

@@ -62,12 +62,13 @@ typedef void (^Block)(id);
     }
 }
 
-- (void)loadStateFromFirstName:(NSString *)firstName middleName:(NSString *)middleName lastName:(NSString *)lastName facebookUrl:(NSURL *)facebookUrl facebookId:(NSString *)facebookId {
+- (void)loadStateFromFirstName:(NSString *)firstName middleName:(NSString *)middleName lastName:(NSString *)lastName facebookUrl:(NSURL *)facebookUrl facebookId:(NSString *)facebookId facebookProfilePictureUrl:(NSURL *)profilePictureUrl {
     _firstName = firstName;
     _middleName = middleName;
     _lastName = lastName;
     _facebookUrl = facebookUrl;
     _facebookId = facebookId;
+    _facebookProfilePictureUrl = profilePictureUrl;
 
     NSString *seperator = @" ";
     NSMutableString *aux = [[NSMutableString alloc] init];
@@ -184,8 +185,11 @@ typedef void (^Block)(id);
         NSLog(@"Facebook state not ready yet, please request details from user");
         return;
     }
-
-    [self loadStateFromFirstName:[profile firstName] middleName:[profile middleName] lastName:[profile lastName] facebookUrl:[profile linkURL] facebookId:[profile userID]];
+    CGSize size;
+    size.width = 100;
+    size.height = 100;
+    NSURL * profilePictureUrl = [profile imageURLForPictureMode:FBSDKProfilePictureModeSquare size: size];
+    [self loadStateFromFirstName:[profile firstName] middleName:[profile middleName] lastName:[profile lastName] facebookUrl:[profile linkURL] facebookId:[profile userID] facebookProfilePictureUrl:profilePictureUrl];
 }
 
 - (uint)parseGenderFromFacebookApi:(NSString *)gender {

@@ -57,6 +57,10 @@ class Client(object):
 
         OP_RATING = 9 # give a rating of the previous conversation.
 
+        OP_SHARE_FACEBOOK_INFORMATION_PAYLOAD = 11
+
+        OP_SHARE_FACEBOOK_INFORMATION = 12
+
     class RejectCodes:
         SUCCESS = 0
         REJECT_HASH_TIMEOUT = 1
@@ -71,11 +75,12 @@ class Client(object):
         GOOD = 3
 
     class LoginDetails(object):
-        def __init__(self, uniqueId, facebookId, facebookUrl, name, shortName, age, gender, interestedIn, longitude, latitude):
+        def __init__(self, uniqueId, facebookId, facebookUrl, facebookProfilePictureUrl, name, shortName, age, gender, interestedIn, longitude, latitude):
             super(Client.LoginDetails, self).__init__()
             self.unique_id = uniqueId
             self.facebook_id = facebookId
             self.facebook_url = facebookUrl
+            self.facebook_profile_picture_url = facebookProfilePictureUrl
             self.name = name
             self.short_name = shortName
             self.age = age
@@ -83,6 +88,12 @@ class Client(object):
             self.interested_in = interestedIn
             self.longitude = longitude
             self.latitude = latitude
+
+            self.facebook_share_information_packet = ByteBuffer()
+            self.facebook_share_information_packet.addUnsignedInteger8(Client.TcpOperationCodes.OP_SHARE_FACEBOOK_INFORMATION_PAYLOAD)
+            self.facebook_share_information_packet.addString(self.facebook_id)
+            self.facebook_share_information_packet.addString(self.facebook_url)
+            self.facebook_share_information_packet.addString(self.name)
 
         def __hash__(self):
             return hash(self.unique_id)
@@ -180,6 +191,16 @@ class Client(object):
         # Need FacebookID in order to do lookup, so preset with default value.
         self.karma_rating = KarmaLeveled.KARMA_MAXIMUM
 
+        self.has_shared_facebook_information = False
+
+    def notifyFacebookInformationShared(self):
+        packet = ByteBuffer()
+        packet.addUnsignedInteger8(Client.TcpOperationCodes.OP_SHARE_FACEBOOK_INFORMATION)
+        self.tcp.sendByteBuffer(packet)
+
+    def shareFacebookInformationWith(self, destinationClient):
+        assert isinstance(destinationClient, Client)
+        destinationClient.tcp.sendByteBuffer(self.login_details.facebook_share_information_packet)
 
     def isConnectedTcp(self):
         return self.connection_status != Client.ConnectionStatus.NOT_CONNECTED
@@ -244,6 +265,7 @@ class Client(object):
         # See hologram login on app side.
         facebookId = packet.getString()
         facebookUrl = packet.getString()
+        facebookProfilePictureUrl = packet.getString()
         fullName = packet.getString()
         shortName = packet.getString()
         age = packet.getUnsignedInteger()
@@ -259,7 +281,7 @@ class Client(object):
         if karmaRegenerationReceipt.used_size == 0:
             karmaRegenerationReceipt = None
 
-        self.login_details = Client.LoginDetails(self.udp_hash, facebookId, facebookUrl, fullName, shortName, age, gender, interestedIn, longitude, latitude)
+        self.login_details = Client.LoginDetails(self.udp_hash, facebookId, facebookUrl, facebookProfilePictureUrl, fullName, shortName, age, gender, interestedIn, longitude, latitude)
 
         banMagnitude, banTime = self.karma_database.getBanMagnitudeAndExpirationTime(self)
         if banTime is not None and karmaRegenerationReceipt is None:
@@ -341,6 +363,16 @@ class Client(object):
 
         self.onFriendlyPacketUdp(packet)
 
+    def onFacebookInformationShared(self, destinationClient):
+        assert isinstance(destinationClient, Client)
+
+        self.has_shared_facebook_information = True
+        if not destinationClient.has_shared_facebook_information:
+            return
+
+
+        sourceClient.login_details.facebook_profile_picture_url
+
     def onFriendlyPacketTcp(self, packet):
         assert isinstance(packet, ByteBuffer)
 
@@ -367,6 +399,8 @@ class Client(object):
             logger.debug("Client [%s] has permanently disconnected with immediate impact" % self)
             self.house.releaseRoom(self, self.house.disconnected_permanent)
             self.closeConnection()
+        elif opCode == Client.TcpOperationCodes.OP_SHARE_FACEBOOK_INFORMATION:
+            self.house.shareFacebookInformation(self)
         else:
             # Must be debug in case rogue client sends us garbage data
             logger.debug("Unknown TCP packet received from client [%s]" % self)

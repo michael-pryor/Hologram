@@ -29,21 +29,8 @@
     _ratingButtons = @[_okayRatingButton, _goodRatingButton, _badRatingButton, _blockButton];
     _ratingsCompleted = [[Signal alloc] initWithFlag:false];
     _isFirstPress = [[Signal alloc] initWithFlag:false];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(appWillResignActive:) name:UIApplicationWillResignActiveNotification object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(appWillRetakeActive:) name:UIApplicationDidBecomeActiveNotification object:nil];
-
     [self reset];
 }
-
-- (void)appWillResignActive:(NSNotification *)note {
-
-}
-
-- (void)appWillRetakeActive:(NSNotification *)note {
-
-}
-
-
 
 - (void)reset {
     [_isFirstPress clear];
