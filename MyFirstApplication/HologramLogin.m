@@ -25,7 +25,7 @@
 - (ByteBuffer *)getLoginBuffer {
     ByteBuffer *buffer = [[ByteBuffer alloc] init];
     {
-        SocialState *state = [SocialState getFacebookInstance];
+        SocialState *state = [SocialState getSocialInstance];
         [buffer addString:[state persistedUniqueId]];
       //  [buffer addString:[[state facebookUrl] absoluteString]];
       //  [buffer addString:[[state facebookProfilePictureUrl] absoluteString]];

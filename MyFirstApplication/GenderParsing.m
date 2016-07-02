@@ -33,6 +33,7 @@
     } else {
         [NSException raise:@"Invalid interested in segment index" format:@"segment index %d is invalid", segmentIndex];
     }
+    return nil;
 }
 
 + (int)parseGenderStringToSegmentIndex:(NSString*)genderString {

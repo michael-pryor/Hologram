@@ -289,8 +289,8 @@
     // Important that we don't validate access to video/microphone before Facebook
     // login is complete, because its in that view controller that the dialog box about
     // how we use the video/microphone is displayed.
-    SocialState *socialState = [SocialState getFacebookInstance];
-    [socialState updateCoreFacebookInformation];
+    SocialState *socialState = [SocialState getSocialInstance];
+    //[socialState updateCoreFacebookInformation];
     if (![socialState isBasicDataLoaded] || ![[NSUserDefaults standardUserDefaults] boolForKey:@"permissionsExplanationShown"]) {
         [self switchToFacebookLogonView];
         return;

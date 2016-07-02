@@ -18,6 +18,9 @@
     NSDateFormatter *_dateOfBirthFormatter;
     __weak IBOutlet UITextField *_fullNameTextBox;
     __weak IBOutlet UISegmentedControl *_ownerGenderChooser;
+
+    SocialState *_socialState;
+    __weak IBOutlet UIStackView *_loadingFacebookDetailsIndicator;
 }
 
 - (void)cancelEditingTextBoxes {
@@ -25,7 +28,8 @@
 }
 
 - (void)saveTextBoxes {
-
+    [_socialState persistHumanFullName:[_fullNameTextBox text] humanShortName:[_fullNameTextBox text]];
+    [_socialState persistDateOfBirthObject:[_dateOfBirthFormatter dateFromString:[_dateOfBirthTextBox text]]];
 }
 
 - (IBAction)onTextBoxDonePressed:(id)sender {
@@ -54,6 +58,11 @@
 
     self.screenName = @"FacebookLogin";
 
+    [_loadingFacebookDetailsIndicator setHidden:true];
+
+    _socialState = [SocialState getSocialInstance];
+    [_socialState registerNotifier:self];
+
     _dateOfBirthFormatter = [[NSDateFormatter alloc] init];
     [_dateOfBirthFormatter setDateFormat:@"yyyy-MM-dd"];
 
@@ -64,57 +73,39 @@
          forControlEvents:UIControlEventValueChanged];
     [_dateOfBirthTextBox setInputView:datePicker];
 
-    SocialState *socialState = [SocialState getFacebookInstance];
-    _desiredGenderChooser.selectedSegmentIndex = [socialState interestedInSegmentIndex];
-    _ownerGenderChooser.selectedSegmentIndex = [socialState genderSegmentIndex];
-
-    _fullNameTextBox.text = [socialState humanFullName];
-
     [FBSDKProfile enableUpdatesOnAccessTokenChange:true];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onProfileUpdated:) name:FBSDKProfileDidChangeNotification object:nil];
     self.loginButton.readPermissions = @[@"public_profile", @"user_birthday"];
 
     if ([FBSDKAccessToken currentAccessToken]) {
         NSLog(@"User is already logged in");
-        [self _onLogin];
-    } else {
-        [self _updateDisplay];
     }
+
+    [self _updateDisplay];
 }
 
 - (IBAction)onDesiredGenderChanged:(id)sender {
-    [[SocialState getFacebookInstance] persistInterestedInWithSegmentIndex:[_desiredGenderChooser selectedSegmentIndex]];
+    [[SocialState getSocialInstance] persistInterestedInWithSegmentIndex:[_desiredGenderChooser selectedSegmentIndex]];
 }
 - (IBAction)onOwnerGenderChanged:(id)sender {
-    [[SocialState getFacebookInstance] setOwnerGenderWithSegmentIndex:[sender selectedSegmentIndex]];
+    [[SocialState getSocialInstance] persistOwnerGenderWithSegmentIndex:[sender selectedSegmentIndex]];
 }
 
 - (void)_updateDisplay {
-    SocialState *state = [SocialState getFacebookInstance];
-
-    if ([state isBasicDataLoaded]) {
-        dispatch_sync_main(^{
-            [_displayName setText:[state humanFullName]];
-            //[_displayPicture setProfileID:[state persistedUniqueId]];
-
-            [_displayName setHidden:false];
-            [_displayPicture setHidden:false];
-            [_buttonDone setHidden:false];
-        });
-    } else {
-        dispatch_sync_main(^{
-            [_displayName setHidden:true];
-            [_displayPicture setHidden:true];
-            [_buttonDone setHidden:true];
-
-            [_displayName setText:@""];
-            [_displayPicture setProfileID:nil];
-        });
+    NSDate * dobObject = [_socialState dobObject];
+    if (dobObject != nil) {
+        [(UIDatePicker *) [_dateOfBirthTextBox inputView] setDate:dobObject];
+        [_dateOfBirthTextBox setText:[_socialState dobString]];
     }
+
+    _desiredGenderChooser.selectedSegmentIndex = [_socialState interestedInSegmentIndex];
+    _ownerGenderChooser.selectedSegmentIndex = [_socialState genderSegmentIndex];
+
+    _fullNameTextBox.text = [_socialState humanFullName];
 }
 
 - (void)_switchToChatView {
-    if (![[SocialState getFacebookInstance] isBasicDataLoaded]) {
+    if (![[SocialState getSocialInstance] isBasicDataLoaded]) {
         return;
     }
 
@@ -142,22 +133,30 @@
     }
 }
 
-- (void)_updateInternals {
-    [[SocialState getFacebookInstance] updateCoreFacebookInformation];
-    if ([[SocialState getFacebookInstance] isBasicDataLoaded]) {
+- (void)onProfileUpdated:(NSNotification *)notification {
+    [[SocialState getSocialInstance] updateCoreFacebookInformation];
+    if ([[SocialState getSocialInstance] isBasicDataLoaded]) {
         NSLog(@"Logged in");
     } else {
         NSLog(@"No profile information found; may be due to logout");
     }
-}
-
-- (void)_onLogin {
-    [self _updateInternals];
     [self _updateDisplay];
+
+    if (![_socialState updateGraphFacebookInformation]) {
+        return;
+    }
+
+    dispatch_sync_main(^{
+        [_loadingFacebookDetailsIndicator setHidden:false];
+    });
 }
 
-- (void)onProfileUpdated:(NSNotification *)notification {
-    [self _onLogin];
+- (void)onSocialDataLoaded:(SocialState *)state {
+    [self _updateDisplay];
+
+    dispatch_sync_main(^{
+        [_loadingFacebookDetailsIndicator setHidden:true];
+    });
 }
 
 - (void)loginButton:(FBSDKLoginButton *)loginButton didCompleteWithResult:(FBSDKLoginManagerLoginResult *)result error:(NSError *)error {
@@ -170,6 +169,6 @@
 
 - (void)loginButtonDidLogOut:(FBSDKLoginButton *)loginButton {
     NSLog(@"Logged out successfully");
-    [[SocialState getFacebookInstance] updateCoreFacebookInformation];
+    [[SocialState getSocialInstance] updateCoreFacebookInformation];
 }
 @end

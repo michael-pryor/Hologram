@@ -14,7 +14,7 @@
     return [dateFormatter stringFromDate:date];
 }
 
-+ (uint)getAgeFromDateOfBirth:(NSString *)dob {
++ (NSDate*)getDateObjectFromString:(NSString*)dob {
     NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
 
     if ([dob length] == 4) {
@@ -25,9 +25,14 @@
         [dateFormatter setDateFormat:@"MM/dd/yyyy"];
     }
 
-    NSDate *date = [dateFormatter dateFromString:dob];
+    return [dateFormatter dateFromString:dob];
+}
 
-
++ (uint)getAgeFromDateObject:(NSDate *)date {
+    if (date == nil) {
+        return 0;
+    }
+    
     NSDate *now = [NSDate date];
     NSDateComponents *ageComponents = [[NSCalendar currentCalendar]
             components:NSCalendarUnitYear

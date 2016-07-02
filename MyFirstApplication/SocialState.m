@@ -69,7 +69,7 @@ typedef void (^Block)(id);
 
         if ([[NSUserDefaults standardUserDefaults] objectForKey:humanShortNameKey] != nil) {
             humanShortName = [[NSUserDefaults standardUserDefaults] stringForKey:humanShortNameKey];
-            [self persistHumanFullName:humanShortName saving:false];
+            [self persistHumanShortName:humanShortName saving:false];
             NSLog(@"Loaded previous human short name from storage: %@", humanShortName);
         } else {
             NSLog(@"No previous human short name found in storage");
@@ -97,7 +97,7 @@ typedef void (^Block)(id);
     _notifier = nil;
 }
 
-- (Boolean)isDataLoaded {
+- (bool)isDataLoaded {
     return _isBasicDataLoaded && _isGraphDataLoaded;
 }
 
@@ -119,8 +119,8 @@ typedef void (^Block)(id);
 }
 
 - (void)persistStateFromFirstName:(NSString *)firstName middleName:(NSString *)middleName lastName:(NSString *)lastName saving:(bool)doSave{
-    NSString * humanFullName = [[NSMutableString alloc] init];
-    NSString * humanShortName = [NameParsing getShortNameAndBuildLongName:(NSMutableString *) _humanFullName firstName:firstName middleName:middleName lastName:lastName];
+    NSMutableString * humanFullName = [[NSMutableString alloc] init];
+    NSString * humanShortName = [NameParsing getShortNameAndBuildLongName:humanFullName firstName:firstName middleName:middleName lastName:lastName];
     [self persistHumanFullName:humanFullName saving:doSave];
     [self persistHumanShortName:humanShortName saving:doSave];
 }
@@ -130,12 +130,22 @@ typedef void (^Block)(id);
 }
 
 - (void)persistDateOfBirth:(NSString*)dateOfBirth saving:(bool)doSave {
-    NSString *dob = dateOfBirth;
-    _age = [DobParsing getAgeFromDateOfBirth:dob];
+    _dobString = dateOfBirth;
+    _dobObject = [DobParsing getDateObjectFromString:_dobString];
+    _age = [DobParsing getAgeFromDateObject:_dobObject];
 
     if (doSave) {
-        [[NSUserDefaults standardUserDefaults] setObject:dob forKey:dobKey];
+        [[NSUserDefaults standardUserDefaults] setObject:_dobString forKey:dobKey];
     }
+}
+
+- (void)persistHumanFullName:(NSString*)humanFullName humanShortName:(NSString*)humanShortName {
+    [self persistHumanFullName:humanFullName saving:true];
+    [self persistHumanShortName:humanShortName saving:true];
+}
+
+- (void)persistDateOfBirthObject:(NSDate*)dateOfBirth {
+    [self persistDateOfBirthObject:dateOfBirth saving:true];
 }
 
 - (void)reset {
@@ -151,10 +161,6 @@ typedef void (^Block)(id);
 }
 
 - (bool)updateCoreFacebookInformation {
-    if (_isBasicDataLoaded) {
-        return true;
-    }
-
     // It is possible for the two conditions to be disjoint i.e. profile to be non nil while access token is nil.
     // That is why we check both, because graph API requires token.
     FBSDKProfile *profile = nil;
@@ -163,7 +169,10 @@ typedef void (^Block)(id);
     }
 
     if (profile == nil) {
-        [self reset];
+        if (_isBasicDataLoaded) {
+            return true;
+        }
+
         NSLog(@"Facebook state not ready yet, please request details from user");
         return false;
     }
@@ -197,7 +206,7 @@ typedef void (^Block)(id);
     }
 }
 
-- (void)setOwnerGenderWithSegmentIndex:(int)segmentIndex {
+- (void)persistOwnerGenderWithSegmentIndex:(int)segmentIndex {
     [self persistOwnerGenderWithSegmentIndex:segmentIndex saving:true];
 }
 
@@ -287,7 +296,7 @@ typedef void (^Block)(id);
 }
 
 
-+ (SocialState *)getFacebookInstance {
++ (SocialState *)getSocialInstance {
     @synchronized (self) {
         if (instance == nil) {
             instance = [[SocialState alloc] init];

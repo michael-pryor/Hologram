@@ -8,5 +8,7 @@
 @interface DobParsing : NSObject
 + (NSString*)getDateStringFromDateObject:(NSDate*)date;
 
-+ (uint)getAgeFromDateOfBirth:(NSString *)dob;
++ (NSDate*)getDateObjectFromString:(NSString*)dob;
+
++ (uint)getAgeFromDateObject:(NSDate *)date;
 @end

@@ -26,6 +26,8 @@ extern const NSString* ownerGenderKey;
 @property(readonly) NSString *humanShortName;
 
 @property(readonly) NSString *genderString;
+@property(readonly) NSString *dobString;
+@property(readonly) NSDate *dobObject;
 @property(readonly) uint age;
 @property(readonly) uint genderEnum;
 @property(readonly) uint interestedIn;
@@ -35,8 +37,6 @@ extern const NSString* ownerGenderKey;
 @property(readonly) int interestedInSegmentIndex;
 @property(readonly) int genderSegmentIndex;
 
-- (void)reset;
-
 - (bool)updateCoreFacebookInformation;
 
 - (bool)updateGraphFacebookInformation;
@@ -45,7 +45,7 @@ extern const NSString* ownerGenderKey;
 
 - (void)persistInterestedInWithSegmentIndex:(int)segmentIndex;
 
-+ (SocialState *)getFacebookInstance;
++ (SocialState *)getSocialInstance;
 
 - (void)registerNotifier:(id <SocialStateDataLoadNotification>)notifier;
 
@@ -53,6 +53,10 @@ extern const NSString* ownerGenderKey;
 
 - (bool)isDataLoaded;
 
-- (void)setOwnerGenderWithSegmentIndex:(int)segmentIndex;
+- (void)persistOwnerGenderWithSegmentIndex:(int)segmentIndex;
+
+- (void)persistHumanFullName:(NSString*)humanFullName humanShortName:(NSString*)humanShortName;
+
+- (void)persistDateOfBirthObject:(NSDate*)dateOfBirth;
 @end
 
