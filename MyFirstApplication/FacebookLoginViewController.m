@@ -15,7 +15,22 @@
     __weak IBOutlet UIImageView *_buttonDone;
     __weak IBOutlet UIView *_manualLoginButton;
     __weak IBOutlet UILabel *_manualLoginLabel;
+    __weak IBOutlet UITextField *_dateOfBirthTextBox;
+
+    NSDateFormatter *_dateOfBirthFormatter;
 }
+
+- (void)cancelEditingTextBoxes {
+    [self.view endEditing:YES];
+}
+
+- (IBAction)onTextBoxDonePressed:(id)sender {
+    [self cancelEditingTextBoxes];
+}
+- (IBAction)onViewControllerTap:(id)sender {
+    [self cancelEditingTextBoxes];
+}
+
 
 - (IBAction)onFinishedButtonClick:(id)sender {
     [self _switchToChatView];
@@ -26,11 +41,25 @@
 - (IBAction)onLoginManuallyButtonPress:(id)sender {
 }
 
+-(void)updateTextField:(UIDatePicker *)sender{
+    _dateOfBirthTextBox.text = [_dateOfBirthFormatter stringFromDate:sender.date];
+}
+
 - (void)viewDidLoad {
     [super viewDidLoad];
 
     self.screenName = @"FacebookLogin";
 
+    _dateOfBirthFormatter = [[NSDateFormatter alloc] init];
+    [_dateOfBirthFormatter setDateFormat:@"yyyy-MM-dd"];
+
+    UIDatePicker *datePicker = [[UIDatePicker alloc] init];
+    datePicker.datePickerMode = UIDatePickerModeDate;
+    [_dateOfBirthTextBox setInputView:datePicker];
+    [datePicker addTarget:self action:@selector(updateTextField:)
+         forControlEvents:UIControlEventValueChanged];
+    [_dateOfBirthTextBox setInputView:datePicker];
+    
     _desiredGenderChooser.selectedSegmentIndex = [[SocialState getFacebookInstance] interestedInSegmentIndex];
 
     [FBSDKProfile enableUpdatesOnAccessTokenChange:true];
