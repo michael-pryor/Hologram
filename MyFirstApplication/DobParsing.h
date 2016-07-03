@@ -13,6 +13,4 @@
 + (uint)getAgeFromDateObject:(NSDate *)date;
 
 + (NSDate *)getDateObjectFromTextBoxString:(NSString *)dob;
-
-+ (NSString *)getTextBoxStringFromDateObject:(NSDate *)dob;
 @end
