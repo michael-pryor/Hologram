@@ -8,19 +8,20 @@
 
 #import "FacebookLoginViewController.h"
 #import "Threading.h"
+#import "DobParsing.h"
 
 @implementation FacebookLoginViewController {
     IBOutlet UISegmentedControl *_desiredGenderChooser;
     __weak IBOutlet UIImageView *_buttonDone;
     __weak IBOutlet UITextField *_dateOfBirthTextBox;
 
-    NSDateFormatter *_dateOfBirthFormatter;
     __weak IBOutlet UITextField *_fullNameTextBox;
     __weak IBOutlet UISegmentedControl *_ownerGenderChooser;
 
     SocialState *_socialState;
     __weak IBOutlet UIStackView *_loadingFacebookDetailsIndicator;
     __weak IBOutlet UIImageView *_profilePicture;
+    __weak IBOutlet UITextView *_callingCardText;
 }
 
 - (void)cancelEditingTextBoxes {
@@ -32,11 +33,13 @@
     imagePickerController.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
     imagePickerController.delegate = self;
     [self presentViewController:imagePickerController animated:YES completion:nil];
+    
+    [self onViewControllerTap:sender];
 }
 
 - (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info {
     [_socialState persistProfilePictureImage:[info valueForKey:UIImagePickerControllerOriginalImage]];
-    dispatch_sync_main(^ {
+    dispatch_sync_main(^{
         [_profilePicture setImage:[_socialState profilePictureImage]];
     });
 
@@ -45,7 +48,8 @@
 
 - (void)saveTextBoxes {
     [_socialState persistHumanFullName:[_fullNameTextBox text] humanShortName:[_fullNameTextBox text]];
-    [_socialState persistDateOfBirthObject:[_dateOfBirthFormatter dateFromString:[_dateOfBirthTextBox text]]];
+    [_socialState persistDateOfBirthObject:[DobParsing getDateObjectFromTextBoxString:[_dateOfBirthTextBox text]]];
+    [_socialState persistCallingCardText:[NSString stringWithFormat:@"%@",[_callingCardText text]]];
 }
 
 - (IBAction)onTextBoxDonePressed:(id)sender {
@@ -58,7 +62,6 @@
     [self saveTextBoxes];
 }
 
-
 - (IBAction)onFinishedButtonClick:(id)sender {
     [self _switchToChatView];
 }
@@ -68,7 +71,7 @@
 }
 
 - (void)updateTextField:(UIDatePicker *)sender {
-    _dateOfBirthTextBox.text = [_dateOfBirthFormatter stringFromDate:sender.date];
+    _dateOfBirthTextBox.text = [DobParsing getTextBoxStringFromDateObject:sender.date];
 }
 
 - (void)viewDidLoad {
@@ -81,15 +84,12 @@
     _socialState = [SocialState getSocialInstance];
     [_socialState registerNotifier:self];
 
-    _dateOfBirthFormatter = [[NSDateFormatter alloc] init];
-    [_dateOfBirthFormatter setDateFormat:@"yyyy-MM-dd"];
-
-    UIDatePicker *datePicker = [[UIDatePicker alloc] init];
-    datePicker.datePickerMode = UIDatePickerModeDate;
-    [_dateOfBirthTextBox setInputView:datePicker];
-    [datePicker addTarget:self action:@selector(updateTextField:)
-         forControlEvents:UIControlEventValueChanged];
-    [_dateOfBirthTextBox setInputView:datePicker];
+    _dateOfBirthDatePicker = [[UIDatePicker alloc] init]; // needs to be retained.
+    _dateOfBirthDatePicker.datePickerMode = UIDatePickerModeDate;
+    [_dateOfBirthTextBox setInputView:_dateOfBirthDatePicker];
+    [_dateOfBirthDatePicker addTarget:self action:@selector(updateTextField:)
+                     forControlEvents:UIControlEventValueChanged];
+    [_dateOfBirthTextBox setInputView:_dateOfBirthDatePicker];
 
     [FBSDKProfile enableUpdatesOnAccessTokenChange:true];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onProfileUpdated:) name:FBSDKProfileDidChangeNotification object:nil];
@@ -123,6 +123,8 @@
     _fullNameTextBox.text = [_socialState humanFullName];
 
     [_profilePicture setImage:[_socialState profilePictureImage]];
+    
+    [_callingCardText setText:[_socialState callingCardText]];
 }
 
 - (void)_switchToChatView {
@@ -165,15 +167,50 @@
     }
 
     dispatch_sync_main(^{
-        [_loadingFacebookDetailsIndicator setHidden:false];
+        [_loadingFacebookDetailsIndicator setAlpha:0];
     });
+}
+
+- (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text {
+    // Prevent crashing undo bug – see note below.
+    if (range.length + range.location > textView.text.length) {
+        return NO;
+    }
+
+    int MAX_LENGTH = 300;
+    NSUInteger newLength = (textView.text.length - range.length) + text.length;
+    if(newLength <= MAX_LENGTH)
+    {
+        return YES;
+    } else {
+        NSUInteger emptySpace = MAX_LENGTH - (textView.text.length - range.length);
+        textView.text = [[[textView.text substringToIndex:range.location]
+                stringByAppendingString:[text substringToIndex:emptySpace]]
+                stringByAppendingString:[textView.text substringFromIndex:(range.location + range.length)]];
+        return NO;
+    }
+}
+
+- (BOOL)textField:(UITextField *)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string {
+    // Prevent crashing undo bug – see note below.
+    if (range.length + range.location > textField.text.length) {
+        return NO;
+    }
+
+    NSUInteger newLength = [textField.text length] + [string length] - range.length;
+
+    if (textField == _fullNameTextBox) {
+        return newLength <= 50;
+    } else {
+        return YES;
+    }
 }
 
 - (void)onSocialDataLoaded:(SocialState *)state {
     [self _updateDisplay];
 
     dispatch_sync_main(^{
-        [_loadingFacebookDetailsIndicator setHidden:true];
+        [_loadingFacebookDetailsIndicator setAlpha:1];
     });
 }
 

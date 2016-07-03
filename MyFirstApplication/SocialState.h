@@ -8,10 +8,6 @@
 
 #import <Foundation/Foundation.h>
 
-
-extern const NSString* selectedGenderPreferenceKey;
-extern const NSString* ownerGenderKey;
-
 @class SocialState;
 @protocol SocialStateDataLoadNotification <NSObject>
 - (void)onSocialDataLoaded:(SocialState *)state;
@@ -24,6 +20,8 @@ extern const NSString* ownerGenderKey;
 
 @property(readonly) NSString *humanFullName;
 @property(readonly) NSString *humanShortName;
+
+@property(readonly) NSString *callingCardText;
 
 @property(readonly) NSString *genderString;
 @property(readonly) NSString *dobString;
@@ -49,8 +47,6 @@ extern const NSString* ownerGenderKey;
 
 - (void)registerNotifier:(id <SocialStateDataLoadNotification>)notifier;
 
-- (void)unregisterNotifier;
-
 - (bool)isDataLoaded;
 
 - (void)persistOwnerGenderWithSegmentIndex:(int)segmentIndex;
@@ -60,5 +56,7 @@ extern const NSString* ownerGenderKey;
 - (void)persistDateOfBirthObject:(NSDate*)dateOfBirth;
 
 - (void)persistProfilePictureImage:(UIImage *)image;
+
+- (void)persistCallingCardText:(NSString *)text;
 @end
 

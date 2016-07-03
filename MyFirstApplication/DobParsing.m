@@ -4,17 +4,28 @@
 
 #import "DobParsing.h"
 
+NSDateFormatter *textBoxDateFormatter;
 
 @implementation DobParsing {
 
 }
-+ (NSString*)getDateStringFromDateObject:(NSDate*)date {
-    NSDateFormatter *dateFormatter=[[NSDateFormatter alloc] init];
-    [dateFormatter setDateFormat:@"MM/dd/yyyy"];
-    return [dateFormatter stringFromDate:date];
+
++ (void)initialize {
+    if (self == [DobParsing class]) {
+        textBoxDateFormatter = [[NSDateFormatter alloc] init];
+        [textBoxDateFormatter setDateFormat:@"yyyy-MM-dd"];
+    }
 }
 
-+ (NSDate*)getDateObjectFromString:(NSString*)dob {
++ (NSDate *)getDateObjectFromTextBoxString:(NSString *)dob {
+    return [textBoxDateFormatter dateFromString:dob];
+}
+
++ (NSString *)getTextBoxStringFromDateObject:(NSDate *)dob {
+    return [textBoxDateFormatter stringFromDate:dob];
+}
+
++ (NSDate *)getDateObjectFromFacebookString:(NSString *)dob {
     NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
 
     if ([dob length] == 4) {
@@ -32,7 +43,7 @@
     if (date == nil) {
         return 0;
     }
-    
+
     NSDate *now = [NSDate date];
     NSDateComponents *ageComponents = [[NSCalendar currentCalendar]
             components:NSCalendarUnitYear

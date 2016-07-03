@@ -12,8 +12,8 @@
 #import "GAITrackedViewController.h"
 #import "SocialState.h"
 
-@interface FacebookLoginViewController : GAITrackedViewController <UITextFieldDelegate, FBSDKLoginButtonDelegate, UIAlertViewDelegate, SocialStateDataLoadNotification, UINavigationControllerDelegate, UIImagePickerControllerDelegate>
+@interface FacebookLoginViewController : GAITrackedViewController <UITextFieldDelegate, UITextViewDelegate, FBSDKLoginButtonDelegate, UIAlertViewDelegate, SocialStateDataLoadNotification, UINavigationControllerDelegate, UIImagePickerControllerDelegate>
 @property(weak, nonatomic) IBOutlet FBSDKLoginButton *loginButton;
-@property(strong, nonatomic) IBOutlet UILabel *displayName;
-@property(strong, nonatomic) IBOutlet FBSDKProfilePictureView *displayPicture;
+
+@property(nonatomic,strong) UIDatePicker *dateOfBirthDatePicker;
 @end

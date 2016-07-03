@@ -6,9 +6,13 @@
 
 
 @interface DobParsing : NSObject
-+ (NSString*)getDateStringFromDateObject:(NSDate*)date;
++ (NSString*)getTextBoxStringFromDateObject:(NSDate*)date;
 
-+ (NSDate*)getDateObjectFromString:(NSString*)dob;
++ (NSDate*)getDateObjectFromFacebookString:(NSString*)dob;
 
 + (uint)getAgeFromDateObject:(NSDate *)date;
+
++ (NSDate *)getDateObjectFromTextBoxString:(NSString *)dob;
+
++ (NSString *)getTextBoxStringFromDateObject:(NSDate *)dob;
 @end

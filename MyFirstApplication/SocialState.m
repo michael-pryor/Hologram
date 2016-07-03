@@ -17,13 +17,14 @@
 #import "ImageParsing.h"
 #import <FBSDKCoreKit/FBSDKCoreKit.h>
 
-const NSString *selectedGenderPreferenceKey = @"selectedGenderPreference";
-const NSString *ownerGenderKey = @"ownerGender";
-const NSString *humanFullNameKey = @"humanFullName";
-const NSString *humanShortNameKey = @"humanShortName";
-const NSString *dobKey = @"dob";
-const NSString *profilePictureKey = @"profilePicture";
-const NSString *profilePictureOrientationKey = @"profilePictureOrientation";
+NSString *selectedGenderPreferenceKey = @"selectedGenderPreference";
+NSString *ownerGenderKey = @"ownerGender";
+NSString *humanFullNameKey = @"humanFullName";
+NSString *humanShortNameKey = @"humanShortName";
+NSString *dobKey = @"dob";
+NSString *profilePictureKey = @"profilePicture";
+NSString *profilePictureOrientationKey = @"profilePictureOrientation";
+NSString *callingCardTextKey = @"callingCardText";
 
 static SocialState *instance = nil;
 
@@ -44,7 +45,7 @@ typedef void (^Block)(id);
         // Initialize here instead of in reset because this value doesn't come from Facebook.
         // It comes form a GUI item (direct from user).
         if ([[NSUserDefaults standardUserDefaults] objectForKey:selectedGenderPreferenceKey] != nil) {
-            const int selectedGenderPreference = [[NSUserDefaults standardUserDefaults] integerForKey:selectedGenderPreferenceKey];
+            const int selectedGenderPreference = (int)[[NSUserDefaults standardUserDefaults] integerForKey:selectedGenderPreferenceKey];
             NSLog(@"Loaded previous gender preference selection from storage: %d", selectedGenderPreference);
             [self persistInterestedInWithSegmentIndex:selectedGenderPreference saving:false];
         } else {
@@ -53,7 +54,7 @@ typedef void (^Block)(id);
         }
 
         if ([[NSUserDefaults standardUserDefaults] objectForKey:ownerGenderKey] != nil) {
-            const int ownerGender = [[NSUserDefaults standardUserDefaults] integerForKey:ownerGenderKey];
+            const int ownerGender = (int)[[NSUserDefaults standardUserDefaults] integerForKey:ownerGenderKey];
             NSLog(@"Loaded previous owner gender selection from storage: %d", ownerGender);
             [self persistOwnerGenderWithSegmentIndex:ownerGender saving:false];
         } else {
@@ -80,7 +81,7 @@ typedef void (^Block)(id);
 
         if ([[NSUserDefaults standardUserDefaults] objectForKey:dobKey] != nil) {
             NSString *dob = [[NSUserDefaults standardUserDefaults] stringForKey:dobKey];
-            [self persistDateOfBirth:dob saving:false];
+            [self persistDateOfBirthObject:[DobParsing getDateObjectFromTextBoxString:dob] saving:false];
             NSLog(@"Loaded dob from storage: %@, age: %d", dob, _age);
         } else {
             NSLog(@"No date of birth found in storage");
@@ -89,20 +90,25 @@ typedef void (^Block)(id);
         if ([[NSUserDefaults standardUserDefaults] objectForKey:profilePictureKey] != nil) {
             NSData *profilePictureData = [[NSUserDefaults standardUserDefaults] objectForKey:profilePictureKey];
             UIImageOrientation profilePictureOrientation;
-            if ([[NSUserDefaults standardUserDefaults] integerForKey:profilePictureOrientationKey] != nil) {
-                UIImageOrientation value;
-                [[[NSUserDefaults standardUserDefaults] objectForKey:profilePictureOrientationKey] getValue:&value];
-                profilePictureOrientation = value;
-            } else {
-                profilePictureOrientation = UIImageOrientationUp;
-            }
+
+            UIImageOrientation value = UIImageOrientationUp;
+            [[[NSUserDefaults standardUserDefaults] objectForKey:profilePictureOrientationKey] getValue:&value];
+            profilePictureOrientation = value;
 
             UIImage *profilePictureImage = [ImageParsing convertDataToImage:profilePictureData orientation:profilePictureOrientation];
 
             [self persistProfilePictureImage:profilePictureImage prepareImage:false saving:false];
-            NSLog(@"Loaded profile picture from storage, bytes: %d", [profilePictureData length]);
+            NSLog(@"Loaded profile picture from storage, bytes: %lu", (unsigned long)[profilePictureData length]);
         } else {
             NSLog(@"No profile picture found in storage");
+        }
+
+        if ([[NSUserDefaults standardUserDefaults] objectForKey:callingCardTextKey] != nil) {
+            NSString * callingCardText = [[NSUserDefaults standardUserDefaults] stringForKey:callingCardTextKey];
+            [self persistCallingCardText:callingCardText saving:false];
+            NSLog(@"Loaded previous calling card text: %@", callingCardText);
+        } else {
+            NSLog(@"No previous calling card text found in storage");
         }
 
         _persistedUniqueId = [UniqueId pullUUID];
@@ -120,7 +126,7 @@ typedef void (^Block)(id);
 
     if (doSave) {
         NSData *dataToPersist = [ImageParsing convertImageToData:image];
-        NSLog(@"Persisting profile picture image, bytes: %d", [dataToPersist length]);
+        NSLog(@"Persisting profile picture image, bytes: %lu", (unsigned long)[dataToPersist length]);
         [[NSUserDefaults standardUserDefaults] setInteger:[image imageOrientation] forKey:profilePictureOrientationKey];
         [[NSUserDefaults standardUserDefaults] setObject:dataToPersist forKey:profilePictureKey];
     }
@@ -134,12 +140,8 @@ typedef void (^Block)(id);
     _notifier = notifier;
 }
 
-- (void)unregisterNotifier {
-    _notifier = nil;
-}
-
 - (bool)isDataLoaded {
-    return _isBasicDataLoaded && _isGraphDataLoaded;
+    return _isBasicDataLoaded;
 }
 
 - (void)persistHumanFullName:(NSString *)humanFullName saving:(bool)doSave {
@@ -167,12 +169,8 @@ typedef void (^Block)(id);
 }
 
 - (void)persistDateOfBirthObject:(NSDate *)dateOfBirth saving:(bool)doSave {
-    [self persistDateOfBirth:[DobParsing getDateStringFromDateObject:dateOfBirth] saving:doSave];
-}
-
-- (void)persistDateOfBirth:(NSString *)dateOfBirth saving:(bool)doSave {
-    _dobString = dateOfBirth;
-    _dobObject = [DobParsing getDateObjectFromString:_dobString];
+    _dobObject = dateOfBirth;
+    _dobString = [DobParsing getTextBoxStringFromDateObject:_dobObject]; // in the correct format.
     _age = [DobParsing getAgeFromDateObject:_dobObject];
 
     if (doSave) {
@@ -270,6 +268,19 @@ typedef void (^Block)(id);
     [self setOwnerGenderWithString:gender saving:doSave];
 }
 
+- (void)persistCallingCardText:(NSString *)text saving:(bool)doSave {
+    _callingCardText = text;
+
+    if (doSave) {
+        NSLog(@"Saving calling card text: %@", _callingCardText);
+        [[NSUserDefaults standardUserDefaults] setObject:_callingCardText forKey:callingCardTextKey];
+    }
+}
+
+- (void)persistCallingCardText:(NSString *)text {
+    [self persistCallingCardText:text saving:true];
+}
+
 - (bool)updateFromFacebookGraph {
     if (![FBSDKAccessToken currentAccessToken]) {
         NSLog(@"Core Facebook information not loaded!");
@@ -306,7 +317,7 @@ typedef void (^Block)(id);
             if (dob == nil) {
                 NSLog(@"Failed to retrieve date of birth from Facebook API");
             } else {
-                [self persistDateOfBirth:dob saving:true];
+                [self persistDateOfBirthObject:[DobParsing getDateObjectFromFacebookString:dob] saving:true];
             }
 
             NSString *gender = [result objectForKey:@"gender"];
