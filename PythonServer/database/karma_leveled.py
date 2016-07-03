@@ -86,24 +86,35 @@ class KarmaLeveled(object):
 
         return True
 
+    # Does not wipe the entire ban list, but clears the current ban, such
+    # that on next ban time to wait and price increases.
     def clearKarma(self, client):
         if client is None:
             return
 
         self.karma.clearKarma(client)
-        for ban in self.bans:
+        ban = self.getCurrentBanSlot(client)
+        if ban is not None:
             assert isinstance(ban, Karma)
-            ban.clearKarma(client)
+            ban.incrementKarma(client)
 
-    def getBanMagnitudeAndExpirationTime(self, client):
+    def getCurrentBanSlot(self, client):
+        banMagnitude, expirationTime, karmaTracker = self.getFullBanDetails(client)
+        return karmaTracker
+
+    def getFullBanDetails(self, client):
         for banTimeMultiplier, karmaTracker in zip(range(KarmaLeveled.MAX_EXPONENTIAL_INCREASES, 0, -1), self.bans):
             assert isinstance(karmaTracker, Karma)
 
             banEntries, expirationTime = karmaTracker.getKarmaDeductionAndExpirationTime(client)
             if banEntries >= banTimeMultiplier:
-                return banTimeMultiplier, expirationTime
+                return banTimeMultiplier, expirationTime, karmaTracker
 
-        return None, None
+        return None, None, None
+
+    def getBanMagnitudeAndExpirationTime(self, client):
+        banMagnitude, expirationTime, karmaTracker = self.getFullBanDetails(client)
+        return banMagnitude, expirationTime
 
     def incrementKarma(self, client):
         if client is None:
