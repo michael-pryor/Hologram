@@ -140,6 +140,7 @@ class House:
             self.house_lock.release()
 
         clientB.notifySocialInformationShared()
+        sourceClient.notifySocialInformationShared(True)
         if not hasOtherClientShared:
             return
 

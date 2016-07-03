@@ -776,10 +776,19 @@
             [self setDisconnectStateWithShortDescription:@"Matching you with somebody to talk with\nThe other person skipped you" showConversationEndView:true];
             NSLog(@"End point skipped us");
         } else if (operation == SHARE_FACEBOOK_INFO) {
-            NSLog(@"Endpoint has shared Facebook information with us");
-            dispatch_sync_main(^{
-                [_remoteFacebookLiked setHidden:false];
-            });
+            [packet getUnsignedInteger8];
+            bool isAckOurs = [packet getUnsignedInteger8] == 0;
+            if (isAckOurs) {
+                NSLog(@"Our facebook information payload share has been acked by the server");
+                dispatch_sync_main(^{
+                    [_localFacebookLiked setHidden:false];
+                });
+            } else {
+                NSLog(@"Endpoint has shared Facebook information with us");
+                dispatch_sync_main(^{
+                    [_remoteFacebookLiked setHidden:false];
+                });
+            }
         } else if (operation == SHARE_FACEBOOK_INFO_PAYLOAD) {
             NSLog(@"Facebook shared information payload received");
             [packet getUnsignedInteger8];
@@ -945,21 +954,17 @@
 }
 
 - (IBAction)onFacebookLikeButtonPressed:(id)sender {
-    dispatch_sync_main(^{
-        [_localFacebookLiked setHidden:false];
+    UIImageOrientation ownerProfilePictureOrientation = [_socialState profilePictureOrientation];
+    NSData *ownerProfilePictureData = [_socialState profilePictureData];
 
-        UIImageOrientation ownerProfilePictureOrientation = [_socialState profilePictureOrientation];
-        NSData *ownerProfilePictureData = [_socialState profilePictureData];
+    ByteBuffer *buffer = [[ByteBuffer alloc] init];
+    [buffer addUnsignedInteger8:SHARE_FACEBOOK_INFO_PAYLOAD];
+    [buffer addString:[_socialState humanFullName]];
+    [buffer addString:[_socialState callingCardText]];
+    [buffer addUnsignedInteger:ownerProfilePictureOrientation];
+    [buffer addData:ownerProfilePictureData];
 
-        ByteBuffer *buffer = [[ByteBuffer alloc] init];
-        [buffer addUnsignedInteger8:SHARE_FACEBOOK_INFO];
-        [buffer addString:[_socialState humanFullName]];
-        [buffer addString:[_socialState callingCardText]];
-        [buffer addUnsignedInteger:ownerProfilePictureOrientation];
-        [buffer addData:ownerProfilePictureData];
-
-        [_connection sendTcpPacket:buffer];
-    });
+    [_connection sendTcpPacket:buffer];
 }
 
 @end

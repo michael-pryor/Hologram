@@ -154,8 +154,6 @@ class Client(object):
         self.last_received_data = None
         self.payment_verifier = paymentVerifier
         self.persisted_ids_verifier = persistedIdsVerifier
-        self.social_share_information_packet = None
-
 
         def timeoutCheck():
             if self.last_received_data is not None:
@@ -188,11 +186,16 @@ class Client(object):
         # Need SocialID in order to do lookup, so preset with default value.
         self.karma_rating = KarmaLeveled.KARMA_MAXIMUM
 
+        self.social_share_information_packet = None
         self.has_shared_social_information = False
 
-    def notifySocialInformationShared(self):
+    def notifySocialInformationShared(self, ackBack = False):
         packet = ByteBuffer()
         packet.addUnsignedInteger8(Client.TcpOperationCodes.OP_SHARE_SOCIAL_INFORMATION)
+        if (ackBack):
+            packet.addUnsignedInteger8(0)
+        else:
+            packet.addUnsignedInteger8(1)
         self.tcp.sendByteBuffer(packet)
 
     def shareSocialInformationWith(self, destinationClient):
@@ -389,8 +392,7 @@ class Client(object):
             logger.debug("Client [%s] has permanently disconnected with immediate impact" % self)
             self.house.releaseRoom(self, self.house.disconnected_permanent)
             self.closeConnection()
-        elif opCode == Client.TcpOperationCodes.OP_SHARE_SOCIAL_INFORMATION:
-            packet.addUnsignedIntegerAtPosition8(Client.TcpOperationCodes.OP_SHARE_SOCIAL_INFORMATION_PAYLOAD,0)
+        elif opCode == Client.TcpOperationCodes.OP_SHARE_SOCIAL_INFORMATION_PAYLOAD:
             self.social_share_information_packet = packet
             self.house.shareSocialInformation(self)
         else:
@@ -519,6 +521,8 @@ class Client(object):
         assert isinstance(client, Client)
         self.match_skip_history = client.match_skip_history
         self.karma_rating = client.karma_rating
+        self.has_shared_social_information = client.has_shared_social_information
+        self.social_share_information_packet = client.social_share_information_packet
 
     # Must be protected by house lock.
     def onWaitingForMatch(self):
@@ -528,6 +532,8 @@ class Client(object):
     # Must be protected by house lock.
     def onSuccessfulMatch(self):
         self.started_waiting_for_match_timer = None
+        self.has_shared_social_information = False
+        self.social_share_information_packet = None
 
     def clearKarma(self):
         self.karma_database.clearKarma(self)
