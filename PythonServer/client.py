@@ -203,7 +203,10 @@ class Client(object):
 
         # If both shared calling cards with each other, then at end of conversation will not get a chance to rate,
         # will skip straight to the calling cards screen, but logically if they shared calling card information with each
-         # other then they probably do like each other.
+        # other then they probably do like each other.
+        #
+        # Note: this will come in mid conversation, even if the conversation isn't over. Client won't see their
+        # karma increase during conversation, so this is okay.
         destinationClient.handleRating(Client.ConversationRating.GOOD)
 
         destinationClient.tcp.sendByteBuffer(self.social_share_information_packet)
