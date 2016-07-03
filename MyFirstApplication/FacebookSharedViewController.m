@@ -2,38 +2,88 @@
 // Created by Michael Pryor on 02/07/2016.
 //
 
-#import <FBSDKCoreKit/FBSDKCoreKit.h>
 #import "FacebookSharedViewController.h"
 #import "Threading.h"
+#import "Signal.h"
+#import "ViewInteractions.h"
 
 
 @implementation FacebookSharedViewController {
 
-    __weak IBOutlet FBSDKProfilePictureView *_ownerProfilePicture;
-    __weak IBOutlet FBSDKProfilePictureView *_remoteProfilePicture;
+
+    __weak IBOutlet UIImageView *_localProfileUiView;
+    __weak IBOutlet UITextView *_localCallingTextView;
+    __weak IBOutlet UIImageView *_remoteProfileUiView;
+    __weak IBOutlet UITextView *_remoteCallingTextView;
     __weak IBOutlet UILabel *_ownerName;
     __weak IBOutlet UILabel *_remoteName;
 
-    NSString* _ownerNameString;
-    NSString *_ownerFacebookId;
+    __weak IBOutlet UIStackView *_ownerUiView;
+
+    __weak IBOutlet UIView *_localProfileUiViewContainer;
+    __weak IBOutlet UIView *_remoteProfileUiViewContainer;
+
+    NSString *_ownerNameString;
+    NSString *_ownerCallingCardText;
+    UIImage *_ownerProfileImage;
 
     NSString *_remoteNameString;
-    NSString *_remoteFacebookId;
+    NSString *_remoteCallingCardText;
+    UIImage *_remoteProfileImage;
+
+    Signal *_ownerHiddenSignal;
 }
 - (void)viewDidLoad {
     [super viewDidLoad];
     [_ownerName setText:_ownerNameString];
     [_remoteName setText:_remoteNameString];
 
-    [_ownerProfilePicture setProfileID:_ownerFacebookId];
-    [_remoteProfilePicture setProfileID:_remoteFacebookId];
+    [_localCallingTextView setText:_ownerCallingCardText];
+    [_remoteCallingTextView setText:_remoteCallingCardText];
+
+    [_localProfileUiView setImage:_ownerProfileImage];
+    [_remoteProfileUiView setImage:_remoteProfileImage];
+
+    _ownerHiddenSignal = [[Signal alloc] initWithFlag:false];
+
+    float borderThickness = 0.5;
+    [_localCallingTextView.layer setBorderColor: [[UIColor blackColor] CGColor]];
+    [_localCallingTextView.layer setBorderWidth: borderThickness];
+
+    [_remoteCallingTextView.layer setBorderColor: [[UIColor blackColor] CGColor]];
+    [_remoteCallingTextView.layer setBorderWidth: borderThickness];
+
+    [_ownerName.layer setBorderColor: [[UIColor blackColor] CGColor]];
+    [_ownerName.layer setBorderWidth: borderThickness];
+
+    [_remoteName.layer setBorderColor: [[UIColor blackColor] CGColor]];
+    [_remoteName.layer setBorderWidth: borderThickness];
+
+    [_remoteProfileUiViewContainer.layer setBorderColor: [[UIColor blackColor] CGColor]];
+    [_remoteProfileUiViewContainer.layer setBorderWidth: borderThickness];
+
+    [_localProfileUiViewContainer.layer setBorderColor: [[UIColor blackColor] CGColor]];
+    [_localProfileUiViewContainer.layer setBorderWidth: borderThickness];
 }
 
-- (void)setRemoteFacebookId:(NSString *)remoteFacebookId remoteProfileUrl:(NSString *)remoteProfileUrl remoteFullName:(NSString *)remoteFullName localFacebookId:(NSString *)localFacebookId localFullName:(NSString *)localFullName {
-    _ownerNameString = localFullName;
-    _ownerFacebookId = localFacebookId;
-    _remoteNameString = remoteFullName;
-    _remoteFacebookId = remoteFacebookId;
+- (IBAction)onScreenTap:(id)sender {
+    if ([_ownerHiddenSignal signalAll]) {
+        [ViewInteractions fadeOut:_ownerUiView completion:^(BOOL completed) {
+            if (!completed) {
+                [_ownerHiddenSignal clear];
+                return;
+            }
+            [_ownerUiView setHidden:true];
+        } duration:1.0f];
+    } else if ([_ownerHiddenSignal clear]) {
+        [_ownerUiView setHidden:false];
+        [ViewInteractions fadeIn:_ownerUiView completion:^(BOOL completed) {
+            if (!completed) {
+                [_ownerHiddenSignal signalAll];
+                return;
+            }
+        } duration:1.0f];
+    }
 }
 
 - (IBAction)onBackButtonPress:(id)sender {
@@ -49,11 +99,13 @@
         [self.navigationController popToRootViewControllerAnimated:YES];
     });
 }
-- (IBAction)onGotoFacebookPageButtonPress:(id)sender {
-    NSString *link = [NSString stringWithFormat:@"fb://profile?app_scoped_user_id=%@", _remoteFacebookId];
-    NSURL *facebookURL = [NSURL URLWithString:link];
-    if ([[UIApplication sharedApplication] canOpenURL:facebookURL]) {
-        [[UIApplication sharedApplication] openURL:facebookURL];
-    }
+
+- (void)setRemoteFullName:(NSString *)remoteFullName remoteCallingText:(NSString *)remoteCallingText remoteProfilePicture:(UIImage *)remoteProfilePicture localFullName:(NSString *)localFullName localCallingText:(NSString *)localCallingText localProfilePicture:(UIImage *)localProfilePicture {
+    _ownerNameString = localFullName;
+    _remoteNameString = remoteFullName;
+    _ownerProfileImage = localProfilePicture;
+    _remoteProfileImage = remoteProfilePicture;
+    _ownerCallingCardText = localCallingText;
+    _remoteCallingCardText = remoteCallingText;
 }
 @end

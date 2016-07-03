@@ -89,10 +89,6 @@ class Client(object):
             self.longitude = longitude
             self.latitude = latitude
 
-            self.social_share_information_packet = ByteBuffer()
-            self.social_share_information_packet.addUnsignedInteger8(Client.TcpOperationCodes.OP_SHARE_SOCIAL_INFORMATION_PAYLOAD)
-            self.social_share_information_packet.addString(self.name)
-
         def __hash__(self):
             return hash(self.unique_id)
 
@@ -158,6 +154,7 @@ class Client(object):
         self.last_received_data = None
         self.payment_verifier = paymentVerifier
         self.persisted_ids_verifier = persistedIdsVerifier
+        self.social_share_information_packet = None
 
 
         def timeoutCheck():
@@ -200,7 +197,7 @@ class Client(object):
 
     def shareSocialInformationWith(self, destinationClient):
         assert isinstance(destinationClient, Client)
-        destinationClient.tcp.sendByteBuffer(self.login_details.social_share_information_packet)
+        destinationClient.tcp.sendByteBuffer(self.social_share_information_packet)
 
     def isConnectedTcp(self):
         return self.connection_status != Client.ConnectionStatus.NOT_CONNECTED
@@ -366,16 +363,6 @@ class Client(object):
 
         self.onFriendlyPacketUdp(packet)
 
-    def onSocialInformationShared(self, destinationClient):
-        assert isinstance(destinationClient, Client)
-
-        self.has_shared_social_information = True
-        if not destinationClient.has_shared_social_information:
-            return
-
-
-        sourceClient.login_details.social_profile_picture_url
-
     def onFriendlyPacketTcp(self, packet):
         assert isinstance(packet, ByteBuffer)
 
@@ -403,6 +390,8 @@ class Client(object):
             self.house.releaseRoom(self, self.house.disconnected_permanent)
             self.closeConnection()
         elif opCode == Client.TcpOperationCodes.OP_SHARE_SOCIAL_INFORMATION:
+            packet.addUnsignedIntegerAtPosition8(Client.TcpOperationCodes.OP_SHARE_SOCIAL_INFORMATION_PAYLOAD,0)
+            self.social_share_information_packet = packet
             self.house.shareSocialInformation(self)
         else:
             # Must be debug in case rogue client sends us garbage data

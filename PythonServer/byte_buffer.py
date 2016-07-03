@@ -116,6 +116,9 @@ class ByteBuffer(object):
     def addUnsignedInteger8(self, data):
         self.addValue(struct.pack(DataConstants.UBYTE_FORMAT, data), DataConstants.UBYTE_SIZE)
 
+    def addUnsignedIntegerAtPosition8(self, data, position):
+        return self.addValueAtPosition(struct.pack(DataConstants.UBYTE_FORMAT, data), position, DataConstants.UBYTE_SIZE)
+
     def getValueAtPosition(self, startPosition, valueDataSize):
         endPosition = startPosition + valueDataSize
         if endPosition > self.used_size:

@@ -117,15 +117,17 @@ typedef void (^Block)(id);
 
 - (void)persistProfilePictureImage:(UIImage *)image prepareImage:(bool)prepare saving:(bool)doSave {
     if (image != nil && prepare) {
-        image = [ImageParsing prepareImage:image widthAndHeight:100.0f];
+        image = [ImageParsing prepareImage:image widthAndHeight:500.0f];
     }
     _profilePictureImage = image;
+    _profilePictureOrientation = [image imageOrientation];
+    _profilePictureData = [ImageParsing convertImageToData:image];
 
     if (doSave) {
-        NSData *dataToPersist = [ImageParsing convertImageToData:image];
-        NSLog(@"Persisting profile picture image, bytes: %lu", (unsigned long)[dataToPersist length]);
-        [[NSUserDefaults standardUserDefaults] setInteger:[image imageOrientation] forKey:profilePictureOrientationKey];
-        [[NSUserDefaults standardUserDefaults] setObject:dataToPersist forKey:profilePictureKey];
+
+        NSLog(@"Persisting profile picture image, bytes: %lu", (unsigned long)[_profilePictureData length]);
+        [[NSUserDefaults standardUserDefaults] setInteger:_profilePictureOrientation forKey:profilePictureOrientationKey];
+        [[NSUserDefaults standardUserDefaults] setObject:_profilePictureData forKey:profilePictureKey];
     }
 }
 
@@ -195,6 +197,8 @@ typedef void (^Block)(id);
     _isGraphDataLoaded = false;
     _facebookProfilePictureUrl = nil;
     _profilePictureImage = nil;
+    _profilePictureOrientation = UIImageOrientationUp;
+    _profilePictureData = nil;
 }
 
 - (bool)updateFromFacebookCore {
@@ -214,8 +218,8 @@ typedef void (^Block)(id);
         return false;
     } else {
         CGSize size;
-        size.width = 100;
-        size.height = 100;
+        size.width = 400;
+        size.height = 400;
         _facebookProfilePictureUrl = [profile imageURLForPictureMode:FBSDKProfilePictureModeSquare size:size];
     }
 

@@ -19,6 +19,7 @@
 #import "BannedViewController.h"
 #import "FacebookSharedViewController.h"
 #import "UniqueId.h"
+#import "ImageParsing.h"
 
 @implementation ConnectionViewController {
     // Connection
@@ -782,16 +783,15 @@
         } else if (operation == SHARE_FACEBOOK_INFO_PAYLOAD) {
             NSLog(@"Facebook shared information payload received");
             [packet getUnsignedInteger8];
-            NSString *remoteFacebookId = [packet getString];
-            NSString *remoteProfileUrl = [packet getString];
             NSString *remoteFullName = [packet getString];
-
-            NSString *localFacebookId = nil;
-            NSString *localFullName = [_socialState humanFullName];
+            NSString *callingCardText = [packet getString];
+            UIImageOrientation remoteProfilePictureOrientation = (UIImageOrientation) [packet getUnsignedInteger];
+            NSData * remoteProfilePictureData = [packet getData];
+            UIImage * remoteProfilePicture = [ImageParsing convertDataToImage:remoteProfilePictureData orientation:remoteProfilePictureOrientation];
 
             UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Storyboard" bundle:nil];
             FacebookSharedViewController *viewController = [storyboard instantiateViewControllerWithIdentifier:@"FacebookSharedViewController"];
-            [viewController setRemoteFacebookId:remoteFacebookId remoteProfileUrl:remoteProfileUrl remoteFullName:remoteFullName localFacebookId:localFacebookId localFullName:localFullName];
+            [viewController setRemoteFullName:remoteFullName remoteCallingText:callingCardText remoteProfilePicture:remoteProfilePicture localFullName:[_socialState humanFullName] localCallingText:[_socialState callingCardText] localProfilePicture:[_socialState profilePictureImage]];
             [self.navigationController pushViewController:viewController animated:YES];
         } else {
             if (_mediaController != nil) {
@@ -948,8 +948,16 @@
     dispatch_sync_main(^{
         [_localFacebookLiked setHidden:false];
 
+        UIImageOrientation ownerProfilePictureOrientation = [_socialState profilePictureOrientation];
+        NSData *ownerProfilePictureData = [_socialState profilePictureData];
+
         ByteBuffer *buffer = [[ByteBuffer alloc] init];
         [buffer addUnsignedInteger8:SHARE_FACEBOOK_INFO];
+        [buffer addString:[_socialState humanFullName]];
+        [buffer addString:[_socialState callingCardText]];
+        [buffer addUnsignedInteger:ownerProfilePictureOrientation];
+        [buffer addData:ownerProfilePictureData];
+
         [_connection sendTcpPacket:buffer];
     });
 }

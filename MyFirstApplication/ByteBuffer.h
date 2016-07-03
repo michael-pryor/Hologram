@@ -107,4 +107,6 @@
 - (float)getFloat;
 
 - (void)addData:(NSData *)data;
+
+- (NSData*)getData;
 @end

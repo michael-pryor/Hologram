@@ -7,5 +7,5 @@
 
 
 @interface FacebookSharedViewController : GAITrackedViewController
-- (void)setRemoteFacebookId:(NSString *)remoteFacebookId remoteProfileUrl:(NSString *)remoteProfileUrl remoteFullName:(NSString *)remoteFullName localFacebookId:(NSString *)localFacebookId localFullName:(NSString *)localFullName;
+- (void)setRemoteFullName:(NSString *)remoteFullName remoteCallingText:(NSString *)remoteCallingText remoteProfilePicture:(UIImage *)remoteProfilePicture localFullName:(NSString *)localFullName localCallingText:(NSString *)localCallingText localProfilePicture:(UIImage *)localProfilePicture;
 @end

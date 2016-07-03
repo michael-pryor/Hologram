@@ -69,6 +69,10 @@
 }
 
 + (UIImage *)convertDataToImage:(NSData *)data orientation:(UIImageOrientation)orientation {
+    if (data == nil) {
+        return nil;
+    }
+
     UIImage *image = [UIImage imageWithData:data];
     return [[UIImage alloc] initWithCGImage:[image CGImage] scale:1.0 orientation:orientation];
 }

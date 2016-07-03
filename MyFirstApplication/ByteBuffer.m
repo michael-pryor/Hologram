@@ -440,6 +440,16 @@
     return [self getByteBufferWithLength:0];
 }
 
+- (NSData *)getDataWithLength:(uint)length {
+    return [self getVariableLengthData:^id(uint8_t *data, uint length) {
+        return [[NSData alloc] initWithBytes:data length:length];
+    }                       withLength:length];
+}
+
+- (NSData*)getData {
+    return [self getDataWithLength:0];
+}
+
 - (uint8_t *)getRawDataPtr {
     return _buffer;
 }
