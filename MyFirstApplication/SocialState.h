@@ -32,16 +32,16 @@ extern const NSString* ownerGenderKey;
 @property(readonly) uint genderEnum;
 @property(readonly) uint interestedIn;
 
+@property(readonly) UIImage* profilePictureImage;
+
 // This relates to the Facebook login view, the index of the selected button.
 // Used to rebuild this during initialization.
 @property(readonly) int interestedInSegmentIndex;
 @property(readonly) int genderSegmentIndex;
 
-- (bool)updateCoreFacebookInformation;
+- (bool)updateFromFacebookCore;
 
-- (bool)updateGraphFacebookInformation;
-
-- (bool)update;
+- (bool)updateFromFacebookGraph;
 
 - (void)persistInterestedInWithSegmentIndex:(int)segmentIndex;
 
@@ -58,5 +58,7 @@ extern const NSString* ownerGenderKey;
 - (void)persistHumanFullName:(NSString*)humanFullName humanShortName:(NSString*)humanShortName;
 
 - (void)persistDateOfBirthObject:(NSDate*)dateOfBirth;
+
+- (void)persistProfilePictureImage:(UIImage *)image;
 @end
 

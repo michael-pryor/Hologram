@@ -22,7 +22,7 @@
     KeychainItemWrapper *keychain = [[KeychainItemWrapper alloc] initWithIdentifier:@"UserUUID_HOLOGRAM" accessGroup:nil];
     NSString *existingId = [keychain objectForKey:(__bridge id) (kSecAttrAccount)];
     NSString *UUID;
-    if (existingId == nil || forceNew) {
+    if (existingId == nil || [existingId length] == 0 || forceNew) {
         // Unique ID used to identify this user going forwards.
         UUID = [[NSUUID UUID] UUIDString];
         [keychain setObject:UUID forKey:(__bridge id) (kSecAttrAccount)];

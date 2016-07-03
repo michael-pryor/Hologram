@@ -290,7 +290,7 @@
     // login is complete, because its in that view controller that the dialog box about
     // how we use the video/microphone is displayed.
     SocialState *socialState = [SocialState getSocialInstance];
-    //[socialState updateCoreFacebookInformation];
+    //[socialState updateFromFacebookCore];
     if (![socialState isBasicDataLoaded] || ![[NSUserDefaults standardUserDefaults] boolForKey:@"permissionsExplanationShown"]) {
         [self switchToFacebookLogonView];
         return;
@@ -308,11 +308,7 @@
     [_audioResetAnalytics start];
 
     if (![socialState isDataLoaded]) {
-        [socialState registerNotifier:self];
-        [self setDisconnectStateWithShortDescription:@"Loading Facebook details" showConversationEndView:false];
-        if (![socialState updateGraphFacebookInformation]) {
-            [self switchToFacebookLogonView];
-        }
+        [self switchToFacebookLogonView];
     } else {
         [self onSocialDataLoaded:socialState];
     }
@@ -330,7 +326,7 @@
 // Triggers GPS loading.
 - (void)onSocialDataLoaded:(SocialState *)state {
     _socialState = state;
-    [state unregisterNotifier];
+
     dispatch_sync_main(^{
         [_ownerName setText:[state humanShortName]];
 

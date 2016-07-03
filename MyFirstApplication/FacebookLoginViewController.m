@@ -7,7 +7,6 @@
 //
 
 #import "FacebookLoginViewController.h"
-#import "ConnectionViewController.h"
 #import "Threading.h"
 
 @implementation FacebookLoginViewController {
@@ -21,10 +20,27 @@
 
     SocialState *_socialState;
     __weak IBOutlet UIStackView *_loadingFacebookDetailsIndicator;
+    __weak IBOutlet UIImageView *_profilePicture;
 }
 
 - (void)cancelEditingTextBoxes {
     [self.view endEditing:YES];
+}
+
+- (IBAction)onProfilePictureTap:(id)sender {
+    UIImagePickerController *imagePickerController = [[UIImagePickerController alloc] init];
+    imagePickerController.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
+    imagePickerController.delegate = self;
+    [self presentViewController:imagePickerController animated:YES completion:nil];
+}
+
+- (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info {
+    [_socialState persistProfilePictureImage:[info valueForKey:UIImagePickerControllerOriginalImage]];
+    dispatch_sync_main(^ {
+        [_profilePicture setImage:[_socialState profilePictureImage]];
+    });
+
+    [picker dismissViewControllerAnimated:YES completion:nil];
 }
 
 - (void)saveTextBoxes {
@@ -36,6 +52,7 @@
     [self cancelEditingTextBoxes];
     [self saveTextBoxes];
 }
+
 - (IBAction)onViewControllerTap:(id)sender {
     [self cancelEditingTextBoxes];
     [self saveTextBoxes];
@@ -45,11 +62,12 @@
 - (IBAction)onFinishedButtonClick:(id)sender {
     [self _switchToChatView];
 }
-- (IBAction)onSwipeGesture:(UISwipeGestureRecognizer *)recognizer  {
+
+- (IBAction)onSwipeGesture:(UISwipeGestureRecognizer *)recognizer {
     [self _switchToChatView];
 }
 
--(void)updateTextField:(UIDatePicker *)sender{
+- (void)updateTextField:(UIDatePicker *)sender {
     _dateOfBirthTextBox.text = [_dateOfBirthFormatter stringFromDate:sender.date];
 }
 
@@ -87,12 +105,13 @@
 - (IBAction)onDesiredGenderChanged:(id)sender {
     [[SocialState getSocialInstance] persistInterestedInWithSegmentIndex:[_desiredGenderChooser selectedSegmentIndex]];
 }
+
 - (IBAction)onOwnerGenderChanged:(id)sender {
     [[SocialState getSocialInstance] persistOwnerGenderWithSegmentIndex:[sender selectedSegmentIndex]];
 }
 
 - (void)_updateDisplay {
-    NSDate * dobObject = [_socialState dobObject];
+    NSDate *dobObject = [_socialState dobObject];
     if (dobObject != nil) {
         [(UIDatePicker *) [_dateOfBirthTextBox inputView] setDate:dobObject];
         [_dateOfBirthTextBox setText:[_socialState dobString]];
@@ -102,6 +121,8 @@
     _ownerGenderChooser.selectedSegmentIndex = [_socialState genderSegmentIndex];
 
     _fullNameTextBox.text = [_socialState humanFullName];
+
+    [_profilePicture setImage:[_socialState profilePictureImage]];
 }
 
 - (void)_switchToChatView {
@@ -134,15 +155,12 @@
 }
 
 - (void)onProfileUpdated:(NSNotification *)notification {
-    [[SocialState getSocialInstance] updateCoreFacebookInformation];
-    if ([[SocialState getSocialInstance] isBasicDataLoaded]) {
-        NSLog(@"Logged in");
-    } else {
-        NSLog(@"No profile information found; may be due to logout");
-    }
+    NSLog(@"Facebook profile updated notification received, updating information");
+
+    [[SocialState getSocialInstance] updateFromFacebookCore];
     [self _updateDisplay];
 
-    if (![_socialState updateGraphFacebookInformation]) {
+    if (![_socialState updateFromFacebookGraph]) {
         return;
     }
 
@@ -169,6 +187,5 @@
 
 - (void)loginButtonDidLogOut:(FBSDKLoginButton *)loginButton {
     NSLog(@"Logged out successfully");
-    [[SocialState getSocialInstance] updateCoreFacebookInformation];
 }
 @end

@@ -14,23 +14,26 @@
 #import "GenderParsing.h"
 #import "DobParsing.h"
 #import "NameParsing.h"
+#import "ImageParsing.h"
 #import <FBSDKCoreKit/FBSDKCoreKit.h>
-#import <Google/Analytics.h>
 
 const NSString *selectedGenderPreferenceKey = @"selectedGenderPreference";
 const NSString *ownerGenderKey = @"ownerGender";
 const NSString *humanFullNameKey = @"humanFullName";
 const NSString *humanShortNameKey = @"humanShortName";
 const NSString *dobKey = @"dob";
+const NSString *profilePictureKey = @"profilePicture";
+const NSString *profilePictureOrientationKey = @"profilePictureOrientation";
 
 static SocialState *instance = nil;
 
 typedef void (^Block)(id);
 
 
-
 @implementation SocialState {
     id <SocialStateDataLoadNotification> _notifier;
+
+    NSURL *_facebookProfilePictureUrl;
 }
 
 - (id)init {
@@ -83,10 +86,48 @@ typedef void (^Block)(id);
             NSLog(@"No date of birth found in storage");
         }
 
+        if ([[NSUserDefaults standardUserDefaults] objectForKey:profilePictureKey] != nil) {
+            NSData *profilePictureData = [[NSUserDefaults standardUserDefaults] objectForKey:profilePictureKey];
+            UIImageOrientation profilePictureOrientation;
+            if ([[NSUserDefaults standardUserDefaults] integerForKey:profilePictureOrientationKey] != nil) {
+                UIImageOrientation value;
+                [[[NSUserDefaults standardUserDefaults] objectForKey:profilePictureOrientationKey] getValue:&value];
+                profilePictureOrientation = value;
+            } else {
+                profilePictureOrientation = UIImageOrientationUp;
+            }
+
+            UIImage *profilePictureImage = [ImageParsing convertDataToImage:profilePictureData orientation:profilePictureOrientation];
+
+            [self persistProfilePictureImage:profilePictureImage prepareImage:false saving:false];
+            NSLog(@"Loaded profile picture from storage, bytes: %d", [profilePictureData length]);
+        } else {
+            NSLog(@"No profile picture found in storage");
+        }
+
         _persistedUniqueId = [UniqueId pullUUID];
         [Analytics updateAnalyticsUser:_persistedUniqueId];
     }
     return self;
+}
+
+
+- (void)persistProfilePictureImage:(UIImage *)image prepareImage:(bool)prepare saving:(bool)doSave {
+    if (image != nil && prepare) {
+        image = [ImageParsing prepareImage:image widthAndHeight:100.0f];
+    }
+    _profilePictureImage = image;
+
+    if (doSave) {
+        NSData *dataToPersist = [ImageParsing convertImageToData:image];
+        NSLog(@"Persisting profile picture image, bytes: %d", [dataToPersist length]);
+        [[NSUserDefaults standardUserDefaults] setInteger:[image imageOrientation] forKey:profilePictureOrientationKey];
+        [[NSUserDefaults standardUserDefaults] setObject:dataToPersist forKey:profilePictureKey];
+    }
+}
+
+- (void)persistProfilePictureImage:(UIImage *)image {
+    [self persistProfilePictureImage:image prepareImage:true saving:true];
 }
 
 - (void)registerNotifier:(id <SocialStateDataLoadNotification>)notifier {
@@ -101,7 +142,7 @@ typedef void (^Block)(id);
     return _isBasicDataLoaded && _isGraphDataLoaded;
 }
 
-- (void)persistHumanFullName:(NSString*)humanFullName saving:(bool)doSave {
+- (void)persistHumanFullName:(NSString *)humanFullName saving:(bool)doSave {
     _humanFullName = humanFullName;
 
     if (doSave) {
@@ -109,7 +150,7 @@ typedef void (^Block)(id);
     }
 }
 
-- (void)persistHumanShortName:(NSString*)humanShortName saving:(bool)doSave {
+- (void)persistHumanShortName:(NSString *)humanShortName saving:(bool)doSave {
     _humanShortName = humanShortName;
     _isBasicDataLoaded = _humanShortName != nil;
 
@@ -118,18 +159,18 @@ typedef void (^Block)(id);
     }
 }
 
-- (void)persistStateFromFirstName:(NSString *)firstName middleName:(NSString *)middleName lastName:(NSString *)lastName saving:(bool)doSave{
-    NSMutableString * humanFullName = [[NSMutableString alloc] init];
-    NSString * humanShortName = [NameParsing getShortNameAndBuildLongName:humanFullName firstName:firstName middleName:middleName lastName:lastName];
+- (void)persistStateFromFirstName:(NSString *)firstName middleName:(NSString *)middleName lastName:(NSString *)lastName saving:(bool)doSave {
+    NSMutableString *humanFullName = [[NSMutableString alloc] init];
+    NSString *humanShortName = [NameParsing getShortNameAndBuildLongName:humanFullName firstName:firstName middleName:middleName lastName:lastName];
     [self persistHumanFullName:humanFullName saving:doSave];
     [self persistHumanShortName:humanShortName saving:doSave];
 }
 
-- (void)persistDateOfBirthObject:(NSDate*)dateOfBirth saving:(bool)doSave {
+- (void)persistDateOfBirthObject:(NSDate *)dateOfBirth saving:(bool)doSave {
     [self persistDateOfBirth:[DobParsing getDateStringFromDateObject:dateOfBirth] saving:doSave];
 }
 
-- (void)persistDateOfBirth:(NSString*)dateOfBirth saving:(bool)doSave {
+- (void)persistDateOfBirth:(NSString *)dateOfBirth saving:(bool)doSave {
     _dobString = dateOfBirth;
     _dobObject = [DobParsing getDateObjectFromString:_dobString];
     _age = [DobParsing getAgeFromDateObject:_dobObject];
@@ -139,12 +180,12 @@ typedef void (^Block)(id);
     }
 }
 
-- (void)persistHumanFullName:(NSString*)humanFullName humanShortName:(NSString*)humanShortName {
+- (void)persistHumanFullName:(NSString *)humanFullName humanShortName:(NSString *)humanShortName {
     [self persistHumanFullName:humanFullName saving:true];
     [self persistHumanShortName:humanShortName saving:true];
 }
 
-- (void)persistDateOfBirthObject:(NSDate*)dateOfBirth {
+- (void)persistDateOfBirthObject:(NSDate *)dateOfBirth {
     [self persistDateOfBirthObject:dateOfBirth saving:true];
 }
 
@@ -158,9 +199,11 @@ typedef void (^Block)(id);
     _age = 0;
     _isBasicDataLoaded = false;
     _isGraphDataLoaded = false;
+    _facebookProfilePictureUrl = nil;
+    _profilePictureImage = nil;
 }
 
-- (bool)updateCoreFacebookInformation {
+- (bool)updateFromFacebookCore {
     // It is possible for the two conditions to be disjoint i.e. profile to be non nil while access token is nil.
     // That is why we check both, because graph API requires token.
     FBSDKProfile *profile = nil;
@@ -175,13 +218,12 @@ typedef void (^Block)(id);
 
         NSLog(@"Facebook state not ready yet, please request details from user");
         return false;
+    } else {
+        CGSize size;
+        size.width = 100;
+        size.height = 100;
+        _facebookProfilePictureUrl = [profile imageURLForPictureMode:FBSDKProfilePictureModeSquare size:size];
     }
-
-    /*
-    CGSize size;
-    size.width = 100;
-    size.height = 100;
-    NSURL *profilePictureUrl = [profile imageURLForPictureMode:FBSDKProfilePictureModeSquare size:size];*/
 
     [self persistStateFromFirstName:[profile firstName] middleName:[profile middleName] lastName:[profile lastName] saving:true];
     return true;
@@ -210,7 +252,7 @@ typedef void (^Block)(id);
     [self persistOwnerGenderWithSegmentIndex:segmentIndex saving:true];
 }
 
-- (void)setOwnerGenderWithString:(NSString*)genderString saving:(bool)doSave {
+- (void)setOwnerGenderWithString:(NSString *)genderString saving:(bool)doSave {
     _genderString = genderString;
     _genderEnum = [GenderParsing parseGenderString:genderString];
     _genderSegmentIndex = [GenderParsing parseGenderStringToSegmentIndex:genderString];
@@ -228,7 +270,7 @@ typedef void (^Block)(id);
     [self setOwnerGenderWithString:gender saving:doSave];
 }
 
-- (bool)updateGraphFacebookInformation {
+- (bool)updateFromFacebookGraph {
     if (![FBSDKAccessToken currentAccessToken]) {
         NSLog(@"Core Facebook information not loaded!");
         return false;
@@ -260,14 +302,14 @@ typedef void (^Block)(id);
                 return;
             }
 
-            NSString* dob = [result objectForKey:@"birthday"];
+            NSString *dob = [result objectForKey:@"birthday"];
             if (dob == nil) {
                 NSLog(@"Failed to retrieve date of birth from Facebook API");
             } else {
                 [self persistDateOfBirth:dob saving:true];
             }
 
-            NSString * gender = [result objectForKey:@"gender"];
+            NSString *gender = [result objectForKey:@"gender"];
             if (gender == nil) {
                 NSLog(@"Failed to retrieve gender from Facebook graph API");
             } else {
@@ -277,6 +319,14 @@ typedef void (^Block)(id);
             NSLog(@"Loaded DOB: [%@], gender: [%@] from Facebook graph API", dob, _genderString);
             _isGraphDataLoaded = true;
             [[Analytics getInstance] pushTimer:fbGraphRequestTimer withCategory:@"setup" name:@"facebook_graph"];
+
+            if (_facebookProfilePictureUrl != nil) {
+                // This is synchronous.
+                NSData *imageData = [[NSData alloc] initWithContentsOfURL:_facebookProfilePictureUrl];
+                UIImage *image = [UIImage imageWithData:imageData];
+                [self persistProfilePictureImage:image];
+            }
+
             if (_notifier != nil) {
                 [_notifier onSocialDataLoaded:self];
             }
@@ -289,12 +339,6 @@ typedef void (^Block)(id);
 
     return true;
 }
-
-- (bool)update {
-    [self updateCoreFacebookInformation];
-    return [self updateGraphFacebookInformation];
-}
-
 
 + (SocialState *)getSocialInstance {
     @synchronized (self) {

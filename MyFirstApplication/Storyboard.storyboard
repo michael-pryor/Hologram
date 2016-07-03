@@ -105,21 +105,28 @@
                                                                     <view contentMode="scaleToFill" horizontalHuggingPriority="1000" verticalHuggingPriority="1000" translatesAutoresizingMaskIntoConstraints="NO" id="Mxc-Te-d1o">
                                                                         <rect key="frame" x="0.0" y="20" width="560" height="150"/>
                                                                         <subviews>
-                                                                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="sAf-49-hoe" customClass="FBSDKProfilePictureView">
+                                                                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="jbg-NM-iFo">
                                                                                 <rect key="frame" x="0.0" y="0.0" width="150" height="150"/>
-                                                                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                                                                <gestureRecognizers/>
                                                                                 <constraints>
-                                                                                    <constraint firstAttribute="width" secondItem="sAf-49-hoe" secondAttribute="height" multiplier="1:1" id="1z6-Ge-vkc"/>
+                                                                                    <constraint firstAttribute="width" secondItem="jbg-NM-iFo" secondAttribute="height" multiplier="1:1" id="dgK-az-thq"/>
                                                                                 </constraints>
-                                                                            </view>
+                                                                                <connections>
+                                                                                    <outletCollection property="gestureRecognizers" destination="sRe-G9-trh" appends="YES" id="dQB-aQ-RvA"/>
+                                                                                </connections>
+                                                                            </imageView>
                                                                         </subviews>
                                                                         <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                                                        <gestureRecognizers/>
                                                                         <constraints>
+                                                                            <constraint firstItem="jbg-NM-iFo" firstAttribute="leading" secondItem="Mxc-Te-d1o" secondAttribute="leading" id="6o1-jS-vEl"/>
                                                                             <constraint firstAttribute="height" constant="150" id="AUu-QQ-sql"/>
-                                                                            <constraint firstItem="sAf-49-hoe" firstAttribute="height" secondItem="Mxc-Te-d1o" secondAttribute="height" id="F5w-Le-wjE"/>
-                                                                            <constraint firstItem="sAf-49-hoe" firstAttribute="centerY" secondItem="Mxc-Te-d1o" secondAttribute="centerY" id="TVV-Nl-bS0"/>
-                                                                            <constraint firstItem="sAf-49-hoe" firstAttribute="leading" secondItem="Mxc-Te-d1o" secondAttribute="leading" id="VOL-E6-l6U"/>
+                                                                            <constraint firstItem="jbg-NM-iFo" firstAttribute="top" secondItem="Mxc-Te-d1o" secondAttribute="top" id="KUO-Ys-QiS"/>
+                                                                            <constraint firstItem="jbg-NM-iFo" firstAttribute="height" secondItem="Mxc-Te-d1o" secondAttribute="height" id="iOx-rz-4FN"/>
                                                                         </constraints>
+                                                                        <connections>
+                                                                            <outletCollection property="gestureRecognizers" destination="sRe-G9-trh" appends="YES" id="bm3-JT-hPc"/>
+                                                                        </connections>
                                                                     </view>
                                                                 </subviews>
                                                                 <constraints>
@@ -254,7 +261,7 @@
                         <outlet property="_fullNameTextBox" destination="tMk-MI-Q0h" id="LFG-NS-rfh"/>
                         <outlet property="_loadingFacebookDetailsIndicator" destination="MQe-Cu-Rp6" id="xpX-uY-E5q"/>
                         <outlet property="_ownerGenderChooser" destination="KYx-SZ-3Ck" id="aZs-A8-i1e"/>
-                        <outlet property="displayPicture" destination="sAf-49-hoe" id="MHP-vG-hzY"/>
+                        <outlet property="_profilePicture" destination="jbg-NM-iFo" id="ADA-rj-jEq"/>
                         <outlet property="loginButton" destination="vn7-7t-VXi" id="ddF-9e-uZo"/>
                     </connections>
                 </viewController>
@@ -267,6 +274,11 @@
                 <tapGestureRecognizer id="4bH-uz-cOZ">
                     <connections>
                         <action selector="onViewControllerTap:" destination="HPd-0g-j2K" id="Uqc-yP-WyJ"/>
+                    </connections>
+                </tapGestureRecognizer>
+                <tapGestureRecognizer id="sRe-G9-trh">
+                    <connections>
+                        <action selector="onProfilePictureTap:" destination="HPd-0g-j2K" id="A0h-Hb-DWi"/>
                     </connections>
                 </tapGestureRecognizer>
             </objects>
