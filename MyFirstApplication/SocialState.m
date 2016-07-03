@@ -110,9 +110,6 @@ typedef void (^Block)(id);
         } else {
             NSLog(@"No previous calling card text found in storage");
         }
-
-        _persistedUniqueId = [UniqueId pullUUID];
-        [Analytics updateAnalyticsUser:_persistedUniqueId];
     }
     return self;
 }
@@ -190,7 +187,6 @@ typedef void (^Block)(id);
 - (void)reset {
     _humanFullName = nil;
     _humanShortName = nil;
-    _persistedUniqueId = nil;
     _genderSegmentIndex = UISegmentedControlNoSegment;
     _genderEnum = 0;
     _genderString = nil;

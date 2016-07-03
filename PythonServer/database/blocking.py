@@ -14,14 +14,14 @@ class Blocking(object):
         #assert isinstance(clientA, Client)
         #assert isinstance(clientB, Client)
 
-        clientFacebookIdA = clientA.login_details.facebook_id
-        clientFacebookIdB = clientB.login_details.facebook_id
+        clientSocialIdA = clientA.login_details.persisted_unique_id
+        clientSocialIdB = clientB.login_details.persisted_unique_id
 
-        queryA = { "blockerFacebookId" : clientFacebookIdA,
-                   "blockedFacebookId" : clientFacebookIdB }
+        queryA = { "blockerSocialId" : clientSocialIdA,
+                   "blockedSocialId" : clientSocialIdB }
 
-        queryB = {"blockerFacebookId": clientFacebookIdB,
-                  "blockedFacebookId": clientFacebookIdA}
+        queryB = {"blockerSocialId": clientSocialIdB,
+                  "blockedSocialId": clientSocialIdA}
 
         try:
             item = self.block_collection.find_one(queryA)
@@ -44,16 +44,16 @@ class Blocking(object):
         #assert isinstance(blockerClient, Client)
         #assert isinstance(blockedClient, Client)
 
-        blockerFacebookId = blockerClient.login_details.facebook_id
-        blockedFacebookId = blockedClient.login_details.facebook_id
+        blockerSocialId = blockerClient.login_details.persisted_unique_id
+        blockedSocialId = blockedClient.login_details.persisted_unique_id
 
-        self.block_collection.create_index([("blockerFacebookId", pymongo.ASCENDING),
-                                            ("blockedFacebookId", pymongo.ASCENDING)])
+        self.block_collection.create_index([("blockerSocialId", pymongo.ASCENDING),
+                                            ("blockedSocialId", pymongo.ASCENDING)])
 
-        recordToInsert = {"blockerFacebookId" : blockerFacebookId,
-                          "blockedFacebookId" : blockedFacebookId}
+        recordToInsert = {"blockerSocialId" : blockerSocialId,
+                          "blockedSocialId" : blockedSocialId}
 
-        logger.debug("Writing block record to DB for facebook ID: [%s] and [%s]" % (blockerFacebookId, blockedFacebookId))
+        logger.debug("Writing block record to DB for social ID: [%s] and [%s]" % (blockerSocialId, blockedSocialId))
         self.block_collection.insert_one(recordToInsert)
 
     def listItems(self):

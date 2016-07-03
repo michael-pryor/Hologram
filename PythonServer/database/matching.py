@@ -32,9 +32,9 @@ class Matching(object):
         assert isinstance(client, Client)
         loginDetails = client.login_details
 
-        # Note that age can be 0 here if user does not want to disclose via facebook. We should handle this case.
+        # Note that age can be 0 here if user does not want to disclose via social. We should handle this case.
 
-        # Gender can be 0 here if user does not want to disclose via facebook. We handle this by saying that users
+        # Gender can be 0 here if user does not want to disclose via social. We handle this by saying that users
         # not specifying gender can match people looking for either male, female or who do not care. We do not
         # specify a specific gender.
         matchWithGenderWanted = [3]

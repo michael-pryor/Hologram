@@ -12,6 +12,7 @@
 #import "Timer.h"
 #import "NetworkOperations.h"
 #import "BannedViewController.h"
+#import "UniqueId.h"
 
 // Session hash has timed out, you need a fresh session.
 #define REJECT_HASH_TIMEOUT 1
@@ -24,6 +25,9 @@
 
 // Payment could not be verified.
 #define REJECT_KARMA_REGENERATION_FAILED 4
+
+// Need a new persisted ID, because the one we generated is already in use by someone else.
+#define PERSISTED_ID_CLASH 5
 
 // Version to include in connection attempts.
 // Must be >= to server's expectation, otherwise we'l be rejected.
@@ -295,6 +299,10 @@
     if (rejectCode == REJECT_HASH_TIMEOUT) {
         [self terminateWithConnectionStatus:P_NOT_CONNECTED_HASH_REJECTED withDescription:@"Session expired"];
         [self reconnectLimitedWithFailureDescription:rejectDescription];
+    } else if (rejectCode == PERSISTED_ID_CLASH) {
+        [self terminateWithConnectionStatus:P_NOT_CONNECTED_HASH_REJECTED withDescription:@"Persisted ID is already in use"];
+        [[UniqueId getUniqueIdInstance] refreshUUID];
+        [self reconnectLimitedWithFailureDescription:rejectDescription];
     } else if (rejectCode == REJECT_BAD_VERSION) {
         [self disableReconnecting];
         if (_exitDialogShown) {
@@ -349,6 +357,9 @@
         if (_connectionStatus != P_CONNECTED) {
             if (_connectionStatus == P_WAITING_FOR_TCP_LOGON_ACK) {
                 if (logon == OP_ACCEPT_LOGON) {
+                    // UUID must be valid now.
+                    [[UniqueId getUniqueIdInstance] onValidatedUUID];
+
                     NSLog(@"Login accepted, sending UDP hash packet with hash: %@", _udpHash);
                     _isNewSession = _udpHash == nil;
                     if (_isNewSession) {

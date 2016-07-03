@@ -8,6 +8,7 @@
 
 #import "HologramLogin.h"
 #import "SocialState.h"
+#import "UniqueId.h"
 
 @implementation HologramLogin {
     GpsState *_gpsState;
@@ -26,9 +27,16 @@
     ByteBuffer *buffer = [[ByteBuffer alloc] init];
     {
         SocialState *state = [SocialState getSocialInstance];
-        [buffer addString:[state persistedUniqueId]];
-      //  [buffer addString:[[state facebookUrl] absoluteString]];
-      //  [buffer addString:[[state facebookProfilePictureUrl] absoluteString]];
+
+        uint8_t isNewFlag;
+        if([[UniqueId getUniqueIdInstance] isValidatedUUID]) {
+            isNewFlag = 0;
+        } else {
+            isNewFlag = 1;
+        }
+
+        [buffer addUnsignedInteger8:isNewFlag];
+        [buffer addString:[[UniqueId getUniqueIdInstance] getUUID]];
         [buffer addString:[state humanFullName]];
         [buffer addString:[state humanShortName]];
         [buffer addUnsignedInteger:[state age]];

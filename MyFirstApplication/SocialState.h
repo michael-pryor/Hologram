@@ -16,7 +16,6 @@
 @interface SocialState : NSObject
 @property(readonly) Boolean isBasicDataLoaded;
 @property(readonly) Boolean isGraphDataLoaded;
-@property(readonly) NSString *persistedUniqueId;
 
 @property(readonly) NSString *humanFullName;
 @property(readonly) NSString *humanShortName;

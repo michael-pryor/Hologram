@@ -302,6 +302,9 @@
                                     <constraint firstItem="QWm-My-dkg" firstAttribute="bottom" secondItem="4wH-yf-2Sq" secondAttribute="bottom" id="qVH-2i-jxZ"/>
                                     <constraint firstItem="QWm-My-dkg" firstAttribute="top" secondItem="4wH-yf-2Sq" secondAttribute="topMargin" id="u0L-OE-nKw"/>
                                 </constraints>
+                                <connections>
+                                    <outlet property="delegate" destination="HPd-0g-j2K" id="VIf-pk-NGc"/>
+                                </connections>
                             </scrollView>
                         </subviews>
                         <color key="backgroundColor" red="0.5490196078431373" green="1" blue="0.93725490196078431" alpha="1" colorSpace="calibratedRGB"/>
@@ -326,6 +329,7 @@
                         <outlet property="_loadingFacebookDetailsIndicator" destination="shK-0J-Eyy" id="3qe-sM-Fb9"/>
                         <outlet property="_ownerGenderChooser" destination="KYx-SZ-3Ck" id="aZs-A8-i1e"/>
                         <outlet property="_profilePicture" destination="jbg-NM-iFo" id="ADA-rj-jEq"/>
+                        <outlet property="_scrollView" destination="4wH-yf-2Sq" id="cq7-iK-Z6k"/>
                         <outlet property="loginButton" destination="vn7-7t-VXi" id="ddF-9e-uZo"/>
                     </connections>
                 </viewController>

@@ -6,9 +6,13 @@
 
 
 @interface UniqueId : NSObject
-+ (NSString *)pullUUID;
+- (NSString *)getUUID;
 
-+ (NSString*)refreshUUID;
+- (NSString*)refreshUUID;
 
-+ (NSString *)pullUUIDForcingNew:(bool)forceNew;
+- (bool)isValidatedUUID;
+
+- (void)onValidatedUUID;
+
++ (UniqueId *)getUniqueIdInstance;
 @end

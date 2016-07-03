@@ -14,8 +14,8 @@ class Karma(object):
     def getKarmaDeduction(self, client):
         #assert isinstance(client, Client)
 
-        clientFacebookId = client.login_details.facebook_id
-        query = { "facebookId" : clientFacebookId }
+        clientSocialId = client.login_details.persisted_unique_id
+        query = { "socialId" : clientSocialId }
         try:
             item = self.karma_collection.find(query)
             if item is None:
@@ -28,8 +28,8 @@ class Karma(object):
     def getKarmaDeductionAndExpirationTime(self, client):
         # assert isinstance(client, Client)
 
-        clientFacebookId = client.login_details.facebook_id
-        query = {"facebookId": clientFacebookId}
+        clientSocialId = client.login_details.persisted_unique_id
+        query = {"socialId": clientSocialId}
         try:
             cursor = self.karma_collection.find(query, sort=[("date", pymongo.ASCENDING)])
             if cursor is None:
@@ -61,9 +61,9 @@ class Karma(object):
 
         #assert isinstance(client, Client)
 
-        clientFacebookId = client.login_details.facebook_id
+        clientSocialId = client.login_details.persisted_unique_id
 
-        self.karma_collection.create_index([("facebookId", pymongo.ASCENDING),("date", pymongo.ASCENDING)])
+        self.karma_collection.create_index([("socialId", pymongo.ASCENDING),("date", pymongo.ASCENDING)])
 
         attempts= 0
         while attempts < 2:
@@ -77,36 +77,36 @@ class Karma(object):
 
         utcNow = datetime.utcnow()
 
-        recordToInsert = {"facebookId" : clientFacebookId,
+        recordToInsert = {"socialId" : clientSocialId,
                           "date": utcNow } # For TTL removing.
 
-        logger.debug("Writing karma deduction to database for Facebook ID: [%s]" % (clientFacebookId))
+        logger.debug("Writing karma deduction to database for Social ID: [%s]" % (clientSocialId))
         self.karma_collection.insert_one(recordToInsert)
 
         # If we want all records to have the latest timestamp.
         if self.should_link_times:
-            self.karma_collection.update({"facebookId" : clientFacebookId}, {'$set' : {"date": utcNow}}, multi=True)
+            self.karma_collection.update({"socialId" : clientSocialId}, {'$set' : {"date": utcNow}}, multi=True)
 
     def clearKarma(self, client):
         if client is None:
             return
 
         #assert isinstance(client, Client)
-        clientFacebookId = client.login_details.facebook_id
+        clientSocialId = client.login_details.persisted_unique_id
 
-        self.karma_collection.remove({"facebookId" : clientFacebookId})
+        self.karma_collection.remove({"socialId" : clientSocialId})
 
     def incrementKarma(self, client):
         if client is None:
             return
 
         #assert isinstance(client, Client)
-        clientFacebookId = client.login_details.facebook_id
+        clientSocialId = client.login_details.persisted_unique_id
 
-        logger.debug("Incrementing karma for Facebook ID: %s" % clientFacebookId)
-        record = self.karma_collection.find_one_and_delete({"facebookId": clientFacebookId}, sort=[("date", pymongo.ASCENDING)])
+        logger.debug("Incrementing karma for Social ID: %s" % clientSocialId)
+        record = self.karma_collection.find_one_and_delete({"socialId": clientSocialId}, sort=[("date", pymongo.ASCENDING)])
         if record is None:
-            logger.debug("Failed to increment karma, could not find any records for Facebook ID: %s" % clientFacebookId)
+            logger.debug("Failed to increment karma, could not find any records for Social ID: %s" % clientSocialId)
 
     def listItems(self):
         for item in self.karma_collection.find():

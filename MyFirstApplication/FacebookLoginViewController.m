@@ -10,9 +10,10 @@
 #import "Threading.h"
 #import "DobParsing.h"
 
+static CGFloat _lastScrollViewPosition;
+
 @implementation FacebookLoginViewController {
     IBOutlet UISegmentedControl *_desiredGenderChooser;
-    __weak IBOutlet UIImageView *_buttonDone;
     __weak IBOutlet UITextField *_dateOfBirthTextBox;
 
     __weak IBOutlet UITextField *_fullNameTextBox;
@@ -22,6 +23,14 @@
     __weak IBOutlet UIStackView *_loadingFacebookDetailsIndicator;
     __weak IBOutlet UIImageView *_profilePicture;
     __weak IBOutlet UITextView *_callingCardText;
+
+    __weak IBOutlet UIScrollView *_scrollView;
+}
+
++ (void)initialize {
+    if (self == [FacebookLoginViewController class]) {
+        _lastScrollViewPosition = 0;
+    }
 }
 
 - (void)cancelEditingTextBoxes {
@@ -52,6 +61,10 @@
     [_socialState persistCallingCardText:[NSString stringWithFormat:@"%@",[_callingCardText text]]];
 }
 
+-(void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView {
+    _lastScrollViewPosition = scrollView.contentOffset.y;
+}
+
 - (IBAction)onTextBoxDonePressed:(id)sender {
     [self cancelEditingTextBoxes];
     [self saveTextBoxes];
@@ -78,18 +91,22 @@
     [super viewDidLoad];
 
     self.screenName = @"FacebookLogin";
-
     [_loadingFacebookDetailsIndicator setHidden:true];
 
     _socialState = [SocialState getSocialInstance];
     [_socialState registerNotifier:self];
-
+    
+    [_scrollView setContentOffset: CGPointMake(0,_lastScrollViewPosition)];
+    
     _dateOfBirthDatePicker = [[UIDatePicker alloc] init]; // needs to be retained.
     _dateOfBirthDatePicker.datePickerMode = UIDatePickerModeDate;
     [_dateOfBirthTextBox setInputView:_dateOfBirthDatePicker];
     [_dateOfBirthDatePicker addTarget:self action:@selector(updateTextField:)
                      forControlEvents:UIControlEventValueChanged];
     [_dateOfBirthTextBox setInputView:_dateOfBirthDatePicker];
+
+    [_profilePicture.layer setBorderColor: [[UIColor blackColor] CGColor]];
+    [_profilePicture.layer setBorderWidth: 2.0];
 
     [FBSDKProfile enableUpdatesOnAccessTokenChange:true];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onProfileUpdated:) name:FBSDKProfileDidChangeNotification object:nil];

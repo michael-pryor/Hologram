@@ -18,6 +18,7 @@
 #import "Analytics.h"
 #import "BannedViewController.h"
 #import "FacebookSharedViewController.h"
+#import "UniqueId.h"
 
 @implementation ConnectionViewController {
     // Connection
@@ -339,7 +340,7 @@
         }
 
         [self setDisconnectStateWithShortDescription:@"Loading payments information" showConversationEndView:false];
-        [_payments queryProducts:[state persistedUniqueId]];
+        [_payments queryProducts:[[UniqueId getUniqueIdInstance] getUUID]];
     });
 }
 
@@ -785,7 +786,7 @@
             NSString *remoteProfileUrl = [packet getString];
             NSString *remoteFullName = [packet getString];
 
-            NSString *localFacebookId = [_socialState persistedUniqueId];
+            NSString *localFacebookId = nil;
             NSString *localFullName = [_socialState humanFullName];
 
             UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Storyboard" bundle:nil];

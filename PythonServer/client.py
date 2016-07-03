@@ -11,6 +11,7 @@ from database.blocking import Blocking
 import uuid
 import random
 from database.karma_leveled import KarmaLeveled
+from database.persisted_ids import PersistedIds
 
 __author__ = 'pryormic'
 
@@ -57,9 +58,9 @@ class Client(object):
 
         OP_RATING = 9 # give a rating of the previous conversation.
 
-        OP_SHARE_FACEBOOK_INFORMATION_PAYLOAD = 11
+        OP_SHARE_SOCIAL_INFORMATION_PAYLOAD = 11
 
-        OP_SHARE_FACEBOOK_INFORMATION = 12
+        OP_SHARE_SOCIAL_INFORMATION = 12
 
     class RejectCodes:
         SUCCESS = 0
@@ -67,6 +68,7 @@ class Client(object):
         REJECT_VERSION = 2
         REJECT_BANNED = 3
         KARMA_REGENERATION_FAILED = 4
+        PERSISTED_ID_CLASH = 5
 
     class ConversationRating:
         OKAY = 0
@@ -75,12 +77,10 @@ class Client(object):
         GOOD = 3
 
     class LoginDetails(object):
-        def __init__(self, uniqueId, facebookId, facebookUrl, facebookProfilePictureUrl, name, shortName, age, gender, interestedIn, longitude, latitude):
+        def __init__(self, uniqueId, persistedUniqueId, name, shortName, age, gender, interestedIn, longitude, latitude):
             super(Client.LoginDetails, self).__init__()
             self.unique_id = uniqueId
-            self.facebook_id = facebookId
-            self.facebook_url = facebookUrl
-            self.facebook_profile_picture_url = facebookProfilePictureUrl
+            self.persisted_unique_id = persistedUniqueId
             self.name = name
             self.short_name = shortName
             self.age = age
@@ -89,11 +89,9 @@ class Client(object):
             self.longitude = longitude
             self.latitude = latitude
 
-            self.facebook_share_information_packet = ByteBuffer()
-            self.facebook_share_information_packet.addUnsignedInteger8(Client.TcpOperationCodes.OP_SHARE_FACEBOOK_INFORMATION_PAYLOAD)
-            self.facebook_share_information_packet.addString(self.facebook_id)
-            self.facebook_share_information_packet.addString(self.facebook_url)
-            self.facebook_share_information_packet.addString(self.name)
+            self.social_share_information_packet = ByteBuffer()
+            self.social_share_information_packet.addUnsignedInteger8(Client.TcpOperationCodes.OP_SHARE_SOCIAL_INFORMATION_PAYLOAD)
+            self.social_share_information_packet.addString(self.name)
 
         def __hash__(self):
             return hash(self.unique_id)
@@ -126,17 +124,18 @@ class Client(object):
 
     @classmethod
     def buildDummy(cls):
-        item = cls(None, ClientTcp(namedtuple('Address', ['host', 'port'], verbose=False)), None, None, None, None)
+        item = cls(None, ClientTcp(namedtuple('Address', ['host', 'port'], verbose=False)), None, None, None, None, None, None, None)
         fbId = str(uuid.uuid4())
-        item.login_details = Client.LoginDetails(str(uuid.uuid4()), fbId, "www.facebook.com/%s" % fbId, "Mike P", "Mike", random.randint(18, 30),
+        item.login_details = Client.LoginDetails(str(uuid.uuid4()), fbId, "Mike P", "Mike", random.randint(18, 30),
                                                         random.randint(1, 2), random.randint(1, 3),
                                                         random.randint(0, 180), random.randint(0, 90))
         return item
 
-    def __init__(self, reactor, tcp, onCloseFunc, udpConnectionLinker, house, blockingDatabase, karmaDatabase, paymentVerifier):
+    def __init__(self, reactor, tcp, onCloseFunc, udpConnectionLinker, house, blockingDatabase, karmaDatabase, paymentVerifier, persistedIdsVerifier):
         super(Client, self).__init__()
         assert isinstance(tcp, ClientTcp)
         #assert isinstance(paymentVerifier, Payments)
+        assert isinstance(persistedIdsVerifier, PersistedIds)
 
         if blockingDatabase is not None:
             assert isinstance(blockingDatabase, Blocking)
@@ -158,6 +157,7 @@ class Client(object):
 
         self.last_received_data = None
         self.payment_verifier = paymentVerifier
+        self.persisted_ids_verifier = persistedIdsVerifier
 
 
         def timeoutCheck():
@@ -188,19 +188,19 @@ class Client(object):
 
         self.karma_database = karmaDatabase
 
-        # Need FacebookID in order to do lookup, so preset with default value.
+        # Need SocialID in order to do lookup, so preset with default value.
         self.karma_rating = KarmaLeveled.KARMA_MAXIMUM
 
-        self.has_shared_facebook_information = False
+        self.has_shared_social_information = False
 
-    def notifyFacebookInformationShared(self):
+    def notifySocialInformationShared(self):
         packet = ByteBuffer()
-        packet.addUnsignedInteger8(Client.TcpOperationCodes.OP_SHARE_FACEBOOK_INFORMATION)
+        packet.addUnsignedInteger8(Client.TcpOperationCodes.OP_SHARE_SOCIAL_INFORMATION)
         self.tcp.sendByteBuffer(packet)
 
-    def shareFacebookInformationWith(self, destinationClient):
+    def shareSocialInformationWith(self, destinationClient):
         assert isinstance(destinationClient, Client)
-        destinationClient.tcp.sendByteBuffer(self.login_details.facebook_share_information_packet)
+        destinationClient.tcp.sendByteBuffer(self.login_details.social_share_information_packet)
 
     def isConnectedTcp(self):
         return self.connection_status != Client.ConnectionStatus.NOT_CONNECTED
@@ -263,9 +263,12 @@ class Client(object):
             return Client.RejectCodes.REJECT_VERSION, rejectText, None, None
 
         # See hologram login on app side.
-        facebookId = packet.getString()
-        facebookUrl = packet.getString()
-        facebookProfilePictureUrl = packet.getString()
+        isNewId = packet.getUnsignedInteger8()
+        persistedUniqueId = packet.getString()
+
+        if persistedUniqueId is None or (isNewId and not self.persisted_ids_verifier.validateId(persistedUniqueId)):
+            return Client.RejectCodes.PERSISTED_ID_CLASH, "ID already in use", None, None
+
         fullName = packet.getString()
         shortName = packet.getString()
         age = packet.getUnsignedInteger()
@@ -281,7 +284,7 @@ class Client(object):
         if karmaRegenerationReceipt.used_size == 0:
             karmaRegenerationReceipt = None
 
-        self.login_details = Client.LoginDetails(self.udp_hash, facebookId, facebookUrl, facebookProfilePictureUrl, fullName, shortName, age, gender, interestedIn, longitude, latitude)
+        self.login_details = Client.LoginDetails(self.udp_hash, persistedUniqueId, fullName, shortName, age, gender, interestedIn, longitude, latitude)
 
         banMagnitude, banTime = self.karma_database.getBanMagnitudeAndExpirationTime(self)
         if banTime is not None and karmaRegenerationReceipt is None:
@@ -363,15 +366,15 @@ class Client(object):
 
         self.onFriendlyPacketUdp(packet)
 
-    def onFacebookInformationShared(self, destinationClient):
+    def onSocialInformationShared(self, destinationClient):
         assert isinstance(destinationClient, Client)
 
-        self.has_shared_facebook_information = True
-        if not destinationClient.has_shared_facebook_information:
+        self.has_shared_social_information = True
+        if not destinationClient.has_shared_social_information:
             return
 
 
-        sourceClient.login_details.facebook_profile_picture_url
+        sourceClient.login_details.social_profile_picture_url
 
     def onFriendlyPacketTcp(self, packet):
         assert isinstance(packet, ByteBuffer)
@@ -399,8 +402,8 @@ class Client(object):
             logger.debug("Client [%s] has permanently disconnected with immediate impact" % self)
             self.house.releaseRoom(self, self.house.disconnected_permanent)
             self.closeConnection()
-        elif opCode == Client.TcpOperationCodes.OP_SHARE_FACEBOOK_INFORMATION:
-            self.house.shareFacebookInformation(self)
+        elif opCode == Client.TcpOperationCodes.OP_SHARE_SOCIAL_INFORMATION:
+            self.house.shareSocialInformation(self)
         else:
             # Must be debug in case rogue client sends us garbage data
             logger.debug("Unknown TCP packet received from client [%s]" % self)
