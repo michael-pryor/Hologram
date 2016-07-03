@@ -126,15 +126,14 @@ class House:
     def shareSocialInformation(self, sourceClient):
         self.house_lock.acquire()
         try:
-            # Even if not matched with anyone, still set to true, because there's no ack/nack system in place,
-            # so client's GUI will show as if their information is shared. This is okay, means next share
-            # will go through which is what client expects.
-            sourceClient.has_shared_social_information = True
+            if sourceClient.has_shared_social_information:
+                return
 
             clientB = self.room_participant.get(sourceClient)
             if clientB is None:
                 return
 
+            sourceClient.has_shared_social_information = True
             hasOtherClientShared = clientB.has_shared_social_information
         finally:
             self.house_lock.release()

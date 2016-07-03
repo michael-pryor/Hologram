@@ -200,7 +200,14 @@ class Client(object):
 
     def shareSocialInformationWith(self, destinationClient):
         assert isinstance(destinationClient, Client)
+
+        # If both shared calling cards with each other, then at end of conversation will not get a chance to rate,
+        # will skip straight to the calling cards screen, but logically if they shared calling card information with each
+         # other then they probably do like each other.
+        destinationClient.handleRating(Client.ConversationRating.GOOD)
+
         destinationClient.tcp.sendByteBuffer(self.social_share_information_packet)
+
 
     def isConnectedTcp(self):
         return self.connection_status != Client.ConnectionStatus.NOT_CONNECTED
@@ -534,6 +541,7 @@ class Client(object):
         self.started_waiting_for_match_timer = None
         self.has_shared_social_information = False
         self.social_share_information_packet = None
+        self.client_from_previous_conversation = None
 
     def clearKarma(self):
         self.karma_database.clearKarma(self)
