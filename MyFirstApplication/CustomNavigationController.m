@@ -28,7 +28,7 @@
 - (void)pushViewController:(UIViewController *)viewController animated:(BOOL)animated {
     if (animated) {
         NSString *identifier = [viewController restorationIdentifier];
-        if ([@"BannedViewController" isEqualToString:identifier]) {
+        if ([@"BannedViewController" isEqualToString:identifier] || [@"FacebookSharedViewController" isEqualToString:identifier] ) {
             [self prepareAnimationForView:self.view pushing:false];
         } else {
             [self prepareAnimationForView:self.view pushing:true];

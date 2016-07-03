@@ -107,9 +107,13 @@
 
     __weak IBOutlet UIImageView *_remoteFacebookLiked;
     __weak IBOutlet UIImageView *_localFacebookLiked;
-    bool _facebookLiked;
+
+    FacebookSharedViewController *_facebookSharedViewController;
 
     SocialState *_socialState;
+    __weak IBOutlet UIButton *_backButton;
+    __weak IBOutlet UIButton *_forwardsButton;
+    UIColor * _buttonsStartingColour;
 }
 
 // View initially load; happens once per process.
@@ -117,8 +121,10 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
 
+    _buttonsStartingColour = [_forwardsButton titleColorForState:UIControlStateNormal];
+
     _hasHadAtLeastOneConversation = false;
-    _facebookLiked = false;
+    _facebookSharedViewController = nil;
 
     _socialState = nil;
 
@@ -411,11 +417,24 @@
     });
 }
 
+- (bool)switchToSocialSharedViewController {
+    if (_facebookSharedViewController != nil) {
+        [self.navigationController pushViewController:_facebookSharedViewController animated:YES];
+        return true;
+    }
+
+    return false;
+}
 
 // Switch to the facebook logon view controller.
 - (void)switchToFacebookLogonView {
     // We are the entry point, so we push to the Facebook view controller.
     if (_inDifferentView) {
+        return;
+    }
+
+    // Button should be disabled, this just prevent swiping.
+    if (_facebookSharedViewController != nil) {
         return;
     }
 
@@ -484,7 +503,10 @@
 - (void)handleUserName:(NSString *)name age:(uint)age distance:(uint)distance {
     dispatch_sync_main(^{
         NSLog(@"Connected with user named [%@] with age [%u]", name, age);
-        _facebookLiked = false;
+        _facebookSharedViewController = nil;
+        [_backButton setHidden:false];
+        [_forwardsButton setTitleColor:_buttonsStartingColour forState:UIControlStateNormal];
+
         [_localFacebookLiked setHidden:true];
         [_remoteFacebookLiked setHidden:true];
 
@@ -604,6 +626,10 @@
     _isSkippableDespiteNoMatch = false;
 
     [[Analytics getInstance] pushEventWithCategory:@"conversation" action:@"ended" label:@"skip_initiated"];
+
+    if ([self switchToSocialSharedViewController]) {
+        return;
+    }
 
     NSLog(@"Sending skip request");
     [_connection sendTcpPacket:_skipPersonPacket];
@@ -770,11 +796,19 @@
             NSLog(@"End point temporarily disconnected");
             [self setDisconnectStateWithShortDescription:@"Reconnecting to existing session\nThe other person disconnected temporarily" showConversationEndView:false];
         } else if (operation == DISCONNECT_PERM) {
-            [self setDisconnectStateWithShortDescription:@"Matching you with somebody to talk with\nThe other person left" showConversationEndView:true];
             NSLog(@"End point permanently disconnected");
+            if ([self switchToSocialSharedViewController]) {
+                return;
+            }
+
+            [self setDisconnectStateWithShortDescription:@"Matching you with somebody to talk with\nThe other person left" showConversationEndView:true];
         } else if (operation == DISCONNECT_SKIPPED) {
-            [self setDisconnectStateWithShortDescription:@"Matching you with somebody to talk with\nThe other person skipped you" showConversationEndView:true];
             NSLog(@"End point skipped us");
+            if ([self switchToSocialSharedViewController]) {
+                return;
+            }
+
+            [self setDisconnectStateWithShortDescription:@"Matching you with somebody to talk with\nThe other person skipped you" showConversationEndView:true];
         } else if (operation == SHARE_FACEBOOK_INFO) {
             [packet getUnsignedInteger8];
             bool isAckOurs = [packet getUnsignedInteger8] == 0;
@@ -798,10 +832,17 @@
             NSData * remoteProfilePictureData = [packet getData];
             UIImage * remoteProfilePicture = [ImageParsing convertDataToImage:remoteProfilePictureData orientation:remoteProfilePictureOrientation];
 
-            UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Storyboard" bundle:nil];
-            FacebookSharedViewController *viewController = [storyboard instantiateViewControllerWithIdentifier:@"FacebookSharedViewController"];
-            [viewController setRemoteFullName:remoteFullName remoteCallingText:callingCardText remoteProfilePicture:remoteProfilePicture localFullName:[_socialState humanFullName] localCallingText:[_socialState callingCardText] localProfilePicture:[_socialState profilePictureImage]];
-            [self.navigationController pushViewController:viewController animated:YES];
+            dispatch_sync_main(^{
+                UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Storyboard" bundle:nil];
+
+                _facebookSharedViewController = [storyboard instantiateViewControllerWithIdentifier:@"FacebookSharedViewController"];
+                [_facebookSharedViewController setRemoteFullName:remoteFullName remoteCallingText:callingCardText remoteProfilePicture:remoteProfilePicture localFullName:[_socialState humanFullName] localCallingText:[_socialState callingCardText] localProfilePicture:[_socialState profilePictureImage]];
+
+                [_backButton setHidden:true];
+                [_forwardsButton setTitleColor:[UIColor redColor] forState:UIControlStateNormal];
+            });
+
+
         } else {
             if (_mediaController != nil) {
                 [_mediaController onNewPacket:packet fromProtocol:protocol];

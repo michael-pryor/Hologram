@@ -584,10 +584,12 @@
                     </view>
                     <navigationItem key="navigationItem" id="iKF-7l-wXc"/>
                     <connections>
+                        <outlet property="_backButton" destination="4xm-sU-sjm" id="nCS-id-Lyb"/>
                         <outlet property="_cameraView" destination="GLg-2U-XhO" id="IQu-bq-HZF"/>
                         <outlet property="_dcAudio" destination="0Z4-8y-t8q" id="fE9-Fk-cwr"/>
                         <outlet property="_dcAudioClear" destination="F1S-Hc-p7x" id="qnS-NM-tpu"/>
                         <outlet property="_dcVideo" destination="5yT-Gv-8LY" id="qYu-2s-YMw"/>
+                        <outlet property="_forwardsButton" destination="dDa-yk-yWa" id="qze-wI-KX2"/>
                         <outlet property="_localFacebookLiked" destination="GyE-mL-D8O" id="Iho-V5-4Nh"/>
                         <outlet property="_natPunchthroughIndicator" destination="Wt1-7M-iep" id="QkT-gO-Zx1"/>
                         <outlet property="_ownerAge" destination="cbc-sf-j5j" id="cmb-cr-zqc"/>
