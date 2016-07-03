@@ -25,6 +25,7 @@ static CGFloat _lastScrollViewPosition;
     __weak IBOutlet UITextView *_callingCardText;
 
     __weak IBOutlet UIScrollView *_scrollView;
+    __weak IBOutlet UIButton *_startButton;
 }
 
 + (void)initialize {
@@ -56,7 +57,9 @@ static CGFloat _lastScrollViewPosition;
 }
 
 - (void)saveTextBoxes {
-    [_socialState persistHumanFullName:[_fullNameTextBox text] humanShortName:[_fullNameTextBox text]];
+    NSString * fullName = [_fullNameTextBox text];
+    NSString * shortName = [fullName componentsSeparatedByString:@" "][0];
+    [_socialState persistHumanFullName:fullName humanShortName:shortName];
     [_socialState persistDateOfBirthObject:[DobParsing getDateObjectFromTextBoxString:[_dateOfBirthTextBox text]]];
     [_socialState persistCallingCardText:[NSString stringWithFormat:@"%@",[_callingCardText text]]];
 }
@@ -91,7 +94,7 @@ static CGFloat _lastScrollViewPosition;
     [super viewDidLoad];
 
     self.screenName = @"FacebookLogin";
-    [_loadingFacebookDetailsIndicator setHidden:true];
+    [_loadingFacebookDetailsIndicator setAlpha:0];
 
     _socialState = [SocialState getSocialInstance];
     [_socialState registerNotifier:self];
@@ -107,6 +110,12 @@ static CGFloat _lastScrollViewPosition;
 
     [_profilePicture.layer setBorderColor: [[UIColor blackColor] CGColor]];
     [_profilePicture.layer setBorderWidth: 2.0];
+
+    [_startButton.layer setBorderColor: [[UIColor blackColor] CGColor]];
+    [_startButton.layer setBorderWidth: 0.5];
+
+    [_callingCardText.layer setBorderColor: [[UIColor blackColor] CGColor]];
+    [_callingCardText.layer setBorderWidth: 0.5];
 
     [FBSDKProfile enableUpdatesOnAccessTokenChange:true];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onProfileUpdated:) name:FBSDKProfileDidChangeNotification object:nil];
@@ -184,7 +193,7 @@ static CGFloat _lastScrollViewPosition;
     }
 
     dispatch_sync_main(^{
-        [_loadingFacebookDetailsIndicator setAlpha:0];
+        [_loadingFacebookDetailsIndicator setAlpha:1];
     });
 }
 
@@ -227,7 +236,7 @@ static CGFloat _lastScrollViewPosition;
     [self _updateDisplay];
 
     dispatch_sync_main(^{
-        [_loadingFacebookDetailsIndicator setAlpha:1];
+        [_loadingFacebookDetailsIndicator setAlpha:0];
     });
 }
 
