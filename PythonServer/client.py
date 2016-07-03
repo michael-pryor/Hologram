@@ -518,6 +518,10 @@ class Client(object):
                 logger.debug("Client [%s] has blocked client [%s], not matching them" % (self, client))
                 result = False
 
+            # Clients with no karma cannot match.
+            if result and self.karma_rating == 0:
+                result = False
+
         logger.debug("Client [%s] has been waiting %.2f seconds for a match; is prior match [%s], match successful: [%s]" % (self, secondsWaitingForMatch, isPriorMatch, result))
 
         return result
