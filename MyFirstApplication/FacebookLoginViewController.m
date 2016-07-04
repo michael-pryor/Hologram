@@ -10,8 +10,6 @@
 #import "Threading.h"
 #import "DobParsing.h"
 
-static CGFloat _lastScrollViewPosition;
-
 @implementation FacebookLoginViewController {
     IBOutlet UISegmentedControl *_desiredGenderChooser;
     __weak IBOutlet UITextField *_dateOfBirthTextBox;
@@ -34,12 +32,6 @@ static CGFloat _lastScrollViewPosition;
     __weak IBOutlet UILabel *_warningCallingCardPicture;
     __weak IBOutlet UILabel *_warningGender;
     __weak IBOutlet UILabel *_warningAgeRestriction;
-}
-
-+ (void)initialize {
-    if (self == [FacebookLoginViewController class]) {
-        _lastScrollViewPosition = 0;
-    }
 }
 
 - (void)cancelEditingTextBoxes {
@@ -106,10 +98,6 @@ static CGFloat _lastScrollViewPosition;
     [self validateForm];
 }
 
-- (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView {
-    _lastScrollViewPosition = scrollView.contentOffset.y;
-}
-
 - (IBAction)onTextBoxDonePressed:(id)sender {
     [self cancelEditingTextBoxes];
     [self saveTextBoxes];
@@ -141,8 +129,6 @@ static CGFloat _lastScrollViewPosition;
 
     _socialState = [SocialState getSocialInstance];
     [_socialState registerNotifier:self];
-
-    [_scrollView setContentOffset:CGPointMake(0, _lastScrollViewPosition)];
 
     _dateOfBirthDatePicker = [[UIDatePicker alloc] init]; // needs to be retained.
     _dateOfBirthDatePicker.datePickerMode = UIDatePickerModeDate;

@@ -856,6 +856,11 @@
 
         } else {
             if (_mediaController != nil) {
+                // Conversation starts when the disconnect view controller is removed.
+                if (_disconnectViewController != nil) {
+                    [_conversationDuration reset];
+                }
+
                 [_mediaController onNewPacket:packet fromProtocol:protocol];
             }
         }

@@ -34,6 +34,14 @@
             [self prepareAnimationForView:self.view pushing:true];
         }
 
+        // This prevents cleanup.
+        if ([@"FacebookView" isEqualToString:identifier]) {
+            if (_socialLoginViewController == nil) {
+                _socialLoginViewController = viewController;
+            } else {
+                viewController = _socialLoginViewController;
+            }
+        }
     }
 
     //make sure we pass the super "animated:NO" or we will get both our
