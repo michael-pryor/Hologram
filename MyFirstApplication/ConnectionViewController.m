@@ -113,6 +113,9 @@
 
     // How long in current conversation.
     Timer * _conversationDuration;
+
+    // Have we shared social information with this end point?
+    Signal * _socialShared;
 }
 
 // View initially load; happens once per process.
@@ -185,6 +188,7 @@
     _karmaRegenerationReceipt = nil;
 
     _conversationDuration = [[Timer alloc] init];
+    _socialShared = [[Signal alloc] initWithFlag:false];
 }
 
 // Permanently close our session on the server, disconnect and stop media input/output.
@@ -503,6 +507,7 @@
 
 - (void)handleUserName:(NSString *)name age:(uint)age distance:(uint)distance {
     [_conversationDuration reset];
+    [_socialShared clear];
 
     dispatch_sync_main(^{
         NSLog(@"Connected with user named [%@] with age [%u]", name, age);
@@ -798,6 +803,9 @@
 
             NSLog(@"End point temporarily disconnected");
             [self setDisconnectStateWithShortDescription:@"Reconnecting to existing session\nThe other person disconnected temporarily" showConversationEndView:false];
+
+            // Just in case our request didn't get there.
+            [_socialShared clear];
         } else if (operation == DISCONNECT_PERM) {
             NSLog(@"End point permanently disconnected");
             if ([self switchToSocialSharedViewController]) {
@@ -959,7 +967,15 @@
     _karmaRegenerationReceipt = data;
 }
 
-- (IBAction)onFacebookLikeButtonPressed:(id)sender {
+- (IBAction)onFacebookLikeButtonPressed:(UILongPressGestureRecognizer*)sender {
+    if (sender.state != UIGestureRecognizerStateBegan) {
+        return;
+    }
+
+    if ([_socialShared signalAll]) {
+        return;
+    }
+
     UIImageOrientation ownerProfilePictureOrientation = [_socialState profilePictureOrientation];
     NSData *ownerProfilePictureData = [_socialState profilePictureData];
 

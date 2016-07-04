@@ -69,7 +69,17 @@
     [_localProfileUiViewContainer.layer setBorderWidth: borderThickness];
 }
 
-- (IBAction)onScreenTapAndHold:(id)sender {
+// Scroll to top.
+- (void)viewDidLayoutSubviews {
+    [_localCallingTextView setContentOffset:CGPointZero animated:NO];
+    [_remoteCallingTextView setContentOffset:CGPointZero animated:NO];
+}
+
+- (IBAction)onScreenTapAndHold:(UILongPressGestureRecognizer*)sender {
+    if (sender.state != UIGestureRecognizerStateBegan) {
+        return;
+    }
+    
     if ([_ownerHiddenSignal signalAll]) {
         [ViewInteractions fadeOut:_ownerUiView completion:^(BOOL completed) {
             if (!completed) {

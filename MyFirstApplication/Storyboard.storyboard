@@ -1192,12 +1192,12 @@
                         <action selector="onScreenTapAndHold:" destination="W5t-05-vTX" id="qXM-um-xRm"/>
                     </connections>
                 </pongPressGestureRecognizer>
-                <swipeGestureRecognizer direction="right" id="4ww-UT-k8P">
+                <swipeGestureRecognizer direction="left" id="4ww-UT-k8P">
                     <connections>
                         <action selector="onForwardButtonPress:" destination="W5t-05-vTX" id="zlB-2m-S56"/>
                     </connections>
                 </swipeGestureRecognizer>
-                <swipeGestureRecognizer direction="left" id="HYl-bM-uwP">
+                <swipeGestureRecognizer direction="right" id="HYl-bM-uwP">
                     <connections>
                         <action selector="onBackButtonPress:" destination="W5t-05-vTX" id="Lum-oj-jat"/>
                     </connections>
