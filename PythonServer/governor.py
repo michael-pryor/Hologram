@@ -19,7 +19,7 @@ from database.matching import Matching
 from database.blocking import Blocking
 from database.karma_leveled import KarmaLeveled
 from database.persisted_ids import PersistedIds
-from payments import Payments
+from payments import PaymentsEx
 
 __author__ = 'pryormic'
 
@@ -53,7 +53,7 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
         self.governor_name = governorName
         self.blocking_database = blockingDatabase
         self.karma_database = karmaDatabase
-        self.payments_verifier = Payments(100)
+        self.payments_verifier = PaymentsEx(100)
         self.persisted_ids_verifier = persistedIdsDatabase
 
     # Higher = under more stress, handling more traffic, lower = handling less.

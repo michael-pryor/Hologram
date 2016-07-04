@@ -361,6 +361,10 @@
                     [[UniqueId getUniqueIdInstance] onValidatedUUID];
 
                     NSLog(@"Login accepted, sending UDP hash packet with hash: %@", _udpHash);
+
+                    // We've used our Karma regeneration transaction, don't use it again.
+                    [_loginProvider clearKarmaRegeneration];
+                    
                     _isNewSession = _udpHash == nil;
                     if (_isNewSession) {
                         _udpHash = [packet getString];
