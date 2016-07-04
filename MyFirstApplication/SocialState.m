@@ -10,7 +10,6 @@
 #import "Timer.h"
 #import "Analytics.h"
 #import "KeychainItemWrapper.h"
-#import "UniqueId.h"
 #import "GenderParsing.h"
 #import "DobParsing.h"
 #import "NameParsing.h"
@@ -35,6 +34,8 @@ typedef void (^Block)(id);
     id <SocialStateDataLoadNotification> _notifier;
 
     NSURL *_facebookProfilePictureUrl;
+
+    bool _isGraphDataLoaded;
 }
 
 - (id)init {
@@ -45,7 +46,7 @@ typedef void (^Block)(id);
         // Initialize here instead of in reset because this value doesn't come from Facebook.
         // It comes form a GUI item (direct from user).
         if ([[NSUserDefaults standardUserDefaults] objectForKey:selectedGenderPreferenceKey] != nil) {
-            const int selectedGenderPreference = (int)[[NSUserDefaults standardUserDefaults] integerForKey:selectedGenderPreferenceKey];
+            const int selectedGenderPreference = (int) [[NSUserDefaults standardUserDefaults] integerForKey:selectedGenderPreferenceKey];
             NSLog(@"Loaded previous gender preference selection from storage: %d", selectedGenderPreference);
             [self persistInterestedInWithSegmentIndex:selectedGenderPreference saving:false];
         } else {
@@ -54,7 +55,7 @@ typedef void (^Block)(id);
         }
 
         if ([[NSUserDefaults standardUserDefaults] objectForKey:ownerGenderKey] != nil) {
-            const int ownerGender = (int)[[NSUserDefaults standardUserDefaults] integerForKey:ownerGenderKey];
+            const int ownerGender = (int) [[NSUserDefaults standardUserDefaults] integerForKey:ownerGenderKey];
             NSLog(@"Loaded previous owner gender selection from storage: %d", ownerGender);
             [self persistOwnerGenderWithSegmentIndex:ownerGender saving:false];
         } else {
@@ -98,13 +99,13 @@ typedef void (^Block)(id);
             UIImage *profilePictureImage = [ImageParsing convertDataToImage:profilePictureData orientation:profilePictureOrientation];
 
             [self persistProfilePictureImage:profilePictureImage prepareImage:false saving:false];
-            NSLog(@"Loaded profile picture from storage, bytes: %lu", (unsigned long)[profilePictureData length]);
+            NSLog(@"Loaded profile picture from storage, bytes: %lu", (unsigned long) [profilePictureData length]);
         } else {
             NSLog(@"No profile picture found in storage");
         }
 
         if ([[NSUserDefaults standardUserDefaults] objectForKey:callingCardTextKey] != nil) {
-            NSString * callingCardText = [[NSUserDefaults standardUserDefaults] stringForKey:callingCardTextKey];
+            NSString *callingCardText = [[NSUserDefaults standardUserDefaults] stringForKey:callingCardTextKey];
             [self persistCallingCardText:callingCardText saving:false];
             NSLog(@"Loaded previous calling card text: %@", callingCardText);
         } else {
@@ -125,7 +126,7 @@ typedef void (^Block)(id);
 
     if (doSave) {
 
-        NSLog(@"Persisting profile picture image, bytes: %lu", (unsigned long)[_profilePictureData length]);
+        NSLog(@"Persisting profile picture image, bytes: %lu", (unsigned long) [_profilePictureData length]);
         [[NSUserDefaults standardUserDefaults] setInteger:_profilePictureOrientation forKey:profilePictureOrientationKey];
         [[NSUserDefaults standardUserDefaults] setObject:_profilePictureData forKey:profilePictureKey];
     }
@@ -140,7 +141,7 @@ typedef void (^Block)(id);
 }
 
 - (bool)isDataLoaded {
-    return _isBasicDataLoaded;
+    return _profilePictureImage != nil && _humanShortName != nil && _humanFullName != nil && _genderSegmentIndex != UISegmentedControlNoSegment && _interestedInSegmentIndex != UISegmentedControlNoSegment && _age >= MINIMUM_AGE;
 }
 
 - (void)persistHumanFullName:(NSString *)humanFullName saving:(bool)doSave {
@@ -153,7 +154,6 @@ typedef void (^Block)(id);
 
 - (void)persistHumanShortName:(NSString *)humanShortName saving:(bool)doSave {
     _humanShortName = humanShortName;
-    _isBasicDataLoaded = _humanShortName != nil;
 
     if (doSave) {
         [[NSUserDefaults standardUserDefaults] setObject:_humanShortName forKey:humanShortNameKey];
@@ -193,7 +193,6 @@ typedef void (^Block)(id);
     _genderEnum = 0;
     _genderString = nil;
     _age = 0;
-    _isBasicDataLoaded = false;
     _isGraphDataLoaded = false;
     _facebookProfilePictureUrl = nil;
     _profilePictureImage = nil;
@@ -210,10 +209,6 @@ typedef void (^Block)(id);
     }
 
     if (profile == nil) {
-        if (_isBasicDataLoaded) {
-            return true;
-        }
-
         NSLog(@"Facebook state not ready yet, please request details from user");
         return false;
     } else {

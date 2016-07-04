@@ -8,15 +8,15 @@
 
 #import <Foundation/Foundation.h>
 
+// Users must be > 18 years old to use this application.
+#define MINIMUM_AGE 18
+
 @class SocialState;
 @protocol SocialStateDataLoadNotification <NSObject>
 - (void)onSocialDataLoaded:(SocialState *)state;
 @end
 
 @interface SocialState : NSObject
-@property(readonly) Boolean isBasicDataLoaded;
-@property(readonly) Boolean isGraphDataLoaded;
-
 @property(readonly) NSString *humanFullName;
 @property(readonly) NSString *humanShortName;
 

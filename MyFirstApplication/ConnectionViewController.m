@@ -304,7 +304,7 @@
     // how we use the video/microphone is displayed.
     SocialState *socialState = [SocialState getSocialInstance];
     //[socialState updateFromFacebookCore];
-    if (![socialState isBasicDataLoaded] || ![[NSUserDefaults standardUserDefaults] boolForKey:@"permissionsExplanationShown"]) {
+    if (![socialState isDataLoaded] || ![[NSUserDefaults standardUserDefaults] boolForKey:@"permissionsExplanationShown"]) {
         [self switchToFacebookLogonView];
         return;
     }

@@ -26,6 +26,14 @@ static CGFloat _lastScrollViewPosition;
 
     __weak IBOutlet UIScrollView *_scrollView;
     __weak IBOutlet UIButton *_startButton;
+    __weak IBOutlet UIView *_startButtonView;
+
+
+    __weak IBOutlet UILabel *_warningName;
+    __weak IBOutlet UILabel *_warningDateOfBirth;
+    __weak IBOutlet UILabel *_warningCallingCardPicture;
+    __weak IBOutlet UILabel *_warningGender;
+    __weak IBOutlet UILabel *_warningAgeRestriction;
 }
 
 + (void)initialize {
@@ -43,7 +51,7 @@ static CGFloat _lastScrollViewPosition;
     imagePickerController.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
     imagePickerController.delegate = self;
     [self presentViewController:imagePickerController animated:YES completion:nil];
-    
+
     [self onViewControllerTap:sender];
 }
 
@@ -54,17 +62,51 @@ static CGFloat _lastScrollViewPosition;
     });
 
     [picker dismissViewControllerAnimated:YES completion:nil];
+    [self validateForm];
+}
+
+
+- (void)validateForm {
+    dispatch_sync_main(^{
+        bool isProblem = false;
+        bool isCurrentItemProblem;
+
+        isProblem = isProblem | (isCurrentItemProblem = [[_fullNameTextBox text] length] == 0);
+        [_warningName setHidden:!isCurrentItemProblem];
+
+        isProblem = isProblem | (isCurrentItemProblem = [[_dateOfBirthTextBox text] length] == 0);
+        [_warningDateOfBirth setHidden:!isCurrentItemProblem];
+
+        bool isAgeSet = !isCurrentItemProblem;
+        isProblem = isProblem | (isCurrentItemProblem = isAgeSet && [_socialState age] < MINIMUM_AGE);
+        [_warningAgeRestriction setHidden:!isCurrentItemProblem];
+
+        isProblem = isProblem | (isCurrentItemProblem = [_ownerGenderChooser selectedSegmentIndex] == UISegmentedControlNoSegment);
+        [_warningGender setHidden:!isCurrentItemProblem];
+
+        isProblem = isProblem | (isCurrentItemProblem = [_socialState profilePictureImage] == nil);
+        [_warningCallingCardPicture setHidden:!isCurrentItemProblem];
+        
+        [_startButton setEnabled:!isProblem];
+        if (isProblem) {
+            [_startButtonView setAlpha:0.5];
+        } else {
+            [_startButtonView setAlpha:1.0];
+        }
+    });
 }
 
 - (void)saveTextBoxes {
-    NSString * fullName = [_fullNameTextBox text];
-    NSString * shortName = [fullName componentsSeparatedByString:@" "][0];
+    NSString *fullName = [_fullNameTextBox text];
+    NSString *shortName = [fullName componentsSeparatedByString:@" "][0];
     [_socialState persistHumanFullName:fullName humanShortName:shortName];
     [_socialState persistDateOfBirthObject:[DobParsing getDateObjectFromTextBoxString:[_dateOfBirthTextBox text]]];
-    [_socialState persistCallingCardText:[NSString stringWithFormat:@"%@",[_callingCardText text]]];
+    [_socialState persistCallingCardText:[NSString stringWithFormat:@"%@", [_callingCardText text]]];
+
+    [self validateForm];
 }
 
--(void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView {
+- (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView {
     _lastScrollViewPosition = scrollView.contentOffset.y;
 }
 
@@ -88,6 +130,7 @@ static CGFloat _lastScrollViewPosition;
 
 - (void)updateTextField:(UIDatePicker *)sender {
     _dateOfBirthTextBox.text = [DobParsing getTextBoxStringFromDateObject:sender.date];
+    [self validateForm];
 }
 
 - (void)viewDidLoad {
@@ -98,9 +141,9 @@ static CGFloat _lastScrollViewPosition;
 
     _socialState = [SocialState getSocialInstance];
     [_socialState registerNotifier:self];
-    
-    [_scrollView setContentOffset: CGPointMake(0,_lastScrollViewPosition)];
-    
+
+    [_scrollView setContentOffset:CGPointMake(0, _lastScrollViewPosition)];
+
     _dateOfBirthDatePicker = [[UIDatePicker alloc] init]; // needs to be retained.
     _dateOfBirthDatePicker.datePickerMode = UIDatePickerModeDate;
     [_dateOfBirthTextBox setInputView:_dateOfBirthDatePicker];
@@ -108,14 +151,14 @@ static CGFloat _lastScrollViewPosition;
                      forControlEvents:UIControlEventValueChanged];
     [_dateOfBirthTextBox setInputView:_dateOfBirthDatePicker];
 
-    [_profilePicture.layer setBorderColor: [[UIColor blackColor] CGColor]];
-    [_profilePicture.layer setBorderWidth: 2.0];
+    [_profilePicture.layer setBorderColor:[[UIColor blackColor] CGColor]];
+    [_profilePicture.layer setBorderWidth:2.0];
 
-    [_startButton.layer setBorderColor: [[UIColor blackColor] CGColor]];
-    [_startButton.layer setBorderWidth: 0.5];
+    [_startButton.layer setBorderColor:[[UIColor blackColor] CGColor]];
+    [_startButton.layer setBorderWidth:0.5];
 
-    [_callingCardText.layer setBorderColor: [[UIColor blackColor] CGColor]];
-    [_callingCardText.layer setBorderWidth: 0.5];
+    [_callingCardText.layer setBorderColor:[[UIColor blackColor] CGColor]];
+    [_callingCardText.layer setBorderWidth:0.5];
 
     [FBSDKProfile enableUpdatesOnAccessTokenChange:true];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onProfileUpdated:) name:FBSDKProfileDidChangeNotification object:nil];
@@ -125,7 +168,7 @@ static CGFloat _lastScrollViewPosition;
         NSLog(@"User is already logged in");
     }
 
-    NSCalendarUnit unitFlags = NSCalendarUnitYear | NSCalendarUnitMonth |  NSCalendarUnitDay;
+    NSCalendarUnit unitFlags = NSCalendarUnitYear | NSCalendarUnitMonth | NSCalendarUnitDay;
     NSDate *now = [NSDate date];
     NSCalendar *gregorian = [NSCalendar currentCalendar];
     NSDateComponents *comps = [gregorian components:unitFlags fromDate:now];
@@ -139,10 +182,12 @@ static CGFloat _lastScrollViewPosition;
 
 - (IBAction)onDesiredGenderChanged:(id)sender {
     [[SocialState getSocialInstance] persistInterestedInWithSegmentIndex:[_desiredGenderChooser selectedSegmentIndex]];
+    [self validateForm];
 }
 
 - (IBAction)onOwnerGenderChanged:(id)sender {
     [[SocialState getSocialInstance] persistOwnerGenderWithSegmentIndex:[sender selectedSegmentIndex]];
+    [self validateForm];
 }
 
 - (void)_updateDisplay {
@@ -158,12 +203,13 @@ static CGFloat _lastScrollViewPosition;
     _fullNameTextBox.text = [_socialState humanFullName];
 
     [_profilePicture setImage:[_socialState profilePictureImage]];
-    
+
     [_callingCardText setText:[_socialState callingCardText]];
+    [self validateForm];
 }
 
 - (void)_switchToChatView {
-    if (![[SocialState getSocialInstance] isBasicDataLoaded]) {
+    if (![[SocialState getSocialInstance] isDataLoaded]) {
         return;
     }
 
@@ -214,8 +260,7 @@ static CGFloat _lastScrollViewPosition;
 
     int MAX_LENGTH = 300;
     NSUInteger newLength = (textView.text.length - range.length) + text.length;
-    if(newLength <= MAX_LENGTH)
-    {
+    if (newLength <= MAX_LENGTH) {
         return YES;
     } else {
         NSUInteger emptySpace = MAX_LENGTH - (textView.text.length - range.length);
