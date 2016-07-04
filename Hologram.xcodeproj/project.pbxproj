@@ -105,6 +105,7 @@
 		D5D619A16A87A131135803C1 /* AudioSessionInteractions.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61422E8EE480CC5AAEF87 /* AudioSessionInteractions.m */; };
 		D5D619C325C883762F20C6AE /* Payments.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61CB954B6907CFECD0082 /* Payments.m */; };
 		D5D61A23E196D95679105227 /* KeychainItemWrapper.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D611882576B99D3A462BDA /* KeychainItemWrapper.m */; };
+		D5D61AEB4C29A5308D8BD1CC /* EndUserLicenseAgreementViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D616B06B0B231D072EC3E7 /* EndUserLicenseAgreementViewController.m */; };
 		D5D61B5A48A0CB843806AA65 /* TimedCounterLogging.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D6114D7017CFB660E7BE53 /* TimedCounterLogging.m */; };
 		D5D61BB3C8D9E23D68765691 /* ReadWriteLock.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D6152266A86BEEEF16A5DD /* ReadWriteLock.m */; };
 		D5D61CBB3513E39935B73FDC /* CustomNavigationController.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61A72597479299B065AE4 /* CustomNavigationController.m */; };
@@ -287,6 +288,7 @@
 		D5D6164EA8372CB5753B9B4D /* AudioSessionInteractions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AudioSessionInteractions.h; sourceTree = "<group>"; };
 		D5D6165C3D5AEA67C27F54DD /* NameParsing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NameParsing.h; sourceTree = "<group>"; };
 		D5D616646ABDADCE4F01A9DA /* Random.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Random.h; sourceTree = "<group>"; };
+		D5D616B06B0B231D072EC3E7 /* EndUserLicenseAgreementViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EndUserLicenseAgreementViewController.m; sourceTree = "<group>"; };
 		D5D616DDC50392E321D8B26A /* TimedCounterLogging.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TimedCounterLogging.h; sourceTree = "<group>"; };
 		D5D616F4004A03BFE96D87B5 /* AverageTrackerLimitedSize.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AverageTrackerLimitedSize.h; sourceTree = "<group>"; };
 		D5D617E1AB2467E773411B25 /* MediaShared.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MediaShared.h; sourceTree = "<group>"; };
@@ -319,6 +321,7 @@
 		D5D61D0AB4A7A9EA5C3AC7B8 /* GenderParsing.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GenderParsing.m; sourceTree = "<group>"; };
 		D5D61D2EF4BDE75ED5C9F0D1 /* DobParsing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DobParsing.h; sourceTree = "<group>"; };
 		D5D61D42394687AAC5C21FB8 /* AudioUnitHelpers.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AudioUnitHelpers.m; sourceTree = "<group>"; };
+		D5D61D60E65368E9040EE139 /* EndUserLicenseAgreementViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EndUserLicenseAgreementViewController.h; sourceTree = "<group>"; };
 		D5D61D7435CE35550C2AB293 /* AccessDialog.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AccessDialog.m; sourceTree = "<group>"; };
 		D5D61DA3C9FA2DFD20EDDA21 /* TimedMinMaxTracker.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TimedMinMaxTracker.m; sourceTree = "<group>"; };
 		D5D61DCE61D1A8B9C8957FE1 /* Threading.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Threading.h; sourceTree = "<group>"; };
@@ -425,6 +428,8 @@
 				D5D61A4F9D149A8AC2058446 /* BanPaymentsViewController.h */,
 				D5D614C41CD23AF45D1CA842 /* FacebookSharedViewController.m */,
 				D5D6115F8DB92DD47B712964 /* FacebookSharedViewController.h */,
+				D5D616B06B0B231D072EC3E7 /* EndUserLicenseAgreementViewController.m */,
+				D5D61D60E65368E9040EE139 /* EndUserLicenseAgreementViewController.h */,
 			);
 			name = Storyboard;
 			sourceTree = "<group>";
@@ -1022,6 +1027,7 @@
 				D5D61287783F9004F0945490 /* DobParsing.m in Sources */,
 				D5D6162932AFDDD7A6D1CE33 /* NameParsing.m in Sources */,
 				D5D616A6CA79F7FD23FA22F6 /* ImageParsing.m in Sources */,
+				D5D61AEB4C29A5308D8BD1CC /* EndUserLicenseAgreementViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

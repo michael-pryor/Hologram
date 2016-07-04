@@ -69,7 +69,7 @@
     [_localProfileUiViewContainer.layer setBorderWidth: borderThickness];
 }
 
-// Scroll to top.
+// Scroll to top on UITextViews.
 - (void)viewDidLayoutSubviews {
     [_localCallingTextView setContentOffset:CGPointZero animated:NO];
     [_remoteCallingTextView setContentOffset:CGPointZero animated:NO];

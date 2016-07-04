@@ -25,6 +25,8 @@ NSString *profilePictureKey = @"profilePicture";
 NSString *profilePictureOrientationKey = @"profilePictureOrientation";
 NSString *callingCardTextKey = @"callingCardText";
 
+NSString *hasAcceptedEulaKey = @"hasAcceptedEula";
+
 static SocialState *instance = nil;
 
 typedef void (^Block)(id);
@@ -111,10 +113,30 @@ typedef void (^Block)(id);
         } else {
             NSLog(@"No previous calling card text found in storage");
         }
+
+        if ([[NSUserDefaults standardUserDefaults] objectForKey:hasAcceptedEulaKey] != nil) {
+            const bool hasAcceptedEula = [[NSUserDefaults standardUserDefaults] boolForKey:hasAcceptedEulaKey];
+            NSLog(@"Loaded EULA accepted boolean from storage: %d", hasAcceptedEula);
+            [self persistHasAcceptedEula:hasAcceptedEula saving:false];
+        } else {
+            NSLog(@"No previous owner gender selection found in storage");
+        }
     }
     return self;
 }
 
+- (void)persistHasAcceptedEula:(bool)hasAcceptedEula saving:(bool)doSave {
+    _hasAcceptedEula = hasAcceptedEula;
+
+    if (doSave) {
+        NSLog(@"Persisting has accepted EULA: %d", _hasAcceptedEula);
+        [[NSUserDefaults standardUserDefaults] setBool:_hasAcceptedEula forKey:hasAcceptedEulaKey];
+    }
+}
+
+- (void)persistHasAcceptedEula {
+    [self persistHasAcceptedEula:true saving:true];
+}
 
 - (void)persistProfilePictureImage:(UIImage *)image prepareImage:(bool)prepare saving:(bool)doSave {
     if (image != nil && prepare) {
@@ -138,6 +160,11 @@ typedef void (^Block)(id);
 
 - (void)registerNotifier:(id <SocialStateDataLoadNotification>)notifier {
     _notifier = notifier;
+}
+
+- (bool)isDataLoadedAndEulaAccepted {
+    // If has not accepted EULA, needs to go back to FB login screen.
+    return _hasAcceptedEula && [self isDataLoaded];
 }
 
 - (bool)isDataLoaded {

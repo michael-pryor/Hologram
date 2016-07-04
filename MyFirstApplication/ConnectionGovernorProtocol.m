@@ -364,7 +364,7 @@
 
                     // We've used our Karma regeneration transaction, don't use it again.
                     [_loginProvider clearKarmaRegeneration];
-                    
+
                     _isNewSession = _udpHash == nil;
                     if (_isNewSession) {
                         _udpHash = [packet getString];

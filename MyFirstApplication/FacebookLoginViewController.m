@@ -32,6 +32,9 @@
     __weak IBOutlet UILabel *_warningCallingCardPicture;
     __weak IBOutlet UILabel *_warningGender;
     __weak IBOutlet UILabel *_warningAgeRestriction;
+    __weak IBOutlet UILabel *_warningEula;
+
+    bool _waitingForEulaCompletion;
 }
 
 - (void)cancelEditingTextBoxes {
@@ -78,12 +81,14 @@
 
         isProblem = isProblem | (isCurrentItemProblem = [_socialState profilePictureImage] == nil);
         [_warningCallingCardPicture setHidden:!isCurrentItemProblem];
-        
+
         [_startButton setEnabled:!isProblem];
         if (isProblem) {
             [_startButtonView setAlpha:0.5];
+            [_warningEula setHidden:true];
         } else {
             [_startButtonView setAlpha:1.0];
+            [_warningEula setHidden: [_socialState hasAcceptedEula]];
         }
     });
 }
@@ -125,6 +130,8 @@
     [super viewDidLoad];
 
     self.screenName = @"FacebookLogin";
+
+    _waitingForEulaCompletion = false;
     [_loadingFacebookDetailsIndicator setAlpha:0];
 
     _socialState = [SocialState getSocialInstance];
@@ -166,6 +173,16 @@
     [self _updateDisplay];
 }
 
+- (void)viewDidAppear:(BOOL)animated {
+    if (_waitingForEulaCompletion) {
+        _waitingForEulaCompletion = false;
+        if ([_socialState hasAcceptedEula]) {
+            [self validateForm];
+            [self _switchToChatViewHelper];
+        }
+    }
+}
+
 - (IBAction)onDesiredGenderChanged:(id)sender {
     [[SocialState getSocialInstance] persistInterestedInWithSegmentIndex:[_desiredGenderChooser selectedSegmentIndex]];
     [self validateForm];
@@ -194,11 +211,7 @@
     [self validateForm];
 }
 
-- (void)_switchToChatView {
-    if (![[SocialState getSocialInstance] isDataLoaded]) {
-        return;
-    }
-
+- (void)_switchToChatViewHelper {
     if (![[NSUserDefaults standardUserDefaults] boolForKey:@"permissionsExplanationShown"]) {
         UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Hologram Permissions" message:
                         @"Hologram needs access to your camera, microphone and location so that it can setup video conversations with people in your area."
@@ -213,6 +226,22 @@
     dispatch_sync_main(^{
         [self.navigationController popToRootViewControllerAnimated:YES];
     });
+}
+
+- (void)_switchToChatView {
+    if (![[SocialState getSocialInstance] isDataLoaded]) {
+        return;
+    }
+
+    if (![_socialState hasAcceptedEula]) {
+        _waitingForEulaCompletion = true;
+        UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Storyboard" bundle:nil];
+        UIViewController *viewController = [storyboard instantiateViewControllerWithIdentifier:@"EulaViewController"];
+        [self presentViewController:viewController animated:YES completion:nil];
+        return;
+    }
+    
+    [self _switchToChatViewHelper];
 }
 
 - (void)alertView:(UIAlertView *)alertView didDismissWithButtonIndex:(NSInteger)buttonIndex {

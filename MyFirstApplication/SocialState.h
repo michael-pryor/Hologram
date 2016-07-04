@@ -38,6 +38,8 @@
 @property(readonly) int interestedInSegmentIndex;
 @property(readonly) int genderSegmentIndex;
 
+@property(readonly) bool hasAcceptedEula;
+
 - (bool)updateFromFacebookCore;
 
 - (bool)updateFromFacebookGraph;
@@ -50,6 +52,8 @@
 
 - (bool)isDataLoaded;
 
+- (bool)isDataLoadedAndEulaAccepted;
+
 - (void)persistOwnerGenderWithSegmentIndex:(int)segmentIndex;
 
 - (void)persistHumanFullName:(NSString*)humanFullName humanShortName:(NSString*)humanShortName;
@@ -59,5 +63,7 @@
 - (void)persistProfilePictureImage:(UIImage *)image;
 
 - (void)persistCallingCardText:(NSString *)text;
+
+- (void)persistHasAcceptedEula;
 @end
 

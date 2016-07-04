@@ -304,7 +304,7 @@
     // how we use the video/microphone is displayed.
     SocialState *socialState = [SocialState getSocialInstance];
     //[socialState updateFromFacebookCore];
-    if (![socialState isDataLoaded] || ![[NSUserDefaults standardUserDefaults] boolForKey:@"permissionsExplanationShown"]) {
+    if (![socialState isDataLoadedAndEulaAccepted] || ![[NSUserDefaults standardUserDefaults] boolForKey:@"permissionsExplanationShown"]) {
         [self switchToFacebookLogonView];
         return;
     }
@@ -320,11 +320,7 @@
     [_audioDataLossAnalytics start];
     [_audioResetAnalytics start];
 
-    if (![socialState isDataLoaded]) {
-        [self switchToFacebookLogonView];
-    } else {
-        [self onSocialDataLoaded:socialState];
-    }
+    [self onSocialDataLoaded:socialState];
 }
 
 - (void)stop {
