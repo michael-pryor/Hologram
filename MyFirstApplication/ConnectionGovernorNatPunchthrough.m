@@ -159,7 +159,7 @@
 - (void)clearNatPunchthrough:(bool)clearAddress {
     @synchronized (_routeThroughPunchthroughAddress) {
         if (clearAddress) {
-            if (!_punchthroughAddress != 0) {
+            if (_punchthroughAddress == 0) {
                 return;
             }
             _punchthroughAddress = 0;

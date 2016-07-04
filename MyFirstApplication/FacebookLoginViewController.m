@@ -184,12 +184,12 @@
 }
 
 - (IBAction)onDesiredGenderChanged:(id)sender {
-    [[SocialState getSocialInstance] persistInterestedInWithSegmentIndex:[_desiredGenderChooser selectedSegmentIndex]];
+    [[SocialState getSocialInstance] persistInterestedInWithSegmentIndex:(int)[_desiredGenderChooser selectedSegmentIndex]];
     [self validateForm];
 }
 
 - (IBAction)onOwnerGenderChanged:(id)sender {
-    [[SocialState getSocialInstance] persistOwnerGenderWithSegmentIndex:[sender selectedSegmentIndex]];
+    [[SocialState getSocialInstance] persistOwnerGenderWithSegmentIndex:(int)[sender selectedSegmentIndex]];
     [self validateForm];
 }
 
@@ -319,5 +319,11 @@
 
 - (void)loginButtonDidLogOut:(FBSDKLoginButton *)loginButton {
     NSLog(@"Logged out successfully");
+}
+
+- (IBAction)onGuideButtonPress:(id)sender {
+    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Storyboard" bundle:nil];
+    UIViewController *viewController = [storyboard instantiateViewControllerWithIdentifier:@"HelpViewController"];
+    [self presentViewController:viewController animated:YES completion:nil];
 }
 @end

@@ -12,8 +12,7 @@
 #import <UIKit/UIViewController.h>
 #import <FBAudienceNetwork/FBAudienceNetwork.h>
 #import "VideoOutputController.h"
-
-@protocol ConversationRatingConsumer;
+#import "ConversationEndedViewController.h"
 
 @interface AlertViewController : UIViewController <FBAdViewDelegate, NewImageDelegate, ConversationRatingConsumer>
 - (void)setAlertShortText:(NSString *)shortText;

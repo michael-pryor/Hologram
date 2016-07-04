@@ -8,7 +8,6 @@
 
 @interface DelayedItem : NSObject
 @property id item;
-- (bool)isItemReady;
 @end
 
 @implementation DelayedItem {

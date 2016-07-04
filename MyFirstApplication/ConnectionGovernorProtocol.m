@@ -31,7 +31,7 @@
 
 // Version to include in connection attempts.
 // Must be >= to server's expectation, otherwise we'l be rejected.
-#define VERSION 2
+#define VERSION 3
 
 @implementation ConnectionGovernorProtocol {
     id <NewPacketDelegate> _recvDelegate;
