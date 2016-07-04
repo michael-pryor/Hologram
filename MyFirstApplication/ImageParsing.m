@@ -8,7 +8,9 @@
 @implementation ImageParsing {
 
 }
-
++ (CGFloat)getDefaultWidthAndHeight {
+    return 200;
+}
 
 + (UIImage *)resizeImage:(UIImage *)image width:(CGFloat)width height:(CGFloat)height {
     // Resize the image to save on size.
@@ -55,6 +57,10 @@
     return cropped;
 }
 
++ (UIImage *)prepareImage:(UIImage *)image {
+    return [self prepareImage:image widthAndHeight:[self getDefaultWidthAndHeight]];
+}
+
 + (UIImage *)prepareImage:(UIImage *)image widthAndHeight:(CGFloat)widthAndHeight {
     UIImage *cropped = [self cropImageToSquare:image];
     NSLog(@"Cropped profile picture width: %.2f, height: %.2f", [cropped size].width, [cropped size].height);
@@ -62,7 +68,7 @@
     NSLog(@"Size optimized profile picture width: %.2f, height: %.2f", [resized size].width, [resized size].height);
 
     // Some compression takes place here, so best to go all the way.
-    UIImage * result = [self convertDataToImage:[self convertImageToData:resized] orientation:[image imageOrientation]];
+    UIImage *result = [self convertDataToImage:[self convertImageToData:resized] orientation:[image imageOrientation]];
     NSLog(@"Compressed profile picture width: %.2f, height: %.2f", [result size].width, [result size].height);
 
     return result;

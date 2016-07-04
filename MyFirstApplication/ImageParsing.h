@@ -6,7 +6,9 @@
 
 
 @interface ImageParsing : NSObject
-+ (UIImage *)prepareImage:(UIImage *)image widthAndHeight:(CGFloat)widthAndHeight;
++ (CGFloat)getDefaultWidthAndHeight;
+
++ (UIImage *)prepareImage:(UIImage *)image;
 
 + (NSData *)convertImageToData:(UIImage *)image;
 

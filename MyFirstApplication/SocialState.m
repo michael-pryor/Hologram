@@ -117,7 +117,7 @@ typedef void (^Block)(id);
 
 - (void)persistProfilePictureImage:(UIImage *)image prepareImage:(bool)prepare saving:(bool)doSave {
     if (image != nil && prepare) {
-        image = [ImageParsing prepareImage:image widthAndHeight:500.0f];
+        image = [ImageParsing prepareImage:image];
     }
     _profilePictureImage = image;
     _profilePictureOrientation = [image imageOrientation];
@@ -218,8 +218,8 @@ typedef void (^Block)(id);
         return false;
     } else {
         CGSize size;
-        size.width = 400;
-        size.height = 400;
+        size.width = [ImageParsing getDefaultWidthAndHeight];
+        size.height = size.width;
         _facebookProfilePictureUrl = [profile imageURLForPictureMode:FBSDKProfilePictureModeSquare size:size];
     }
 

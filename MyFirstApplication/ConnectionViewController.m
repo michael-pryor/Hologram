@@ -66,10 +66,6 @@
     // Checks access to microphone, speakers and GPS.
     AccessDialog *_accessDialog;
 
-    // Temporary tutorial labels.
-    __weak IBOutlet UILabel *_swipeTutorialChangeSettings;
-    __weak IBOutlet UILabel *_swipeTutorialSkip;
-
     // For Google analytics.
     NSString *_screenName;
     Timer *_connectionStateTimer;
@@ -351,7 +347,7 @@
             [_ownerAge setHidden:true];
         }
 
-        [self setDisconnectStateWithShortDescription:@"Loading payments information" showConversationEndView:false];
+        [self setDisconnectStateWithShortDescription:@"Loading Apple information" showConversationEndView:false];
         [_payments queryProducts:[[UniqueId getUniqueIdInstance] getUUID]];
     });
 }
@@ -904,50 +900,9 @@
     }, 0);
 }
 
-
-- (void)prepareTutorials {
-    NSString *tutorialLastPreparedEpochSecondsKey = @"tutorialLastPreparedEpochSeconds";
-
-    // Show the tutorial if not had the potential to do so (by running the app) for at least this long.
-    const double tutorialInactivityFrequency = 86400 * 7; // 7 days.
-
-    const NSUserDefaults *storage = [NSUserDefaults standardUserDefaults];
-    const double storedEpochSeconds = [storage doubleForKey:tutorialLastPreparedEpochSecondsKey]; // returns 0 if not stored.
-    const double currentEpochSeconds = [Timer getSecondsEpoch];
-    const double difference = currentEpochSeconds - storedEpochSeconds;
-    if (difference < tutorialInactivityFrequency || difference < 0) {
-        NSLog(@"Time since last tutorial prepare is: %.0f seconds, not showing tutorial", difference);
-        [storage setDouble:currentEpochSeconds forKey:tutorialLastPreparedEpochSecondsKey];
-        return;
-    }
-
-    NSLog(@"Time since last tutorial prepare is: %.0f seconds, showing tutorial", difference);
-
-    // Once per application run.
-    float fadeInDuration = 1.0f;
-    float fadeOutDuration = 2.0f;
-    float delay = 3.0f;
-    [ViewInteractions fadeInOut:_swipeTutorialSkip completion:^void(BOOL finishedSkip) {
-        if (!finishedSkip || _disconnectViewController != nil) {
-            return;
-        }
-
-        [ViewInteractions fadeInOut:_swipeTutorialChangeSettings completion:^void(BOOL finishedChangeSettings) {
-            if (!finishedChangeSettings || _disconnectViewController != nil) {
-                return;
-            }
-
-            // Update only after tutorial has completed successfully.
-            [storage setDouble:currentEpochSeconds forKey:tutorialLastPreparedEpochSecondsKey];
-        }                   options:UIViewAnimationOptionOverrideInheritedCurve | UIViewAnimationOptionOverrideInheritedDuration fadeInDuration:fadeInDuration fadeOutDuration:fadeOutDuration fadeOutDelay:delay];
-    }                   options:UIViewAnimationOptionOverrideInheritedCurve | UIViewAnimationOptionOverrideInheritedDuration fadeInDuration:fadeInDuration fadeOutDuration:fadeOutDuration fadeOutDelay:delay];
-}
-
 - (void)preprepareRuntimeView {
     dispatch_sync_main(^{
         [_cameraView.layer removeAllAnimations];
-        [_swipeTutorialSkip setAlpha:0.0f];
-        [_swipeTutorialChangeSettings setAlpha:0.0f];
         [_ownerAge setAlpha:0.0f];
         [_ownerName setAlpha:0.0f];
         [_remoteAge setAlpha:0.0f];
@@ -960,8 +915,6 @@
 }
 
 - (void)prepareRuntimeView {
-    [self prepareTutorials];
-
     [ViewInteractions fadeIn:_cameraView completion:nil duration:1.0f];
 
     [ViewInteractions fadeIn:_remoteKarma completion:^(BOOL completed) {

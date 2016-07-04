@@ -282,8 +282,8 @@
                                                             <view alpha="0.69999999999999996" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="E8X-Bz-MaJ">
                                                                 <rect key="frame" x="230" y="50" width="100" height="50"/>
                                                                 <subviews>
-                                                                    <button opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="awK-6y-bRW">
-                                                                        <rect key="frame" x="54" y="19" width="43" height="36"/>
+                                                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="awK-6y-bRW">
+                                                                        <rect key="frame" x="0.0" y="0.0" width="100" height="50"/>
                                                                         <fontDescription key="fontDescription" type="system" pointSize="20"/>
                                                                         <state key="normal" title="Start"/>
                                                                         <connections>
@@ -476,12 +476,6 @@
                                 <color key="textColor" red="0.0" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <label opaque="NO" userInteractionEnabled="NO" alpha="0.0" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Swipe to skip =&gt;" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="rhH-1x-tXl">
-                                <rect key="frame" x="464" y="300" width="128" height="21"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                <color key="textColor" red="1" green="0.97127305689999999" blue="0.01083243375" alpha="1" colorSpace="calibratedRGB"/>
-                                <nil key="highlightedColor"/>
-                            </label>
                             <imageView opaque="NO" userInteractionEnabled="NO" alpha="0.0" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="video_problem" translatesAutoresizingMaskIntoConstraints="NO" id="5yT-Gv-8LY" userLabel="DC Video Image">
                                 <rect key="frame" x="8" y="35" width="30" height="30"/>
                                 <constraints>
@@ -511,12 +505,6 @@
                                     <constraint firstAttribute="height" constant="30" id="Oy8-NW-aaO"/>
                                 </constraints>
                             </imageView>
-                            <label opaque="NO" userInteractionEnabled="NO" alpha="0.0" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="&lt;= Swipe to change settings " textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="pgN-Gq-UFL">
-                                <rect key="frame" x="8" y="269" width="223" height="21"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                <color key="textColor" red="1" green="0.97127305689999999" blue="0.01083243375" alpha="1" colorSpace="calibratedRGB"/>
-                                <nil key="highlightedColor"/>
-                            </label>
                             <button opaque="NO" alpha="0.59999999999999998" contentMode="scaleToFill" horizontalHuggingPriority="1000" verticalHuggingPriority="1000" horizontalCompressionResistancePriority="1000" verticalCompressionResistancePriority="1000" contentHorizontalAlignment="center" contentVerticalAlignment="top" buttonType="roundedRect" lineBreakMode="clip" translatesAutoresizingMaskIntoConstraints="NO" id="4xm-sU-sjm">
                                 <rect key="frame" x="234" y="556" width="33" height="44"/>
                                 <accessibility key="accessibilityConfiguration">
@@ -564,7 +552,6 @@
                             <constraint firstItem="cd6-78-3Jp" firstAttribute="width" secondItem="11e-ce-u2V" secondAttribute="width" id="129-tY-iJC"/>
                             <constraint firstItem="11e-ce-u2V" firstAttribute="leading" secondItem="BlS-3L-w4D" secondAttribute="leading" constant="10" id="14O-dE-heh" userLabel="RemoteName left"/>
                             <constraint firstItem="F1S-Hc-p7x" firstAttribute="leading" secondItem="0Z4-8y-t8q" secondAttribute="trailing" constant="5" id="1B8-ye-em3" userLabel="DC Audio Clear left"/>
-                            <constraint firstItem="rhH-1x-tXl" firstAttribute="centerY" secondItem="GLg-2U-XhO" secondAttribute="centerY" constant="10" id="1iz-hb-eV5"/>
                             <constraint firstItem="UGl-Rn-eIt" firstAttribute="right" relation="lessThanOrEqual" secondItem="4xm-sU-sjm" secondAttribute="left" constant="-5" id="3Uz-Q1-JCQ"/>
                             <constraint firstItem="UGl-Rn-eIt" firstAttribute="leading" secondItem="BlS-3L-w4D" secondAttribute="leading" constant="10" id="3cP-hX-Qpd" userLabel="OwnerName left"/>
                             <constraint firstItem="BIz-fU-nrs" firstAttribute="width" secondItem="Wkl-aq-hIG" secondAttribute="width" id="4UN-MO-DZT"/>
@@ -587,7 +574,6 @@
                             <constraint firstItem="A17-OE-1jq" firstAttribute="top" secondItem="cd6-78-3Jp" secondAttribute="bottom" constant="5" id="QCt-0C-YpC"/>
                             <constraint firstItem="EFB-GX-YTW" firstAttribute="width" secondItem="11e-ce-u2V" secondAttribute="width" id="QaP-Dn-mcp" userLabel="RemoteAge width"/>
                             <constraint firstItem="11e-ce-u2V" firstAttribute="trailing" secondItem="BlS-3L-w4D" secondAttribute="trailing" constant="-10" id="UCc-UT-0Ht" userLabel="RemoteName right"/>
-                            <constraint firstItem="pgN-Gq-UFL" firstAttribute="bottom" secondItem="rhH-1x-tXl" secondAttribute="top" constant="-10" id="WIe-YY-Xlg"/>
                             <constraint firstItem="cbc-sf-j5j" firstAttribute="width" secondItem="UGl-Rn-eIt" secondAttribute="width" id="ZJE-nE-xcG" userLabel="OwnerAge width"/>
                             <constraint firstItem="Wkl-aq-hIG" firstAttribute="bottom" secondItem="11e-ce-u2V" secondAttribute="top" constant="-5" id="ZlG-3o-WGT"/>
                             <constraint firstItem="cbc-sf-j5j" firstAttribute="bottom" secondItem="UGl-Rn-eIt" secondAttribute="top" id="aLQ-vT-Khn" userLabel="OwnerAge top"/>
@@ -607,11 +593,9 @@
                             <constraint firstItem="UGl-Rn-eIt" firstAttribute="bottom" secondItem="BIz-fU-nrs" secondAttribute="top" constant="-5" id="ovs-Cd-h5s"/>
                             <constraint firstItem="F1S-Hc-p7x" firstAttribute="top" secondItem="0Z4-8y-t8q" secondAttribute="top" id="p9I-4s-bYp" userLabel="DC Audio Clear top"/>
                             <constraint firstItem="cd6-78-3Jp" firstAttribute="height" secondItem="11e-ce-u2V" secondAttribute="height" id="qIi-jI-5f7"/>
-                            <constraint firstItem="pgN-Gq-UFL" firstAttribute="leading" secondItem="GLg-2U-XhO" secondAttribute="leadingMargin" id="qW3-Tj-2mk"/>
                             <constraint firstItem="Wkl-aq-hIG" firstAttribute="centerY" secondItem="goQ-8u-8Kt" secondAttribute="centerY" constant="5" id="tv7-gE-7RR"/>
                             <constraint firstItem="Wkl-aq-hIG" firstAttribute="trailing" secondItem="GLg-2U-XhO" secondAttribute="trailingMargin" id="w76-ur-Yff"/>
                             <constraint firstItem="cbc-sf-j5j" firstAttribute="leading" secondItem="UGl-Rn-eIt" secondAttribute="leading" id="wvC-lP-bfc" userLabel="OwnerAge left"/>
-                            <constraint firstItem="rhH-1x-tXl" firstAttribute="trailing" secondItem="GLg-2U-XhO" secondAttribute="trailingMargin" id="zjN-6y-Lig"/>
                         </constraints>
                         <connections>
                             <outletCollection property="gestureRecognizers" destination="biO-yt-6IN" appends="YES" id="Qk2-D3-VHp"/>
@@ -636,8 +620,6 @@
                         <outlet property="_remoteFacebookLiked" destination="A17-OE-1jq" id="nUC-q1-kk4"/>
                         <outlet property="_remoteKarma" destination="Wkl-aq-hIG" id="hF4-BT-796"/>
                         <outlet property="_remoteName" destination="11e-ce-u2V" id="eMq-rq-vK1"/>
-                        <outlet property="_swipeTutorialChangeSettings" destination="pgN-Gq-UFL" id="Fco-DG-xgK"/>
-                        <outlet property="_swipeTutorialSkip" destination="rhH-1x-tXl" id="eGU-x8-Icg"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="YdA-bz-hIi" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -680,8 +662,8 @@
                             <view opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="XqR-QA-b6a" customClass="CircleProgressBar">
                                 <rect key="frame" x="175" y="175" width="250" height="250"/>
                                 <subviews>
-                                    <label opaque="NO" userInteractionEnabled="NO" alpha="0.65000000000000002" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" text="Tap Here" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="tSA-13-icM">
-                                        <rect key="frame" x="95" y="142" width="61" height="15"/>
+                                    <label opaque="NO" userInteractionEnabled="NO" alpha="0.65000000000000002" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Tap Here" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="tSA-13-icM">
+                                        <rect key="frame" x="100" y="142" width="51" height="15"/>
                                         <fontDescription key="fontDescription" type="system" weight="ultraLight" pointSize="12"/>
                                         <color key="textColor" red="0.0" green="1" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                         <nil key="highlightedColor"/>
@@ -1080,8 +1062,8 @@
                                                                     <view clipsSubviews="YES" contentMode="scaleAspectFit" horizontalHuggingPriority="200" verticalHuggingPriority="200" horizontalCompressionResistancePriority="200" verticalCompressionResistancePriority="200" translatesAutoresizingMaskIntoConstraints="NO" id="KK5-hn-Mlm">
                                                                         <rect key="frame" x="0.0" y="17" width="280" height="218"/>
                                                                         <subviews>
-                                                                            <imageView contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" image="hologram_start_chat" translatesAutoresizingMaskIntoConstraints="NO" id="B98-Ki-ZhO">
-                                                                                <rect key="frame" x="18" y="0.0" width="245" height="245"/>
+                                                                            <imageView contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="hologram_start_chat" translatesAutoresizingMaskIntoConstraints="NO" id="B98-Ki-ZhO">
+                                                                                <rect key="frame" x="32" y="0.0" width="217" height="218"/>
                                                                                 <constraints>
                                                                                     <constraint firstAttribute="width" secondItem="B98-Ki-ZhO" secondAttribute="height" multiplier="1:1" id="hPJ-Kp-78h"/>
                                                                                 </constraints>
@@ -1129,8 +1111,8 @@
                                                                     <view clipsSubviews="YES" contentMode="scaleAspectFit" translatesAutoresizingMaskIntoConstraints="NO" id="8Vh-YQ-ZKn">
                                                                         <rect key="frame" x="0.0" y="0.0" width="280" height="217"/>
                                                                         <subviews>
-                                                                            <imageView contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" image="hologram_start_chat" translatesAutoresizingMaskIntoConstraints="NO" id="pld-ZT-5Xe">
-                                                                                <rect key="frame" x="18" y="0.0" width="245" height="245"/>
+                                                                            <imageView contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="hologram_start_chat" translatesAutoresizingMaskIntoConstraints="NO" id="pld-ZT-5Xe">
+                                                                                <rect key="frame" x="32" y="0.0" width="217" height="217"/>
                                                                                 <constraints>
                                                                                     <constraint firstAttribute="width" secondItem="pld-ZT-5Xe" secondAttribute="height" multiplier="1:1" id="q5X-bq-1IB"/>
                                                                                 </constraints>
@@ -1187,7 +1169,9 @@
                             <constraint firstItem="Pfa-qz-umj" firstAttribute="leading" secondItem="orK-LY-yBp" secondAttribute="leadingMargin" id="geJ-9s-Dqj"/>
                         </constraints>
                         <connections>
-                            <outletCollection property="gestureRecognizers" destination="6Lh-DW-DkS" appends="YES" id="wfH-sX-Ba6"/>
+                            <outletCollection property="gestureRecognizers" destination="yAU-Lg-kN9" appends="YES" id="nRD-Tm-hPw"/>
+                            <outletCollection property="gestureRecognizers" destination="4ww-UT-k8P" appends="YES" id="j4z-7D-ShC"/>
+                            <outletCollection property="gestureRecognizers" destination="HYl-bM-uwP" appends="YES" id="B7p-AH-qCb"/>
                         </connections>
                     </view>
                     <connections>
@@ -1203,11 +1187,21 @@
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="EeC-I8-65b" userLabel="First Responder" sceneMemberID="firstResponder"/>
-                <tapGestureRecognizer id="6Lh-DW-DkS">
+                <pongPressGestureRecognizer allowableMovement="10" minimumPressDuration="0.5" id="yAU-Lg-kN9">
                     <connections>
-                        <action selector="onScreenTap:" destination="W5t-05-vTX" id="Cvv-g8-cSG"/>
+                        <action selector="onScreenTapAndHold:" destination="W5t-05-vTX" id="qXM-um-xRm"/>
                     </connections>
-                </tapGestureRecognizer>
+                </pongPressGestureRecognizer>
+                <swipeGestureRecognizer direction="right" id="4ww-UT-k8P">
+                    <connections>
+                        <action selector="onForwardButtonPress:" destination="W5t-05-vTX" id="zlB-2m-S56"/>
+                    </connections>
+                </swipeGestureRecognizer>
+                <swipeGestureRecognizer direction="left" id="HYl-bM-uwP">
+                    <connections>
+                        <action selector="onBackButtonPress:" destination="W5t-05-vTX" id="Lum-oj-jat"/>
+                    </connections>
+                </swipeGestureRecognizer>
             </objects>
             <point key="canvasLocation" x="1585" y="775"/>
         </scene>
