@@ -14,7 +14,7 @@ class KarmaLeveled(object):
     # Ban 2: x^2
     # Ban 3: x^3
     # Ban 4: x^4
-    MAX_EXPONENTIAL_INCREASES = 3
+    MAX_EXPONENTIAL_INCREASES = 4
 
     # Karma ratings are from between 0 to 5.
     KARMA_MAXIMUM = 5
@@ -93,28 +93,33 @@ class KarmaLeveled(object):
             return
 
         self.karma.clearKarma(client)
-        ban = self.getCurrentBanSlot(client)
-        if ban is not None:
-            assert isinstance(ban, Karma)
-            ban.incrementKarma(client)
 
-    def getCurrentBanSlot(self, client):
-        banMagnitude, expirationTime, karmaTracker = self.getFullBanDetails(client)
-        return karmaTracker
+        # Increment once on all levels until the one which actually banned us
+        def processBans(client, karmaTracker, amountOverBanLimit):
+            for n in range(0,amountOverBanLimit+1):
+                karmaTracker.incrementKarma(client)
+            return False
 
-    def getFullBanDetails(self, client):
+        self.processClientThroughBans(client, processBans)
+
+    def processClientThroughBans(self, client, onBannedIteration = None):
+        def defaultFunc(client, karmaTracker, amountOverBanLimit):
+            return amountOverBanLimit >= 0
+
+        if onBannedIteration is None:
+            onBannedIteration = defaultFunc
+
         for banTimeMultiplier, karmaTracker in zip(range(KarmaLeveled.MAX_EXPONENTIAL_INCREASES, 0, -1), self.bans):
             assert isinstance(karmaTracker, Karma)
 
             banEntries, expirationTime = karmaTracker.getKarmaDeductionAndExpirationTime(client)
-            if banEntries >= banTimeMultiplier:
-                return banTimeMultiplier, expirationTime, karmaTracker
+            if onBannedIteration(client, karmaTracker, banEntries - banTimeMultiplier):
+                return banTimeMultiplier, expirationTime
 
-        return None, None, None
+        return None, None
 
     def getBanMagnitudeAndExpirationTime(self, client):
-        banMagnitude, expirationTime, karmaTracker = self.getFullBanDetails(client)
-        return banMagnitude, expirationTime
+        return self.processClientThroughBans(client)
 
     def incrementKarma(self, client):
         if client is None:

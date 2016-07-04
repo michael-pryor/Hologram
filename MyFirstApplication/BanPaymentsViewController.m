@@ -50,10 +50,6 @@
     [[SKPaymentQueue defaultQueue] removeTransactionObserver:self];
 }
 
-- (void)dealloc {
-    NSLog(@"Deallocing");
-}
-
 - (IBAction)onPurchasePress:(id)sender {
     if (![_paymentInProgress signalAll]) {
         return;

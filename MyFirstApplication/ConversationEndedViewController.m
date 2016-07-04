@@ -32,9 +32,16 @@
     [self reset];
 }
 
+- (void)viewDidLoad:(BOOL)animated {
+    [self reset];
+}
+
 - (void)reset {
     [_isFirstPress clear];
     [_ratingsCompleted clear];
+    for (UIButton *button in _ratingButtons) {
+        [button setAlpha:1.0];
+    }
     _conversationRating = DEFAULT_CONVERSATION_RATING;
 }
 

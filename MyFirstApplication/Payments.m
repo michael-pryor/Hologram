@@ -19,7 +19,7 @@
     if (self) {
         _notifier = notifier;
         _hashedAccountId = nil;
-        _productIds = @[@"karma_1"];
+        _productIds = @[@"karma_1", @"karma_2", @"karma_3"];
     }
     return self;
 }

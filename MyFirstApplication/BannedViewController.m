@@ -82,11 +82,6 @@
         _schedulePushNotification = false;
     }
 
-    if ([self canAcceptPayments]) {
-        [_tapToSkipLabel setAlpha:1.0f];
-        [ViewInteractions fadeOut:_tapToSkipLabel completion:nil duration:10];
-    }
-
     [self updateProgress:true];
     [self onScreenVisible];
 }

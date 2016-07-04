@@ -35,6 +35,9 @@
 }
 - (void)viewDidLoad {
     [super viewDidLoad];
+
+    self.screenName = @"CallingCards";
+
     [_ownerName setText:_ownerNameString];
     [_remoteName setText:_remoteNameString];
 

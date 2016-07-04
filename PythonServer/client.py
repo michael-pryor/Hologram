@@ -75,6 +75,7 @@ class Client(object):
         BAD = 1
         BLOCK = 2
         GOOD = 3
+        AUDIT = 4 # Don't do anything, we just want to recheck for ban.
 
     class LoginDetails(object):
         def __init__(self, uniqueId, persistedUniqueId, name, shortName, age, gender, interestedIn, longitude, latitude):
@@ -436,50 +437,63 @@ class Client(object):
 
     # This is somebody rating us.
     def handleRating(self, rating):
-        currentKarma = [self.karma_rating]
+        self.house.house_lock.acquire()
+        try:
+            currentKarma = [self.karma_rating]
 
-        def deductKarma():
-            currentKarma[0] -= 1
-            if currentKarma[0] < 0:
-                currentKarma[0] = 0
-                return
+            def sendBannedMessage():
+                banMagnitude, banTime = self.karma_database.getBanMagnitudeAndExpirationTime(self)
+                if banTime is None:
+                    return
 
-            isBanned = self.karma_database.deductKarma(self, currentKarma[0])
-            if not isBanned:
-                return
+                self.sendBanMessage(banMagnitude, banTime)
 
-            banMagnitude, banTime = self.karma_database.getBanMagnitudeAndExpirationTime(self)
-            if banTime is None:
-                return
+            def deductKarma():
+                currentKarma[0] -= 1
+                if currentKarma[0] < 0:
+                    currentKarma[0] = 0
+                    return
 
-            self.sendBanMessage(banMagnitude, banTime)
+                isBanned = self.karma_database.deductKarma(self, currentKarma[0])
+                if not isBanned:
+                    return
 
-        def incrementKarma():
-            currentKarma[0] += 1
-            if currentKarma[0] > KarmaLeveled.KARMA_MAXIMUM:
-                currentKarma[0] = KarmaLeveled.KARMA_MAXIMUM
+                sendBannedMessage()
+
+            def incrementKarma():
+                currentKarma[0] += 1
+                if currentKarma[0] > KarmaLeveled.KARMA_MAXIMUM:
+                    currentKarma[0] = KarmaLeveled.KARMA_MAXIMUM
+                else:
+                    self.karma_database.incrementKarma(self)
+
+            if rating == Client.ConversationRating.BAD:
+                logger.debug("Bad rating for client [%s] received" % self)
+                deductKarma()
+
+            elif rating == Client.ConversationRating.BLOCK:
+                logger.debug("Block for client [%s] received from [%s]" % (self, self.client_from_previous_conversation))
+                deductKarma()
+                self.blocking_database.pushBlock(self.client_from_previous_conversation, self)
+            elif rating == Client.ConversationRating.GOOD:
+                logger.debug("Good rating for client [%s] received" % self)
+                incrementKarma()
+
+            elif rating == Client.ConversationRating.OKAY:
+                logger.debug("Okay rating for client [%s] received" % self)
+            elif rating == Client.ConversationRating.AUDIT:
+                logger.debug("Audited client [%s] for bans" % self)
+                sendBannedMessage()
             else:
-                self.karma_database.incrementKarma(self)
+                logger.debug("Invalid rating received, dropping client: %d" % rating)
+                self.closeConnection()
 
-        if rating == Client.ConversationRating.BAD:
-            logger.debug("Bad rating for client [%s] received" % self)
-            deductKarma()
+            self.karma_rating = currentKarma[0]
+        finally:
+            self.house.house_lock.release()
 
-        elif rating == Client.ConversationRating.BLOCK:
-            logger.debug("Block for client [%s] received from [%s]" % (self, self.client_from_previous_conversation))
-            deductKarma()
-            self.blocking_database.pushBlock(self.client_from_previous_conversation, self)
-        elif rating == Client.ConversationRating.GOOD:
-            logger.debug("Good rating for client [%s] received" % self)
-            incrementKarma()
-
-        elif rating == Client.ConversationRating.OKAY:
-            logger.debug("Okay rating for client [%s] received" % self)
-        else:
-            logger.debug("Invalid rating received, dropping client: %d" % rating)
-            self.closeConnection()
-
-        self.karma_rating = currentKarma[0]
+    def auditBans(self):
+        self.handleRating(Client.ConversationRating.AUDIT)
 
     # We need to wait for the client to send a rating, indicating how they felt about their previous conversation.
     def setToWaitForRatingOfPreviousConversation(self, clientFromPreviousConversation):
@@ -523,6 +537,7 @@ class Client(object):
 
             # Clients with no karma cannot match.
             if result and self.karma_rating == 0:
+                self.auditBans()
                 result = False
 
         logger.debug("Client [%s] has been waiting %.2f seconds for a match; is prior match [%s], match successful: [%s]" % (self, secondsWaitingForMatch, isPriorMatch, result))

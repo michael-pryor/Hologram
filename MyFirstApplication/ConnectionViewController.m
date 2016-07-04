@@ -114,6 +114,9 @@
     __weak IBOutlet UIButton *_backButton;
     __weak IBOutlet UIButton *_forwardsButton;
     UIColor * _buttonsStartingColour;
+
+    // How long in current conversation.
+    Timer * _conversationDuration;
 }
 
 // View initially load; happens once per process.
@@ -184,6 +187,8 @@
 
     _karmaMax = 0;
     _karmaRegenerationReceipt = nil;
+
+    _conversationDuration = [[Timer alloc] init];
 }
 
 // Permanently close our session on the server, disconnect and stop media input/output.
@@ -501,6 +506,8 @@
 }
 
 - (void)handleUserName:(NSString *)name age:(uint)age distance:(uint)distance {
+    [_conversationDuration reset];
+
     dispatch_sync_main(^{
         NSLog(@"Connected with user named [%@] with age [%u]", name, age);
         _facebookSharedViewController = nil;
@@ -874,6 +881,11 @@
     // The main thread would wait for the speaker to finish, which needs the audio priority queue to release, so
     // both are waiting for each other forever!
     dispatch_async_main(^{
+        // Between conversations we always get some data loss, so don't tell user about it.
+        if ([_conversationDuration getSecondsSinceLastTick] < 2) {
+            return;
+        }
+
         if (mediaType == VIDEO) {
             NSLog(@"Data loss for video!");
             [ViewInteractions fadeInOut:_dcVideo completion:nil options:UIViewAnimationOptionBeginFromCurrentState];
