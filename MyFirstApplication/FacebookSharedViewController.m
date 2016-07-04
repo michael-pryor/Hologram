@@ -32,21 +32,17 @@
     UIImage *_remoteProfileImage;
 
     Signal *_ownerHiddenSignal;
+    __weak IBOutlet UIButton *_forwardButton;
+    __weak IBOutlet UIButton *_backButton;
+    __weak IBOutlet UILabel *_title;
+    bool _tutorialModeEnabled;
 }
 - (void)viewDidLoad {
     [super viewDidLoad];
 
     self.screenName = @"CallingCards";
 
-    [_ownerName setText:_ownerNameString];
-    [_remoteName setText:_remoteNameString];
-
-    [_localCallingTextView setText:_ownerCallingCardText];
-    [_remoteCallingTextView setText:_remoteCallingCardText];
-
-    [_localProfileUiView setImage:_ownerProfileImage];
-    [_remoteProfileUiView setImage:_remoteProfileImage];
-
+    [self updateUi];
     _ownerHiddenSignal = [[Signal alloc] initWithFlag:false];
 
     float borderThickness = 0.5;
@@ -69,6 +65,32 @@
     [_localProfileUiViewContainer.layer setBorderWidth: borderThickness];
 }
 
+
+- (void)updateUi {
+    if (_ownerName == nil) {
+        return;
+    }
+
+    dispatch_sync_main(^{
+        [_ownerName setText:_ownerNameString];
+        [_remoteName setText:_remoteNameString];
+
+        [_localCallingTextView setText:_ownerCallingCardText];
+        [_remoteCallingTextView setText:_remoteCallingCardText];
+
+        [_localProfileUiView setImage:_ownerProfileImage];
+        [_remoteProfileUiView setImage:_remoteProfileImage];
+        
+        if (_tutorialModeEnabled) {
+            [_title setAlpha:0];
+            [_ownerUiView setAlpha:0];
+            [_backButton setAlpha:0];
+            [_forwardButton setAlpha:0];
+            self.view.backgroundColor = [UIColor clearColor];
+        }
+    });
+}
+
 // Scroll to top on UITextViews.
 - (void)viewDidLayoutSubviews {
     [_localCallingTextView setContentOffset:CGPointZero animated:NO];
@@ -76,7 +98,7 @@
 }
 
 - (IBAction)onScreenTapAndHold:(UILongPressGestureRecognizer*)sender {
-    if (sender.state != UIGestureRecognizerStateBegan) {
+    if (sender.state != UIGestureRecognizerStateBegan || _tutorialModeEnabled) {
         return;
     }
 
@@ -100,6 +122,11 @@
 }
 
 - (IBAction)onBackButtonPress:(id)sender {
+    // In case of swiping.
+    if (_tutorialModeEnabled) {
+        return;
+    }
+
     dispatch_sync_main(^{
         UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Storyboard" bundle:nil];
         UIViewController *viewController = [storyboard instantiateViewControllerWithIdentifier:@"FacebookView"];
@@ -108,6 +135,11 @@
 }
 
 - (IBAction)onForwardButtonPress:(id)sender {
+    // In case of swiping.
+    if (_tutorialModeEnabled) {
+        return;
+    }
+
     dispatch_sync_main(^{
         [self.navigationController popToRootViewControllerAnimated:YES];
     });
@@ -120,5 +152,11 @@
     _remoteProfileImage = remoteProfilePicture;
     _ownerCallingCardText = localCallingText;
     _remoteCallingCardText = remoteCallingText;
+    _tutorialModeEnabled = false;
+}
+
+- (void)enableTutorialModeWithFullName:(NSString *)name callingText:(NSString *)callingText profilePicture:(UIImage *)picture {
+    [self setRemoteFullName:name remoteCallingText:callingText remoteProfilePicture:picture localFullName:nil localCallingText:nil localProfilePicture:nil];
+    _tutorialModeEnabled = true;
 }
 @end

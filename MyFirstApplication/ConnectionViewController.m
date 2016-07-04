@@ -109,13 +109,13 @@
     SocialState *_socialState;
     __weak IBOutlet UIButton *_backButton;
     __weak IBOutlet UIButton *_forwardsButton;
-    UIColor * _buttonsStartingColour;
+    UIColor *_buttonsStartingColour;
 
     // How long in current conversation.
-    Timer * _conversationDuration;
+    Timer *_conversationDuration;
 
     // Have we shared social information with this end point?
-    Signal * _socialShared;
+    Signal *_socialShared;
 }
 
 // View initially load; happens once per process.
@@ -135,7 +135,7 @@
     // Hack for arden crescent, should be nil.
     //_cachedResolvedDns = @"192.168.1.92";
     _cachedResolvedDns = nil;
-    
+
     _payments = [[Payments alloc] initWithDelegate:self];
 
     _screenName = @"VideoChat";
@@ -547,13 +547,17 @@
     NSLog(@"Rating timeout of %d seconds loaded", ratingTimeoutSeconds);
 }
 
-- (float)getKarmaPercentage:(uint)karmaValue {
++ (float)getKarmaPercentageFromValue:(uint)karmaValue maximum:(uint)karmaMaximum {
     float karmaFloatValue = karmaValue;
-    float karmaFloatMax = _karmaMax;
+    float karmaFloatMax = karmaMaximum;
     return karmaFloatValue / karmaFloatMax;
 }
 
-- (void)updateKarmaUsingProgressView:(UIProgressView *)progressView ratio:(float)ratio {
+- (float)getKarmaPercentage:(uint)karmaValue {
+    return [ConnectionViewController getKarmaPercentageFromValue:karmaValue maximum:_karmaMax];
+}
+
++ (void)updateKarmaUsingProgressView:(UIProgressView *)progressView ratio:(float)ratio {
     if (ratio > 0.9) {
         [progressView setTintColor:[UIColor greenColor]];
     } else if (ratio < 0.3) {
@@ -570,8 +574,8 @@
 
     NSLog(@"Received our karma of [%.3f] and remote karma of [%.3f]", ourKarmaPercentage, remoteKarmaPercentage);
     dispatch_async_main(^{
-        [self updateKarmaUsingProgressView:_remoteKarma ratio:remoteKarmaPercentage];
-        [self updateKarmaUsingProgressView:_ownerKarma ratio:ourKarmaPercentage];
+        [ConnectionViewController updateKarmaUsingProgressView:_remoteKarma ratio:remoteKarmaPercentage];
+        [ConnectionViewController updateKarmaUsingProgressView:_ownerKarma ratio:ourKarmaPercentage];
     }, 0);
 }
 
@@ -837,8 +841,8 @@
             NSString *remoteFullName = [packet getString];
             NSString *callingCardText = [packet getString];
             UIImageOrientation remoteProfilePictureOrientation = (UIImageOrientation) [packet getUnsignedInteger];
-            NSData * remoteProfilePictureData = [packet getData];
-            UIImage * remoteProfilePicture = [ImageParsing convertDataToImage:remoteProfilePictureData orientation:remoteProfilePictureOrientation];
+            NSData *remoteProfilePictureData = [packet getData];
+            UIImage *remoteProfilePicture = [ImageParsing convertDataToImage:remoteProfilePictureData orientation:remoteProfilePictureOrientation];
 
             dispatch_sync_main(^{
                 UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Storyboard" bundle:nil];
@@ -969,7 +973,7 @@
     _karmaRegenerationReceipt = data;
 }
 
-- (IBAction)onFacebookLikeButtonPressed:(UILongPressGestureRecognizer*)sender {
+- (IBAction)onFacebookLikeButtonPressed:(UILongPressGestureRecognizer *)sender {
     if (sender.state != UIGestureRecognizerStateBegan) {
         return;
     }

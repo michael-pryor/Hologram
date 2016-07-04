@@ -3,7 +3,8 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "ConversationEndedViewController.h"
 
 
-@interface HelpViewController : UIViewController
+@interface HelpViewController : UIViewController<ConversationRatingConsumer>
 @end
