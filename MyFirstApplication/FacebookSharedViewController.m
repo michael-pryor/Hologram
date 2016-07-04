@@ -79,7 +79,7 @@
     if (sender.state != UIGestureRecognizerStateBegan) {
         return;
     }
-    
+
     if ([_ownerHiddenSignal signalAll]) {
         [ViewInteractions fadeOut:_ownerUiView completion:^(BOOL completed) {
             if (!completed) {

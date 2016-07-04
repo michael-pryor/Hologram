@@ -125,6 +125,15 @@ static CGFloat _lastScrollViewPosition;
         NSLog(@"User is already logged in");
     }
 
+    NSCalendarUnit unitFlags = NSCalendarUnitYear | NSCalendarUnitMonth |  NSCalendarUnitDay;
+    NSDate *now = [NSDate date];
+    NSCalendar *gregorian = [NSCalendar currentCalendar];
+    NSDateComponents *comps = [gregorian components:unitFlags fromDate:now];
+    [comps setYear:[comps year] - 100];
+    NSDate *hundredYearsAgo = [gregorian dateFromComponents:comps];
+    _dateOfBirthDatePicker.minimumDate = hundredYearsAgo;
+    _dateOfBirthDatePicker.maximumDate = now;
+
     [self _updateDisplay];
 }
 
