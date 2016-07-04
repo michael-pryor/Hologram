@@ -38,11 +38,11 @@
                             <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="4wH-yf-2Sq">
                                 <rect key="frame" x="0.0" y="20" width="600" height="580"/>
                                 <subviews>
-                                    <view contentMode="scaleToFill" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="QWm-My-dkg">
+                                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="QWm-My-dkg">
                                         <rect key="frame" x="0.0" y="8" width="600" height="1439"/>
                                         <subviews>
-                                            <stackView opaque="NO" contentMode="scaleAspectFit" axis="vertical" spacing="40" translatesAutoresizingMaskIntoConstraints="NO" id="6VR-WX-Jea">
-                                                <rect key="frame" x="20" y="0.0" width="560" height="1307"/>
+                                            <stackView opaque="NO" contentMode="scaleAspectFit" misplaced="YES" axis="vertical" spacing="40" translatesAutoresizingMaskIntoConstraints="NO" id="6VR-WX-Jea">
+                                                <rect key="frame" x="20" y="0.0" width="560" height="1439"/>
                                                 <subviews>
                                                     <stackView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="300" verticalHuggingPriority="300" axis="vertical" spacing="20" translatesAutoresizingMaskIntoConstraints="NO" id="SPb-jA-kos">
                                                         <rect key="frame" x="0.0" y="0.0" width="560" height="183"/>
@@ -95,17 +95,17 @@
                                                             </stackView>
                                                         </subviews>
                                                     </stackView>
-                                                    <stackView hidden="YES" opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="FeJ-RB-L43">
-                                                        <rect key="frame" x="0.0" y="203" width="560" height="0.0"/>
+                                                    <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="FeJ-RB-L43">
+                                                        <rect key="frame" x="0.0" y="223" width="560" height="47"/>
                                                         <subviews>
                                                             <label opaque="NO" contentMode="left" horizontalCompressionResistancePriority="250" verticalCompressionResistancePriority="1" text="What is a Hologram?" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="IST-9h-RzQ" userLabel="Help">
-                                                                <rect key="frame" x="0.0" y="0.0" width="560" height="0.0"/>
+                                                                <rect key="frame" x="0.0" y="0.0" width="560" height="17"/>
                                                                 <fontDescription key="fontDescription" type="boldSystem" pointSize="14"/>
                                                                 <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                                                 <nil key="highlightedColor"/>
                                                             </label>
                                                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="7W0-QB-p5N">
-                                                                <rect key="frame" x="0.0" y="0.0" width="560" height="0.0"/>
+                                                                <rect key="frame" x="0.0" y="17" width="560" height="30"/>
                                                                 <state key="normal" title="A guide to Hologram"/>
                                                                 <connections>
                                                                     <action selector="onGuideButtonPress:" destination="HPd-0g-j2K" eventType="touchUpInside" id="D2G-fj-Ijh"/>
@@ -113,15 +113,15 @@
                                                             </button>
                                                         </subviews>
                                                     </stackView>
-                                                    <view hidden="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="mJr-Ax-hbF">
-                                                        <rect key="frame" x="0.0" y="203" width="560" height="0.0"/>
+                                                    <view contentMode="scaleToFill" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="mJr-Ax-hbF">
+                                                        <rect key="frame" x="0.0" y="310" width="560" height="5"/>
                                                         <color key="backgroundColor" red="0.59757345299999998" green="1" blue="0.1187059779" alpha="1" colorSpace="calibratedRGB"/>
                                                         <constraints>
                                                             <constraint firstAttribute="height" constant="5" id="tRm-Ww-TOl"/>
                                                         </constraints>
                                                     </view>
-                                                    <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="20" translatesAutoresizingMaskIntoConstraints="NO" id="40f-Od-aDc">
-                                                        <rect key="frame" x="0.0" y="223" width="560" height="256"/>
+                                                    <stackView opaque="NO" contentMode="scaleToFill" misplaced="YES" axis="vertical" spacing="20" translatesAutoresizingMaskIntoConstraints="NO" id="40f-Od-aDc">
+                                                        <rect key="frame" x="0.0" y="355" width="560" height="256"/>
                                                         <subviews>
                                                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="3" translatesAutoresizingMaskIntoConstraints="NO" id="lSi-fI-FQ1">
                                                                 <rect key="frame" x="0.0" y="0.0" width="560" height="50"/>
@@ -205,15 +205,15 @@
                                                             </stackView>
                                                         </subviews>
                                                     </stackView>
-                                                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Tir-Pz-cWg">
-                                                        <rect key="frame" x="0.0" y="519" width="560" height="5"/>
+                                                    <view contentMode="scaleToFill" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Tir-Pz-cWg">
+                                                        <rect key="frame" x="0.0" y="651" width="560" height="5"/>
                                                         <color key="backgroundColor" red="0.59757345299999998" green="1" blue="0.1187059779" alpha="1" colorSpace="calibratedRGB"/>
                                                         <constraints>
                                                             <constraint firstAttribute="height" constant="5" id="8qq-FA-T3I"/>
                                                         </constraints>
                                                     </view>
-                                                    <stackView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="1000" verticalHuggingPriority="1000" verticalCompressionResistancePriority="1000" axis="vertical" alignment="top" spacing="15" translatesAutoresizingMaskIntoConstraints="NO" id="s6v-Hb-ukX">
-                                                        <rect key="frame" x="0.0" y="564" width="560" height="349"/>
+                                                    <stackView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="1000" verticalHuggingPriority="1000" verticalCompressionResistancePriority="1000" misplaced="YES" axis="vertical" alignment="top" spacing="15" translatesAutoresizingMaskIntoConstraints="NO" id="s6v-Hb-ukX">
+                                                        <rect key="frame" x="0.0" y="696" width="560" height="349"/>
                                                         <subviews>
                                                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" alignment="top" spacing="3" translatesAutoresizingMaskIntoConstraints="NO" id="LuJ-zI-GbW">
                                                                 <rect key="frame" x="0.0" y="0.0" width="560" height="188"/>
@@ -287,15 +287,15 @@
                                                             <constraint firstItem="Gx5-PM-OQA" firstAttribute="width" secondItem="s6v-Hb-ukX" secondAttribute="width" id="ZB5-dx-n3E"/>
                                                         </constraints>
                                                     </stackView>
-                                                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Yg7-1s-FnY">
-                                                        <rect key="frame" x="0.0" y="953" width="560" height="5"/>
+                                                    <view contentMode="scaleToFill" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Yg7-1s-FnY">
+                                                        <rect key="frame" x="0.0" y="1085" width="560" height="5"/>
                                                         <color key="backgroundColor" red="0.59757345299999998" green="1" blue="0.1187059779" alpha="1" colorSpace="calibratedRGB"/>
                                                         <constraints>
                                                             <constraint firstAttribute="height" constant="5" id="vJ1-Ym-WZ5"/>
                                                         </constraints>
                                                     </view>
-                                                    <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="rNw-UO-Cxf">
-                                                        <rect key="frame" x="0.0" y="998" width="560" height="269"/>
+                                                    <stackView opaque="NO" contentMode="scaleToFill" misplaced="YES" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="rNw-UO-Cxf">
+                                                        <rect key="frame" x="0.0" y="1130" width="560" height="269"/>
                                                         <subviews>
                                                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="⚠︎ Please enter your name" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="UcR-9N-rEK">
                                                                 <rect key="frame" x="0.0" y="0.0" width="560" height="17"/>
@@ -368,8 +368,8 @@
                                                             </view>
                                                         </subviews>
                                                     </stackView>
-                                                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="cCi-2b-0Qa">
-                                                        <rect key="frame" x="0.0" y="1307" width="560" height="0.0"/>
+                                                    <view contentMode="scaleToFill" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cCi-2b-0Qa">
+                                                        <rect key="frame" x="0.0" y="1439" width="560" height="0.0"/>
                                                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                                         <constraints>
                                                             <constraint firstAttribute="height" id="7BS-Sg-Mj5"/>
@@ -1283,94 +1283,210 @@
                             <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" horizontalHuggingPriority="1000" verticalHuggingPriority="1000" horizontalCompressionResistancePriority="1000" verticalCompressionResistancePriority="1000" translatesAutoresizingMaskIntoConstraints="NO" id="OTu-Js-txd">
                                 <rect key="frame" x="0.0" y="20" width="600" height="580"/>
                                 <subviews>
-                                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="JDC-2T-so2">
-                                        <rect key="frame" x="8" y="8" width="584" height="1808"/>
+                                    <view contentMode="scaleToFill" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="JDC-2T-so2">
+                                        <rect key="frame" x="8" y="8" width="584" height="2001"/>
                                         <subviews>
-                                            <stackView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="100" verticalHuggingPriority="100" axis="vertical" spacing="50" translatesAutoresizingMaskIntoConstraints="NO" id="a3X-uX-q2X">
-                                                <rect key="frame" x="28" y="0.0" width="528" height="1788"/>
+                                            <stackView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="100" verticalHuggingPriority="100" axis="vertical" distribution="equalSpacing" spacing="50" translatesAutoresizingMaskIntoConstraints="NO" id="a3X-uX-q2X">
+                                                <rect key="frame" x="28" y="0.0" width="528" height="2041"/>
                                                 <subviews>
-                                                    <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" alignment="top" translatesAutoresizingMaskIntoConstraints="NO" id="OxO-Ja-mn6" userLabel="Networking Stack">
-                                                        <rect key="frame" x="0.0" y="0.0" width="528" height="238"/>
+                                                    <stackView opaque="NO" contentMode="left" semanticContentAttribute="forceLeftToRight" axis="vertical" alignment="top" translatesAutoresizingMaskIntoConstraints="NO" id="OxO-Ja-mn6" userLabel="Networking Stack">
+                                                        <rect key="frame" x="0.0" y="0.0" width="528" height="491"/>
                                                         <subviews>
-                                                            <label opaque="NO" contentMode="left" horizontalHuggingPriority="100" verticalHuggingPriority="100" horizontalCompressionResistancePriority="250" verticalCompressionResistancePriority="100" text="Networking" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="tlX-mj-tdi" userLabel="Networking Label">
+                                                            <label opaque="NO" contentMode="left" horizontalHuggingPriority="300" verticalHuggingPriority="300" horizontalCompressionResistancePriority="252" verticalCompressionResistancePriority="300" text="Networking" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="tlX-mj-tdi" userLabel="Networking Label">
                                                                 <rect key="frame" x="0.0" y="0.0" width="81" height="17"/>
                                                                 <fontDescription key="fontDescription" type="boldSystem" pointSize="14"/>
                                                                 <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                                                 <nil key="highlightedColor"/>
                                                             </label>
                                                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="1000" verticalHuggingPriority="1000" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="10" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Xut-DR-efy" userLabel="Networking Explanation">
-                                                                <rect key="frame" x="0.0" y="17" width="501" height="101"/>
-                                                                <string key="text">There are a number of technologies used by Hologram to keep conversations smooth, high quality and with minimal delay. Sometimes Hologram spots problems or takes action which may impact the quality of the conversation.
-
-It alerts users of this with a number of symbols which are explained below:
+                                                                <rect key="frame" x="0.0" y="17" width="499" height="34"/>
+                                                                <string key="text">A number of symbols are used which describe network and call performance:
 </string>
                                                                 <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                                                 <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
                                                                 <nil key="highlightedColor"/>
                                                             </label>
-                                                            <stackView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="500" verticalHuggingPriority="100" axis="vertical" distribution="fillEqually" translatesAutoresizingMaskIntoConstraints="NO" id="5F3-gb-FpN">
-                                                                <rect key="frame" x="0.0" y="118" width="90" height="120"/>
+                                                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="Cjs-ic-Klj">
+                                                                <rect key="frame" x="0.0" y="51" width="528" height="440"/>
                                                                 <subviews>
-                                                                    <stackView opaque="NO" contentMode="scaleToFill" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="HB0-e3-d6D" userLabel="Video Loss Stack">
-                                                                        <rect key="frame" x="0.0" y="0.0" width="90" height="40"/>
+                                                                    <stackView opaque="NO" contentMode="scaleToFill" alignment="center" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="EYQ-t1-nbQ" userLabel="Video Loss Stack">
+                                                                        <rect key="frame" x="0.0" y="0.0" width="528" height="50"/>
                                                                         <subviews>
-                                                                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="video_problem" translatesAutoresizingMaskIntoConstraints="NO" id="rI5-Fy-Ytj">
-                                                                                <rect key="frame" x="0.0" y="0.0" width="40" height="40"/>
+                                                                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="RWb-dT-8PB">
+                                                                                <rect key="frame" x="0.0" y="0.0" width="50" height="50"/>
+                                                                                <subviews>
+                                                                                    <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" horizontalCompressionResistancePriority="250" verticalCompressionResistancePriority="250" image="video_problem" translatesAutoresizingMaskIntoConstraints="NO" id="OGE-tF-ZHS">
+                                                                                        <rect key="frame" x="0.0" y="0.0" width="50" height="50"/>
+                                                                                        <constraints>
+                                                                                            <constraint firstAttribute="height" relation="lessThanOrEqual" constant="50" id="C00-Bu-LBo"/>
+                                                                                            <constraint firstAttribute="width" secondItem="OGE-tF-ZHS" secondAttribute="height" multiplier="1:1" id="EBS-Hs-aH8"/>
+                                                                                        </constraints>
+                                                                                    </imageView>
+                                                                                </subviews>
+                                                                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                                                                 <constraints>
-                                                                                    <constraint firstAttribute="width" secondItem="rI5-Fy-Ytj" secondAttribute="height" multiplier="1:1" id="8BP-KW-vtr"/>
-                                                                                    <constraint firstAttribute="width" constant="40" id="UNQ-xS-Knr"/>
+                                                                                    <constraint firstItem="OGE-tF-ZHS" firstAttribute="centerY" secondItem="RWb-dT-8PB" secondAttribute="centerY" id="0C8-1b-d6R"/>
+                                                                                    <constraint firstItem="OGE-tF-ZHS" firstAttribute="height" relation="lessThanOrEqual" secondItem="RWb-dT-8PB" secondAttribute="height" id="PDo-bO-26j"/>
+                                                                                    <constraint firstAttribute="width" constant="50" id="fcz-1K-Rva"/>
+                                                                                    <constraint firstItem="OGE-tF-ZHS" firstAttribute="centerX" secondItem="RWb-dT-8PB" secondAttribute="centerX" id="hdw-gv-qD0"/>
                                                                                 </constraints>
-                                                                            </imageView>
-                                                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="500" horizontalCompressionResistancePriority="200" verticalCompressionResistancePriority="200" text="Video data loss has occurred. This is normally temporary; while present the video quality may decrease and/or become choppy." textAlignment="natural" lineBreakMode="wordWrap" numberOfLines="10" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="B2O-0b-bG7" userLabel="Fast Forward Label">
-                                                                                <rect key="frame" x="50" y="0.0" width="40" height="40"/>
+                                                                            </view>
+                                                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="500" horizontalCompressionResistancePriority="1000" verticalCompressionResistancePriority="1000" text="Video data loss has occurred. The video quality may temporarily decrease and/or become choppy." textAlignment="natural" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="B2O-0b-bG7" userLabel="Fast Forward Label">
+                                                                                <rect key="frame" x="58" y="11" width="470" height="29"/>
                                                                                 <fontDescription key="fontDescription" type="system" weight="light" pointSize="12"/>
                                                                                 <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
                                                                                 <nil key="highlightedColor"/>
                                                                             </label>
                                                                         </subviews>
+                                                                        <constraints>
+                                                                            <constraint firstItem="RWb-dT-8PB" firstAttribute="height" secondItem="EYQ-t1-nbQ" secondAttribute="height" id="AS0-p4-IrE"/>
+                                                                        </constraints>
                                                                     </stackView>
-                                                                    <stackView opaque="NO" contentMode="scaleToFill" alignment="center" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="Pxw-sE-rC3" userLabel="Fast Forward Audio Stack">
-                                                                        <rect key="frame" x="0.0" y="40" width="90" height="40"/>
+                                                                    <stackView opaque="NO" contentMode="scaleToFill" alignment="center" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="6aY-jm-jEA" userLabel="Audio Loss Stack">
+                                                                        <rect key="frame" x="0.0" y="60" width="528" height="50"/>
                                                                         <subviews>
-                                                                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="fast_forward_audio" translatesAutoresizingMaskIntoConstraints="NO" id="8UD-s3-JES">
-                                                                                <rect key="frame" x="0.0" y="0.0" width="40" height="40"/>
+                                                                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="5Bh-d1-obj">
+                                                                                <rect key="frame" x="0.0" y="0.0" width="50" height="50"/>
+                                                                                <subviews>
+                                                                                    <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" horizontalCompressionResistancePriority="250" verticalCompressionResistancePriority="250" image="audio_problem" translatesAutoresizingMaskIntoConstraints="NO" id="MZh-eQ-cuV">
+                                                                                        <rect key="frame" x="0.0" y="0.0" width="50" height="50"/>
+                                                                                        <constraints>
+                                                                                            <constraint firstAttribute="width" secondItem="MZh-eQ-cuV" secondAttribute="height" multiplier="1:1" id="URY-T4-TUW"/>
+                                                                                            <constraint firstAttribute="height" relation="lessThanOrEqual" constant="50" id="z8c-M6-X7I"/>
+                                                                                        </constraints>
+                                                                                    </imageView>
+                                                                                </subviews>
+                                                                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                                                                 <constraints>
-                                                                                    <constraint firstAttribute="width" constant="40" id="eK8-IR-YJU"/>
+                                                                                    <constraint firstItem="MZh-eQ-cuV" firstAttribute="centerY" secondItem="5Bh-d1-obj" secondAttribute="centerY" id="19t-6b-NQq"/>
+                                                                                    <constraint firstAttribute="width" constant="50" id="LVP-IB-AiS"/>
+                                                                                    <constraint firstItem="MZh-eQ-cuV" firstAttribute="height" relation="lessThanOrEqual" secondItem="5Bh-d1-obj" secondAttribute="height" id="wO1-Dz-6Gq"/>
+                                                                                    <constraint firstItem="MZh-eQ-cuV" firstAttribute="centerX" secondItem="5Bh-d1-obj" secondAttribute="centerX" id="wXZ-6r-jBr"/>
                                                                                 </constraints>
-                                                                            </imageView>
-                                                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="500" horizontalCompressionResistancePriority="1000" verticalCompressionResistancePriority="200" textAlignment="natural" lineBreakMode="wordWrap" numberOfLines="10" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="7VF-uH-EvD" userLabel="Fast Forward Label">
-                                                                                <rect key="frame" x="50" y="0.0" width="40" height="40"/>
-                                                                                <string key="text">Audio has been fast forwarded. Hologram does this occassionally in an attempt to reduce audio and video delay. For a fraction of a second audio is paused; you will notice a gap in the audio when this happens.</string>
+                                                                            </view>
+                                                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="500" horizontalCompressionResistancePriority="1000" verticalCompressionResistancePriority="1000" text="Audio data loss has occurred. The audio quality may temporarily decrease and/or become choppy." textAlignment="natural" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="sB2-bc-zAn" userLabel="Fast Forward Label">
+                                                                                <rect key="frame" x="58" y="11" width="470" height="29"/>
                                                                                 <fontDescription key="fontDescription" type="system" weight="light" pointSize="12"/>
                                                                                 <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
                                                                                 <nil key="highlightedColor"/>
                                                                             </label>
                                                                         </subviews>
+                                                                        <constraints>
+                                                                            <constraint firstItem="5Bh-d1-obj" firstAttribute="height" secondItem="6aY-jm-jEA" secondAttribute="height" id="yyy-v5-BNq"/>
+                                                                        </constraints>
                                                                     </stackView>
-                                                                    <stackView opaque="NO" contentMode="scaleToFill" alignment="center" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="H0g-9d-xhe" userLabel="Audio Data Loss Stack">
-                                                                        <rect key="frame" x="0.0" y="80" width="90" height="40"/>
+                                                                    <stackView opaque="NO" contentMode="scaleToFill" alignment="center" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="kVt-Lq-peD" userLabel="Fast Forward Stack">
+                                                                        <rect key="frame" x="0.0" y="120" width="528" height="50"/>
                                                                         <subviews>
-                                                                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="audio_problem" translatesAutoresizingMaskIntoConstraints="NO" id="SgP-Kg-Gdi">
-                                                                                <rect key="frame" x="0.0" y="0.0" width="40" height="40"/>
+                                                                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="qmt-Xa-Ltk">
+                                                                                <rect key="frame" x="0.0" y="0.0" width="50" height="50"/>
+                                                                                <subviews>
+                                                                                    <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" horizontalCompressionResistancePriority="250" verticalCompressionResistancePriority="250" image="fast_forward_audio" translatesAutoresizingMaskIntoConstraints="NO" id="DEB-jN-PAZ">
+                                                                                        <rect key="frame" x="0.0" y="0.0" width="50" height="50"/>
+                                                                                        <constraints>
+                                                                                            <constraint firstAttribute="width" secondItem="DEB-jN-PAZ" secondAttribute="height" multiplier="1:1" id="h6r-nl-JjO"/>
+                                                                                            <constraint firstAttribute="height" relation="lessThanOrEqual" constant="50" id="tbN-Vy-oPH"/>
+                                                                                        </constraints>
+                                                                                    </imageView>
+                                                                                </subviews>
+                                                                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                                                                 <constraints>
-                                                                                    <constraint firstAttribute="width" constant="40" id="2w9-cY-hDn"/>
-                                                                                    <constraint firstAttribute="width" secondItem="SgP-Kg-Gdi" secondAttribute="height" multiplier="1:1" id="XSg-fK-73b"/>
+                                                                                    <constraint firstItem="DEB-jN-PAZ" firstAttribute="centerX" secondItem="qmt-Xa-Ltk" secondAttribute="centerX" id="1np-nA-QLs"/>
+                                                                                    <constraint firstAttribute="width" constant="50" id="4KM-I5-rOa"/>
+                                                                                    <constraint firstItem="DEB-jN-PAZ" firstAttribute="centerY" secondItem="qmt-Xa-Ltk" secondAttribute="centerY" id="SIw-Ji-e3g"/>
+                                                                                    <constraint firstItem="DEB-jN-PAZ" firstAttribute="height" relation="lessThanOrEqual" secondItem="qmt-Xa-Ltk" secondAttribute="height" id="Wvo-AB-39M"/>
                                                                                 </constraints>
-                                                                            </imageView>
-                                                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="500" horizontalCompressionResistancePriority="200" verticalCompressionResistancePriority="200" text="Audio data loss has occurred. This is normally temporary; you may notice gaps in the audio you are hearing." textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="10" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="TG8-cR-xv0" userLabel="Fast Forward Label">
-                                                                                <rect key="frame" x="50" y="0.0" width="40" height="40"/>
+                                                                            </view>
+                                                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="500" horizontalCompressionResistancePriority="1000" verticalCompressionResistancePriority="1000" textAlignment="natural" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="T5L-JM-6bN" userLabel="Fast Forward Label">
+                                                                                <rect key="frame" x="58" y="11" width="470" height="29"/>
+                                                                                <string key="text">Audio has been fast forwarded. Hologram is attempting to reduce audio and video latency. You may notice audio pause for a second.</string>
                                                                                 <fontDescription key="fontDescription" type="system" weight="light" pointSize="12"/>
                                                                                 <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
                                                                                 <nil key="highlightedColor"/>
                                                                             </label>
                                                                         </subviews>
+                                                                        <constraints>
+                                                                            <constraint firstItem="qmt-Xa-Ltk" firstAttribute="height" secondItem="kVt-Lq-peD" secondAttribute="height" id="eEg-CN-ClZ"/>
+                                                                        </constraints>
+                                                                    </stackView>
+                                                                    <stackView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="255" verticalHuggingPriority="500" alignment="center" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="8VE-kg-GP5" userLabel="Peer to peer">
+                                                                        <rect key="frame" x="0.0" y="180" width="528" height="200"/>
+                                                                        <subviews>
+                                                                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="WBc-ds-Hxa">
+                                                                                <rect key="frame" x="0.0" y="0.0" width="50" height="200"/>
+                                                                                <subviews>
+                                                                                    <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" horizontalCompressionResistancePriority="250" verticalCompressionResistancePriority="250" misplaced="YES" image="nat_punched_through" translatesAutoresizingMaskIntoConstraints="NO" id="fiE-ry-rmz">
+                                                                                        <rect key="frame" x="0.0" y="76" width="50" height="50"/>
+                                                                                        <constraints>
+                                                                                            <constraint firstAttribute="width" secondItem="fiE-ry-rmz" secondAttribute="height" multiplier="1:1" id="GCI-b1-Gaf"/>
+                                                                                            <constraint firstAttribute="height" relation="lessThanOrEqual" constant="50" id="R5s-xL-En2"/>
+                                                                                        </constraints>
+                                                                                    </imageView>
+                                                                                </subviews>
+                                                                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                                                                <constraints>
+                                                                                    <constraint firstItem="fiE-ry-rmz" firstAttribute="centerX" secondItem="WBc-ds-Hxa" secondAttribute="centerX" id="7TE-fl-tD8"/>
+                                                                                    <constraint firstItem="fiE-ry-rmz" firstAttribute="centerY" secondItem="WBc-ds-Hxa" secondAttribute="centerY" id="TsS-QB-RkD"/>
+                                                                                    <constraint firstAttribute="width" constant="50" id="ms6-bY-Qsq"/>
+                                                                                    <constraint firstItem="fiE-ry-rmz" firstAttribute="height" relation="lessThanOrEqual" secondItem="WBc-ds-Hxa" secondAttribute="height" id="wpV-GQ-zmU"/>
+                                                                                </constraints>
+                                                                            </view>
+                                                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="500" horizontalCompressionResistancePriority="1000" verticalCompressionResistancePriority="1000" text="Network traffic is going peer to peer, straight to the receipient's device. This is optimum." textAlignment="natural" lineBreakMode="wordWrap" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="bwh-2a-Nvy" userLabel="Fast Forward Label">
+                                                                                <rect key="frame" x="58" y="0.0" width="470" height="200"/>
+                                                                                <constraints>
+                                                                                    <constraint firstAttribute="height" relation="lessThanOrEqual" constant="200" id="K5h-Tr-MRm"/>
+                                                                                </constraints>
+                                                                                <fontDescription key="fontDescription" type="system" weight="light" pointSize="12"/>
+                                                                                <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                                                                <nil key="highlightedColor"/>
+                                                                            </label>
+                                                                        </subviews>
+                                                                        <constraints>
+                                                                            <constraint firstItem="WBc-ds-Hxa" firstAttribute="height" secondItem="8VE-kg-GP5" secondAttribute="height" id="g9G-Zo-CmE"/>
+                                                                        </constraints>
+                                                                    </stackView>
+                                                                    <stackView opaque="NO" contentMode="scaleToFill" alignment="center" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="stG-su-L8c" userLabel="Routed">
+                                                                        <rect key="frame" x="0.0" y="390" width="528" height="50"/>
+                                                                        <subviews>
+                                                                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="wwx-00-Lwd">
+                                                                                <rect key="frame" x="0.0" y="0.0" width="50" height="50"/>
+                                                                                <subviews>
+                                                                                    <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" horizontalCompressionResistancePriority="250" verticalCompressionResistancePriority="250" image="nat_routing_through_server" translatesAutoresizingMaskIntoConstraints="NO" id="Hcd-o0-1DY">
+                                                                                        <rect key="frame" x="0.0" y="0.0" width="50" height="50"/>
+                                                                                        <constraints>
+                                                                                            <constraint firstAttribute="height" relation="lessThanOrEqual" constant="50" id="M80-JI-jRR"/>
+                                                                                            <constraint firstAttribute="width" secondItem="Hcd-o0-1DY" secondAttribute="height" multiplier="1:1" id="bi3-fZ-9n3"/>
+                                                                                        </constraints>
+                                                                                    </imageView>
+                                                                                </subviews>
+                                                                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                                                                <constraints>
+                                                                                    <constraint firstItem="Hcd-o0-1DY" firstAttribute="centerX" secondItem="wwx-00-Lwd" secondAttribute="centerX" id="5iu-Er-AHF"/>
+                                                                                    <constraint firstItem="Hcd-o0-1DY" firstAttribute="centerY" secondItem="wwx-00-Lwd" secondAttribute="centerY" id="HKR-8M-0YP"/>
+                                                                                    <constraint firstAttribute="width" constant="50" id="TMU-bf-oa7"/>
+                                                                                    <constraint firstItem="Hcd-o0-1DY" firstAttribute="height" relation="lessThanOrEqual" secondItem="wwx-00-Lwd" secondAttribute="height" id="avK-Wm-rjX"/>
+                                                                                </constraints>
+                                                                            </view>
+                                                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="500" horizontalCompressionResistancePriority="1000" verticalCompressionResistancePriority="1000" text="Network traffic is going through Hologram servers. This is less optimum." textAlignment="natural" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="o0i-9G-WJc" userLabel="Fast Forward Label">
+                                                                                <rect key="frame" x="58" y="18" width="470" height="15"/>
+                                                                                <fontDescription key="fontDescription" type="system" weight="light" pointSize="12"/>
+                                                                                <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                                                                <nil key="highlightedColor"/>
+                                                                            </label>
+                                                                        </subviews>
+                                                                        <constraints>
+                                                                            <constraint firstItem="wwx-00-Lwd" firstAttribute="height" secondItem="stG-su-L8c" secondAttribute="height" id="PuG-7Y-Tf0"/>
+                                                                        </constraints>
                                                                     </stackView>
                                                                 </subviews>
                                                             </stackView>
                                                         </subviews>
+                                                        <constraints>
+                                                            <constraint firstItem="Cjs-ic-Klj" firstAttribute="width" secondItem="OxO-Ja-mn6" secondAttribute="width" id="o7a-gp-rUR"/>
+                                                        </constraints>
                                                     </stackView>
                                                     <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="mes-uT-H1L" userLabel="Karma Stack">
-                                                        <rect key="frame" x="0.0" y="288" width="528" height="500"/>
+                                                        <rect key="frame" x="0.0" y="541" width="528" height="500"/>
                                                         <subviews>
                                                             <label opaque="NO" contentMode="left" horizontalCompressionResistancePriority="250" verticalCompressionResistancePriority="1000" text="Karma" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="dTd-lP-1J4" userLabel="Karma Label">
                                                                 <rect key="frame" x="0.0" y="0.0" width="528" height="174"/>
@@ -1419,13 +1535,13 @@ Try below to see what happens to a user's karma as you rate them at the end of c
                                                         </constraints>
                                                     </stackView>
                                                     <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="200" verticalHuggingPriority="200" image="hologram_start_chat" translatesAutoresizingMaskIntoConstraints="NO" id="REM-Od-c24">
-                                                        <rect key="frame" x="0.0" y="838" width="528" height="100"/>
+                                                        <rect key="frame" x="0.0" y="1091" width="528" height="100"/>
                                                         <constraints>
                                                             <constraint firstAttribute="height" relation="lessThanOrEqual" constant="100" id="bfM-gY-etB"/>
                                                         </constraints>
                                                     </imageView>
                                                     <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="CJw-KO-Itp" userLabel="Calling Cards Stack">
-                                                        <rect key="frame" x="0.0" y="988" width="528" height="500"/>
+                                                        <rect key="frame" x="0.0" y="1241" width="528" height="500"/>
                                                         <subviews>
                                                             <label opaque="NO" contentMode="left" horizontalCompressionResistancePriority="250" verticalCompressionResistancePriority="1000" text="Calling Cards" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="I1f-Zg-563" userLabel="Calling Cards Label">
                                                                 <rect key="frame" x="0.0" y="0.0" width="528" height="50"/>
@@ -1486,35 +1602,35 @@ To share a calling card while in a conversation, double tap the screen and hold 
                                                         </constraints>
                                                     </stackView>
                                                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="wf7-oZ-Td6">
-                                                        <rect key="frame" x="0.0" y="1538" width="528" height="5"/>
+                                                        <rect key="frame" x="0.0" y="1791" width="528" height="5"/>
                                                         <color key="backgroundColor" red="0.59757345299999998" green="1" blue="0.1187059779" alpha="1" colorSpace="calibratedRGB"/>
                                                         <constraints>
                                                             <constraint firstAttribute="height" constant="5" id="sXb-PR-RbZ"/>
                                                         </constraints>
                                                     </view>
                                                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="hKw-Fv-zUC">
-                                                        <rect key="frame" x="0.0" y="1593" width="528" height="5"/>
+                                                        <rect key="frame" x="0.0" y="1846" width="528" height="5"/>
                                                         <color key="backgroundColor" red="0.59757345299999998" green="1" blue="0.1187059779" alpha="1" colorSpace="calibratedRGB"/>
                                                         <constraints>
                                                             <constraint firstAttribute="height" constant="5" id="JBz-eo-Odg"/>
                                                         </constraints>
                                                     </view>
                                                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ad2-Ff-wmg">
-                                                        <rect key="frame" x="0.0" y="1648" width="528" height="5"/>
+                                                        <rect key="frame" x="0.0" y="1901" width="528" height="5"/>
                                                         <color key="backgroundColor" red="0.59757345299999998" green="1" blue="0.1187059779" alpha="1" colorSpace="calibratedRGB"/>
                                                         <constraints>
                                                             <constraint firstAttribute="height" constant="5" id="6N2-MH-rdY"/>
                                                         </constraints>
                                                     </view>
                                                     <button opaque="NO" contentMode="scaleToFill" horizontalCompressionResistancePriority="1000" verticalCompressionResistancePriority="1000" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Bzf-30-dzB">
-                                                        <rect key="frame" x="0.0" y="1703" width="528" height="30"/>
+                                                        <rect key="frame" x="0.0" y="1956" width="528" height="30"/>
                                                         <state key="normal" title="Done"/>
                                                         <connections>
                                                             <action selector="onDoneButtonPressed:" destination="XOc-OE-Ta3" eventType="touchUpInside" id="B0K-pE-eSy"/>
                                                         </connections>
                                                     </button>
                                                     <view alpha="0.0" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="gGK-Ud-uux">
-                                                        <rect key="frame" x="0.0" y="1783" width="528" height="5"/>
+                                                        <rect key="frame" x="0.0" y="2036" width="528" height="5"/>
                                                         <color key="backgroundColor" red="0.59757345299999998" green="1" blue="0.1187059779" alpha="1" colorSpace="calibratedRGB"/>
                                                         <constraints>
                                                             <constraint firstAttribute="height" constant="5" id="V3D-2c-JbD"/>
@@ -1730,6 +1846,8 @@ i. The laws of the State of California, excluding its conflicts of law rules, go
         <image name="facebook_shared" width="2048" height="1865"/>
         <image name="fast_forward_audio" width="2440" height="2482"/>
         <image name="hologram_start_chat" width="785" height="194"/>
+        <image name="nat_punched_through" width="2482" height="1704"/>
+        <image name="nat_routing_through_server" width="2482" height="2400"/>
         <image name="rating_block" width="734" height="382"/>
         <image name="rating_good" width="734" height="382"/>
         <image name="rating_okay" width="734" height="382"/>
