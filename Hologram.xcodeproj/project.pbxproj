@@ -36,6 +36,7 @@
 		5121B00E1C39A045001D3E78 /* libswscale.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5121B0061C39A045001D3E78 /* libswscale.a */; };
 		51260FD41B47F60F001DE2B3 /* ConnectionCommander.m in Sources */ = {isa = PBXBuildFile; fileRef = 51260FD31B47F60F001DE2B3 /* ConnectionCommander.m */; };
 		5167DFD41D22F93B005ED9A3 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5167DFD31D22F93B005ED9A3 /* StoreKit.framework */; };
+		517329011D2DACA200636E82 /* CallingCardViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 517329001D2DACA200636E82 /* CallingCardViewController.m */; };
 		5178E5ED1CFE354700D89AA6 /* FBSDKCoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5178E5EB1CFE354700D89AA6 /* FBSDKCoreKit.framework */; };
 		5178E5EE1CFE354700D89AA6 /* FBSDKLoginKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5178E5EC1CFE354700D89AA6 /* FBSDKLoginKit.framework */; };
 		5178E5F01CFE366100D89AA6 /* FBSDKShareKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5178E5EF1CFE366100D89AA6 /* FBSDKShareKit.framework */; };
@@ -178,6 +179,8 @@
 		51260FD21B47F60F001DE2B3 /* ConnectionCommander.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConnectionCommander.h; sourceTree = "<group>"; };
 		51260FD31B47F60F001DE2B3 /* ConnectionCommander.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ConnectionCommander.m; sourceTree = "<group>"; };
 		5167DFD31D22F93B005ED9A3 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
+		517328FF1D2DACA200636E82 /* CallingCardViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CallingCardViewController.h; sourceTree = "<group>"; };
+		517329001D2DACA200636E82 /* CallingCardViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CallingCardViewController.m; sourceTree = "<group>"; };
 		5178E5EB1CFE354700D89AA6 /* FBSDKCoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FBSDKCoreKit.framework; path = frameworks/FBSDKCoreKit.framework; sourceTree = "<group>"; };
 		5178E5EC1CFE354700D89AA6 /* FBSDKLoginKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FBSDKLoginKit.framework; path = frameworks/FBSDKLoginKit.framework; sourceTree = "<group>"; };
 		5178E5EF1CFE366100D89AA6 /* FBSDKShareKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FBSDKShareKit.framework; path = frameworks/FBSDKShareKit.framework; sourceTree = "<group>"; };
@@ -440,6 +443,8 @@
 				D5D615A996F18971426E16E7 /* HelpViewController.h */,
 				D5D61DD0755973A44A51380F /* MatchingViewController.m */,
 				D5D6169DAEDEFCA7CE07A6B2 /* MatchingViewController.h */,
+				517328FF1D2DACA200636E82 /* CallingCardViewController.h */,
+				517329001D2DACA200636E82 /* CallingCardViewController.m */,
 			);
 			name = Storyboard;
 			sourceTree = "<group>";
@@ -1034,6 +1039,7 @@
 				D5D61468F2A79FDA10AAAD09 /* SocialState.m in Sources */,
 				D5D6147BD07963D98E2AFF4A /* UniqueId.m in Sources */,
 				D5D616C14885CA193D2FDA2E /* GenderParsing.m in Sources */,
+				517329011D2DACA200636E82 /* CallingCardViewController.m in Sources */,
 				D5D61287783F9004F0945490 /* DobParsing.m in Sources */,
 				D5D6162932AFDDD7A6D1CE33 /* NameParsing.m in Sources */,
 				D5D616A6CA79F7FD23FA22F6 /* ImageParsing.m in Sources */,

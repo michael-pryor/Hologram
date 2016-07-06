@@ -5,11 +5,10 @@
 #import "HelpViewController.h"
 #import "ConnectionViewController.h"
 #import "Threading.h"
-#import "FacebookSharedViewController.h"
+#import "CallingCardViewController.h"
 
 
 @implementation HelpViewController {
-
     __weak IBOutlet UIProgressView *_karmaProgressBar;
     int _karma;
     int _karmaMax;
@@ -20,7 +19,7 @@
 - (void)viewDidLoad {
     _karmaMax = 5;
     _karma = _karmaMax;
-    
+
     // Set things up, colour the bar properly.
     [self onConversationRating:S_OKAY];
 }
@@ -35,9 +34,9 @@
         _conversationEndedViewController = [segue destinationViewController];
         [_conversationEndedViewController setConversationRatingConsumer:self];
     } else if ([segueName isEqualToString:@"CallingCard"]) {
-        FacebookSharedViewController * socialSharedViewController = [segue destinationViewController];
-        SocialState * socialState = [SocialState getSocialInstance];
-        [socialSharedViewController enableTutorialModeWithFullName: [socialState humanFullName] callingText:[socialState callingCardText] profilePicture:[socialState profilePictureImage]];
+        CallingCardViewController *callingCardViewController = [segue destinationViewController];
+        SocialState *socialState = [SocialState getSocialInstance];
+        [callingCardViewController setName:[socialState humanFullName] text:[socialState callingCardText] profilePicture:[socialState profilePictureImage]];
     }
 }
 
@@ -57,7 +56,7 @@
             _karma = 0;
         }
 
-        float ratio = ((float)_karma) / ((float)_karmaMax);
+        float ratio = ((float) _karma) / ((float) _karmaMax);
         [ConnectionViewController updateKarmaUsingProgressView:_karmaProgressBar ratio:ratio];
         [_conversationEndedViewController reset];
     });
