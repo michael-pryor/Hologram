@@ -507,6 +507,8 @@
     [_socialShared clear];
 
     dispatch_sync_main(^{
+        [_disconnectViewController setName:name profilePicture:nil callingCardText:nil];
+
         NSLog(@"Connected with user named [%@] with age [%u]", name, age);
         _facebookSharedViewController = nil;
         [_backButton setHidden:false];
@@ -763,7 +765,7 @@
                 }
             }
             // Set its content
-            [_disconnectViewController setConversationRatingConsumer:self ratingTimeoutSeconds:_ratingTimeoutSeconds];
+            [_disconnectViewController setConversationRatingConsumer:self matchingAnswerDelegate:self ratingTimeoutSeconds:_ratingTimeoutSeconds];
             [_disconnectViewController setConversationEndedViewVisible:showConversationEndView instantly:true];
             [_disconnectViewController setAlertShortText:shortDescription];
 
@@ -994,5 +996,15 @@
 
     [_connection sendTcpPacket:buffer];
 }
+
+- (void)onMatchAcceptAnswer {
+
+}
+
+- (void)onMatchRejectAnswer {
+    [self doSkipPerson];
+    [self onConversationRating:S_OKAY];
+}
+
 
 @end

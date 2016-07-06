@@ -39,6 +39,12 @@
     uint _ratingTimeoutSeconds;
 
     NSString *_cachedAlertShortText;
+
+    id<MatchingAnswerDelegate> _matchingAnswerDelegate;
+
+    bool _matchDecisionMade;
+    __weak IBOutlet UIView *_matchingView;
+    MatchingViewController * _matchingViewController;
 }
 
 - (void)setAlertShortText:(NSString *)shortText {
@@ -58,19 +64,32 @@
     });
 }
 
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    NSString *segueName = segue.identifier;
+    if ([segueName isEqualToString:@"Rating"]) {
+        _conversationEndViewController = [segue destinationViewController];
+    } else if ([segueName isEqualToString:@"Matching"]) {
+        _matchingViewController = [segue destinationViewController];
+        [_matchingViewController setMatchingAnswerDelegate:self];
+    }
+}
+
 - (void)viewDidLoad {
     [super viewDidLoad];
 
     _conversationRatingConsumer = nil;
     _ratingTimeoutSeconds = 0;
     _conversationEndViewController = self.childViewControllers[0];
-
+    [_matchingView setHidden:true];
     // It should be shown at same time as camera, because it sits on top of camera.
     [_backButton setHidden:true];
 
     _cachedAlertShortText = nil;
     _moveToFacebookViewControllerFunc = nil;
     _shouldShowAdverts = false;
+
+
+    _matchDecisionMade = false;
 
     _localImageViewVisible = [[Signal alloc] initWithFlag:false];
 
@@ -145,6 +164,8 @@
         [_advertBannerView setHidden:false];
         [_advertView loadAd];
     }
+
+    _matchDecisionMade = false;
 }
 
 - (void)viewDidDisappear:(BOOL)animated {
@@ -170,7 +191,7 @@
 }
 
 - (Boolean)hideIfVisibleAndReady {
-    if (![_timerSinceAdvertCreated getState]) {
+    if (!_matchDecisionMade || ![_timerSinceAdvertCreated getState]) {
         return false;
     }
 
@@ -238,16 +259,46 @@
     });
 }
 
-- (void)setConversationRatingConsumer:(id <ConversationRatingConsumer>)consumer ratingTimeoutSeconds:(uint)ratingTimeoutSeconds {
+- (void)setConversationRatingConsumer:(id <ConversationRatingConsumer>)consumer matchingAnswerDelegate:(id<MatchingAnswerDelegate>)matchingAnswerDelegate ratingTimeoutSeconds:(uint)ratingTimeoutSeconds {
     _conversationRatingConsumer = consumer;
     _ratingTimeoutSeconds = ratingTimeoutSeconds;
     [_conversationEndViewController setConversationRatingConsumer:self];
+    _matchingAnswerDelegate = matchingAnswerDelegate;
 }
 
 - (void)onConversationRating:(ConversationRating)conversationRating {
     [self setConversationEndedViewVisible:false instantly:false];
     [_conversationRatingConsumer onConversationRating:conversationRating];
 }
+
+- (void)onMatchAcceptAnswer {
+    _matchDecisionMade = true;
+    [_matchingAnswerDelegate onMatchAcceptAnswer];
+    [self onMatchingFinished];
+}
+
+- (void)onMatchingFinished {
+    dispatch_sync_main(^{
+        [_matchingView setHidden:true];
+    });
+}
+
+- (void)setName:(NSString *)name profilePicture:(UIImage *)profilePicture callingCardText:(NSString *)callingCardText {
+    [_matchingViewController setName:name profilePicture:profilePicture callingCardText:callingCardText];
+    [self onMatchingStarted];
+}
+
+- (void)onMatchingStarted {
+    dispatch_sync_main(^{
+        [_matchingView setHidden:false];
+    });
+}
+
+- (void)onMatchRejectAnswer {
+    [_matchingAnswerDelegate onMatchRejectAnswer];
+    [self onMatchingFinished];
+}
+
 
 @end
 

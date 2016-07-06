@@ -16,10 +16,11 @@
 #import "DnsResolver.h"
 #import "ConversationEndedViewController.h"
 #import "Payments.h"
+#import "MatchingViewController.h"
 
 @import AVFoundation;
 
-@interface ConnectionViewController : UIViewController <TransactionCompletedNotifier, PaymentProductsLoadedNotifier, ConnectionStatusDelegateProtocol, NewPacketDelegate, UITextFieldDelegate, UIImagePickerControllerDelegate, NewImageDelegate, GovernorSetupProtocol, GpsStateDataLoadNotification, SocialStateDataLoadNotification, NatPunchthroughNotifier, MediaDataLossNotifier, DnsResultNotifier, ConversationRatingConsumer>
+@interface ConnectionViewController : UIViewController <MatchingAnswerDelegate, TransactionCompletedNotifier, PaymentProductsLoadedNotifier, ConnectionStatusDelegateProtocol, NewPacketDelegate, UITextFieldDelegate, UIImagePickerControllerDelegate, NewImageDelegate, GovernorSetupProtocol, GpsStateDataLoadNotification, SocialStateDataLoadNotification, NatPunchthroughNotifier, MediaDataLossNotifier, DnsResultNotifier, ConversationRatingConsumer>
 + (void)updateKarmaUsingProgressView:(UIProgressView *)progressView ratio:(float)ratio;
 
 + (float)getKarmaPercentageFromValue:(uint)karmaValue maximum:(uint)karmaMaximum;
