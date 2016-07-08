@@ -9,9 +9,9 @@
 #import <UIKit/UIKit.h>
 
 @protocol CallingCardDataProvider
-- (void)setName:(NSString *)name text:(NSString *)text profilePicture:(UIImage *)profilePicture;
+- (void)setName:(NSString *)name profilePicture:(UIImage *)profilePicture callingCardText:(NSString *)callingCardText age:(uint)age distance:(uint)distance;
 @end
 
 
-@interface CallingCardViewController : UIViewController<CallingCardDataProvider>
+@interface CallingCardViewController : UIViewController <CallingCardDataProvider>
 @end

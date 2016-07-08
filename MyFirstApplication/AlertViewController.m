@@ -10,7 +10,6 @@
 #import "Timer.h"
 #import "Threading.h"
 #import "ViewInteractions.h"
-#import "ConversationEndedViewController.h"
 
 #define MINIMUM_WAIT_TIME 3.0
 
@@ -40,11 +39,11 @@
 
     NSString *_cachedAlertShortText;
 
-    id<MatchingAnswerDelegate> _matchingAnswerDelegate;
+    id <MatchingAnswerDelegate> _matchingAnswerDelegate;
 
     bool _matchDecisionMade;
     __weak IBOutlet UIView *_matchingView;
-    MatchingViewController * _matchingViewController;
+    MatchingViewController *_matchingViewController;
 }
 
 - (void)setAlertShortText:(NSString *)shortText {
@@ -259,7 +258,7 @@
     });
 }
 
-- (void)setConversationRatingConsumer:(id <ConversationRatingConsumer>)consumer matchingAnswerDelegate:(id<MatchingAnswerDelegate>)matchingAnswerDelegate ratingTimeoutSeconds:(uint)ratingTimeoutSeconds {
+- (void)setConversationRatingConsumer:(id <ConversationRatingConsumer>)consumer matchingAnswerDelegate:(id <MatchingAnswerDelegate>)matchingAnswerDelegate ratingTimeoutSeconds:(uint)ratingTimeoutSeconds {
     _conversationRatingConsumer = consumer;
     _ratingTimeoutSeconds = ratingTimeoutSeconds;
     [_conversationEndViewController setConversationRatingConsumer:self];
@@ -283,8 +282,8 @@
     });
 }
 
-- (void)setName:(NSString *)name profilePicture:(UIImage *)profilePicture callingCardText:(NSString *)callingCardText {
-    [_matchingViewController setName:name profilePicture:profilePicture callingCardText:callingCardText];
+- (void)setName:(NSString *)name profilePicture:(UIImage *)profilePicture callingCardText:(NSString *)callingCardText age:(uint)age distance:(uint)distance {
+    [_matchingViewController setName:name profilePicture:profilePicture callingCardText:callingCardText age:age distance:distance];
     [self onMatchingStarted];
 }
 

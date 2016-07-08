@@ -83,10 +83,11 @@
     });
 }
 
-- (void)setRemoteFullName:(NSString *)remoteFullName remoteCallingText:(NSString *)remoteCallingText remoteProfilePicture:(UIImage *)remoteProfilePicture localFullName:(NSString *)localFullName localCallingText:(NSString *)localCallingText localProfilePicture:(UIImage *)localProfilePicture {
+- (void)setRemoteFullName:(NSString *)remoteFullName remoteProfilePicture:(UIImage *)remoteProfilePicture remoteCallingText:(NSString *)remoteCallingText localFullName:(NSString *)localFullName localProfilePicture:(UIImage *)localProfilePicture localCallingText:(NSString *)localCallingText {
     void (^theBlock)() = ^{
-        [_remoteCallingCardController setName:remoteFullName text:remoteCallingText profilePicture:remoteProfilePicture];
-        [_localCallingCardController setName:localFullName text:localCallingText profilePicture:localProfilePicture];
+        // TODO: finish off age and distance.
+        [_remoteCallingCardController setName:remoteFullName profilePicture:remoteProfilePicture callingCardText:remoteCallingText age:0 distance:0];
+        [_localCallingCardController setName:localFullName profilePicture:localProfilePicture callingCardText:localCallingText age:0 distance:0];
     };
     if (_remoteCallingCard == nil) {
         _prepareContentsBlock = theBlock;

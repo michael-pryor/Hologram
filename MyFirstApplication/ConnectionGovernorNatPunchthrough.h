@@ -9,6 +9,7 @@
 #import <Foundation/Foundation.h>
 #import "ConnectionGovernorProtocol.h"
 #import "InputSessionBase.h"
+#import "MatchingViewController.h"
 
 typedef enum {
     NONE, // Initial state when we've just started up.
@@ -45,11 +46,11 @@ typedef enum {
 - (void)disableReconnecting;
 @end
 
-@protocol NatPunchthroughNotifier
+@protocol NatPunchthroughNotifier <CallingCardDataProvider>
 - (void)onNatPunchthrough:(ConnectionGovernorNatPunchthrough *)connection stateChange:(NatState)state;
 
 // NAT punch through also provides user name and age details as part of the login process.
-- (void)handleUserName:(NSString*)name age:(uint)age distance:(uint)distance;
+- (void)setName:(NSString *)name profilePicture:(UIImage *)profilePicture callingCardText:(NSString *)callingCardText age:(uint)age distance:(uint)distance;
 
 - (void)handleKarmaMaximum:(uint)karmaMaximum ratingTimeoutSeconds:(uint)ratingTimeoutSeconds;
 

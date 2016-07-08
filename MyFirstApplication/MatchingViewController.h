@@ -3,6 +3,7 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "CallingCardViewController.h"
 
 @protocol MatchingAnswerDelegate
 - (void) onMatchAcceptAnswer;
@@ -10,8 +11,6 @@
 - (void) onMatchRejectAnswer;
 @end
 
-@interface MatchingViewController : UIViewController
-- (void)setName:(NSString *)name profilePicture:(UIImage *)profilePicture callingCardText:(NSString *)callingCardText;
-
+@interface MatchingViewController : UIViewController<CallingCardDataProvider>
 - (void)setMatchingAnswerDelegate:(id <MatchingAnswerDelegate>)matchingAnswerDelegate;
 @end

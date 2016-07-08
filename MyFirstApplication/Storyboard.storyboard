@@ -926,7 +926,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="SN5-oZ-zxh" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="2170" y="573"/>
+            <point key="canvasLocation" x="2410" y="33"/>
         </scene>
         <!--Conversation Ended View Controller-->
         <scene sceneID="5cF-ey-A3o">
@@ -1072,36 +1072,36 @@
                         <viewControllerLayoutGuide type="bottom" id="C4S-rI-Wdb"/>
                     </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="vit-86-dCO">
-                        <rect key="frame" x="0.0" y="0.0" width="520" height="200"/>
+                        <rect key="frame" x="0.0" y="0.0" width="470" height="377"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" alignment="top" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="qcR-qo-hz5">
-                                <rect key="frame" x="20" y="0.0" width="480" height="200"/>
+                                <rect key="frame" x="20" y="0.0" width="430" height="377"/>
                                 <subviews>
                                     <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" distribution="fillEqually" spacing="30" translatesAutoresizingMaskIntoConstraints="NO" id="iWb-uf-qb5">
-                                        <rect key="frame" x="0.0" y="0.0" width="480" height="200"/>
+                                        <rect key="frame" x="0.0" y="0.0" width="430" height="377"/>
                                         <subviews>
                                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="rIw-uD-cDf">
-                                                <rect key="frame" x="0.0" y="0.0" width="480" height="200"/>
+                                                <rect key="frame" x="0.0" y="0.0" width="430" height="377"/>
                                                 <subviews>
                                                     <stackView opaque="NO" contentMode="scaleToFill" distribution="fillEqually" translatesAutoresizingMaskIntoConstraints="NO" id="0m8-eB-AcM">
-                                                        <rect key="frame" x="0.0" y="0.0" width="480" height="200"/>
+                                                        <rect key="frame" x="0.0" y="0.0" width="430" height="377"/>
                                                         <subviews>
                                                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="rP3-of-rON">
-                                                                <rect key="frame" x="0.0" y="0.0" width="240" height="200"/>
+                                                                <rect key="frame" x="0.0" y="0.0" width="215" height="377"/>
                                                                 <subviews>
                                                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="500" verticalHuggingPriority="500" horizontalCompressionResistancePriority="800" verticalCompressionResistancePriority="800" text="Remote Name" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="3" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="yNf-Ka-y9g">
-                                                                        <rect key="frame" x="0.0" y="0.0" width="240" height="17"/>
+                                                                        <rect key="frame" x="0.0" y="0.0" width="215" height="17"/>
                                                                         <color key="backgroundColor" red="0.59757345299999998" green="1" blue="0.1187059779" alpha="1" colorSpace="calibratedRGB"/>
                                                                         <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="14"/>
                                                                         <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                                                         <nil key="highlightedColor"/>
                                                                     </label>
                                                                     <view clipsSubviews="YES" contentMode="scaleAspectFit" horizontalHuggingPriority="200" verticalHuggingPriority="200" horizontalCompressionResistancePriority="200" verticalCompressionResistancePriority="200" translatesAutoresizingMaskIntoConstraints="NO" id="1kc-zG-v40">
-                                                                        <rect key="frame" x="0.0" y="17" width="240" height="183"/>
+                                                                        <rect key="frame" x="0.0" y="17" width="215" height="360"/>
                                                                         <subviews>
                                                                             <imageView contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" image="hologram_start_chat" translatesAutoresizingMaskIntoConstraints="NO" id="uRA-Wd-5E4">
-                                                                                <rect key="frame" x="17" y="0.0" width="183" height="183"/>
+                                                                                <rect key="frame" x="17" y="73" width="215" height="215"/>
                                                                                 <constraints>
                                                                                     <constraint firstAttribute="width" secondItem="uRA-Wd-5E4" secondAttribute="height" multiplier="1:1" id="Q50-Rx-FpW"/>
                                                                                 </constraints>
@@ -1120,7 +1120,7 @@
                                                                 <color key="backgroundColor" red="0.13896753249999999" green="1" blue="0.53929274090000001" alpha="1" colorSpace="calibratedRGB"/>
                                                             </stackView>
                                                             <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" editable="NO" textAlignment="natural" translatesAutoresizingMaskIntoConstraints="NO" id="Bsz-DC-iEt">
-                                                                <rect key="frame" x="240" y="0.0" width="240" height="200"/>
+                                                                <rect key="frame" x="215" y="0.0" width="215" height="377"/>
                                                                 <color key="backgroundColor" red="0.13896753249999999" green="1" blue="0.53929274090000001" alpha="1" colorSpace="calibratedRGB"/>
                                                                 <string key="text">Lorem ipsum dolor sit er elit lamet, consectetaur cillium adipisicing pecu, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Nam liber te conscient to factor tum poen legum odioque civiuda.</string>
                                                                 <fontDescription key="fontDescription" type="system" pointSize="14"/>
@@ -1819,26 +1819,21 @@ Regenerate your karma instantly</string>
                         <rect key="frame" x="0.0" y="0.0" width="510" height="428"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" distribution="equalCentering" alignment="center" translatesAutoresizingMaskIntoConstraints="NO" id="IBb-iW-DSL">
+                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" alignment="center" translatesAutoresizingMaskIntoConstraints="NO" id="IBb-iW-DSL">
                                 <rect key="frame" x="20" y="0.0" width="470" height="428"/>
                                 <subviews>
-                                    <stackView opaque="NO" contentMode="scaleToFill" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="8mw-9u-quP">
-                                        <rect key="frame" x="98" y="0.0" width="274" height="21"/>
-                                        <subviews>
-                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Would you like to match with:" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="whc-oA-rwY">
-                                                <rect key="frame" x="0.0" y="0.0" width="224" height="21"/>
-                                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                                <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
-                                                <nil key="highlightedColor"/>
-                                            </label>
-                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="G5g-0f-iug">
-                                                <rect key="frame" x="232" y="0.0" width="42" height="21"/>
-                                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                                <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
-                                                <nil key="highlightedColor"/>
-                                            </label>
-                                        </subviews>
-                                    </stackView>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Would you like to match with:" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="whc-oA-rwY">
+                                        <rect key="frame" x="123" y="0.0" width="224" height="21"/>
+                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                        <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                    <containerView opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="100" translatesAutoresizingMaskIntoConstraints="NO" id="d6U-9N-jKN">
+                                        <rect key="frame" x="0.0" y="21" width="470" height="377"/>
+                                        <connections>
+                                            <segue destination="75X-cw-Hzz" kind="embed" identifier="CallingCard" id="8aU-hO-kz9"/>
+                                        </connections>
+                                    </containerView>
                                     <stackView opaque="NO" contentMode="scaleToFill" spacing="50" translatesAutoresizingMaskIntoConstraints="NO" id="S19-to-FPv">
                                         <rect key="frame" x="180" y="398" width="110" height="30"/>
                                         <subviews>
@@ -1859,6 +1854,10 @@ Regenerate your karma instantly</string>
                                         </subviews>
                                     </stackView>
                                 </subviews>
+                                <constraints>
+                                    <constraint firstAttribute="trailing" secondItem="d6U-9N-jKN" secondAttribute="trailing" id="5hY-dP-sCz"/>
+                                    <constraint firstItem="d6U-9N-jKN" firstAttribute="leading" secondItem="IBb-iW-DSL" secondAttribute="leading" id="vCL-5O-Vp0"/>
+                                </constraints>
                             </stackView>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
@@ -1869,13 +1868,10 @@ Regenerate your karma instantly</string>
                             <constraint firstAttribute="trailingMargin" secondItem="IBb-iW-DSL" secondAttribute="trailing" id="oyH-EN-OMA"/>
                         </constraints>
                     </view>
-                    <connections>
-                        <outlet property="_name" destination="G5g-0f-iug" id="zcy-Lb-Vmr"/>
-                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="e4I-eu-qDg" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="2903" y="54"/>
+            <point key="canvasLocation" x="1975" y="686"/>
         </scene>
         <!--End User License Agreement View Controller-->
         <scene sceneID="Ac5-Zg-vIl">
@@ -1984,7 +1980,7 @@ i. The laws of the State of California, excluding its conflicts of law rules, go
         <image name="video_problem" width="2482" height="1860"/>
     </resources>
     <inferredMetricsTieBreakers>
-        <segue reference="erR-kN-89c"/>
-        <segue reference="6jl-9h-VrO"/>
+        <segue reference="OTa-FO-5Df"/>
+        <segue reference="8aU-hO-kz9"/>
     </inferredMetricsTieBreakers>
 </document>

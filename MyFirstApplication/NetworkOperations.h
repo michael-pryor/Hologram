@@ -27,6 +27,12 @@
 // we will periodically fire discovery messages to try and connect.
 #define NAT_PUNCHTHROUGH_ADDRESS 2
 
+// Received details of client we are matched with
+#define ADVISE_MATCH_INFORMATION 15
+
+// We accept the conversation and want to start one with our match
+#define ACCEPTED_CONVERSATION 14
+
 // Client disconnected from master server, but may reconnect later under same
 // session.
 //

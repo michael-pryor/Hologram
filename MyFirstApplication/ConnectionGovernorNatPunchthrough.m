@@ -11,6 +11,7 @@
 #import "Timer.h"
 #import "NetworkUtility.h"
 #import "Signal.h"
+#import "ImageParsing.h"
 
 @implementation ConnectionGovernorNatPunchthrough {
     ConnectionGovernorProtocol *_connectionGovernor;
@@ -119,7 +120,7 @@
     uint punchthroughPort;
     bool routeThroughPunchthroughAddress;
 
-    @synchronized(_routeThroughPunchthroughAddress) {
+    @synchronized (_routeThroughPunchthroughAddress) {
         punchthroughAddress = _punchthroughAddress;
         punchthroughPort = _punchthroughPort;
         routeThroughPunchthroughAddress = [_routeThroughPunchthroughAddress isSignaled];
@@ -190,7 +191,7 @@
         if (prefix == NAT_PUNCHTHROUGH_ADDRESS) {
             // If we are reconnecting, we may already have an old address.
             // We need to switch back to routing temporarily in case this address is now invalid.
-            @synchronized(_routeThroughPunchthroughAddress) {
+            @synchronized (_routeThroughPunchthroughAddress) {
                 [self clearNatPunchthrough];
 
                 // Load in the new address.
@@ -201,6 +202,8 @@
                 NSLog(@"Loaded punch through address: %d / %d - this is: %@", _punchthroughAddress, _punchthroughPort, humanAddress);
             }
 
+            [_notifier onNatPunchthrough:self stateChange:ADDRESS_RECEIVED];
+        } else if (prefix == ADVISE_MATCH_INFORMATION) {
             NSString *userName = [packet getString];
             uint userAge = [packet getUnsignedInteger];
             uint distanceFromUser = [packet getUnsignedInteger];
@@ -208,9 +211,12 @@
             uint karmaMax = [packet getUnsignedInteger]; // TODO: could be received in login instead.
             uint ourKarmaRating = [packet getUnsignedInteger];
             uint remoteKarmaRating = [packet getUnsignedInteger];
+            NSString *cardText = [packet getString];
+            NSData *profilePictureData = [packet getData];
+            uint profilePictureOrientation = [packet getUnsignedInteger];
+            UIImage *profilePicture = [ImageParsing convertDataToImage:profilePictureData orientation:(UIImageOrientation) profilePictureOrientation];
 
-            [_notifier onNatPunchthrough:self stateChange:ADDRESS_RECEIVED];
-            [_notifier handleUserName:userName age:userAge distance:(uint) distanceFromUser];
+            [_notifier setName:userName profilePicture:profilePicture callingCardText:cardText age:userAge distance:(uint) distanceFromUser];
             [_notifier handleKarmaMaximum:karmaMax ratingTimeoutSeconds:ratingTimeoutSeconds];
             [_notifier handleOurKarma:ourKarmaRating remoteKarma:remoteKarmaRating];
         } else if (prefix == NAT_PUNCHTHROUGH_DISCONNECT) {
@@ -227,7 +233,7 @@
 }
 
 - (Boolean)isNatPunchthroughAddressLoaded {
-    @synchronized(_routeThroughPunchthroughAddress) {
+    @synchronized (_routeThroughPunchthroughAddress) {
         return _punchthroughAddress != 0 && _punchthroughPort != 0;
     }
 }

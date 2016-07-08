@@ -320,6 +320,7 @@ class CommanderConnection(ReconnectingClientFactory):
         self.governor = governor
         self.analytics = analytics
         self.isConnected = False
+        self.scheduled_ping = None
 
     def buildProtocol(self, addr):
         logger.debug('TCP connection initiated with new client [%s]' % addr)
@@ -351,8 +352,15 @@ class CommanderConnection(ReconnectingClientFactory):
         # Tell Google analytics how much load we are handling
         analytics.pushEvent(load, "governor_load", "bandwidth", self.governor.governor_name)
 
+    # Always have one, and only one, ping scheduled.
     def schedulePing(self):
-        self.governor.reactor.callLater(CommanderConnection.ping_frequency, self.doPing)
+        try:
+            if self.scheduled_ping is not None:
+                self.scheduled_ping.cancel()
+        except (AlreadyCalled, AlreadyCancelled):
+            pass
+
+        self.scheduled_ping = self.governor.reactor.callLater(CommanderConnection.ping_frequency, self.doPing)
 
     def onConnectionMade(self):
         self.isConnected = True

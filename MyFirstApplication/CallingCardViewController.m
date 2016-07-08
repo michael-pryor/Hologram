@@ -14,20 +14,20 @@
     __weak IBOutlet UIImageView *_profilePicture;
     __weak IBOutlet UILabel *_name;
     __weak IBOutlet UITextView *_text;
-    
+
     void(^_prepareContentsBlock)();
 }
-- (void)setName:(NSString *)name text:(NSString *)text profilePicture:(UIImage *)profilePicture{
+- (void)setName:(NSString *)name profilePicture:(UIImage *)profilePicture callingCardText:(NSString *)callingCardText age:(uint)age distance:(uint)distance {
     void(^_theBlock)() = ^{
         [_profilePicture setImage:profilePicture];
         [_name setText:name];
-        [_text setText:text];
+        [_text setText:callingCardText];
     };
     if (_name == nil) {
         _prepareContentsBlock = _theBlock;
         return;
     }
-    
+
     dispatch_sync_main(_theBlock);
 }
 

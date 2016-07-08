@@ -64,6 +64,8 @@ class Client(object):
         # Note: the opposite of this is skipping the conversation or disconnecting.
         OP_ACCEPTED_CONVERSATION = 14
 
+        OP_ADVISE_MATCH_INFORMATION = 15
+
     class RejectCodes:
         SUCCESS = 0
         REJECT_HASH_TIMEOUT = 1
@@ -94,7 +96,7 @@ class Client(object):
         MATCHED = 3
 
     class LoginDetails(object):
-        def __init__(self, uniqueId, persistedUniqueId, name, shortName, age, gender, interestedIn, longitude, latitude, cardText, profilePicture):
+        def __init__(self, uniqueId, persistedUniqueId, name, shortName, age, gender, interestedIn, longitude, latitude, cardText, profilePicture, profilePictureOrientation):
             super(Client.LoginDetails, self).__init__()
             self.unique_id = uniqueId
             self.persisted_unique_id = persistedUniqueId
@@ -108,6 +110,7 @@ class Client(object):
 
             self.card_text = cardText
             self.profile_picture = profilePicture
+            self.profile_picture_orientation = profilePictureOrientation
 
         def __hash__(self):
             return hash(self.unique_id)
@@ -144,7 +147,7 @@ class Client(object):
         fbId = str(uuid.uuid4())
         item.login_details = Client.LoginDetails(str(uuid.uuid4()), fbId, "Mike P", "Mike", random.randint(18, 30),
                                                         random.randint(1, 2), random.randint(1, 3),
-                                                        random.randint(0, 180), random.randint(0, 90), None, None)
+                                                        random.randint(0, 180), random.randint(0, 90), None, None, None)
         return item
 
     def __init__(self, reactor, tcp, onCloseFunc, udpConnectionLinker, house, blockingDatabase, karmaDatabase, paymentVerifier, persistedIdsVerifier):
@@ -225,16 +228,17 @@ class Client(object):
 
     def adviseMatchDetails(self, sourceClient, distance):
         packet = ByteBuffer()
+        packet.addUnsignedInteger8(Client.TcpOperationCodes.OP_ADVISE_MATCH_INFORMATION)
         packet.addString(sourceClient.login_details.short_name)
         packet.addUnsignedInteger(sourceClient.login_details.age)
         packet.addUnsignedInteger(distance)
         packet.addUnsignedInteger(Client.WAITING_FOR_RATING_TIMEOUT)
         packet.addUnsignedInteger(KarmaLeveled.KARMA_MAXIMUM)
-        packet.addUnsignedInteger(sourceClient.karma_rating)
         packet.addUnsignedInteger(self.karma_rating)
+        packet.addUnsignedInteger(sourceClient.karma_rating)
         packet.addString(sourceClient.login_details.card_text)
         packet.addByteBuffer(sourceClient.login_details.profile_picture)
-        self.client.state = Client.State.ACCEPTING_MATCH
+        self.state = Client.State.ACCEPTING_MATCH
 
         self.tcp.sendByteBuffer(packet)
 
@@ -345,8 +349,9 @@ class Client(object):
 
         cardText = packet.getString()
         profilePicture = packet.getByteBuffer()
+        profilePictureOrientation = packet.getUnsignedInteger()
 
-        self.login_details = Client.LoginDetails(self.udp_hash, persistedUniqueId, fullName, shortName, age, gender, interestedIn, longitude, latitude, cardText, profilePicture)
+        self.login_details = Client.LoginDetails(self.udp_hash, persistedUniqueId, fullName, shortName, age, gender, interestedIn, longitude, latitude, cardText, profilePicture, profilePictureOrientation)
 
         banMagnitude, banTime = self.karma_database.getBanMagnitudeAndExpirationTime(self)
         if banTime is not None and karmaRegenerationReceipt is None:
@@ -458,7 +463,7 @@ class Client(object):
             self.social_share_information_packet = packet
             self.house.shareSocialInformation(self)
         elif opCode == Client.TcpOperationCodes.OP_ACCEPTED_CONVERSATION:
-            self.house.onAcceptConversation(otherClient)
+            self.house.onAcceptConversation(self)
         else:
             # Must be debug in case rogue client sends us garbage data
             logger.debug("Unknown TCP packet received from client [%s]" % self)

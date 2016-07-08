@@ -133,8 +133,8 @@
     _backgroundCounter = 0;
 
     // Hack for arden crescent, should be nil.
-    //_cachedResolvedDns = @"192.168.1.92";
-    _cachedResolvedDns = nil;
+    _cachedResolvedDns = @"192.168.1.92";
+    //_cachedResolvedDns = nil;
 
     _payments = [[Payments alloc] initWithDelegate:self];
 
@@ -502,12 +502,12 @@
     });
 }
 
-- (void)handleUserName:(NSString *)name age:(uint)age distance:(uint)distance {
+- (void)setName:(NSString *)name profilePicture:(UIImage *)profilePicture callingCardText:(NSString *)callingCardText age:(uint)age distance:(uint)distance {
     [_conversationDuration reset];
     [_socialShared clear];
 
     dispatch_sync_main(^{
-        [_disconnectViewController setName:name profilePicture:nil callingCardText:nil];
+        [_disconnectViewController setName:name profilePicture:profilePicture callingCardText:callingCardText age:age distance:distance];
 
         NSLog(@"Connected with user named [%@] with age [%u]", name, age);
         _facebookSharedViewController = nil;
@@ -850,7 +850,7 @@
                 UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Storyboard" bundle:nil];
 
                 _facebookSharedViewController = [storyboard instantiateViewControllerWithIdentifier:@"FacebookSharedViewController"];
-                [_facebookSharedViewController setRemoteFullName:remoteFullName remoteCallingText:callingCardText remoteProfilePicture:remoteProfilePicture localFullName:[_socialState humanFullName] localCallingText:[_socialState callingCardText] localProfilePicture:[_socialState profilePictureImage]];
+                [_facebookSharedViewController setRemoteFullName:remoteFullName remoteProfilePicture:remoteProfilePicture remoteCallingText:callingCardText localFullName:[_socialState humanFullName] localProfilePicture:[_socialState profilePictureImage] localCallingText:[_socialState callingCardText]];
 
                 [_backButton setHidden:true];
                 [_forwardsButton setTitleColor:[UIColor redColor] forState:UIControlStateNormal];

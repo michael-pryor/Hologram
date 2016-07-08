@@ -62,7 +62,7 @@ class House:
         finally:
             self.house_lock.release()
 
-        self.adviseMatchInformation(clientA, clientB)
+        self.adviseMatchDetails(clientA, clientB)
 
         logger.debug("New room set up between client [%s] and [%s]" % (clientA, clientB))
         return True

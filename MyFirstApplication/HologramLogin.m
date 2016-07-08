@@ -25,9 +25,8 @@
 
 - (ByteBuffer *)getLoginBuffer {
     ByteBuffer *buffer = [[ByteBuffer alloc] init];
+    SocialState *state = [SocialState getSocialInstance];
     {
-        SocialState *state = [SocialState getSocialInstance];
-
         uint8_t isNewFlag;
         if([[UniqueId getUniqueIdInstance] isValidatedUUID]) {
             isNewFlag = 0;
@@ -48,6 +47,12 @@
         [buffer addFloat:[_gpsState latitude]];
         [buffer addFloat:[_gpsState longitude]];
         [buffer addData:_regenerateKarmaReceipt];
+    }
+
+    {
+        [buffer addString:[state callingCardText]];
+        [buffer addData:[state profilePictureData]];
+        [buffer addUnsignedInteger:[state profilePictureOrientation]];
     }
 
     return buffer;
