@@ -51,6 +51,7 @@
         [_matchingCountdown setProgress:ratioProgress animated:true];
         if (ratioProgress >= 1.0) {
             [_updatingMatchingCountdown clear];
+            [_matchingAnswerDelegate onTimedOut];
             return;
         }
 

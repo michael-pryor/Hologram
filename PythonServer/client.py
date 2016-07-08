@@ -310,10 +310,12 @@ class Client(object):
             if self.accepting_match_expiry_action is not None:
                 self.accepting_match_expiry_action.cancel()
         except AlreadyCancelled:
-            self.skipped_timed_out = 0
+            self.clearInactivityCounter()
         except AlreadyCalled:
             pass
 
+    def clearInactivityCounter(self):
+        self.skipped_timed_out = 0
 
     def notifySocialInformationShared(self, ackBack = False):
         packet = ByteBuffer()
@@ -561,6 +563,7 @@ class Client(object):
             self.social_share_information_packet = packet
             self.house.shareSocialInformation(self)
         elif opCode == Client.TcpOperationCodes.OP_ACCEPTED_CONVERSATION:
+            self.clearInactivityCounter()
             self.house.onAcceptConversation(self)
         else:
             # Must be debug in case rogue client sends us garbage data

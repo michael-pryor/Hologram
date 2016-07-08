@@ -326,6 +326,9 @@
     [self onMatchingFinished];
 }
 
+- (void)onTimedOut {
+    [self onMatchingFinished];
+}
 
 @end
 

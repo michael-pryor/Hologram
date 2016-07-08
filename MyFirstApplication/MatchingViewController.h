@@ -9,6 +9,9 @@
 - (void) onMatchAcceptAnswer;
 
 - (void) onMatchRejectAnswer;
+
+@optional
+- (void) onTimedOut;
 @end
 
 @interface MatchingViewController : UIViewController<CallingCardDataProvider>
