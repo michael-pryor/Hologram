@@ -1023,7 +1023,6 @@
 - (void)onMatchRejectAnswer {
     NSLog(@"Rejected conversation, skipping and rating");
     [self doSkipPerson];
-    [self onConversationRating:S_OKAY];
 }
 
 

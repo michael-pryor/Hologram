@@ -460,22 +460,17 @@ class Client(object):
 
         self.onFriendlyPacketUdp(packet)
 
-    def doSkip(self, aggressiveSkip=False):
+    def doSkip(self):
         logger.debug("Client [%s] asked to skip person, honouring request" % self)
         otherClient = self.house.releaseRoom(self, self.house.disconnected_skip)
 
         self.cancelAcceptingMatchExpiry()
-
 
         # Record that we skipped this client, so that we don't rematch immediately.
         if otherClient is not None:
             assert isinstance(otherClient, Client)
             self.match_skip_history.addMatch(otherClient.udp_hash)
             self.setToWaitForRatingOfPreviousConversation(otherClient)
-
-            if aggressiveSkip:
-                self.setRatingOfOtherClient(Client.ConversationRating.OKAY)
-                otherClient.setRatingOfOtherClient(Client.ConversationRating.OKAY)
 
     def doSkipTimedOut(self):
         self.skipped_timed_out += 1
@@ -484,7 +479,7 @@ class Client(object):
             self.tcp.sendByteBuffer(rejectPacket)
             self.closeConnection()
 
-        self.doSkip(True)
+        self.doSkip()
 
     def onFriendlyPacketTcp(self, packet):
         assert isinstance(packet, ByteBuffer)
@@ -603,6 +598,9 @@ class Client(object):
     # We need to wait for the client to send a rating, indicating how they felt about their previous conversation.
     def setToWaitForRatingOfPreviousConversation(self, clientFromPreviousConversation):
         if self.client_from_previous_conversation is not None:
+            return
+
+        if self.state != Client.State.MATCHED:
             return
 
         self.state = Client.State.RATING_MATCH
