@@ -69,9 +69,9 @@ class House:
     def onAcceptConversation(self, sourceClient):
         self.house_lock.acquire()
         try:
+            sourceClient.approved_match = True
             if sourceClient.state != Client.State.ACCEPTING_MATCH:
                 return
-            sourceClient.state = Client.State.MATCHED
             logger.debug("Client [%s] has accepted the conversation")
 
             clientB = self.room_participant.get(sourceClient)
@@ -79,10 +79,14 @@ class House:
                 return
 
             # Only advise when both clients have accepted.
-            if clientB.state != Client.State.MATCHED:
+            if clientB.state != Client.State.ACCEPTING_MATCH or not clientB.approved_match:
                 return
 
             logger.debug("Both client [%s] and client [%s] have accepted the conversation, starting conversation" % (sourceClient, clientB))
+
+            sourceClient.transitionState(Client.State.ACCEPTING_MATCH, Client.State.MATCHED)
+            clientB.transitionState(Client.State.ACCEPTING_MATCH, Client.State.MATCHED)
+
             self.adviseNatPunchthrough(sourceClient, clientB)
         finally:
             self.house_lock.release()
@@ -209,6 +213,7 @@ class House:
                     clientB.tcp.sendByteBuffer(notification)
 
                 clientB.setToWaitForRatingOfPreviousConversation(client)
+
                 logger.debug("Permanent closure of session between client [%s] and [%s] due to client [%s] leaving the room" % (client, clientB, client))
 
                 # Return the other client.
@@ -282,9 +287,18 @@ class House:
         finally:
             self.house_lock.release()
 
-    def handleUdpPacket(self, client, packet = None):
+    def aquireMatch(self, client):
+        if client.connection_status != Client.ConnectionStatus.CONNECTED:
+            if client.connection_status == Client.ConnectionStatus.NOT_CONNECTED:
+                client.client_matcher.stop()
+
+            return
+
         self.house_lock.acquire()
         try:
+            if client.state != Client.State.MATCHING and client.state != Client.State.MATCHED:
+                return
+
             if client not in self.room_participant:
                 clientMatch = self.attemptTakeRoom(client)
             else:
@@ -303,9 +317,18 @@ class House:
         finally:
             self.house_lock.release()
 
+    def handleUdpPacket(self, client, packet = None):
+        if client.connection_status == Client.ConnectionStatus.CONNECTED and client.state != Client.State.MATCHED:
+            return
+
+        self.house_lock.acquire()
+        try:
+            clientMatch = self.room_participant.get(client)
+        finally:
+            self.house_lock.release()
+
         if clientMatch is None:
             pass
         elif packet is not None:
-            if client.state == Client.State.MATCHED and clientMatch.state == Client.State.MATCHED:
-                # Send to client that we are matched with.
-                clientMatch.udp.sendRawBuffer(packet)
+            # Send to client that we are matched with.
+            clientMatch.udp.sendRawBuffer(packet)

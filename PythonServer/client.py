@@ -103,6 +103,18 @@ class Client(object):
         # In the middle of a full blown conversation.
         MATCHED = 3
 
+        @staticmethod
+        def parseToString(state):
+            if (state == Client.State.MATCHING):
+                return "MATCHING"
+            elif (state == Client.State.ACCEPTING_MATCH):
+                return "ACCEPTING_MATCH"
+            elif (state == Client.State.RATING_MATCH):
+                return "RATING_MATCH"
+            elif (state == Client.State.MATCHED):
+                return "MATCHED"
+
+
     class LoginDetails(object):
         def __init__(self, uniqueId, persistedUniqueId, name, shortName, age, gender, interestedIn, longitude, latitude, cardText, profilePicture, profilePictureOrientation):
             super(Client.LoginDetails, self).__init__()
@@ -185,8 +197,8 @@ class Client(object):
         self.last_received_data = None
         self.payment_verifier = paymentVerifier
         self.persisted_ids_verifier = persistedIdsVerifier
-        self.state = Client.State.MATCHING
-        self.accepting_match_expiry_action = None
+
+        self.client_matcher = task.LoopingCall(self.house.aquireMatch, self)
 
         def timeoutCheck():
             if self.last_received_data is not None:
@@ -221,8 +233,43 @@ class Client(object):
 
         self.social_share_information_packet = None
         self.has_shared_social_information = False
-        self.skipped_timed_out = 0
 
+        self.skipped_timed_out = 0
+        self.state = Client.State.MATCHING
+        self.accepting_match_expiry_action = None
+        self.approved_match = False
+
+    def transitionState(self, startState, endState):
+        if startState == endState:
+            return
+
+        self.house.house_lock.acquire()
+        try:
+            if self.state == endState:
+                return
+
+            if startState is None or self.state == startState:
+                self.state = endState
+
+                # Predicates which must always be enforced.
+                if startState == Client.State.RATING_MATCH and endState == Client.State.MATCHING:
+                    self.waiting_for_rating_task = None
+
+                if endState == Client.State.MATCHING:
+                    self.approved_match = False
+
+                # Only when we're fully matched do we cancel the expiry.
+                # Critical to avoid a race condition.
+                if startState == Client.State.ACCEPTING_MATCH and endState == Client.State.MATCHED:
+                    self.cancelAcceptingMatchExpiry()
+
+                logger.debug("[STATE TRANSITION] [SUCCESS] (%s) -> (%s)" % (Client.State.parseToString(startState), Client.State.parseToString(endState)))
+                return True
+
+            logger.debug("[STATE TRANSITION] [FAIL] (%s) -> (%s) **(%s)**" % (Client.State.parseToString(startState), Client.State.parseToString(endState), Client.State.parseToString(self.state)))
+            return False
+        finally:
+            self.house.house_lock.release()
 
     def adviseNatPunchthrough(self, sourceClient):
         if self.state != Client.State.MATCHED:
@@ -232,7 +279,7 @@ class Client(object):
         packet.addUnsignedInteger8(Client.TcpOperationCodes.OP_NAT_PUNCHTHROUGH_ADDRESS)
         packet.addUnsignedInteger(inet_addr(sourceClient.udp.remote_address[0]))
         packet.addUnsignedInteger(htons(sourceClient.udp.remote_address[1]))
-        self.state = Client.State.MATCHED
+        self.transitionState(Client.State.ACCEPTING_MATCH, Client.State.MATCHED)
 
         self.tcp.sendByteBuffer(packet)
 
@@ -249,7 +296,7 @@ class Client(object):
         packet.addUnsignedInteger(sourceClient.karma_rating)
         packet.addString(sourceClient.login_details.card_text)
         packet.addByteBuffer(sourceClient.login_details.profile_picture)
-        self.state = Client.State.ACCEPTING_MATCH
+        self.transitionState(Client.State.MATCHING, Client.State.ACCEPTING_MATCH)
 
 
         self.cancelAcceptingMatchExpiry()
@@ -314,17 +361,21 @@ class Client(object):
 
         logger.debug("UDP socket has connected: [%s]" % unicode(clientUdp))
         self.udp = clientUdp;
-        self.connection_status = Client.ConnectionStatus.CONNECTED
+        self.client_matcher.start(0.5)
 
         # don't need this anymore.
         self.udp_connection_linker = None
 
         logger.debug("Client UDP stream activated, client is fully connected")
 
+    def onConnectionMade(self):
+        pass
+
     # Closes the TCP socket, triggering indirectly onDisconnect to be called.
     def closeConnection(self):
         self.cancelAcceptingMatchExpiry()
         self.connection_status = Client.ConnectionStatus.NOT_CONNECTED
+        self.transitionState(None, Client.State.MATCHING)
         self.tcp.transport.loseConnection()
 
     def getRejectBannedArguments(self, banMagnitude, expiryTime):
@@ -472,6 +523,12 @@ class Client(object):
             self.match_skip_history.addMatch(otherClient.udp_hash)
             self.setToWaitForRatingOfPreviousConversation(otherClient)
 
+        # The timeout on accepting a match will clear out the other client.
+        # We don't want their screen updating in response to our transition.
+        self.transitionState(Client.State.MATCHED, Client.State.MATCHING)
+        self.transitionState(Client.State.ACCEPTING_MATCH, Client.State.MATCHING)
+
+
     def doSkipTimedOut(self):
         self.skipped_timed_out += 1
         if self.skipped_timed_out > Client.SKIPPED_TIMED_OUT_LIMIT:
@@ -504,7 +561,6 @@ class Client(object):
             self.social_share_information_packet = packet
             self.house.shareSocialInformation(self)
         elif opCode == Client.TcpOperationCodes.OP_ACCEPTED_CONVERSATION:
-            self.cancelAcceptingMatchExpiry()
             self.house.onAcceptConversation(self)
         else:
             # Must be debug in case rogue client sends us garbage data
@@ -521,10 +577,11 @@ class Client(object):
             self.client_from_previous_conversation.handleRating(rating)
             if self.client_from_previous_conversation.waiting_for_rating_task is None:
                 logger.debug("Both clients have received ratings, putting them back into house [%s, %s]" % (self, self.client_from_previous_conversation))
+
                 # At this point, both sides will have set their rating so let's put them back in the queue.
-                self.waiting_for_rating_task = None
-                self.house.attemptTakeRoom(self.client_from_previous_conversation)
-                self.house.attemptTakeRoom(self)
+                # Important to do both at the same time so that karma is updated prior to next conversation.
+                self.transitionState(Client.State.RATING_MATCH, Client.State.MATCHING)
+                self.client_from_previous_conversation.transitionState(Client.State.RATING_MATCH, Client.State.MATCHING)
 
             self.client_from_previous_conversation = None
 
@@ -600,10 +657,13 @@ class Client(object):
         if self.client_from_previous_conversation is not None:
             return
 
-        if self.state != Client.State.MATCHED:
-            return
+        self.house.house_lock.acquire()
+        try:
+            if not self.transitionState(Client.State.MATCHED, Client.State.RATING_MATCH):
+                return
+        finally:
+            self.house.house_lock.release()
 
-        self.state = Client.State.RATING_MATCH
         self.client_from_previous_conversation = clientFromPreviousConversation
         self.waiting_for_rating_task = self.reactor.callLater(Client.WAITING_FOR_RATING_ABSOLUTE_TIMEOUT, self._onWaitingForRatingTimeout)
         logger.debug("Client [%s] is waiting for rating from previous conversation with client [%s]" % (self, clientFromPreviousConversation))
@@ -663,6 +723,9 @@ class Client(object):
         self.has_shared_social_information = client.has_shared_social_information
         self.social_share_information_packet = client.social_share_information_packet
         self.state = client.state
+        self.skipped_timed_out = client.skipped_timed_out
+        self.accepting_match_expiry_action = client.accepting_match_expiry_action
+        self.approved_match = client.approved_match
 
     # Must be protected by house lock.
     def onWaitingForMatch(self):
@@ -675,7 +738,8 @@ class Client(object):
         self.has_shared_social_information = False
         self.social_share_information_packet = None
         self.client_from_previous_conversation = None
-        self.state = Client.State.ACCEPTING_MATCH
+        self.approved_match = False
+        self.transitionState(Client.State.MATCHING, Client.State.ACCEPTING_MATCH)
 
     def clearKarma(self):
         self.karma_database.clearKarma(self)

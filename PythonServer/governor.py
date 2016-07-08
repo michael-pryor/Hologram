@@ -265,10 +265,9 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
             logger.debug("Sending fully connected ACK")
             registeredClient.tcp.sendByteBuffer(successPing)
 
-            # Client will not start sending UDP data until it has received a NAT punch through notification
-            # i.e. has been matched with a client. So we need to make sure the client is listed as 'waiting
-            # for a client' so that even with no data there can still be a match.
-            self.house.handleUdpPacket(registeredClient)
+            # Must be done AFTER success ack, to avoid race conditions on client side.
+            registeredClient.connection_status = Client.ConnectionStatus.CONNECTED
+
             logger.debug("Client successfully connected, sent success ack and registered with house")
         else:
             # This case is most commonly seen if user switches from 3G to wifi, UDP route changes to go via wifi but

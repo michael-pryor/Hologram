@@ -29,7 +29,7 @@ class ClientTcp(IntNStringReceiver):
         try:
             if self.parent is not None:
                 self.parent.onConnectionMade()
-        except AttributeError:
+        except AttributeError as e:
             pass
 
     def connectionLost(self, reason):
