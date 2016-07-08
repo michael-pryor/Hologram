@@ -61,6 +61,9 @@ class Client(object):
 
         OP_SHARE_SOCIAL_INFORMATION = 12
 
+        # Note: the opposite of this is skipping the conversation or disconnecting.
+        OP_ACCEPTED_CONVERSATION = 14
+
     class RejectCodes:
         SUCCESS = 0
         REJECT_HASH_TIMEOUT = 1
@@ -76,8 +79,22 @@ class Client(object):
         GOOD = 3
         AUDIT = 4 # Don't do anything, we just want to recheck for ban.
 
+    class State:
+        # In the process of finding someone to talk to.
+        MATCHING = 0
+
+        # Found someone to talk to, waiting for both sides to accept each other.
+        ACCEPTING_MATCH = 1
+
+        # Waiting for a rating either of the accepting match stage, of of the matched stage.
+        # This rating influences karma.
+        RATING_MATCH = 2
+
+        # In the middle of a full blown conversation.
+        MATCHED = 3
+
     class LoginDetails(object):
-        def __init__(self, uniqueId, persistedUniqueId, name, shortName, age, gender, interestedIn, longitude, latitude):
+        def __init__(self, uniqueId, persistedUniqueId, name, shortName, age, gender, interestedIn, longitude, latitude, cardText, profilePicture):
             super(Client.LoginDetails, self).__init__()
             self.unique_id = uniqueId
             self.persisted_unique_id = persistedUniqueId
@@ -88,6 +105,9 @@ class Client(object):
             self.interested_in = interestedIn
             self.longitude = longitude
             self.latitude = latitude
+
+            self.card_text = cardText
+            self.profile_picture = profilePicture
 
         def __hash__(self):
             return hash(self.unique_id)
@@ -124,7 +144,7 @@ class Client(object):
         fbId = str(uuid.uuid4())
         item.login_details = Client.LoginDetails(str(uuid.uuid4()), fbId, "Mike P", "Mike", random.randint(18, 30),
                                                         random.randint(1, 2), random.randint(1, 3),
-                                                        random.randint(0, 180), random.randint(0, 90))
+                                                        random.randint(0, 180), random.randint(0, 90), None, None)
         return item
 
     def __init__(self, reactor, tcp, onCloseFunc, udpConnectionLinker, house, blockingDatabase, karmaDatabase, paymentVerifier, persistedIdsVerifier):
@@ -154,6 +174,7 @@ class Client(object):
         self.last_received_data = None
         self.payment_verifier = paymentVerifier
         self.persisted_ids_verifier = persistedIdsVerifier
+        self.state = Client.State.MATCHING
 
         def timeoutCheck():
             if self.last_received_data is not None:
@@ -188,6 +209,34 @@ class Client(object):
 
         self.social_share_information_packet = None
         self.has_shared_social_information = False
+
+
+    def adviseNatPunchthrough(self, sourceClient):
+        if self.state != Client.State.MATCHED:
+            return
+
+        packet = ByteBuffer()
+        packet.addUnsignedInteger8(Client.TcpOperationCodes.OP_NAT_PUNCHTHROUGH_ADDRESS)
+        packet.addUnsignedInteger(inet_addr(sourceClient.udp.remote_address[0]))
+        packet.addUnsignedInteger(htons(sourceClient.udp.remote_address[1]))
+        self.client.state = Client.State.MATCHED
+
+        self.tcp.sendByteBuffer(packet)
+
+    def adviseMatchDetails(self, sourceClient, distance):
+        packet = ByteBuffer()
+        packet.addString(sourceClient.login_details.short_name)
+        packet.addUnsignedInteger(sourceClient.login_details.age)
+        packet.addUnsignedInteger(distance)
+        packet.addUnsignedInteger(Client.WAITING_FOR_RATING_TIMEOUT)
+        packet.addUnsignedInteger(KarmaLeveled.KARMA_MAXIMUM)
+        packet.addUnsignedInteger(sourceClient.karma_rating)
+        packet.addUnsignedInteger(self.karma_rating)
+        packet.addString(sourceClient.login_details.card_text)
+        packet.addByteBuffer(sourceClient.login_details.profile_picture)
+        self.client.state = Client.State.ACCEPTING_MATCH
+
+        self.tcp.sendByteBuffer(packet)
 
     def notifySocialInformationShared(self, ackBack = False):
         packet = ByteBuffer()
@@ -294,7 +343,10 @@ class Client(object):
         if karmaRegenerationReceipt.used_size == 0:
             karmaRegenerationReceipt = None
 
-        self.login_details = Client.LoginDetails(self.udp_hash, persistedUniqueId, fullName, shortName, age, gender, interestedIn, longitude, latitude)
+        cardText = packet.getString()
+        profilePicture = packet.getByteBuffer()
+
+        self.login_details = Client.LoginDetails(self.udp_hash, persistedUniqueId, fullName, shortName, age, gender, interestedIn, longitude, latitude, cardText, profilePicture)
 
         banMagnitude, banTime = self.karma_database.getBanMagnitudeAndExpirationTime(self)
         if banTime is not None and karmaRegenerationReceipt is None:
@@ -405,6 +457,8 @@ class Client(object):
         elif opCode == Client.TcpOperationCodes.OP_SHARE_SOCIAL_INFORMATION_PAYLOAD:
             self.social_share_information_packet = packet
             self.house.shareSocialInformation(self)
+        elif opCode == Client.TcpOperationCodes.OP_ACCEPTED_CONVERSATION:
+            self.house.onAcceptConversation(otherClient)
         else:
             # Must be debug in case rogue client sends us garbage data
             logger.debug("Unknown TCP packet received from client [%s]" % self)
@@ -499,6 +553,7 @@ class Client(object):
         if self.client_from_previous_conversation is not None:
             return
 
+        self.state = Client.State.RATING_MATCH
         self.client_from_previous_conversation = clientFromPreviousConversation
         self.waiting_for_rating_task = self.reactor.callLater(Client.WAITING_FOR_RATING_ABSOLUTE_TIMEOUT, self._onWaitingForRatingTimeout)
         logger.debug("Client [%s] is waiting for rating from previous conversation with client [%s]" % (self, clientFromPreviousConversation))
@@ -514,6 +569,9 @@ class Client(object):
 
         # It is a two way relationship.
         if recurse and not client.shouldMatch(self, False):
+            return False
+
+        if not client.state == Client.State.MATCHING:
             return False
 
         if self.started_waiting_for_match_timer is None:
@@ -551,6 +609,7 @@ class Client(object):
         self.karma_rating = client.karma_rating
         self.has_shared_social_information = client.has_shared_social_information
         self.social_share_information_packet = client.social_share_information_packet
+        self.state = client.state
 
     # Must be protected by house lock.
     def onWaitingForMatch(self):
@@ -563,6 +622,7 @@ class Client(object):
         self.has_shared_social_information = False
         self.social_share_information_packet = None
         self.client_from_previous_conversation = None
+        self.state = Client.State.ACCEPTING_MATCH
 
     def clearKarma(self):
         self.karma_database.clearKarma(self)

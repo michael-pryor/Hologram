@@ -62,10 +62,31 @@ class House:
         finally:
             self.house_lock.release()
 
-        self.adviseNatPunchthrough(clientA, clientB)
+        self.adviseMatchInformation(clientA, clientB)
 
         logger.debug("New room set up between client [%s] and [%s]" % (clientA, clientB))
         return True
+
+    def onAcceptConversation(self, sourceClient):
+        self.house_lock.acquire()
+        try:
+            if sourceClient.state != Client.State.ACCEPTING_MATCH:
+                return
+            sourceClient.state = Client.State.MATCHED
+            logger.debug("Client [%s] has accepted the conversation")
+
+            clientB = self.room_participant.get(sourceClient)
+            if clientB is None:
+                return
+
+            # Only advise when both clients have accepted.
+            if clientB.state != Client.State.MATCHED:
+                return
+
+            logger.debug("Both client [%s] and client [%s] have accepted the conversation, starting conversation" % (clientA, clientB))
+            self.adviseNatPunchthrough(clientA, clientB)
+        finally:
+            self.house_lock.release()
 
     def getDistance(self, clientA, clientB):
         assert isinstance(clientA, Client)
@@ -79,39 +100,18 @@ class House:
         roundedDistance = math.ceil(trueDistance)
         return int(roundedDistance)
 
+    def mutualAdvise(self, clientA, clientB, adviseFunc):
+        adviseFunc(clientA, clientB)
+        adviseFunc(clientB, clientA)
+        logger.debug("NAT punchthrough introduction made between client [%s] and [%s]" % (clientA, clientB))
+
     def adviseNatPunchthrough(self, clientA, clientB):
-        assert isinstance(clientA, Client)
-        assert isinstance(clientB, Client)
+        self.mutualAdvise(clientA, clientB, Client.adviseNatPunchthrough)
 
+    def adviseMatchDetails(self, clientA, clientB):
         distance = self.getDistance(clientA, clientB)
-
-        bufferClientA = ByteBuffer()
-        bufferClientA.addUnsignedInteger8(Client.TcpOperationCodes.OP_NAT_PUNCHTHROUGH_ADDRESS)
-        bufferClientA.addUnsignedInteger(inet_addr(clientB.udp.remote_address[0]))
-        bufferClientA.addUnsignedInteger(htons(clientB.udp.remote_address[1]))
-        bufferClientA.addString(clientB.login_details.short_name)
-        bufferClientA.addUnsignedInteger(clientB.login_details.age)
-        bufferClientA.addUnsignedInteger(distance)
-        bufferClientA.addUnsignedInteger(Client.WAITING_FOR_RATING_TIMEOUT)
-        bufferClientA.addUnsignedInteger(KarmaLeveled.KARMA_MAXIMUM)
-        bufferClientA.addUnsignedInteger(clientA.karma_rating)
-        bufferClientA.addUnsignedInteger(clientB.karma_rating)
-
-        bufferClientB = ByteBuffer()
-        bufferClientB.addUnsignedInteger8(Client.TcpOperationCodes.OP_NAT_PUNCHTHROUGH_ADDRESS)
-        bufferClientB.addUnsignedInteger(inet_addr(clientA.udp.remote_address[0]))
-        bufferClientB.addUnsignedInteger(htons(clientA.udp.remote_address[1]))
-        bufferClientB.addString(clientA.login_details.short_name)
-        bufferClientB.addUnsignedInteger(clientA.login_details.age)
-        bufferClientB.addUnsignedInteger(distance)
-        bufferClientB.addUnsignedInteger(Client.WAITING_FOR_RATING_TIMEOUT)
-        bufferClientB.addUnsignedInteger(KarmaLeveled.KARMA_MAXIMUM)
-        bufferClientB.addUnsignedInteger(clientB.karma_rating)
-        bufferClientB.addUnsignedInteger(clientA.karma_rating)
-
-        clientA.tcp.sendByteBuffer(bufferClientA)
-        clientB.tcp.sendByteBuffer(bufferClientB)
-        logger.debug("NAT punchthrough introduction made between client [%s] and [%s], distance between them [%d km]" % (clientA, clientB, distance))
+        self.mutualAdvise(clientA, clientB, lambda x,y: Client.adviseMatchDetails(x, y, distance))
+        logger.debug("Shared profiles between client [%s] and [%s], distance between them [%.2fkm]" % (clientA, clientB, distance))
 
     def readviseNatPunchthrough(self, client):
         self.house_lock.acquire()
@@ -124,6 +124,9 @@ class House:
 
     # Retrieve person that client is currently matched with.
     def shareSocialInformation(self, sourceClient):
+        if sourceClient.state != Client.State.MATCHED:
+            return
+
         self.house_lock.acquire()
         try:
             if sourceClient.has_shared_social_information:
@@ -131,6 +134,9 @@ class House:
 
             clientB = self.room_participant.get(sourceClient)
             if clientB is None:
+                return
+
+            if clientB.state != Client.State.MATCHED:
                 return
 
             sourceClient.has_shared_social_information = True
@@ -219,6 +225,8 @@ class House:
                 self.waiting_keys_by_client[client] = key
 
                 self.matchingDatabase.pushWaiting(client)
+
+        client.state = Client.State.MATCHING
 
         # A client which is not connected should never be able to take a room.
         # This covers the edge case of a temporarily disconnected session where the connected party
