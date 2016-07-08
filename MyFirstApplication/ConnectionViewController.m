@@ -32,6 +32,13 @@
     // GPS
     GpsState *_gpsState;
 
+    // Social
+    SocialState *_socialState;
+
+    // DNS
+    DnsResolver *_dnsResolver;
+    NSString *_cachedResolvedDns;
+
     // UI
     volatile AlertViewController *_disconnectViewController;
     IBOutlet UIImageView *_cameraView;
@@ -41,22 +48,34 @@
     IBOutlet UILabel *_remoteName;
     IBOutlet UILabel *_remoteAge;
     IBOutlet UILabel *_remoteDistance;
+    __weak IBOutlet UIProgressView *_remoteKarma;
+    __weak IBOutlet UIProgressView *_ownerKarma;
 
     // UI - show connectivity issues.
     __weak IBOutlet UIView *_dcVideo;
     __weak IBOutlet UIView *_dcAudio;
     __weak IBOutlet UIView *_dcAudioClear;
 
+    __weak IBOutlet UIImageView *_remoteFacebookLiked;
+    __weak IBOutlet UIImageView *_localFacebookLiked;
+
+    FacebookSharedViewController *_facebookSharedViewController;
+
+    __weak IBOutlet UIButton *_backButton;
+    __weak IBOutlet UIButton *_forwardsButton;
+    UIColor *_buttonsStartingColour;
 
     // State
     volatile bool _waitingForNewEndPoint;
     bool _isConnectionActive;
+    bool _isScreenInUse;
+    bool _hasHadAtLeastOneConversation;
+    bool _inDifferentView;
+    Signal *_socialShared; // Have we shared social information with this end point?
 
     // Packets
     ByteBuffer *_skipPersonPacket;
     ByteBuffer *_permDisconnectPacket;
-
-    bool _inDifferentView;
 
     // Special case where we want user to be able to skip, even if not currently talking
     // with somebody. Current special cases include:
@@ -66,56 +85,30 @@
     // Checks access to microphone, speakers and GPS.
     AccessDialog *_accessDialog;
 
-    // For Google analytics.
+    // Google analytics.
     NSString *_screenName;
     Timer *_connectionStateTimer;
     NatState previousState;
-
-    // Track how long took to connect to network.
-    Timer *_connectingNetworkTimer;
-
-    // Track how long we were disconnected for, before reconnecting.
-    Timer *_connectionTemporarilyDisconnectTimer;
-
-    bool _isInBackground;
-    Signal *_resumeAfterBecomeActive;
-    uint _backgroundCounter;
-    bool _isScreenInUse;
-
-    bool _hasHadAtLeastOneConversation;
-
-    DnsResolver *_dnsResolver;
-    NSString *_cachedResolvedDns;
-
+    Timer *_connectingNetworkTimer;     // Track how long took to connect to network.
+    Timer *_connectionTemporarilyDisconnectTimer;    // Track how long we were disconnected for, before reconnecting.
     DeferredEvent *_videoDataLossAnalytics;
     DeferredEvent *_audioDataLossAnalytics;
     DeferredEvent *_audioResetAnalytics;
 
-    __weak IBOutlet UIProgressView *_remoteKarma;
-    __weak IBOutlet UIProgressView *_ownerKarma;
+    // Backgrounding.
+    bool _isInBackground;
+    Signal *_resumeAfterBecomeActive;
+    uint _backgroundCounter;
 
+    // Karma
     uint _karmaMax;
     uint _ratingTimeoutSeconds;
-
+    uint _matchDecisionTimeout;
     Payments *_payments;
     NSData *_karmaRegenerationReceipt;
 
-
-    __weak IBOutlet UIImageView *_remoteFacebookLiked;
-    __weak IBOutlet UIImageView *_localFacebookLiked;
-
-    FacebookSharedViewController *_facebookSharedViewController;
-
-    SocialState *_socialState;
-    __weak IBOutlet UIButton *_backButton;
-    __weak IBOutlet UIButton *_forwardsButton;
-    UIColor *_buttonsStartingColour;
-
     // How long in current conversation.
     Timer *_conversationDuration;
-
-    // Have we shared social information with this end point?
-    Signal *_socialShared;
 }
 
 // View initially load; happens once per process.
@@ -469,8 +462,6 @@
             NSLog(@"Punched through successfully");
             [_natPunchthroughIndicator setImage:[UIImage imageNamed:@"nat_punched_through"]];
         } else if (state == ADDRESS_RECEIVED) {
-            NSLog(@"New end point received");
-            _waitingForNewEndPoint = false;
             [_mediaController start];
         } else {
             NSLog(@"Unsupported punchthrough state received");
@@ -538,15 +529,19 @@
 
         NSLog(@"Distance from other user: %d, producing string: %@", distance, distanceString);
         [[Analytics getInstance] pushEventWithCategory:@"conversation" action:@"distance" label:nil value:@(distance)];
+
+        _waitingForNewEndPoint = false;
     });
 }
 
-- (void)handleKarmaMaximum:(uint)karmaMaximum ratingTimeoutSeconds:(uint)ratingTimeoutSeconds {
+- (void)handleKarmaMaximum:(uint)karmaMaximum ratingTimeoutSeconds:(uint)ratingTimeoutSeconds matchDecisionTimeout:(uint)matchDecisionTimeout {
     _karmaMax = karmaMaximum;
     _ratingTimeoutSeconds = ratingTimeoutSeconds;
+    _matchDecisionTimeout = matchDecisionTimeout;
 
     NSLog(@"Karma maximum of %d loaded", karmaMaximum);
     NSLog(@"Rating timeout of %d seconds loaded", ratingTimeoutSeconds);
+    NSLog(@"Match decision timeout of %d seconds loaded", matchDecisionTimeout);
 }
 
 + (float)getKarmaPercentageFromValue:(uint)karmaValue maximum:(uint)karmaMaximum {
@@ -765,7 +760,7 @@
                 }
             }
             // Set its content
-            [_disconnectViewController setConversationRatingConsumer:self matchingAnswerDelegate:self ratingTimeoutSeconds:_ratingTimeoutSeconds];
+            [_disconnectViewController setConversationRatingConsumer:self matchingAnswerDelegate:self ratingTimeoutSeconds:_ratingTimeoutSeconds matchDecisionTimeoutSeconds:_matchDecisionTimeout];
             [_disconnectViewController setConversationEndedViewVisible:showConversationEndView instantly:true];
             [_disconnectViewController setAlertShortText:shortDescription];
 
@@ -821,6 +816,9 @@
             if ([self switchToSocialSharedViewController]) {
                 return;
             }
+
+            [packet getUnsignedInteger8];
+           // bool aggressive = [packet getUnsignedInteger8];
 
             [self setDisconnectStateWithShortDescription:@"Matching you with somebody to talk with\nThe other person skipped you" showConversationEndView:true];
         } else if (operation == SHARE_FACEBOOK_INFO) {
@@ -998,10 +996,14 @@
 }
 
 - (void)onMatchAcceptAnswer {
-
+    NSLog(@"Accepted conversation, sending accept packet");
+    ByteBuffer * buffer = [[ByteBuffer alloc] init];
+    [buffer addUnsignedInteger8:ACCEPTED_CONVERSATION];
+    [_connection sendTcpPacket:buffer];
 }
 
 - (void)onMatchRejectAnswer {
+    NSLog(@"Rejected conversation, skipping and rating");
     [self doSkipPerson];
     [self onConversationRating:S_OKAY];
 }

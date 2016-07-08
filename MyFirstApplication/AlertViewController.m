@@ -36,6 +36,7 @@
 
     id <ConversationRatingConsumer> _conversationRatingConsumer;
     uint _ratingTimeoutSeconds;
+    uint _matchDecisionTimeoutSeconds;
 
     NSString *_cachedAlertShortText;
 
@@ -258,8 +259,9 @@
     });
 }
 
-- (void)setConversationRatingConsumer:(id <ConversationRatingConsumer>)consumer matchingAnswerDelegate:(id <MatchingAnswerDelegate>)matchingAnswerDelegate ratingTimeoutSeconds:(uint)ratingTimeoutSeconds {
+- (void)setConversationRatingConsumer:(id <ConversationRatingConsumer>)consumer matchingAnswerDelegate:(id <MatchingAnswerDelegate>)matchingAnswerDelegate ratingTimeoutSeconds:(uint)ratingTimeoutSeconds matchDecisionTimeoutSeconds:(uint)matchDecisionTimeoutSeconds {
     _conversationRatingConsumer = consumer;
+    _matchDecisionTimeoutSeconds = matchDecisionTimeoutSeconds;
     _ratingTimeoutSeconds = ratingTimeoutSeconds;
     [_conversationEndViewController setConversationRatingConsumer:self];
     _matchingAnswerDelegate = matchingAnswerDelegate;

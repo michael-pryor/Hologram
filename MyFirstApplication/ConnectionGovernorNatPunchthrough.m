@@ -209,6 +209,7 @@
             uint distanceFromUser = [packet getUnsignedInteger];
             uint ratingTimeoutSeconds = [packet getUnsignedInteger]; // TODO: could be received in login instead.
             uint karmaMax = [packet getUnsignedInteger]; // TODO: could be received in login instead.
+            uint matchDecisionTimeout = [packet getUnsignedInteger]; // TODO: could be received in login instead.
             uint ourKarmaRating = [packet getUnsignedInteger];
             uint remoteKarmaRating = [packet getUnsignedInteger];
             NSString *cardText = [packet getString];
@@ -217,7 +218,7 @@
             UIImage *profilePicture = [ImageParsing convertDataToImage:profilePictureData orientation:(UIImageOrientation) profilePictureOrientation];
 
             [_notifier setName:userName profilePicture:profilePicture callingCardText:cardText age:userAge distance:(uint) distanceFromUser];
-            [_notifier handleKarmaMaximum:karmaMax ratingTimeoutSeconds:ratingTimeoutSeconds];
+            [_notifier handleKarmaMaximum:karmaMax ratingTimeoutSeconds:ratingTimeoutSeconds matchDecisionTimeout:matchDecisionTimeout];
             [_notifier handleOurKarma:ourKarmaRating remoteKarma:remoteKarmaRating];
         } else if (prefix == NAT_PUNCHTHROUGH_DISCONNECT) {
             NSLog(@"Request to stop using NAT punchthrough received");

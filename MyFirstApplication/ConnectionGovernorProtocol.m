@@ -33,6 +33,9 @@
 // Must be >= to server's expectation, otherwise we'l be rejected.
 #define VERSION 3
 
+// Client has been inactive (not accepting or rejecting conversations) for too long.
+#define INACTIVE_TIMOUT 6
+
 @implementation ConnectionGovernorProtocol {
     id <NewPacketDelegate> _recvDelegate;
     ConnectionManagerUdp *_udpConnection;
@@ -322,6 +325,8 @@
         [self terminateWithConnectionStatus:P_NOT_CONNECTED withDescription:@"Karma regeneration failed"];
         [_karmaRegenerationFailed setMessage:rejectDescription];
         [_karmaRegenerationFailed show];
+    } else if (rejectCode == INACTIVE_TIMOUT) {
+        [self terminateWithConnectionStatus:P_NOT_CONNECTED withDescription:rejectDescription];
     }
 }
 

@@ -1,7 +1,6 @@
 __author__ = 'pryormic'
 from client import Client
 from byte_buffer import ByteBuffer
-from utility import htons, inet_addr
 from threading import RLock
 import logging
 from database.matching import Matching
@@ -42,6 +41,12 @@ class House:
 
         self.disconnected_skip = ByteBuffer()
         self.disconnected_skip.addUnsignedInteger(Client.TcpOperationCodes.OP_SKIPPED_DISCONNECT)
+        self.disconnected_skip.addUnsignedInteger8(0)
+
+        # Aggressive will skip on the accept/reject match screen as well, non agressive will not.
+        self.disconnected_skip_aggressive = ByteBuffer()
+        self.disconnected_skip_aggressive.addUnsignedInteger(Client.TcpOperationCodes.OP_SKIPPED_DISCONNECT)
+        self.disconnected_skip.addUnsignedInteger8(1)
 
         self.matchingDatabase = matchingDatabase
 
@@ -83,8 +88,8 @@ class House:
             if clientB.state != Client.State.MATCHED:
                 return
 
-            logger.debug("Both client [%s] and client [%s] have accepted the conversation, starting conversation" % (clientA, clientB))
-            self.adviseNatPunchthrough(clientA, clientB)
+            logger.debug("Both client [%s] and client [%s] have accepted the conversation, starting conversation" % (sourceClient, clientB))
+            self.adviseNatPunchthrough(sourceClient, clientB)
         finally:
             self.house_lock.release()
 
@@ -191,7 +196,7 @@ class House:
 
     # The session has been completely shutdown because a client has
     # permanently disconnected and we don't think they're coming back.
-    def releaseRoom(self, client, notification = None, otherClientRelease = None):
+    def releaseRoom(self, client, notification = None):
         self.house_lock.acquire()
         try:
             self._removeFromWaitingList(client)
@@ -307,5 +312,6 @@ class House:
         if clientMatch is None:
             pass
         elif packet is not None:
-            # Send to client that we are matched with.
-            clientMatch.udp.sendRawBuffer(packet)
+            if client.state == Client.State.MATCHED and clientMatch.state == Client.State.MATCHED:
+                # Send to client that we are matched with.
+                clientMatch.udp.sendRawBuffer(packet)

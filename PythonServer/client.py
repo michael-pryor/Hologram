@@ -12,6 +12,7 @@ import uuid
 import random
 from database.karma_leveled import KarmaLeveled
 from database.persisted_ids import PersistedIds
+from utility import htons, inet_addr
 
 __author__ = 'pryormic'
 
@@ -23,12 +24,18 @@ class Client(object):
 
     # Don't rematch with a previously skipped client for first x seconds while we
     # wait for a more suitable match, after x seconds give up and match anyways.
-    PRIOR_MATCH_LIST_TIMEOUT_SECONDS = 10
+    PRIOR_MATCH_LIST_TIMEOUT_SECONDS = 0
 
     # Clients have absolute maximum of 10 seconds to give their rating before it defaults to an okay rating.
     # App is advised to send within 5 seconds.
     WAITING_FOR_RATING_ABSOLUTE_TIMEOUT = 10
     WAITING_FOR_RATING_TIMEOUT = WAITING_FOR_RATING_ABSOLUTE_TIMEOUT / 2
+
+    # After client does not accept/reject anyone for 3 times, disconnect them.
+    SKIPPED_TIMED_OUT_LIMIT = 3
+
+    # Client has 5 seconds to accept or reject match.
+    ACCEPTING_MATCH_EXPIRY = 5
 
     class ConnectionStatus:
         WAITING_LOGON = 1
@@ -73,6 +80,7 @@ class Client(object):
         REJECT_BANNED = 3
         KARMA_REGENERATION_FAILED = 4
         PERSISTED_ID_CLASH = 5
+        INACTIVE_TIMEOUT = 6
 
     class ConversationRating:
         OKAY = 0
@@ -178,6 +186,7 @@ class Client(object):
         self.payment_verifier = paymentVerifier
         self.persisted_ids_verifier = persistedIdsVerifier
         self.state = Client.State.MATCHING
+        self.accepting_match_expiry_action = None
 
         def timeoutCheck():
             if self.last_received_data is not None:
@@ -212,6 +221,7 @@ class Client(object):
 
         self.social_share_information_packet = None
         self.has_shared_social_information = False
+        self.skipped_timed_out = 0
 
 
     def adviseNatPunchthrough(self, sourceClient):
@@ -222,7 +232,7 @@ class Client(object):
         packet.addUnsignedInteger8(Client.TcpOperationCodes.OP_NAT_PUNCHTHROUGH_ADDRESS)
         packet.addUnsignedInteger(inet_addr(sourceClient.udp.remote_address[0]))
         packet.addUnsignedInteger(htons(sourceClient.udp.remote_address[1]))
-        self.client.state = Client.State.MATCHED
+        self.state = Client.State.MATCHED
 
         self.tcp.sendByteBuffer(packet)
 
@@ -234,13 +244,29 @@ class Client(object):
         packet.addUnsignedInteger(distance)
         packet.addUnsignedInteger(Client.WAITING_FOR_RATING_TIMEOUT)
         packet.addUnsignedInteger(KarmaLeveled.KARMA_MAXIMUM)
+        packet.addUnsignedInteger(Client.ACCEPTING_MATCH_EXPIRY)
         packet.addUnsignedInteger(self.karma_rating)
         packet.addUnsignedInteger(sourceClient.karma_rating)
         packet.addString(sourceClient.login_details.card_text)
         packet.addByteBuffer(sourceClient.login_details.profile_picture)
         self.state = Client.State.ACCEPTING_MATCH
 
+
+        self.cancelAcceptingMatchExpiry()
+        logger.debug("Scheduled new accepting match expiry for client [%s] in [%s] seconds" % (self, Client.ACCEPTING_MATCH_EXPIRY))
+        self.accepting_match_expiry_action = self.reactor.callLater(Client.ACCEPTING_MATCH_EXPIRY, self.doSkipTimedOut)
+
         self.tcp.sendByteBuffer(packet)
+
+    def cancelAcceptingMatchExpiry(self):
+        try:
+            if self.accepting_match_expiry_action is not None:
+                self.accepting_match_expiry_action.cancel()
+        except (AlreadyCalled, AlreadyCancelled):
+            pass
+        else:
+            self.skipped_timed_out = 0
+
 
     def notifySocialInformationShared(self, ackBack = False):
         packet = ByteBuffer()
@@ -297,6 +323,7 @@ class Client(object):
 
     # Closes the TCP socket, triggering indirectly onDisconnect to be called.
     def closeConnection(self):
+        self.cancelAcceptingMatchExpiry()
         self.connection_status = Client.ConnectionStatus.NOT_CONNECTED
         self.tcp.transport.loseConnection()
 
@@ -433,6 +460,28 @@ class Client(object):
 
         self.onFriendlyPacketUdp(packet)
 
+    def doSkip(self, aggressiveSkip=False):
+        logger.debug("Client [%s] asked to skip person, honouring request" % self)
+        disconnectPacket = self.house.disconnected_skip if aggressiveSkip else self.house.disconnected_skip
+        otherClient = self.house.releaseRoom(self, disconnectPacket)
+
+        self.cancelAcceptingMatchExpiry()
+
+        # Record that we skipped this client, so that we don't rematch immediately.
+        if otherClient is not None:
+            assert isinstance(otherClient, Client)
+            self.match_skip_history.addMatch(otherClient.udp_hash)
+            self.setToWaitForRatingOfPreviousConversation(otherClient)
+
+    def doSkipTimedOut(self):
+        self.skipped_timed_out += 1
+        if self.skipped_timed_out > Client.SKIPPED_TIMED_OUT_LIMIT:
+            rejectPacket = self.buildRejectPacket(Client.RejectCodes.INACTIVE_TIMEOUT, "You were inactive for too long")
+            self.tcp.sendByteBuffer(rejectPacket)
+            self.closeConnection()
+
+        self.doSkip(True)
+
     def onFriendlyPacketTcp(self, packet):
         assert isinstance(packet, ByteBuffer)
 
@@ -440,14 +489,7 @@ class Client(object):
         if opCode == Client.TcpOperationCodes.OP_PING:
             self.last_received_data = getEpoch()
         elif opCode == Client.TcpOperationCodes.OP_SKIP_PERSON:
-            logger.debug("Client [%s] asked to skip person, honouring request" % self)
-            otherClient = self.house.releaseRoom(self, self.house.disconnected_skip)
-
-            # Record that we skipped this client, so that we don't rematch immediately.
-            if otherClient is not None:
-                assert isinstance(otherClient, Client)
-                self.match_skip_history.addMatch(otherClient.udp_hash)
-                self.setToWaitForRatingOfPreviousConversation(otherClient)
+            self.doSkip()
         elif opCode == Client.TcpOperationCodes.OP_RATING:
             if self.client_from_previous_conversation is None:
                 logger.debug("No previous conversation to rate")
@@ -463,6 +505,7 @@ class Client(object):
             self.social_share_information_packet = packet
             self.house.shareSocialInformation(self)
         elif opCode == Client.TcpOperationCodes.OP_ACCEPTED_CONVERSATION:
+            self.cancelAcceptingMatchExpiry()
             self.house.onAcceptConversation(self)
         else:
             # Must be debug in case rogue client sends us garbage data
