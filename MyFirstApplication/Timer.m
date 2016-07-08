@@ -86,6 +86,10 @@
 - (float)getRatioProgressThroughTick {
     CFAbsoluteTime diff = [self getSecondsUntilNextTick];
 
+    if (_secondsFrequency == 0) {
+        return 0;
+    }
+    
     CFAbsoluteTime progress = (_secondsFrequency - diff) / _secondsFrequency;
     if (progress < 0) {
         progress = 0;

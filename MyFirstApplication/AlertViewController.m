@@ -23,16 +23,16 @@
 
     __weak IBOutlet UIButton *_backButton;
 
-    Signal *_localImageViewVisible;
-
     void(^_moveToFacebookViewControllerFunc)();
 
     bool _shouldShowAdverts;
     __weak IBOutlet UIView *_conversationEndView;
 
     ConversationEndedViewController *_conversationEndViewController;
-
     bool _conversationEndViewControllerVisible;
+    bool _matchApprovalViewControllerVisible;
+
+    NSArray *_views;
 
     id <ConversationRatingConsumer> _conversationRatingConsumer;
     uint _ratingTimeoutSeconds;
@@ -49,9 +49,11 @@
 
 - (void)setAlertShortText:(NSString *)shortText {
     _cachedAlertShortText = shortText;
-    if (!_conversationEndViewControllerVisible) {
-        [self doSetAlertShortText:shortText];
+    if (_conversationEndViewControllerVisible) {
+        return;
     }
+
+    [self doSetAlertShortText:shortText];
 }
 
 - (void)doSetAlertShortText:(NSString *)shortText {
@@ -77,10 +79,15 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
 
+    _views = @[_conversationEndView, _localImageView, _matchingView];
+    //[self showView:_localImageView instant:true];
+
+    _matchApprovalViewControllerVisible = false;
+    _conversationEndViewControllerVisible = false;
     _conversationRatingConsumer = nil;
     _ratingTimeoutSeconds = 0;
     _conversationEndViewController = self.childViewControllers[0];
-    [_matchingView setHidden:true];
+
     // It should be shown at same time as camera, because it sits on top of camera.
     [_backButton setHidden:true];
 
@@ -90,8 +97,6 @@
 
 
     _matchDecisionMade = false;
-
-    _localImageViewVisible = [[Signal alloc] initWithFlag:false];
 
     // First images loaded in produce black screen for some reason, so better introduce a delay.
 
@@ -155,7 +160,6 @@
     [_timerSinceAdvertCreated reset];
 
     NSLog(@"Disconnect view controller loaded, unhiding banner advert and setting delegate");
-    [_localImageViewVisible clear];
     [_localImageView setAlpha:0.0f];
     [_backButton setHidden:false];
 
@@ -219,7 +223,6 @@
 
 - (void)onNewImage:(UIImage *)image {
     [_localImageView performSelectorOnMainThread:@selector(setImage:) withObject:image waitUntilDone:YES];
-    [self showLocalImageView];
 }
 
 - (void)setMoveToFacebookViewControllerFunc:(void (^)())moveToFacebookViewControllerFunc {
@@ -232,31 +235,55 @@
     }
 }
 
-- (void)showLocalImageView {
-    if (!_conversationEndViewControllerVisible && [_localImageViewVisible signalAll]) {
-        [ViewInteractions fadeIn:_localImageView completion:nil duration:0.75f];
-    }
+- (void)showView:(UIView *)viewToShow instant:(bool)instant {
+    const float duration = instant ? 0 : 0.75f;
+
+    dispatch_sync_main(^{
+        bool shown = false;
+        for (UIView *view in _views) {
+            if (view == viewToShow) {
+                if (viewToShow == _matchingView) {
+                    [ViewInteractions fadeOut:viewToShow thenIn:viewToShow duration:duration];
+                    shown = true;
+                }
+                continue;
+            }
+
+            if ([view alpha] > 0) {
+                if (!shown && [view alpha] == 1) {
+                    [ViewInteractions fadeOut:view thenIn:viewToShow duration:duration];
+                    shown = true;
+                } else {
+                    [view setAlpha:0];
+                }
+            }
+        }
+        if (!shown) {
+            [ViewInteractions fadeIn:viewToShow completion:nil duration:duration];
+        }
+    });
 }
 
 - (void)setConversationEndedViewVisible:(bool)visible instantly:(bool)instant {
-    float fadeDuration = instant ? 0.0f : 0.75f;
+    if (_matchApprovalViewControllerVisible || (_conversationEndViewControllerVisible && visible)) {
+        return;
+    }
 
-    dispatch_sync_main(^{
-        _conversationEndViewControllerVisible = visible;
-        if (_conversationEndViewControllerVisible) {
-            [_conversationEndViewController reset];
-            [_localImageViewVisible clear];
-            [ViewInteractions fadeOut:_localImageView thenIn:_conversationEndView duration:fadeDuration];
-            [self doSetAlertShortText:@"Please rate your previous conversation\nThis will influence their karma"];
-            dispatch_async_main(^{
-                [_conversationEndViewController onRatingsCompleted];
-            }, _ratingTimeoutSeconds * 1000);
+    if (visible) {
+        [_conversationEndViewController reset];
+        [self showView:_conversationEndView instant:instant];
+        _conversationEndViewControllerVisible = true;
+        [self doSetAlertShortText:@"Please rate your previous conversation\nThis will influence their karma"];
+        dispatch_async_main(^{
+            [_conversationEndViewController onRatingsCompleted];
+        }, _ratingTimeoutSeconds * 1000);
 
-        } else {
-            [ViewInteractions fadeOut:_conversationEndView thenIn:_localImageView duration:fadeDuration];
-            [self doSetAlertShortText:_cachedAlertShortText];
-        }
-    });
+    } else {
+        [self showView:_localImageView instant:instant];
+        _conversationEndViewControllerVisible = false;
+        [self doSetAlertShortText:_cachedAlertShortText];
+    }
+
 }
 
 - (void)setConversationRatingConsumer:(id <ConversationRatingConsumer>)consumer matchingAnswerDelegate:(id <MatchingAnswerDelegate>)matchingAnswerDelegate ratingTimeoutSeconds:(uint)ratingTimeoutSeconds matchDecisionTimeoutSeconds:(uint)matchDecisionTimeoutSeconds {
@@ -264,6 +291,7 @@
     _matchDecisionTimeoutSeconds = matchDecisionTimeoutSeconds;
     _ratingTimeoutSeconds = ratingTimeoutSeconds;
     [_conversationEndViewController setConversationRatingConsumer:self];
+    [_matchingViewController setMatchingDecisionTimeoutSeconds:matchDecisionTimeoutSeconds];
     _matchingAnswerDelegate = matchingAnswerDelegate;
 }
 
@@ -279,9 +307,8 @@
 }
 
 - (void)onMatchingFinished {
-    dispatch_sync_main(^{
-        [_matchingView setHidden:true];
-    });
+    _matchApprovalViewControllerVisible = false;
+    [self showView:_localImageView instant:false];
 }
 
 - (void)setName:(NSString *)name profilePicture:(UIImage *)profilePicture callingCardText:(NSString *)callingCardText age:(uint)age distance:(uint)distance {
@@ -290,9 +317,8 @@
 }
 
 - (void)onMatchingStarted {
-    dispatch_sync_main(^{
-        [_matchingView setHidden:false];
-    });
+    _matchApprovalViewControllerVisible = true;
+    [self showView:_matchingView instant:false];
 }
 
 - (void)onMatchRejectAnswer {

@@ -41,12 +41,6 @@ class House:
 
         self.disconnected_skip = ByteBuffer()
         self.disconnected_skip.addUnsignedInteger(Client.TcpOperationCodes.OP_SKIPPED_DISCONNECT)
-        self.disconnected_skip.addUnsignedInteger8(0)
-
-        # Aggressive will skip on the accept/reject match screen as well, non agressive will not.
-        self.disconnected_skip_aggressive = ByteBuffer()
-        self.disconnected_skip_aggressive.addUnsignedInteger(Client.TcpOperationCodes.OP_SKIPPED_DISCONNECT)
-        self.disconnected_skip.addUnsignedInteger8(1)
 
         self.matchingDatabase = matchingDatabase
 

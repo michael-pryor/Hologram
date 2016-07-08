@@ -109,6 +109,8 @@
 
     // How long in current conversation.
     Timer *_conversationDuration;
+
+    bool _askForRating;
 }
 
 // View initially load; happens once per process.
@@ -124,6 +126,8 @@
     _socialState = nil;
 
     _backgroundCounter = 0;
+
+    _askForRating = false;
 
     // Hack for arden crescent, should be nil.
     _cachedResolvedDns = @"192.168.1.92";
@@ -455,6 +459,9 @@
         NSTimeInterval secondsTimed = [_connectionStateTimer getSecondsSinceLastTick];
         [_connectionStateTimer reset];
 
+        // We've accepted each other and video is about to start.
+        _askForRating = true;
+
         if (state == ROUTED) {
             NSLog(@"Regressed to routing mode");
             [_natPunchthroughIndicator setImage:[UIImage imageNamed:@"nat_routing_through_server"]];
@@ -497,6 +504,9 @@
     [_conversationDuration reset];
     [_socialShared clear];
 
+    // Just matched with somebody new, but they need to accept or reject us before video starts.
+    _askForRating = false;
+
     dispatch_sync_main(^{
         [_disconnectViewController setName:name profilePicture:profilePicture callingCardText:callingCardText age:age distance:distance];
 
@@ -538,6 +548,10 @@
     _karmaMax = karmaMaximum;
     _ratingTimeoutSeconds = ratingTimeoutSeconds;
     _matchDecisionTimeout = matchDecisionTimeout;
+
+    if (_disconnectViewController != nil) {
+        [_disconnectViewController setConversationRatingConsumer:self matchingAnswerDelegate:self ratingTimeoutSeconds:_ratingTimeoutSeconds matchDecisionTimeoutSeconds:_matchDecisionTimeout];
+    }
 
     NSLog(@"Karma maximum of %d loaded", karmaMaximum);
     NSLog(@"Rating timeout of %d seconds loaded", ratingTimeoutSeconds);
@@ -726,6 +740,10 @@
 
 // Display view overlay showing how connection is being recovered.
 - (void)setDisconnectStateWithShortDescription:(NSString *)shortDescription showConversationEndView:(bool)showConversationEndView {
+    if (!_askForRating) {
+        showConversationEndView = false;
+    }
+
     void (^block)() = ^{
         dispatch_sync_main(^{
             // Show the disconnect storyboard.

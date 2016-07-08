@@ -13,4 +13,8 @@
 
 @interface MatchingViewController : UIViewController<CallingCardDataProvider>
 - (void)setMatchingAnswerDelegate:(id <MatchingAnswerDelegate>)matchingAnswerDelegate;
+
+- (void)setMatchingDecisionTimeoutSeconds:(uint)seconds;
+
+- (void)reset;
 @end

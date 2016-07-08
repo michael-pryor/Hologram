@@ -262,10 +262,10 @@ class Client(object):
         try:
             if self.accepting_match_expiry_action is not None:
                 self.accepting_match_expiry_action.cancel()
-        except (AlreadyCalled, AlreadyCancelled):
-            pass
-        else:
+        except AlreadyCancelled:
             self.skipped_timed_out = 0
+        except AlreadyCalled:
+            pass
 
 
     def notifySocialInformationShared(self, ackBack = False):
@@ -462,16 +462,20 @@ class Client(object):
 
     def doSkip(self, aggressiveSkip=False):
         logger.debug("Client [%s] asked to skip person, honouring request" % self)
-        disconnectPacket = self.house.disconnected_skip if aggressiveSkip else self.house.disconnected_skip
-        otherClient = self.house.releaseRoom(self, disconnectPacket)
+        otherClient = self.house.releaseRoom(self, self.house.disconnected_skip)
 
         self.cancelAcceptingMatchExpiry()
+
 
         # Record that we skipped this client, so that we don't rematch immediately.
         if otherClient is not None:
             assert isinstance(otherClient, Client)
             self.match_skip_history.addMatch(otherClient.udp_hash)
             self.setToWaitForRatingOfPreviousConversation(otherClient)
+
+            if aggressiveSkip:
+                self.setRatingOfOtherClient(Client.ConversationRating.OKAY)
+                otherClient.setRatingOfOtherClient(Client.ConversationRating.OKAY)
 
     def doSkipTimedOut(self):
         self.skipped_timed_out += 1
@@ -620,6 +624,9 @@ class Client(object):
             return False
 
         if not client.state == Client.State.MATCHING:
+            return False
+
+        if client.connection_status != Client.ConnectionStatus.CONNECTED:
             return False
 
         if self.started_waiting_for_match_timer is None:
