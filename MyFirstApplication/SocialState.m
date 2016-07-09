@@ -91,13 +91,11 @@ typedef void (^Block)(id);
         }
 
         if ([[NSUserDefaults standardUserDefaults] objectForKey:profilePictureKey] != nil) {
+
             NSData *profilePictureData = [[NSUserDefaults standardUserDefaults] objectForKey:profilePictureKey];
-            UIImageOrientation profilePictureOrientation;
 
-            UIImageOrientation value = UIImageOrientationUp;
-            [[[NSUserDefaults standardUserDefaults] objectForKey:profilePictureOrientationKey] getValue:&value];
-            profilePictureOrientation = value;
-
+            uint profilePictureOrientationInteger = (uint) [[NSUserDefaults standardUserDefaults] integerForKey:profilePictureOrientationKey];
+            UIImageOrientation profilePictureOrientation = [ImageParsing parseIntegerToOrientation:profilePictureOrientationInteger];
             UIImage *profilePictureImage = [ImageParsing convertDataToImage:profilePictureData orientation:profilePictureOrientation];
 
             [self persistProfilePictureImage:profilePictureImage prepareImage:false saving:false];
@@ -142,15 +140,16 @@ typedef void (^Block)(id);
     if (image != nil && prepare) {
         image = [ImageParsing prepareImage:image];
     }
+
     _profilePictureImage = image;
-    _profilePictureOrientation = [image imageOrientation];
     _profilePictureData = [ImageParsing convertImageToData:image];
+    _profilePictureOrientationInteger = [ImageParsing parseOrientationToInteger:[image imageOrientation]];
+    _profilePictureOrientation = [ImageParsing parseIntegerToOrientation:_profilePictureOrientationInteger];
 
     if (doSave) {
-
         NSLog(@"Persisting profile picture image, bytes: %lu", (unsigned long) [_profilePictureData length]);
-        [[NSUserDefaults standardUserDefaults] setInteger:_profilePictureOrientation forKey:profilePictureOrientationKey];
         [[NSUserDefaults standardUserDefaults] setObject:_profilePictureData forKey:profilePictureKey];
+        [[NSUserDefaults standardUserDefaults] setInteger:_profilePictureOrientationInteger forKey:profilePictureOrientationKey];
     }
 }
 
@@ -223,8 +222,9 @@ typedef void (^Block)(id);
     _isGraphDataLoaded = false;
     _facebookProfilePictureUrl = nil;
     _profilePictureImage = nil;
-    _profilePictureOrientation = UIImageOrientationUp;
     _profilePictureData = nil;
+    _profilePictureOrientation = UIImageOrientationUp;
+    _profilePictureOrientationInteger = [ImageParsing parseOrientationToInteger:_profilePictureOrientation];
 }
 
 - (bool)updateFromFacebookCore {

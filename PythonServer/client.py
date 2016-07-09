@@ -31,7 +31,7 @@ class Client(object):
     SKIPPED_TIMED_OUT_LIMIT = 3
 
     # Client has 5 seconds to accept or reject match.
-    ACCEPTING_MATCH_EXPIRY = 5
+    ACCEPTING_MATCH_EXPIRY = 60
 
     class ConnectionStatus:
         WAITING_LOGON = 1
@@ -222,7 +222,7 @@ class Client(object):
         self.house_match_timer = None
 
         # Track previous matches which we have skipped
-        self.match_skip_history = Client.HistoryTracking(matchDecisionDatabase, self, enabled = True)
+        self.match_skip_history = Client.HistoryTracking(matchDecisionDatabase, self, enabled = False)
 
         # Client we were speaking to in last conversation, may not still be connected.
         self.client_from_previous_conversation = None
@@ -298,6 +298,7 @@ class Client(object):
         packet.addUnsignedInteger(sourceClient.karma_rating)
         packet.addString(sourceClient.login_details.card_text)
         packet.addByteBuffer(sourceClient.login_details.profile_picture)
+        packet.addUnsignedInteger(sourceClient.login_details.profile_picture_orientation)
         self.transitionState(Client.State.MATCHING, Client.State.ACCEPTING_MATCH)
 
 

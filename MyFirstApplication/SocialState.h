@@ -31,6 +31,7 @@
 
 @property(readonly) UIImage* profilePictureImage;
 @property(readonly) UIImageOrientation profilePictureOrientation;
+@property(readonly) uint profilePictureOrientationInteger;
 @property(readonly) NSData* profilePictureData;
 
 // This relates to the Facebook login view, the index of the selected button.

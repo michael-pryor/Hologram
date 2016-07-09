@@ -214,8 +214,9 @@
             uint remoteKarmaRating = [packet getUnsignedInteger];
             NSString *cardText = [packet getString];
             NSData *profilePictureData = [packet getData];
-            uint profilePictureOrientation = [packet getUnsignedInteger];
-            UIImage *profilePicture = [ImageParsing convertDataToImage:profilePictureData orientation:(UIImageOrientation) profilePictureOrientation];
+            uint profilePictureOrientationInteger = [packet getUnsignedInteger];
+            UIImageOrientation profilePictureOrientation = [ImageParsing parseIntegerToOrientation:profilePictureOrientationInteger];
+            UIImage *profilePicture = [ImageParsing convertDataToImage:profilePictureData orientation:profilePictureOrientation];
 
             [_notifier setName:userName profilePicture:profilePicture callingCardText:cardText age:userAge distance:(uint) distanceFromUser];
             [_notifier handleKarmaMaximum:karmaMax ratingTimeoutSeconds:ratingTimeoutSeconds matchDecisionTimeout:matchDecisionTimeout];

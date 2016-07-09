@@ -4,6 +4,14 @@
 
 #import "ImageParsing.h"
 
+#define IMAGE_ORIENT_UP 1
+#define IMAGE_ORIENT_DOWN 2
+#define IMAGE_ORIENT_LEFT 3
+#define IMAGE_ORIENT_RIGHT 4
+#define IMAGE_ORIENT_UP_MIRRORED 5
+#define IMAGE_ORIENT_DOWN_MIRRORED 6
+#define IMAGE_ORIENT_LEFT_MIRRORED 7
+#define IMAGE_ORIENT_RIGHT_MIRRORED 8
 
 @implementation ImageParsing {
 
@@ -83,11 +91,94 @@
     return [[UIImage alloc] initWithCGImage:[image CGImage] scale:1.0 orientation:orientation];
 }
 
+
+/*
+ typedef NS_ENUM(NSInteger, UIImageOrientation) {
+    UIImageOrientationUp,            // default orientation
+    UIImageOrientationDown,          // 180 deg rotation
+    UIImageOrientationLeft,          // 90 deg CCW
+    UIImageOrientationRight,         // 90 deg CW
+    UIImageOrientationUpMirrored,    // as above but image mirrored along other axis. horizontal flip
+    UIImageOrientationDownMirrored,  // horizontal flip
+    UIImageOrientationLeftMirrored,  // vertical flip
+    UIImageOrientationRightMirrored, // vertical flip
+};
+ */
+
+
++ (uint)parseOrientationToInteger:(UIImageOrientation)orientation {
+    switch(orientation) {
+        case (UIImageOrientationUp):
+            return IMAGE_ORIENT_UP;
+
+        case (UIImageOrientationDown):
+            return IMAGE_ORIENT_DOWN;
+
+        case (UIImageOrientationLeft):
+            return IMAGE_ORIENT_LEFT;
+
+        case (UIImageOrientationRight):
+            return IMAGE_ORIENT_RIGHT;
+
+        case (UIImageOrientationUpMirrored):
+            return IMAGE_ORIENT_UP_MIRRORED;
+
+        case (UIImageOrientationDownMirrored):
+            return IMAGE_ORIENT_DOWN_MIRRORED;
+
+        case (UIImageOrientationLeftMirrored):
+            return IMAGE_ORIENT_LEFT_MIRRORED;
+
+        case (UIImageOrientationRightMirrored):
+            return IMAGE_ORIENT_RIGHT_MIRRORED;
+
+        default:
+            NSLog(@"Failed to process enum UIImageOrientation, defaulting to UP");
+            return IMAGE_ORIENT_UP;
+    }
+}
+
++ (UIImageOrientation)parseIntegerToOrientation:(uint)orientation {
+    switch(orientation) {
+        case (IMAGE_ORIENT_UP):
+            return UIImageOrientationUp;
+
+        case (IMAGE_ORIENT_DOWN):
+            return UIImageOrientationDown;
+
+        case (IMAGE_ORIENT_LEFT):
+            return UIImageOrientationLeft;
+
+        case (IMAGE_ORIENT_RIGHT):
+            return UIImageOrientationRight;
+
+        case (IMAGE_ORIENT_UP_MIRRORED):
+            return UIImageOrientationUpMirrored;
+
+        case (IMAGE_ORIENT_DOWN_MIRRORED):
+            return UIImageOrientationDownMirrored;
+
+        case (IMAGE_ORIENT_LEFT_MIRRORED):
+            return UIImageOrientationLeftMirrored;
+
+        case (IMAGE_ORIENT_RIGHT_MIRRORED):
+            return UIImageOrientationRightMirrored;
+
+        default:
+            NSLog(@"Failed to process integer UIImageOrientation, defaulting to UP");
+            return UIImageOrientationUp;
+    }
+}
+
 + (NSData *)convertImageToData:(UIImage *)image {
     if (image == nil) {
         return nil;
     }
 
     return UIImageJPEGRepresentation(image, 0.6f);
+}
+
++ (UIImage *)convertDataToImage:(NSData *)data {
+    return [self convertDataToImage:data orientation:UIImageOrientationUp];
 }
 @end

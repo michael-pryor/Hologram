@@ -13,4 +13,10 @@
 + (NSData *)convertImageToData:(UIImage *)image;
 
 + (UIImage *)convertDataToImage:(NSData *)data orientation:(UIImageOrientation)orientation;
+
++ (UIImageOrientation)parseIntegerToOrientation:(uint)orientation;
+
++ (uint)parseOrientationToInteger:(UIImageOrientation)orientation;
+
++ (UIImage *)convertDataToImage:(NSData *)data;
 @end

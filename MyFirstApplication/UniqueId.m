@@ -88,7 +88,11 @@ static NSString * _defaultsIdStringVerified = @"UUID_Account_Verified";
 
     if (existingId == nil) {
         existingId = [keyChain objectForKey:(__bridge id) (kSecAttrAccount)];
-        NSLog(@"Retrieved existing UUID [%@] from keychain", existingId);
+
+        if (existingId != nil) {
+            NSLog(@"Retrieved existing UUID [%@] from keychain", existingId);
+            [defaults setObject:existingId forKey:_defaultsIdStringKey];
+        }
     }
 
     NSString *UUID;

@@ -52,7 +52,7 @@
     {
         [buffer addString:[state callingCardText]];
         [buffer addData:[state profilePictureData]];
-        [buffer addUnsignedInteger:[state profilePictureOrientation]];
+        [buffer addUnsignedInteger:[state profilePictureOrientationInteger]];
     }
 
     return buffer;
