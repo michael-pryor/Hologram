@@ -1602,11 +1602,11 @@
                         <viewControllerLayoutGuide type="bottom" id="C4S-rI-Wdb"/>
                     </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="vit-86-dCO">
-                        <rect key="frame" x="0.0" y="0.0" width="590" height="503"/>
+                        <rect key="frame" x="0.0" y="0.0" width="590" height="495"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="5" translatesAutoresizingMaskIntoConstraints="NO" id="qcR-qo-hz5">
-                                <rect key="frame" x="20" y="0.0" width="550" height="503"/>
+                                <rect key="frame" x="20" y="0.0" width="550" height="495"/>
                                 <subviews>
                                     <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="Hxx-1e-2Fy">
                                         <rect key="frame" x="0.0" y="0.0" width="550" height="30"/>
@@ -1659,7 +1659,7 @@
                                         </subviews>
                                     </stackView>
                                     <stackView opaque="NO" contentMode="scaleToFill" misplaced="YES" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="1q5-is-hbS">
-                                        <rect key="frame" x="0.0" y="35" width="550" height="353"/>
+                                        <rect key="frame" x="0.0" y="35" width="550" height="345"/>
                                         <subviews>
                                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="AiN-al-Cjh" userLabel="Divider Minor">
                                                 <rect key="frame" x="0.0" y="0.0" width="550" height="5"/>
@@ -1681,7 +1681,7 @@
                                                 </constraints>
                                             </view>
                                             <view clipsSubviews="YES" contentMode="scaleAspectFit" horizontalHuggingPriority="100" verticalHuggingPriority="100" horizontalCompressionResistancePriority="200" verticalCompressionResistancePriority="200" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="1kc-zG-v40" userLabel="Profile Picture">
-                                                <rect key="frame" x="0.0" y="5" width="550" height="343"/>
+                                                <rect key="frame" x="0.0" y="5" width="550" height="335"/>
                                                 <subviews>
                                                     <imageView contentMode="scaleAspectFit" horizontalHuggingPriority="100" verticalHuggingPriority="100" misplaced="YES" image="hologram_start_chat" translatesAutoresizingMaskIntoConstraints="NO" id="uRA-Wd-5E4">
                                                         <rect key="frame" x="94" y="0.0" width="363" height="363"/>
@@ -1699,7 +1699,7 @@
                                                 </constraints>
                                             </view>
                                             <view contentMode="scaleToFill" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="6jF-gf-GLy" userLabel="Divider Minor">
-                                                <rect key="frame" x="0.0" y="348" width="550" height="5"/>
+                                                <rect key="frame" x="0.0" y="340" width="550" height="5"/>
                                                 <subviews>
                                                     <view contentMode="scaleToFill" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="pBF-p4-wXd">
                                                         <rect key="frame" x="0.0" y="2" width="590" height="1"/>
@@ -1720,7 +1720,7 @@
                                         </subviews>
                                     </stackView>
                                     <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="liH-zE-f9S">
-                                        <rect key="frame" x="0.0" y="393" width="550" height="110"/>
+                                        <rect key="frame" x="0.0" y="385" width="550" height="110"/>
                                         <subviews>
                                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="3bc-5x-Cip" userLabel="Divider Minor">
                                                 <rect key="frame" x="0.0" y="0.0" width="550" height="5"/>
@@ -2797,11 +2797,11 @@ Regenerate your karma instantly</string>
                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" alignment="center" spacing="5" translatesAutoresizingMaskIntoConstraints="NO" id="IBb-iW-DSL">
                                 <rect key="frame" x="5" y="0.0" width="590" height="595"/>
                                 <subviews>
-                                    <stackView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="HYx-bj-z9W">
-                                        <rect key="frame" x="0.0" y="0.0" width="590" height="42"/>
+                                    <stackView opaque="NO" contentMode="scaleToFill" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="HYx-bj-z9W">
+                                        <rect key="frame" x="0.0" y="0.0" width="590" height="50"/>
                                         <subviews>
-                                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="EMj-8h-ViG" customClass="CircleProgressBar">
-                                                <rect key="frame" x="0.0" y="0.0" width="42" height="42"/>
+                                            <view contentMode="scaleToFill" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="EMj-8h-ViG" customClass="CircleProgressBar">
+                                                <rect key="frame" x="0.0" y="0.0" width="50" height="50"/>
                                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                                 <constraints>
                                                     <constraint firstAttribute="width" secondItem="EMj-8h-ViG" secondAttribute="height" multiplier="1:1" id="vsM-H4-y14"/>
@@ -2818,12 +2818,12 @@ Regenerate your karma instantly</string>
                                                     </userDefinedRuntimeAttribute>
                                                 </userDefinedRuntimeAttributes>
                                             </view>
-                                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="9w1-3h-7ms" userLabel="Empty Space">
-                                                <rect key="frame" x="42" y="0.0" width="488" height="42"/>
+                                            <view contentMode="scaleToFill" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="9w1-3h-7ms" userLabel="Empty Space">
+                                                <rect key="frame" x="50" y="0.0" width="480" height="50"/>
                                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                             </view>
-                                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" distribution="equalCentering" translatesAutoresizingMaskIntoConstraints="NO" id="Sbr-ex-Jba">
-                                                <rect key="frame" x="530" y="0.0" width="60" height="42"/>
+                                            <stackView opaque="NO" contentMode="scaleToFill" misplaced="YES" axis="vertical" distribution="equalCentering" translatesAutoresizingMaskIntoConstraints="NO" id="Sbr-ex-Jba">
+                                                <rect key="frame" x="530" y="0.0" width="60" height="50"/>
                                                 <subviews>
                                                     <button opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="100" verticalHuggingPriority="100" horizontalCompressionResistancePriority="1000" verticalCompressionResistancePriority="1000" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="8w5-gl-k6m">
                                                         <rect key="frame" x="0.0" y="0.0" width="60" height="30"/>
@@ -2841,8 +2841,8 @@ Regenerate your karma instantly</string>
                                                             <action selector="onBlockButtonPress:" destination="kqn-7n-6Sq" eventType="touchUpInside" id="FNn-Qp-x0Q"/>
                                                         </connections>
                                                     </button>
-                                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Block" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lpm-W9-lxc">
-                                                        <rect key="frame" x="0.0" y="30" width="60" height="12"/>
+                                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" text="Block" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lpm-W9-lxc">
+                                                        <rect key="frame" x="0.0" y="38" width="60" height="12"/>
                                                         <fontDescription key="fontDescription" type="system" weight="ultraLight" pointSize="10"/>
                                                         <color key="textColor" red="1" green="0.40000000600000002" blue="0.40000000600000002" alpha="1" colorSpace="calibratedRGB"/>
                                                         <nil key="highlightedColor"/>
@@ -2851,19 +2851,19 @@ Regenerate your karma instantly</string>
                                             </stackView>
                                         </subviews>
                                     </stackView>
-                                    <containerView opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="100" translatesAutoresizingMaskIntoConstraints="NO" id="d6U-9N-jKN">
-                                        <rect key="frame" x="0.0" y="47" width="590" height="503"/>
+                                    <containerView opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="100" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="d6U-9N-jKN">
+                                        <rect key="frame" x="0.0" y="55" width="590" height="495"/>
                                         <connections>
                                             <segue destination="75X-cw-Hzz" kind="embed" identifier="CallingCard" id="8aU-hO-kz9"/>
                                         </connections>
                                     </containerView>
-                                    <stackView opaque="NO" contentMode="scaleToFill" alignment="top" translatesAutoresizingMaskIntoConstraints="NO" id="B3f-3V-xfS">
+                                    <stackView opaque="NO" contentMode="scaleToFill" misplaced="YES" alignment="top" translatesAutoresizingMaskIntoConstraints="NO" id="B3f-3V-xfS">
                                         <rect key="frame" x="0.0" y="555" width="590" height="40"/>
                                         <subviews>
-                                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="1" translatesAutoresizingMaskIntoConstraints="NO" id="gNF-VN-WUO" userLabel="Skip">
-                                                <rect key="frame" x="0.0" y="0.0" width="50" height="38"/>
+                                            <stackView opaque="NO" contentMode="scaleToFill" misplaced="YES" axis="vertical" spacing="1" translatesAutoresizingMaskIntoConstraints="NO" id="gNF-VN-WUO" userLabel="Skip">
+                                                <rect key="frame" x="0.0" y="0.0" width="50" height="40"/>
                                                 <subviews>
-                                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="We4-PK-Mbm">
+                                                    <button opaque="NO" alpha="0.80000000000000004" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="We4-PK-Mbm">
                                                         <rect key="frame" x="0.0" y="0.0" width="50" height="25"/>
                                                         <constraints>
                                                             <constraint firstAttribute="width" secondItem="We4-PK-Mbm" secondAttribute="height" multiplier="2:1" id="8f1-Wg-adk"/>
@@ -2874,9 +2874,9 @@ Regenerate your karma instantly</string>
                                                             <action selector="onButtonRejectPressed:" destination="zn0-lM-GO1" eventType="touchUpInside" id="CBL-aT-LLu"/>
                                                         </connections>
                                                     </button>
-                                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Skip" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="8GM-eN-Myt" userLabel="Skip">
-                                                        <rect key="frame" x="0.0" y="26" width="50" height="12"/>
-                                                        <fontDescription key="fontDescription" type="system" weight="ultraLight" pointSize="10"/>
+                                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" text="Skip" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="8GM-eN-Myt" userLabel="Skip">
+                                                        <rect key="frame" x="0.0" y="26" width="50" height="14"/>
+                                                        <fontDescription key="fontDescription" type="system" weight="ultraLight" pointSize="12"/>
                                                         <color key="textColor" red="1" green="0.40000000600000002" blue="0.40000000600000002" alpha="1" colorSpace="calibratedRGB"/>
                                                         <nil key="highlightedColor"/>
                                                     </label>
@@ -2889,10 +2889,10 @@ Regenerate your karma instantly</string>
                                                     <constraint firstAttribute="height" constant="40" id="HI1-VV-rG6"/>
                                                 </constraints>
                                             </view>
-                                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" alignment="center" spacing="1" translatesAutoresizingMaskIntoConstraints="NO" id="T5n-25-m9d" userLabel="Accept">
-                                                <rect key="frame" x="540" y="0.0" width="50" height="38"/>
+                                            <stackView opaque="NO" contentMode="scaleToFill" misplaced="YES" axis="vertical" alignment="center" spacing="1" translatesAutoresizingMaskIntoConstraints="NO" id="T5n-25-m9d" userLabel="Accept">
+                                                <rect key="frame" x="540" y="0.0" width="50" height="40"/>
                                                 <subviews>
-                                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="tZW-Nm-p2X" userLabel="Yes">
+                                                    <button opaque="NO" alpha="0.80000000000000004" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="tZW-Nm-p2X" userLabel="Yes">
                                                         <rect key="frame" x="0.0" y="0.0" width="50" height="25"/>
                                                         <constraints>
                                                             <constraint firstAttribute="width" constant="50" id="8tB-Vb-cZH"/>
@@ -2903,9 +2903,9 @@ Regenerate your karma instantly</string>
                                                             <action selector="onButtonAcceptPressed:" destination="zn0-lM-GO1" eventType="touchUpInside" id="7N6-Ao-nru"/>
                                                         </connections>
                                                     </button>
-                                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Accept" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="PLo-w6-UP3" userLabel="Accept">
-                                                        <rect key="frame" x="8" y="26" width="34" height="12"/>
-                                                        <fontDescription key="fontDescription" type="system" weight="ultraLight" pointSize="10"/>
+                                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" text="Accept" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="PLo-w6-UP3" userLabel="Accept">
+                                                        <rect key="frame" x="5" y="26" width="40" height="14"/>
+                                                        <fontDescription key="fontDescription" type="system" weight="ultraLight" pointSize="12"/>
                                                         <color key="textColor" red="1" green="0.40000000600000002" blue="0.40000000600000002" alpha="1" colorSpace="calibratedRGB"/>
                                                         <nil key="highlightedColor"/>
                                                     </label>
