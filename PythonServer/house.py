@@ -66,21 +66,28 @@ class House:
         logger.debug("New room set up between client [%s] and [%s]" % (clientA, clientB))
         return True
 
+    # Return false if we should skip this; the acceptance will never complete.
     def onAcceptConversation(self, sourceClient):
         self.house_lock.acquire()
         try:
             sourceClient.approved_match = True
             if sourceClient.state != Client.State.ACCEPTING_MATCH:
-                return
+                # We shouldn't skip, even though this means we can't ever match with this particular client.
+                # This happens close to the end of the timeout, when client accepts but has already timed out.
+                # State does not need correcting in this case.
+                return True
             logger.debug("Client [%s] has accepted the conversation")
 
             clientB = self.room_participant.get(sourceClient)
             if clientB is None:
-                return
+                return False
 
             # Only advise when both clients have accepted.
-            if clientB.state != Client.State.ACCEPTING_MATCH or not clientB.approved_match:
-                return
+            if clientB.state != Client.State.ACCEPTING_MATCH:
+                return False
+
+            if not clientB.approved_match:
+                return True
 
             logger.debug("Both client [%s] and client [%s] have accepted the conversation, starting conversation" % (sourceClient, clientB))
 
@@ -88,6 +95,7 @@ class House:
             clientB.transitionState(Client.State.ACCEPTING_MATCH, Client.State.MATCHED)
 
             self.adviseNatPunchthrough(sourceClient, clientB)
+            return True
         finally:
             self.house_lock.release()
 
@@ -282,6 +290,16 @@ class House:
                 else:
                     return None
 
+        finally:
+            self.house_lock.release()
+
+    def getCurrentMatchOfClient(self, client, requiredState = None):
+        self.house_lock.acquire()
+        try:
+            if requiredState is not None and client.state != requiredState:
+                return None
+
+            return self.room_participant.get(client)
         finally:
             self.house_lock.release()
 

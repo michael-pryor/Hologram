@@ -1025,5 +1025,9 @@
     [self doSkipPerson];
 }
 
+- (void)onMatchBlocked {
+    NSLog(@"Blocked and reported match");
+    [self onConversationRating:S_BLOCK];
+}
 
 @end

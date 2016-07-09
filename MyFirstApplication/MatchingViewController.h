@@ -10,6 +10,7 @@
 
 - (void) onMatchRejectAnswer;
 
+- (void) onMatchBlocked;
 @optional
 - (void) onTimedOut;
 @end

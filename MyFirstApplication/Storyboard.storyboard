@@ -1078,23 +1078,23 @@
                         <viewControllerLayoutGuide type="bottom" id="C4S-rI-Wdb"/>
                     </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="vit-86-dCO">
-                        <rect key="frame" x="0.0" y="0.0" width="470" height="348"/>
+                        <rect key="frame" x="0.0" y="0.0" width="470" height="328"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" alignment="top" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="qcR-qo-hz5">
-                                <rect key="frame" x="20" y="0.0" width="430" height="348"/>
+                                <rect key="frame" x="20" y="0.0" width="430" height="328"/>
                                 <subviews>
                                     <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" distribution="fillEqually" spacing="30" translatesAutoresizingMaskIntoConstraints="NO" id="iWb-uf-qb5">
-                                        <rect key="frame" x="0.0" y="0.0" width="430" height="348"/>
+                                        <rect key="frame" x="0.0" y="0.0" width="430" height="328"/>
                                         <subviews>
                                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="rIw-uD-cDf">
-                                                <rect key="frame" x="0.0" y="0.0" width="430" height="348"/>
+                                                <rect key="frame" x="0.0" y="0.0" width="430" height="328"/>
                                                 <subviews>
                                                     <stackView opaque="NO" contentMode="scaleToFill" distribution="fillEqually" translatesAutoresizingMaskIntoConstraints="NO" id="0m8-eB-AcM">
-                                                        <rect key="frame" x="0.0" y="0.0" width="430" height="348"/>
+                                                        <rect key="frame" x="0.0" y="0.0" width="430" height="328"/>
                                                         <subviews>
                                                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="rP3-of-rON">
-                                                                <rect key="frame" x="0.0" y="0.0" width="215" height="348"/>
+                                                                <rect key="frame" x="0.0" y="0.0" width="215" height="328"/>
                                                                 <subviews>
                                                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="500" verticalHuggingPriority="500" horizontalCompressionResistancePriority="800" verticalCompressionResistancePriority="800" text="Remote Name" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="3" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="yNf-Ka-y9g">
                                                                         <rect key="frame" x="0.0" y="0.0" width="215" height="17"/>
@@ -1104,7 +1104,7 @@
                                                                         <nil key="highlightedColor"/>
                                                                     </label>
                                                                     <view clipsSubviews="YES" contentMode="scaleAspectFit" horizontalHuggingPriority="200" verticalHuggingPriority="200" horizontalCompressionResistancePriority="200" verticalCompressionResistancePriority="200" translatesAutoresizingMaskIntoConstraints="NO" id="1kc-zG-v40">
-                                                                        <rect key="frame" x="0.0" y="17" width="215" height="331"/>
+                                                                        <rect key="frame" x="0.0" y="17" width="215" height="311"/>
                                                                         <subviews>
                                                                             <imageView contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" image="hologram_start_chat" translatesAutoresizingMaskIntoConstraints="NO" id="uRA-Wd-5E4">
                                                                                 <rect key="frame" x="17" y="35" width="215" height="215"/>
@@ -1126,7 +1126,7 @@
                                                                 <color key="backgroundColor" red="0.13896753249999999" green="1" blue="0.53929274090000001" alpha="1" colorSpace="calibratedRGB"/>
                                                             </stackView>
                                                             <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" editable="NO" textAlignment="natural" translatesAutoresizingMaskIntoConstraints="NO" id="Bsz-DC-iEt">
-                                                                <rect key="frame" x="215" y="0.0" width="215" height="348"/>
+                                                                <rect key="frame" x="215" y="0.0" width="215" height="328"/>
                                                                 <color key="backgroundColor" red="0.13896753249999999" green="1" blue="0.53929274090000001" alpha="1" colorSpace="calibratedRGB"/>
                                                                 <string key="text">Lorem ipsum dolor sit er elit lamet, consectetaur cillium adipisicing pecu, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Nam liber te conscient to factor tum poen legum odioque civiuda.</string>
                                                                 <fontDescription key="fontDescription" type="system" pointSize="14"/>
@@ -1859,26 +1859,37 @@ Regenerate your karma instantly</string>
                                         </subviews>
                                     </stackView>
                                     <containerView opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="100" translatesAutoresizingMaskIntoConstraints="NO" id="d6U-9N-jKN">
-                                        <rect key="frame" x="0.0" y="50" width="470" height="348"/>
+                                        <rect key="frame" x="0.0" y="50" width="470" height="328"/>
                                         <connections>
                                             <segue destination="75X-cw-Hzz" kind="embed" identifier="CallingCard" id="8aU-hO-kz9"/>
                                         </connections>
                                     </containerView>
                                     <stackView opaque="NO" contentMode="scaleToFill" spacing="50" translatesAutoresizingMaskIntoConstraints="NO" id="S19-to-FPv">
-                                        <rect key="frame" x="180" y="398" width="110" height="30"/>
+                                        <rect key="frame" x="105" y="378" width="260" height="50"/>
                                         <subviews>
                                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="tZW-Nm-p2X">
-                                                <rect key="frame" x="0.0" y="0.0" width="30" height="30"/>
+                                                <rect key="frame" x="0.0" y="0.0" width="30" height="50"/>
                                                 <state key="normal" title="Yes"/>
                                                 <connections>
                                                     <action selector="onButtonAcceptPressed:" destination="zn0-lM-GO1" eventType="touchUpInside" id="7N6-Ao-nru"/>
                                                 </connections>
                                             </button>
                                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="We4-PK-Mbm">
-                                                <rect key="frame" x="80" y="0.0" width="30" height="30"/>
+                                                <rect key="frame" x="80" y="0.0" width="30" height="50"/>
                                                 <state key="normal" title="No"/>
                                                 <connections>
                                                     <action selector="onButtonRejectPressed:" destination="zn0-lM-GO1" eventType="touchUpInside" id="CBL-aT-LLu"/>
+                                                </connections>
+                                            </button>
+                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="lCP-V4-DqF">
+                                                <rect key="frame" x="160" y="0.0" width="100" height="50"/>
+                                                <constraints>
+                                                    <constraint firstAttribute="width" secondItem="lCP-V4-DqF" secondAttribute="height" multiplier="2:1" id="II1-Zk-LYT"/>
+                                                    <constraint firstAttribute="height" constant="50" id="NOG-Pl-Y8R"/>
+                                                </constraints>
+                                                <state key="normal" title="Button" image="rating_block"/>
+                                                <connections>
+                                                    <action selector="onBlockButtonPressed:" destination="zn0-lM-GO1" eventType="touchUpInside" id="YMm-9b-xeo"/>
                                                 </connections>
                                             </button>
                                         </subviews>

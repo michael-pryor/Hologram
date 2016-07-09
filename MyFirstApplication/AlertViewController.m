@@ -326,6 +326,11 @@
     [self onMatchingFinished];
 }
 
+- (void)onMatchBlocked {
+    [_matchingAnswerDelegate onMatchBlocked];
+    [self onMatchingFinished];
+}
+
 - (void)onTimedOut {
     [self onMatchingFinished];
 }

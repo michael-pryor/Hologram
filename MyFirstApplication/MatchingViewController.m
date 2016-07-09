@@ -94,4 +94,7 @@
         [_timeoutTimer setSecondsFrequency:seconds];
     }
 }
+- (IBAction)onBlockButtonPressed:(id)sender {
+    [_matchingAnswerDelegate onMatchBlocked];
+}
 @end

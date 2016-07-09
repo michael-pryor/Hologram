@@ -552,12 +552,29 @@ class Client(object):
         elif opCode == Client.TcpOperationCodes.OP_SKIP_PERSON:
             self.doSkip()
         elif opCode == Client.TcpOperationCodes.OP_RATING:
+            # When in accepting match mode, we may want to report/block a client, this block below facilitates this,
+            # by finding our match. We check (within the house lock) that we are in 'accepting match' mode still, to
+            # avoid race conditions.
+            forceSkip = False
+            if self.client_from_previous_conversation is None:
+                self.client_from_previous_conversation = self.house.getCurrentMatchOfClient(self, requiredState=Client.State.ACCEPTING_MATCH)
+                if self.client_from_previous_conversation is not None:
+                    self.client_from_previous_conversation.client_from_previous_conversation = self
+                    forceSkip = True
+                    logger.debug("Retrieved match during ACCEPTING_MATCH stage, [%s] has blocked [%s]" % (self, self.client_from_previous_conversation))
+                else:
+                    logger.debug("Failed to retrieve match during ACCEPTING_MATCH stage, client block request failed [%s]" % self)
+
             if self.client_from_previous_conversation is None:
                 logger.debug("No previous conversation to rate")
                 return
 
             rating = packet.getUnsignedInteger8()
             self.setRatingOfOtherClient(rating)
+
+            if forceSkip:
+                self.doSkip()
+
         elif opCode == Client.TcpOperationCodes.OP_PERM_DISCONNECT:
             logger.debug("Client [%s] has permanently disconnected with immediate impact" % self)
             self.house.releaseRoom(self, self.house.disconnected_permanent)
@@ -567,7 +584,8 @@ class Client(object):
             self.house.shareSocialInformation(self)
         elif opCode == Client.TcpOperationCodes.OP_ACCEPTED_CONVERSATION:
             self.clearInactivityCounter()
-            self.house.onAcceptConversation(self)
+            if not self.house.onAcceptConversation(self):
+                self.doSkip()
         else:
             # Must be debug in case rogue client sends us garbage data
             logger.debug("Unknown TCP packet received from client [%s]" % self)
@@ -665,6 +683,9 @@ class Client(object):
 
         self.house.house_lock.acquire()
         try:
+            if self.approved_match:
+                self.transitionState(Client.State.ACCEPTING_MATCH, Client.State.MATCHING)
+
             if not self.transitionState(Client.State.MATCHED, Client.State.RATING_MATCH):
                 return
         finally:
