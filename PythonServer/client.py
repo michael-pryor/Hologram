@@ -22,10 +22,6 @@ logger = logging.getLogger(__name__)
 class Client(object):
     MINIMUM_VERSION = 3
 
-    # Don't rematch with a previously skipped client for first x seconds while we
-    # wait for a more suitable match, after x seconds give up and match anyways.
-    PRIOR_MATCH_LIST_TIMEOUT_SECONDS = 0
-
     # Clients have absolute maximum of 10 seconds to give their rating before it defaults to an okay rating.
     # App is advised to send within 5 seconds.
     WAITING_FOR_RATING_ABSOLUTE_TIMEOUT = 10
@@ -143,34 +139,43 @@ class Client(object):
 
     # Designed to prevent immediately rematching with person that the client skipped.
     class HistoryTracking(object):
-        def __init__(self, maxSize=10):
+        def __init__(self, matchDecisionDatabase, parentClient, enabled = True):
             super(Client.HistoryTracking, self).__init__()
-            self.prior_matches = OrderedSet()
-            self.max_size = maxSize
 
-        def addMatch(self, identifier):
-            if len(self.prior_matches) >= self.max_size:
-                self.prior_matches.pop(False)
+            if matchDecisionDatabase is not None:
+                assert isinstance(matchDecisionDatabase, Blocking)
 
-            self.prior_matches.add(identifier)
+            assert isinstance(parentClient, Client)
 
-        def isPriorMatch(self, identifier):
-            return identifier in self.prior_matches
+            self.parent_client = parentClient
+            self.match_decision_database = matchDecisionDatabase
+            self.enabled = enabled
 
-        def __str__(self):
-            return str(self.prior_matches)
+        def addMatch(self, client):
+            if not self.enabled:
+                return
+
+            assert isinstance(client, Client)
+            self.match_decision_database.pushBlock(self.parent_client, client)
+
+        def isPriorMatch(self, client):
+            if not self.enabled:
+                return False
+
+            assert isinstance(client, Client)
+            return not self.match_decision_database.canMatch(self.parent_client, client)
 
 
     @classmethod
     def buildDummy(cls):
-        item = cls(None, ClientTcp(namedtuple('Address', ['host', 'port'], verbose=False)), None, None, None, None, None, None, None)
+        item = cls(None, ClientTcp(namedtuple('Address', ['host', 'port'], verbose=False)), None, None, None, None, None, None, None, None)
         fbId = str(uuid.uuid4())
         item.login_details = Client.LoginDetails(str(uuid.uuid4()), fbId, "Mike P", "Mike", random.randint(18, 30),
                                                         random.randint(1, 2), random.randint(1, 3),
                                                         random.randint(0, 180), random.randint(0, 90), None, None, None)
         return item
 
-    def __init__(self, reactor, tcp, onCloseFunc, udpConnectionLinker, house, blockingDatabase, karmaDatabase, paymentVerifier, persistedIdsVerifier):
+    def __init__(self, reactor, tcp, onCloseFunc, udpConnectionLinker, house, blockingDatabase, matchDecisionDatabase, karmaDatabase, paymentVerifier, persistedIdsVerifier):
         super(Client, self).__init__()
         assert isinstance(tcp, ClientTcp)
         #assert isinstance(paymentVerifier, Payments)
@@ -217,10 +222,7 @@ class Client(object):
         self.house_match_timer = None
 
         # Track previous matches which we have skipped
-        self.match_skip_history = Client.HistoryTracking()
-
-        # Track time of last successful match, so we know if we've been waiting a while to ignore the skip list.
-        self.started_waiting_for_match_timer = None
+        self.match_skip_history = Client.HistoryTracking(matchDecisionDatabase, self, enabled = True)
 
         # Client we were speaking to in last conversation, may not still be connected.
         self.client_from_previous_conversation = None
@@ -522,7 +524,7 @@ class Client(object):
         # Record that we skipped this client, so that we don't rematch immediately.
         if otherClient is not None:
             assert isinstance(otherClient, Client)
-            self.match_skip_history.addMatch(otherClient.udp_hash)
+            self.match_skip_history.addMatch(otherClient)
             self.setToWaitForRatingOfPreviousConversation(otherClient)
 
         # The timeout on accepting a match will clear out the other client.
@@ -690,15 +692,8 @@ class Client(object):
         if client.connection_status != Client.ConnectionStatus.CONNECTED:
             return False
 
-        if self.started_waiting_for_match_timer is None:
-            secondsWaitingForMatch = 0
-        else:
-            secondsWaitingForMatch = getEpoch() - self.started_waiting_for_match_timer
-
-        isPriorMatch = self.match_skip_history.isPriorMatch(client.udp_hash)
-
-        result = (not isPriorMatch)  or secondsWaitingForMatch >= Client.PRIOR_MATCH_LIST_TIMEOUT_SECONDS
-
+        isPriorMatch = self.match_skip_history.isPriorMatch(client)
+        result = not isPriorMatch
         if result:
             # No need to check both sides in this call, since we already have logic in shouldMatch to
             # check both sides.
@@ -713,7 +708,7 @@ class Client(object):
                 self.auditBans()
                 result = False
 
-        logger.debug("Client [%s] has been waiting %.2f seconds for a match; is prior match [%s], match successful: [%s]" % (self, secondsWaitingForMatch, isPriorMatch, result))
+        logger.debug("Client [%s], match successful: [%s], is prior match [%s]" % (self, result, isPriorMatch))
 
         return result
 
@@ -731,13 +726,7 @@ class Client(object):
         self.approved_match = client.approved_match
 
     # Must be protected by house lock.
-    def onWaitingForMatch(self):
-        if self.started_waiting_for_match_timer is None:
-            self.started_waiting_for_match_timer = getEpoch()
-
-    # Must be protected by house lock.
     def onSuccessfulMatch(self):
-        self.started_waiting_for_match_timer = None
         self.has_shared_social_information = False
         self.social_share_information_packet = None
         self.client_from_previous_conversation = None

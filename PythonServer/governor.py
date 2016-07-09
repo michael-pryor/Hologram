@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 #
 # ClientFactory encapsulates the TCP listening socket.
 class Governor(ClientFactory, protocol.DatagramProtocol):
-    def __init__(self, reactor, matchingDatabase, blockingDatabase, karmaDatabase, persistedIdsDatabase, governorName):
+    def __init__(self, reactor, matchingDatabase, blockingDatabase, matchDecisionDatabase, karmaDatabase, persistedIdsDatabase, governorName):
         # All connected clients.
         self.client_mappings_lock = RLock()
 
@@ -52,6 +52,7 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
 
         self.governor_name = governorName
         self.blocking_database = blockingDatabase
+        self.match_decision_database = matchDecisionDatabase
         self.karma_database = karmaDatabase
         self.payments_verifier = PaymentsEx(100)
         self.persisted_ids_verifier = persistedIdsDatabase
@@ -193,7 +194,7 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
         logger.debug('TCP connection initiated with new client [%s]' % addr)
 
         tcpCon = ClientTcp(addr)
-        client = Client(reactor, tcpCon, self.clientDisconnected, self.udp_connection_linker, self.house, self.blocking_database, self.karma_database, self.payments_verifier, self.persisted_ids_verifier)
+        client = Client(reactor, tcpCon, self.clientDisconnected, self.udp_connection_linker, self.house, self.blocking_database, self.match_decision_database, self.karma_database, self.payments_verifier, self.persisted_ids_verifier)
 
         self._lockClm()
         try:
@@ -417,10 +418,11 @@ if __name__ == "__main__":
 
     mongoClient = pymongo.MongoClient("localhost", 27017)
     matchingDatabase = Matching(governorName, mongoClient)
-    blockingDatabase = Blocking(mongoClient)
+    blockingDatabase = Blocking(mongoClient.db.blocked)
+    matchDecisionDatabase = Blocking(mongoClient.db.match_decision, expiryTimeSeconds=30)
     karmaDatabase = KarmaLeveled(mongoClient)
     persistedIdsDatabase = PersistedIds(mongoClient)
-    server = Governor(reactor, matchingDatabase, blockingDatabase, karmaDatabase, persistedIdsDatabase, governorName)
+    server = Governor(reactor, matchingDatabase, blockingDatabase, matchDecisionDatabase, karmaDatabase, persistedIdsDatabase, governorName)
 
     analytics = Analytics(100, governorName)
 

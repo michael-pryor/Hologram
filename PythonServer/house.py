@@ -244,8 +244,6 @@ class House:
             if client in self.room_participant or client.waiting_for_rating_task is not None:
                 return
 
-            client.onWaitingForMatch()
-
             # Each client runs one query initially and then repeats
             # every two seconds.
             doQuery = client.house_match_timer is None or getEpoch() - client.house_match_timer > 2
