@@ -147,9 +147,6 @@
     [_profilePicture.layer setBorderColor:[[UIColor blackColor] CGColor]];
     [_profilePicture.layer setBorderWidth:2.0];
 
-    [_startButton.layer setBorderColor:[[UIColor blackColor] CGColor]];
-    [_startButton.layer setBorderWidth:0.5];
-
     [_callingCardText.layer setBorderColor:[[UIColor blackColor] CGColor]];
     [_callingCardText.layer setBorderWidth:0.5];
 
