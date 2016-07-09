@@ -10,9 +10,6 @@
 
 
 @implementation MatchingViewController {
-
-    __weak IBOutlet UILabel *_name;
-
     id <MatchingAnswerDelegate> _matchingAnswerDelegate;
     CallingCardViewController *_callingCardViewController;
     __weak IBOutlet CircleProgressBar *_matchingCountdown;

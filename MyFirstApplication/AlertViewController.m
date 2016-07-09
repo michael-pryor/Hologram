@@ -79,8 +79,7 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
 
-    _views = @[_conversationEndView, _localImageView, _matchingView];
-    //[self showView:_localImageView instant:true];
+    _views = @[_conversationEndView, _matchingView];
 
     _matchApprovalViewControllerVisible = false;
     _conversationEndViewControllerVisible = false;
@@ -160,7 +159,6 @@
     [_timerSinceAdvertCreated reset];
 
     NSLog(@"Disconnect view controller loaded, unhiding banner advert and setting delegate");
-    [_localImageView setAlpha:0.0f];
     [_backButton setHidden:false];
 
     // Use hidden flag on appear/disappear, in case it impacts decision to display adds.
@@ -173,8 +171,6 @@
 }
 
 - (void)viewDidDisappear:(BOOL)animated {
-    [_localImageView setAlpha:0.0f];
-
     // Pause the banner view, stop it loading new adverts.
     NSLog(@"Disconnect view controller hidden, hiding banner advert and removing delegate");
     [_backButton setHidden:true];
@@ -235,6 +231,10 @@
     }
 }
 
+- (void)hideViewsInstant:(bool)instant {
+    [self showView:nil instant:instant];
+}
+
 - (void)showView:(UIView *)viewToShow instant:(bool)instant {
     const float duration = instant ? 0 : 0.75f;
 
@@ -251,14 +251,18 @@
 
             if ([view alpha] > 0) {
                 if (!shown && [view alpha] == 1) {
-                    [ViewInteractions fadeOut:view thenIn:viewToShow duration:duration];
+                    if (viewToShow != nil) {
+                        [ViewInteractions fadeOut:view thenIn:viewToShow duration:duration];
+                    } else {
+                        [ViewInteractions fadeOut:view completion:nil duration:duration];
+                    }
                     shown = true;
                 } else {
                     [view setAlpha:0];
                 }
             }
         }
-        if (!shown) {
+        if (!shown && viewToShow != nil) {
             [ViewInteractions fadeIn:viewToShow completion:nil duration:duration];
         }
     });
@@ -279,7 +283,7 @@
         }, _ratingTimeoutSeconds * 1000);
 
     } else {
-        [self showView:_localImageView instant:instant];
+        [self hideViewsInstant:instant];
         _conversationEndViewControllerVisible = false;
         [self doSetAlertShortText:_cachedAlertShortText];
     }
@@ -308,7 +312,7 @@
 
 - (void)onMatchingFinished {
     _matchApprovalViewControllerVisible = false;
-    [self showView:_localImageView instant:false];
+    [self hideViewsInstant:false];
 }
 
 - (void)setName:(NSString *)name profilePicture:(UIImage *)profilePicture callingCardText:(NSString *)callingCardText age:(uint)age distance:(uint)distance {
