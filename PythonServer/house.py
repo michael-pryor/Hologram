@@ -238,13 +238,13 @@ class House:
 
                 self.matchingDatabase.pushWaiting(client)
 
-        client.state = Client.State.MATCHING
-
         # A client which is not connected should never be able to take a room.
         # This covers the edge case of a temporarily disconnected session where the connected party
         # skips, this triggers an attemptTakeRoom call on the disconnected party.
         if client.connection_status != Client.ConnectionStatus.CONNECTED:
             return
+
+        client.state = Client.State.MATCHING
 
         self.house_lock.acquire()
         try:

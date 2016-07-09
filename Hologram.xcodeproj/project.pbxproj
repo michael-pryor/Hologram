@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		476B4A776A0697AC514D3398 /* Pods_Hologram.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C4ADB9B012761AE92D64F0BB /* Pods_Hologram.framework */; };
 		5103D2A21B55960B00B9593C /* HologramLogin.m in Sources */ = {isa = PBXBuildFile; fileRef = 5103D2A11B55960B00B9593C /* HologramLogin.m */; };
 		510F6DF91BA74C1800D2AF48 /* AlertViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 510F6DF81BA74C1800D2AF48 /* AlertViewController.m */; };
 		511605F51B3EBE5D0071A183 /* NetworkUtility.m in Sources */ = {isa = PBXBuildFile; fileRef = 511605F41B3EBE5D0071A183 /* NetworkUtility.m */; };
@@ -43,7 +44,6 @@
 		5178E5F21CFE376B00D89AA6 /* libxml2.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 5178E5F11CFE376B00D89AA6 /* libxml2.tbd */; };
 		517C4E781D16D15300E7A185 /* ConversationEndedViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 517C4E771D16D15300E7A185 /* ConversationEndedViewController.m */; };
 		519573041AEBEB26000247E1 /* EventTracker.m in Sources */ = {isa = PBXBuildFile; fileRef = 519573031AEBEB26000247E1 /* EventTracker.m */; };
-		51993F121D2077C300ACC3BF /* CircleProgressBar.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 51993F111D2077C300ACC3BF /* CircleProgressBar.framework */; };
 		519FFBFC1C6FC9A3002717F0 /* CoreImage.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 519FFBFB1C6FC9A3002717F0 /* CoreImage.framework */; };
 		51A8DEC91D04324500171206 /* FBAudienceNetwork.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 51A8DEC81D04324500171206 /* FBAudienceNetwork.framework */; };
 		51BF42541A750CDB00C16F9A /* ConnectionGovernorProtocol.m in Sources */ = {isa = PBXBuildFile; fileRef = 51BF42531A750CDB00C16F9A /* ConnectionGovernorProtocol.m */; };
@@ -252,6 +252,7 @@
 		51FE7E0A1B3C85EF00FF27F3 /* ConnectionGovernorNatPunchthrough.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConnectionGovernorNatPunchthrough.h; sourceTree = "<group>"; };
 		51FE7E0B1B3C85EF00FF27F3 /* ConnectionGovernorNatPunchthrough.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ConnectionGovernorNatPunchthrough.m; sourceTree = "<group>"; };
 		5E6EBF7A13F99820B1F30A4E /* Pods-Hologram.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Hologram.release.xcconfig"; path = "Pods/Target Support Files/Pods-Hologram/Pods-Hologram.release.xcconfig"; sourceTree = "<group>"; };
+		C4ADB9B012761AE92D64F0BB /* Pods_Hologram.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Hologram.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		D5D610127115D2A30BBB7970 /* AudioUnitHelpers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AudioUnitHelpers.h; sourceTree = "<group>"; };
 		D5D61030BA4D3A5A22FB2B3A /* IPV6Resolver.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IPV6Resolver.h; sourceTree = "<group>"; };
 		D5D610546CB5BFA2EC52AFD5 /* Threading.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Threading.m; sourceTree = "<group>"; };
@@ -351,7 +352,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				51993F121D2077C300ACC3BF /* CircleProgressBar.framework in Frameworks */,
 				51A8DEC91D04324500171206 /* FBAudienceNetwork.framework in Frameworks */,
 				5178E5F21CFE376B00D89AA6 /* libxml2.tbd in Frameworks */,
 				5178E5F01CFE366100D89AA6 /* FBSDKShareKit.framework in Frameworks */,
@@ -377,6 +377,7 @@
 				511EB6601B4B01C7000E287F /* Bolts.framework in Frameworks */,
 				51E5BE261936A982003E45C3 /* UIKit.framework in Frameworks */,
 				51E5BE221936A982003E45C3 /* Foundation.framework in Frameworks */,
+				476B4A776A0697AC514D3398 /* Pods_Hologram.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -609,6 +610,7 @@
 				51E5BE231936A982003E45C3 /* CoreGraphics.framework */,
 				51E5BE251936A982003E45C3 /* UIKit.framework */,
 				5121AFE81C395A37001D3E78 /* include */,
+				C4ADB9B012761AE92D64F0BB /* Pods_Hologram.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -1105,12 +1107,12 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				HEADER_SEARCH_PATHS = "$(inherited)/**";
+				HEADER_SEARCH_PATHS = "$(inherited)";
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 				STRIP_INSTALLED_PRODUCT = NO;
-				VALID_ARCHS = "arm64 x86_64 i386";
+				VALID_ARCHS = "arm64 x86_64 i386 armv7s armv7";
 			};
 			name = Debug;
 		};
@@ -1141,12 +1143,12 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				HEADER_SEARCH_PATHS = "$(inherited)/**";
+				HEADER_SEARCH_PATHS = "$(inherited)";
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				SDKROOT = iphoneos;
 				STRIP_INSTALLED_PRODUCT = NO;
 				VALIDATE_PRODUCT = YES;
-				VALID_ARCHS = "arm64 x86_64 i386";
+				VALID_ARCHS = "arm64 x86_64 i386 armv7s armv7";
 			};
 			name = Release;
 		};
@@ -1164,7 +1166,6 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/frameworks",
-					"$(PROJECT_DIR)/build/Debug-iphoneos",
 				);
 				"FRAMEWORK_SEARCH_PATHS[arch=*]" = (
 					"$(inherited)",
@@ -1180,11 +1181,6 @@
 					"/Users/pryormic/Desktop/MyFirstApplication/ffmpeg/FFmpeg-iOS/include/**",
 					"/Users/pryormic/Desktop/MyFirstApplication/x264-ios/x264-iOS/include",
 					"/Users/pryormic/Desktop/MyFirstApplication/pods/CircleProgressBar/**",
-				);
-				"HEADER_SEARCH_PATHS[arch=*]" = (
-					"$(inherited)/**",
-					"/Users/pryormic/Desktop/MyFirstApplication/ffmpeg/FFmpeg-iOS/include/**",
-					"/Users/pryormic/Desktop/MyFirstApplication/x264-ios/x264-iOS/include",
 				);
 				INFOPLIST_FILE = "MyFirstApplication/Hologram-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
@@ -1224,7 +1220,6 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/frameworks",
-					"$(PROJECT_DIR)/build/Debug-iphoneos",
 				);
 				GCC_OPTIMIZATION_LEVEL = s;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
