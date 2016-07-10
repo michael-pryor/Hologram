@@ -109,6 +109,7 @@
 		D5D61A23E196D95679105227 /* KeychainItemWrapper.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D611882576B99D3A462BDA /* KeychainItemWrapper.m */; };
 		D5D61AEB4C29A5308D8BD1CC /* EndUserLicenseAgreementViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D616B06B0B231D072EC3E7 /* EndUserLicenseAgreementViewController.m */; };
 		D5D61B5A48A0CB843806AA65 /* TimedCounterLogging.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D6114D7017CFB660E7BE53 /* TimedCounterLogging.m */; };
+		D5D61B5DED259C028CBAFB90 /* ViewTransitions.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D615B2E4E76396C91E252B /* ViewTransitions.m */; };
 		D5D61BB3C8D9E23D68765691 /* ReadWriteLock.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D6152266A86BEEEF16A5DD /* ReadWriteLock.m */; };
 		D5D61CBB3513E39935B73FDC /* CustomNavigationController.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61A72597479299B065AE4 /* CustomNavigationController.m */; };
 		D5D61CBB8D3C1862F8FD0365 /* HelpViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D6189F59FDCA8F6FCFC23A /* HelpViewController.m */; };
@@ -258,6 +259,7 @@
 		D5D610546CB5BFA2EC52AFD5 /* Threading.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Threading.m; sourceTree = "<group>"; };
 		D5D6107A9AAD70A47286A31C /* GenderParsing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GenderParsing.h; sourceTree = "<group>"; };
 		D5D6108001322A018089175D /* Payments.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Payments.h; sourceTree = "<group>"; };
+		D5D6109779403FB182CA4689 /* ViewTransitions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ViewTransitions.h; sourceTree = "<group>"; };
 		D5D610A89DF4541DD9D12B97 /* CustomNavigationController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CustomNavigationController.h; sourceTree = "<group>"; };
 		D5D610E12A112D4FC0462DE1 /* SequenceDecodingPipe.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SequenceDecodingPipe.h; sourceTree = "<group>"; };
 		D5D61109DD409D89A9B6D01A /* DelayedPipe.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DelayedPipe.m; sourceTree = "<group>"; };
@@ -287,6 +289,7 @@
 		D5D6152266A86BEEEF16A5DD /* ReadWriteLock.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ReadWriteLock.m; sourceTree = "<group>"; };
 		D5D6153226E3E1A425BAF293 /* DelayedPipe.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DelayedPipe.h; sourceTree = "<group>"; };
 		D5D615A996F18971426E16E7 /* HelpViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HelpViewController.h; sourceTree = "<group>"; };
+		D5D615B2E4E76396C91E252B /* ViewTransitions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ViewTransitions.m; sourceTree = "<group>"; };
 		D5D615BDBC1FD01C40CEEF84 /* AudioCompression.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AudioCompression.h; sourceTree = "<group>"; };
 		D5D615E2A5F1E15DC186FC94 /* BatchSizeGenerator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BatchSizeGenerator.h; sourceTree = "<group>"; };
 		D5D615E7302D6D8F19FB32D1 /* BlockingQueueTemporal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BlockingQueueTemporal.h; sourceTree = "<group>"; };
@@ -446,6 +449,8 @@
 				D5D6169DAEDEFCA7CE07A6B2 /* MatchingViewController.h */,
 				517328FF1D2DACA200636E82 /* CallingCardViewController.h */,
 				517329001D2DACA200636E82 /* CallingCardViewController.m */,
+				D5D615B2E4E76396C91E252B /* ViewTransitions.m */,
+				D5D6109779403FB182CA4689 /* ViewTransitions.h */,
 			);
 			name = Storyboard;
 			sourceTree = "<group>";
@@ -1048,6 +1053,7 @@
 				D5D61AEB4C29A5308D8BD1CC /* EndUserLicenseAgreementViewController.m in Sources */,
 				D5D61CBB8D3C1862F8FD0365 /* HelpViewController.m in Sources */,
 				D5D614A66F87207C79B4A2EC /* MatchingViewController.m in Sources */,
+				D5D61B5DED259C028CBAFB90 /* ViewTransitions.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -20,6 +20,7 @@
 #import "FacebookSharedViewController.h"
 #import "UniqueId.h"
 #import "ImageParsing.h"
+#import "ViewTransitions.h"
 
 @implementation ConnectionViewController {
     // Connection
@@ -747,14 +748,11 @@
     void (^block)() = ^{
         dispatch_sync_main(^{
             // Show the disconnect storyboard.
-            UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Storyboard" bundle:nil];
-
             Boolean alreadyPresented = _disconnectViewController != nil;
             if (!alreadyPresented) {
                 [self preprepareRuntimeView];
 
-                _disconnectViewController = (AlertViewController *) [storyboard instantiateViewControllerWithIdentifier:@"DisconnectAlertView"];
-                _disconnectViewController.view.frame = self.view.bounds;
+                _disconnectViewController = (AlertViewController *) [ViewTransitions initializeViewControllerFromParent:self name:@"DisconnectAlertView"];
 
                 if (_hasHadAtLeastOneConversation) {
                     [_disconnectViewController enableAdverts];
@@ -770,8 +768,7 @@
                     [_mediaController setLocalImageDelegate:_disconnectViewController];
                 }
 
-                [self addChildViewController:_disconnectViewController];
-                [self.view addSubview:_disconnectViewController.view];
+                [ViewTransitions loadViewControllerIntoParent:self child:_disconnectViewController];
             } else {
                 if (_mediaController != nil) {
                     [_mediaController setLocalImageDelegate:_disconnectViewController];
@@ -783,7 +780,7 @@
             [_disconnectViewController setAlertShortText:shortDescription];
 
             if (!alreadyPresented) {
-                [_disconnectViewController didMoveToParentViewController:self];
+                [ViewTransitions presentViewController:self child:_disconnectViewController];
                 _waitingForNewEndPoint = true;
                 [_mediaController stop];
 

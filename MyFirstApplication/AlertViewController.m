@@ -10,6 +10,7 @@
 #import "Timer.h"
 #import "Threading.h"
 #import "ViewInteractions.h"
+#import "ViewTransitions.h"
 
 #define MINIMUM_WAIT_TIME 3.0
 
@@ -184,9 +185,7 @@
 - (void)hideNow {
     dispatch_sync_main(^{
         NSLog(@"Removing disconnect screen from parent");
-        [self willMoveToParentViewController:nil];
-        [self removeFromParentViewController];
-        [self.view removeFromSuperview];
+        [ViewTransitions hideChildViewController:self];
     });
 }
 
