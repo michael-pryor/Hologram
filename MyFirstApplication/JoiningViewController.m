@@ -30,6 +30,10 @@
 }
 
 - (void)reset {
-    [_countdownTimer reset];
+    [_countdownTimer restart];
+}
+
+- (void)stop {
+    [_countdownTimer stopUpdating];
 }
 @end

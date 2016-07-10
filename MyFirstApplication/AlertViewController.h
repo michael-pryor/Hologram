@@ -15,6 +15,8 @@
 #import "ConversationEndedViewController.h"
 #import "MatchingViewController.h"
 
+@protocol MediaOperator;
+
 @interface AlertViewController : UIViewController <FBAdViewDelegate, NewImageDelegate, ConversationRatingConsumer, MatchingAnswerDelegate, CallingCardDataProvider>
 - (void)setAlertShortText:(NSString *)shortText;
 
@@ -30,7 +32,11 @@
 
 - (void)setConversationEndedViewVisible:(bool)visible instantly:(bool)instant;
 
-- (void)setConversationRatingConsumer:(id <ConversationRatingConsumer>)consumer matchingAnswerDelegate:(id <MatchingAnswerDelegate>)matchingAnswerDelegate ratingTimeoutSeconds:(uint)ratingTimeoutSeconds matchDecisionTimeoutSeconds:(uint)seconds;
+- (void)setConversationRatingConsumer:(id <ConversationRatingConsumer>)consumer matchingAnswerDelegate:(id <MatchingAnswerDelegate>)matchingAnswerDelegate mediaOperator:(id <MediaOperator>)videoOperator ratingTimeoutSeconds:(uint)ratingTimeoutSeconds matchDecisionTimeoutSeconds:(uint)seconds;
 
 - (void)setName:(NSString *)name profilePicture:(UIImage *)profilePicture callingCardText:(NSString *)callingCardText age:(uint)age distance:(uint)distance;
+
+- (void)signalMovingToFacebookController;
+
+- (bool)shouldVideoBeOn;
 @end

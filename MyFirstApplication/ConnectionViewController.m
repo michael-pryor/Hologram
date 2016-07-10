@@ -206,10 +206,6 @@
 
     // Don't push anything to the display, might get a few lingering packets received after this point.
     _isConnectionActive = false;
-
-    // Terminate microphone and video.
-    [_mediaController stop];
-    [_mediaController stopVideo];
 }
 
 // View disappears; happens if user switches app or moves from a different view controller.
@@ -313,11 +309,18 @@
     if (_mediaController == nil) {
         _mediaController = [[MediaController alloc] initWithImageDelegate:self mediaDataLossNotifier:self];
     }
-    [_mediaController startVideo];
 
     [_videoDataLossAnalytics start];
     [_audioDataLossAnalytics start];
     [_audioResetAnalytics start];
+
+    if (_disconnectViewController == nil) {
+        [_mediaController startAudio];
+    }
+
+    if (_disconnectViewController == nil || [_disconnectViewController shouldVideoBeOn]) {
+        [_mediaController startVideo];
+    }
 
     [self onSocialDataLoaded:socialState];
 }
@@ -328,6 +331,9 @@
     [_videoDataLossAnalytics pause];
     [_audioDataLossAnalytics pause];
     [_audioResetAnalytics pause];
+
+    [_mediaController stopAudio];
+    [_mediaController stopVideo];
 }
 
 // Callback for social data (Facebook).
@@ -441,6 +447,10 @@
     dispatch_sync_main(^{
         _inDifferentView = true;
 
+        if (_disconnectViewController != nil) {
+            [_disconnectViewController signalMovingToFacebookController];
+        }
+
         UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Storyboard" bundle:nil];
         FacebookLoginViewController *viewController = (FacebookLoginViewController *) [storyboard instantiateViewControllerWithIdentifier:@"FacebookView"];
         [self.navigationController pushViewController:viewController animated:YES];
@@ -470,7 +480,7 @@
             NSLog(@"Punched through successfully");
             [_natPunchthroughIndicator setImage:[UIImage imageNamed:@"nat_punched_through"]];
         } else if (state == ADDRESS_RECEIVED) {
-            [_mediaController start];
+            // Noting to do.
         } else {
             NSLog(@"Unsupported punchthrough state received");
         }
@@ -551,7 +561,7 @@
     _matchDecisionTimeout = matchDecisionTimeout;
 
     if (_disconnectViewController != nil) {
-        [_disconnectViewController setConversationRatingConsumer:self matchingAnswerDelegate:self ratingTimeoutSeconds:_ratingTimeoutSeconds matchDecisionTimeoutSeconds:_matchDecisionTimeout];
+        [_disconnectViewController setConversationRatingConsumer:self matchingAnswerDelegate:self mediaOperator:_mediaController ratingTimeoutSeconds:_ratingTimeoutSeconds matchDecisionTimeoutSeconds:_matchDecisionTimeout];
     }
 
     NSLog(@"Karma maximum of %d loaded", karmaMaximum);
@@ -670,7 +680,6 @@
     _connection = governor;
 
     [_mediaController setNetworkOutputSessionUdp:[_connection getUdpOutputSession]];
-    [_mediaController start];
 }
 
 // Handle change in connection state.
@@ -775,14 +784,13 @@
                 }
             }
             // Set its content
-            [_disconnectViewController setConversationRatingConsumer:self matchingAnswerDelegate:self ratingTimeoutSeconds:_ratingTimeoutSeconds matchDecisionTimeoutSeconds:_matchDecisionTimeout];
+            [_disconnectViewController setConversationRatingConsumer:self matchingAnswerDelegate:self mediaOperator:_mediaController ratingTimeoutSeconds:_ratingTimeoutSeconds matchDecisionTimeoutSeconds:_matchDecisionTimeout];
             [_disconnectViewController setConversationEndedViewVisible:showConversationEndView instantly:true];
             [_disconnectViewController setAlertShortText:shortDescription];
 
             if (!alreadyPresented) {
                 [ViewTransitions presentViewController:self child:_disconnectViewController];
                 _waitingForNewEndPoint = true;
-                [_mediaController stop];
 
                 // Important so that we don't notify google analytics of screen change, whilst inside FB view.
                 if (!_inDifferentView) {

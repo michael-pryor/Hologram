@@ -66,7 +66,7 @@
         [_audioGraph initialize];
         
         if (_loopbackEnabled) {
-            [self start];
+            [self startAudio];
             [self startVideo];
         }
     }
@@ -81,7 +81,7 @@
     [_videoOutputController clearLocalImageDelegate];
 }
 
-- (void)start {
+- (void)startAudio {
     @synchronized (self) {
         if (_started) {
             return;
@@ -90,14 +90,10 @@
 
         NSLog(@"Starting video recording and microphone");
         [_audioGraph start];
-
-        // We discard out of order batches based on keeping track of the batch ID.
-        // We need to reset this when moving to the next person.
-        [_videoOutputController resetInbound];
     }
 }
 
-- (void)stop {
+- (void)stopAudio {
     if (_loopbackEnabled) {
         return;
     }
@@ -115,6 +111,10 @@
 }
 
 - (void)startVideo {
+    // We discard out of order batches based on keeping track of the batch ID.
+    // We need to reset this when moving to the next person.
+    [_videoOutputController resetInbound];
+
     // We use the video on the disconnect screen aswell, so once initialized, we never need to stop capturing.
     [_videoOutputController startCapturing];
 }

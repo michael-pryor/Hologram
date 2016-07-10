@@ -12,49 +12,72 @@
 #import "ViewInteractions.h"
 #import "ViewTransitions.h"
 #import "JoiningViewController.h"
+#import "MediaController.h"
 
 #define MINIMUM_WAIT_TIME 3.0
 
 @implementation AlertViewController {
-    IBOutlet UILabel *_alertShortText;
-    Timer *_timerSinceAdvertCreated;
+    // Base view, describing state of app and connection.
     __weak IBOutlet UIImageView *_localImageView;
+    IBOutlet UILabel *_alertShortText;
+    __weak IBOutlet UIButton *_backButton;
+    void(^_moveToFacebookViewControllerFunc)();
+    NSString *_cachedAlertShortText;
+    id<MediaOperator> _videoOperator;
+    bool _movingToFacebook;
 
+    // Advert.
+    Timer *_timerSinceAdvertCreated;
     __weak IBOutlet UIView *_advertBannerView; // The container which sizes it.
     FBAdView *_advertView; // The actual advert.
-
-    __weak IBOutlet UIButton *_backButton;
-
-    void(^_moveToFacebookViewControllerFunc)();
-
     bool _shouldShowAdverts;
+
+    // Rating previous conversation..
     __weak IBOutlet UIView *_conversationEndView;
-
     ConversationEndedViewController *_conversationEndViewController;
-    bool _conversationEndViewControllerVisible;
-    bool _matchApprovalViewControllerVisible;
-
-    NSArray *_views;
-
     id <ConversationRatingConsumer> _conversationRatingConsumer;
     uint _ratingTimeoutSeconds;
-    uint _matchDecisionTimeoutSeconds;
 
-    NSString *_cachedAlertShortText;
 
-    id <MatchingAnswerDelegate> _matchingAnswerDelegate;
-
-    bool _matchDecisionMade;
-    __weak IBOutlet UIView *_joiningConversationView;
-    JoiningViewController *_joiningConversationViewController;
-    
+    // Matching i.e. viewing cards.
     __weak IBOutlet UIView *_matchingView;
     MatchingViewController *_matchingViewController;
+    id <MatchingAnswerDelegate> _matchingAnswerDelegate;
+    uint _matchDecisionTimeoutSeconds;
+    bool _matchDecisionMade;
+
+    // Accepted a match, waiting for other side to accept too.
+    __weak IBOutlet UIView *_joiningConversationView;
+    JoiningViewController *_joiningConversationViewController;
+
+    // All views, we only have one visible at a time.
+    NSArray *_views;
+    UIView *_currentView;
+}
+
+- (bool)isViewCurrent:(UIView*)view {
+    return _currentView == view;
+}
+
+- (bool)isInConversationEndedView {
+    return [self isViewCurrent:_conversationEndView];
+}
+
+- (bool)isInMatchApprovalView {
+    return [self isViewCurrent:_matchingView];
+}
+
+- (bool)shouldVideoBeOn {
+    return _currentView == nil && !_movingToFacebook;
+}
+
+- (void)signalMovingToFacebookController {
+    _movingToFacebook = true;
 }
 
 - (void)setAlertShortText:(NSString *)shortText {
     _cachedAlertShortText = shortText;
-    if (_conversationEndViewControllerVisible) {
+    if ([self isInConversationEndedView]) {
         return;
     }
 
@@ -89,10 +112,11 @@
 
     _views = @[_conversationEndView, _matchingView, _joiningConversationView];
 
-    _matchApprovalViewControllerVisible = false;
-    _conversationEndViewControllerVisible = false;
+    _currentView = nil;
     _conversationRatingConsumer = nil;
     _ratingTimeoutSeconds = 0;
+
+    _movingToFacebook = false;
 
     // It should be shown at same time as camera, because it sits on top of camera.
     [_backButton setHidden:true];
@@ -162,6 +186,9 @@
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
 
+    [_videoOperator stopAudio];
+    [_videoOperator stopVideo];
+
     [_timerSinceAdvertCreated setSecondsFrequency:MINIMUM_WAIT_TIME];
     [_timerSinceAdvertCreated reset];
 
@@ -182,6 +209,15 @@
     NSLog(@"Disconnect view controller hidden, hiding banner advert and removing delegate");
     [_backButton setHidden:true];
     [_advertBannerView setHidden:true];
+
+    // Ensures state is reset, and starts the video.
+    [self hideViewsInstant:true];
+    if (!_movingToFacebook) {
+        [_videoOperator startAudio];
+    }
+    _movingToFacebook = false;
+
+    [_joiningConversationViewController stop];
 }
 
 - (void)enableAdverts {
@@ -232,9 +268,15 @@
 
 - (IBAction)onGotoFbLogonViewButtonPress:(id)sender {
     if (_moveToFacebookViewControllerFunc != nil) {
+        _movingToFacebook = true;
         _moveToFacebookViewControllerFunc();
     }
 }
+
+- (IBAction)onForwardButtonPress:(id)sender {
+    [self onMatchRejectAnswer];
+}
+
 
 - (void)hideViewsInstant:(bool)instant {
     [self showView:nil instant:instant];
@@ -269,19 +311,35 @@
         }
         if (!shown && viewToShow != nil) {
             [ViewInteractions fadeIn:viewToShow completion:nil duration:duration];
+            shown = true;
         }
+
+        if (shown) {
+            _currentView = viewToShow;
+        } else {
+            _currentView = nil;
+        }
+
+        [self onViewShown:_currentView];
     });
 }
 
+- (void)onViewShown:(UIView*)view {
+    if ([self shouldVideoBeOn]) {
+        [_videoOperator startVideo];
+    } else {
+        [_videoOperator stopVideo];
+    }
+}
+
 - (void)setConversationEndedViewVisible:(bool)visible instantly:(bool)instant {
-    if (_matchApprovalViewControllerVisible || (_conversationEndViewControllerVisible && visible)) {
+    if ([self isInMatchApprovalView] || ([self isInConversationEndedView] && visible)) {
         return;
     }
 
     if (visible) {
         [_conversationEndViewController reset];
         [self showView:_conversationEndView instant:instant];
-        _conversationEndViewControllerVisible = true;
         [self doSetAlertShortText:@"Please rate your previous conversation\nThis will influence their karma"];
         dispatch_async_main(^{
             [_conversationEndViewController onRatingsCompleted];
@@ -289,19 +347,19 @@
 
     } else {
         [self hideViewsInstant:instant];
-        _conversationEndViewControllerVisible = false;
         [self doSetAlertShortText:_cachedAlertShortText];
     }
 
 }
 
-- (void)setConversationRatingConsumer:(id <ConversationRatingConsumer>)consumer matchingAnswerDelegate:(id <MatchingAnswerDelegate>)matchingAnswerDelegate ratingTimeoutSeconds:(uint)ratingTimeoutSeconds matchDecisionTimeoutSeconds:(uint)matchDecisionTimeoutSeconds {
+- (void)setConversationRatingConsumer:(id <ConversationRatingConsumer>)consumer matchingAnswerDelegate:(id <MatchingAnswerDelegate>)matchingAnswerDelegate mediaOperator:(id <MediaOperator>)videoOperator ratingTimeoutSeconds:(uint)ratingTimeoutSeconds matchDecisionTimeoutSeconds:(uint)matchDecisionTimeoutSeconds {
     _conversationRatingConsumer = consumer;
     _matchDecisionTimeoutSeconds = matchDecisionTimeoutSeconds;
     _ratingTimeoutSeconds = ratingTimeoutSeconds;
     [_conversationEndViewController setConversationRatingConsumer:self];
     [_matchingViewController setMatchingDecisionTimeoutSeconds:matchDecisionTimeoutSeconds];
     _matchingAnswerDelegate = matchingAnswerDelegate;
+    _videoOperator = videoOperator;
 }
 
 - (void)onConversationRating:(ConversationRating)conversationRating {
@@ -311,14 +369,12 @@
 
 - (void)onMatchAcceptAnswer {
     _matchDecisionMade = true;
-    _matchApprovalViewControllerVisible = false;
     [_matchingAnswerDelegate onMatchAcceptAnswer];
     [self showView:_joiningConversationView instant:false];
     [_joiningConversationViewController consumeRemainingTimer:[_matchingViewController cloneTimer]];
 }
 
 - (void)onMatchingFinished {
-    _matchApprovalViewControllerVisible = false;
     [self hideViewsInstant:false];
 }
 
@@ -328,7 +384,6 @@
 }
 
 - (void)onMatchingStarted {
-    _matchApprovalViewControllerVisible = true;
     [self showView:_matchingView instant:false];
 }
 

@@ -12,4 +12,6 @@
 - (void)consumeRemainingTimer:(Timer*)timer;
 
 - (void) setTimeoutDelegate:(id<MatchingAnswerDelegate>)timeoutDelegate;
+
+- (void)stop;
 @end

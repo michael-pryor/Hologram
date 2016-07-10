@@ -248,6 +248,7 @@
 - (void)resetInbound {
     [_batcherInput reset];
     [_videoCompression resetFilters];
+    [_syncWithAudio reset];
 }
 
 // Handle data from camera device and push out to network.

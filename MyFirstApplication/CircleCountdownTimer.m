@@ -15,6 +15,7 @@
     Timer *_timeoutTimer;
     Signal *_updatingUi;
     id <MatchingAnswerDelegate> _timeoutDelegate;
+    bool _stopped;
 }
 
 - (id)initWithCircleProgressBar:(CircleProgressBar *)circleProgressBar matchingAnswerDelegate:(id <MatchingAnswerDelegate>)matchingAnswerDelegate {
@@ -24,6 +25,7 @@
         _timeoutDelegate = matchingAnswerDelegate;
         _updatingUi = [[Signal alloc] initWithFlag:false];
         _timeoutTimer = nil;
+        _stopped = false;
     }
     return self;
 }
@@ -36,7 +38,7 @@
     }];
 }
 
-- (void)reset {
+- (void)restart {
     dispatch_sync_main(^{
         [_progressObject setProgress:0 animated:false];
     });
@@ -45,6 +47,14 @@
         [_timeoutTimer reset];
         [self startUpdating];
     }
+}
+
+- (void)stopUpdating {
+    dispatch_sync_main(^{
+        if ([_updatingUi clear]) {
+            _stopped = true;
+        }
+    });
 }
 
 - (Timer*)cloneTimer {
@@ -57,7 +67,7 @@
 
 - (void)loadTimer:(Timer *)timer onlyIfNew:(bool)mustBeNew {
     if (!mustBeNew || _timeoutTimer == nil) {
-        [self reset];
+        [self restart];
         _timeoutTimer = timer;
     } else {
         [_timeoutTimer setSecondsFrequency:[timer secondsFrequency]];
@@ -67,6 +77,7 @@
 - (void)startUpdating {
     dispatch_sync_main(^{
         if ([_updatingUi signalAll]) {
+            _stopped = false;
             [self doUpdateProgress];
         }
     });
@@ -74,6 +85,10 @@
 
 - (void)doUpdateProgress {
     dispatch_sync_main(^{
+        if (_stopped) {
+            return;
+        }
+
         float ratioProgress;
         if (_timeoutTimer != nil) {
             ratioProgress = [_timeoutTimer getRatioProgressThroughTick];

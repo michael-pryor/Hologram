@@ -14,16 +14,26 @@
 #import "SequenceDecodingPipe.h"
 #import "BlockingQueueTemporal.h"
 
-@interface MediaController : NSObject <NewPacketDelegate, SequenceGapNotification, TimeInQueueNotification>
+@protocol MediaOperator
+- (void)startVideo;
+
+- (void)stopVideo;
+
+- (void)stopAudio;
+
+- (void)startAudio;
+@end
+
+@interface MediaController : NSObject <NewPacketDelegate, SequenceGapNotification, TimeInQueueNotification, MediaOperator>
 - (id)initWithImageDelegate:(id <NewImageDelegate>)newImageDelegate mediaDataLossNotifier:(id <MediaDataLossNotifier>)mediaDataLossNotifier;
 
 - (void)resetSendRate;
 
 - (void)setNetworkOutputSessionUdp:(id <NewPacketDelegate>)udp;
 
-- (void)stop;
+- (void)stopAudio;
 
-- (void)start;
+- (void)startAudio;
 
 - (void)startVideo;
 

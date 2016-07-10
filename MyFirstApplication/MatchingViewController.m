@@ -26,7 +26,7 @@
 }
 
 - (void)reset {
-    [_matchingCountdownTimer reset];
+    [_matchingCountdownTimer restart];
     [_matchingCountdownTimer startUpdating];
 }
 
@@ -48,19 +48,25 @@
     });
 }
 
-- (IBAction)onButtonRejectPressed:(id)sender {
+- (IBAction)onButtonRejectTap:(id)sender {
+    [self onDone];
     [_matchingAnswerDelegate onMatchRejectAnswer];
 }
 
 - (IBAction)onButtonAcceptPressed:(id)sender {
-    
+    [self onDone];
     [_matchingAnswerDelegate onMatchAcceptAnswer];
+}
+
+- (void)onDone {
+    [_matchingCountdownTimer stopUpdating];
 }
 
 - (void)setMatchingDecisionTimeoutSeconds:(uint)seconds {
     [_matchingCountdownTimer loadTimer:[[Timer alloc] initWithFrequencySeconds:seconds firingInitially:false] onlyIfNew:true];
 }
 - (IBAction)onBlockButtonPressed:(id)sender {
+    [self onDone];
     [_matchingAnswerDelegate onMatchBlocked];
 }
 @end
