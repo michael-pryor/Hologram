@@ -75,8 +75,8 @@
     // Waiting to receive a match which we can approve.
     volatile bool _waitingForProspectiveMatch;
 
-    // Waiting to approve the prospective match.
-    volatile bool _prospectiveMatchNotYetAccepted;
+    // We've approved and now after the conversation ends we should give a rating.
+    volatile bool _shouldRateAfterSessionEnd;
 
     bool _isConnectionActive;
     bool _isScreenInUse;
@@ -175,7 +175,7 @@
 
     _waitingForCompleteMatch = true;
     _waitingForProspectiveMatch = true;
-    _prospectiveMatchNotYetAccepted = true;
+    _shouldRateAfterSessionEnd = false;
 
     _isConnectionActive = false;
 
@@ -295,6 +295,7 @@
 - (void)start {
     // Start off in routed mode.
     previousState = NONE;
+    [self resetFlags];
     [self onNatPunchthrough:nil stateChange:ROUTED];
 
     // Will probably already be there if we have already loaded previously.
@@ -471,24 +472,32 @@
 
 // Called when we receive a change in connection state regarding NAT punchthrough.
 // Important to update the display so that we know how we are connected.
+//
+// Note: this is called immediately after full match, right before video call starts.
 - (void)onNatPunchthrough:(ConnectionGovernorNatPunchthrough *)connection stateChange:(NatState)state {
     dispatch_sync_main(^{
         if (previousState == state) {
             return;
         }
 
+        NSLog(@"**** RECEIVED NAT ADDRESS INFORMAITON FROM CLIENT *****");
+
         // At this point we are receiving connection details for a client ready to video chat with us,
         // so we're not waiting for complete or prospective match.
         _waitingForCompleteMatch = false;
         _waitingForProspectiveMatch = false;
+
+        // Conversation has started.
+        [_conversationDuration reset];
+
+        // We've accepted each other and video is about to start.
+        _shouldRateAfterSessionEnd = true;
 
         NatState previousStateLocal = previousState;
         previousState = state;
         NSTimeInterval secondsTimed = [_connectionStateTimer getSecondsSinceLastTick];
         [_connectionStateTimer reset];
 
-        // We've accepted each other and video is about to start.
-        _prospectiveMatchNotYetAccepted = false;
 
         if (state == ROUTED) {
             NSLog(@"Regressed to routing mode");
@@ -533,14 +542,16 @@
  * when receiving NAT information, and why it's okay that setName doesn't get called.
  */
 - (void)setName:(NSString *)name profilePicture:(UIImage *)profilePicture callingCardText:(NSString *)callingCardText age:(uint)age distance:(uint)distance {
-    [_conversationDuration reset];
     [_socialShared clear];
 
+    NSLog(@"**** LOADED PROFILE DETAILS OF MATCH *****");
+
     // Just matched with somebody new, but they need to accept or reject us before video starts.
-    _prospectiveMatchNotYetAccepted = true;
+    _shouldRateAfterSessionEnd = false;
     _waitingForProspectiveMatch = false;
 
     dispatch_sync_main(^{
+        NSLog(@"**** PUSHED PROFILE DETAILS OF MATCH TO DISCONNECT VIEW CONTROLLER *****");
         [_disconnectViewController setName:name profilePicture:profilePicture callingCardText:callingCardText age:age distance:distance];
 
         NSLog(@"Connected with user named [%@] with age [%u]", name, age);
@@ -635,6 +646,7 @@
             if (![_disconnectViewController hideIfVisibleAndReady]) {
                 return;
             } else {
+                NSLog(@"***** CLEANING UP DISCONNECT VIEW CONTROLLER");
                 _disconnectViewController = nil;
                 _isSkippableDespiteNoMatch = false;
                 [_mediaController clearLocalImageDelegate];
@@ -684,6 +696,7 @@
 
     NSLog(@"Sending skip request");
     [_connection sendTcpPacket:_skipPersonPacket];
+    [self resetFlags];
     [self setDisconnectStateWithShortDescription:@"Matching you with somebody to talk with\nYou skipped the other person" showConversationEndView:true];
 }
 
@@ -768,34 +781,30 @@
 }
 
 - (bool)isReadyForChat {
-    return !_prospectiveMatchNotYetAccepted && !_waitingForCompleteMatch && !_waitingForProspectiveMatch;
+    return _shouldRateAfterSessionEnd && !_waitingForCompleteMatch && !_waitingForProspectiveMatch;
 }
 
 // Display view overlay showing how connection is being recovered.
 - (void)setDisconnectStateWithShortDescription:(NSString *)shortDescription showConversationEndView:(bool)showConversationEndView {
     // If we haven't accepted or rejected the client yet, then don't ask to rate the conversation,
     // since we can't have had one.
-    if (_prospectiveMatchNotYetAccepted) {
+    if (!_shouldRateAfterSessionEnd) {
         showConversationEndView = false;
     }
 
     void (^block)() = ^{
         dispatch_sync_main(^{
             if (_inDifferentView) {
+                NSLog(@"***** IN DIFFERENT VIEW, NOT INITIALIZING DISCONNECT VIEW CONTROLLER");
                 return;
             }
 
             // Show the disconnect storyboard.
-            Boolean alreadyPresented = _disconnectViewController != nil;
+            bool alreadyPresented = _disconnectViewController != nil;
             if (!alreadyPresented) {
                 [self preprepareRuntimeView];
 
-                // We don't know what is going to happen with this session, so assume the worst.
-                // Server will update us if anything can be recovered.
-                _waitingForCompleteMatch = true;
-                _waitingForProspectiveMatch = true;
-                _prospectiveMatchNotYetAccepted = true;
-
+                NSLog(@"***** INSTANTIATED DISCONNECT VIEW CONTROLLER *****");
                 _disconnectViewController = (AlertViewController *) [ViewTransitions initializeViewControllerFromParent:self name:@"DisconnectAlertView"];
 
                 if (_hasHadAtLeastOneConversation) {
@@ -808,6 +817,7 @@
 
                 [ViewTransitions loadViewControllerIntoParent:self child:_disconnectViewController];
             } else {
+                NSLog(@"***** REUSING EXISTING DISCONNECT VIEW CONTROLLER *****");
                 if (_mediaController != nil) {
                     [_mediaController setLocalImageDelegate:_disconnectViewController];
                 }
@@ -818,6 +828,7 @@
             [_disconnectViewController setGenericInformationText:shortDescription];
 
             if (!alreadyPresented) {
+                NSLog(@"***** PRESENTING DISCONNECT VIEW CONTROLLER *****");
                 [ViewTransitions presentViewController:self child:_disconnectViewController];
 
                 // Important so that we don't notify google analytics of screen change, whilst inside FB view.
@@ -837,6 +848,12 @@
     }
 }
 
+- (void)resetFlags {
+    _waitingForCompleteMatch = true;
+    _waitingForProspectiveMatch = true;
+
+    // Note: I have deliberately not included _shouldRateAfterSessionEnd!
+}
 
 // Handle data and pass to relevant parts of application.
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
@@ -861,6 +878,7 @@
                 return;
             }
 
+            [self resetFlags];
             [self setDisconnectStateWithShortDescription:@"Matching you with somebody to talk with\nThe other person left" showConversationEndView:true];
         } else if (operation == DISCONNECT_SKIPPED) {
             NSLog(@"End point skipped us");
@@ -868,9 +886,7 @@
                 return;
             }
 
-            [packet getUnsignedInteger8];
-           // bool aggressive = [packet getUnsignedInteger8];
-
+            [self resetFlags];
             [self setDisconnectStateWithShortDescription:@"Matching you with somebody to talk with\nThe other person skipped you" showConversationEndView:true];
         } else if (operation == SHARE_FACEBOOK_INFO) {
             [packet getUnsignedInteger8];
@@ -908,11 +924,6 @@
 
         } else {
             if (_mediaController != nil) {
-                // Conversation starts when the disconnect view controller is removed.
-                if (_disconnectViewController != nil) {
-                    [_conversationDuration reset];
-                }
-
                 [_mediaController onNewPacket:packet fromProtocol:protocol];
             }
         }
@@ -943,7 +954,7 @@
     // both are waiting for each other forever!
     dispatch_async_main(^{
         // Between conversations we always get some data loss, so don't tell user about it.
-        if ([_conversationDuration getSecondsSinceLastTick] < 2) {
+        if (_waitingForCompleteMatch || [_conversationDuration getSecondsSinceLastTick] < 2) {
             return;
         }
 
@@ -1061,6 +1072,7 @@
 - (void)onMatchBlocked {
     NSLog(@"Blocked and reported match");
     [self onConversationRating:S_BLOCK];
+    [self resetFlags];
 }
 
 - (void)onBackToSocialRequest {

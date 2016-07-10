@@ -14,10 +14,11 @@
 #import "VideoOutputController.h"
 #import "ConversationEndedViewController.h"
 #import "MatchingViewController.h"
+#import "SingleViewCollection.h"
 
 @protocol MediaOperator;
 
-@interface AlertViewController : UIViewController <FBAdViewDelegate, NewImageDelegate, ConversationRatingConsumer, MatchingAnswerDelegate, CallingCardDataProvider>
+@interface AlertViewController : UIViewController <FBAdViewDelegate, NewImageDelegate, ConversationRatingConsumer, MatchingAnswerDelegate, CallingCardDataProvider, ViewChangeNotifier>
 - (void)setGenericInformationText:(NSString *)shortText;
 
 - (Boolean)hideIfVisibleAndReady;

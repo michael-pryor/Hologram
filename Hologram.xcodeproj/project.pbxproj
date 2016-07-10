@@ -78,6 +78,7 @@
 		D5D610AE60939C3E1169833F /* BannedViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61BCFDFFC217775E41C2D /* BannedViewController.m */; };
 		D5D61138250F5B15745691AF /* AverageTracker.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D615F63C69FA0011332EF8 /* AverageTracker.m */; };
 		D5D611D1DE3EDA3A80460046 /* ViewInteractions.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61E1702DA62D0167A5510 /* ViewInteractions.m */; };
+		D5D61200EB7342E8D3164555 /* SingleViewCollection.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61A49BF16BDA84046560C /* SingleViewCollection.m */; };
 		D5D61287783F9004F0945490 /* DobParsing.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61EB414FA2D1CC6954BEC /* DobParsing.m */; };
 		D5D612FCC8CA14CAF2CBD8A5 /* CircleCountdownTimer.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D619CA51216CA55DB23208 /* CircleCountdownTimer.m */; };
 		D5D6134479AE653BC9C32A65 /* VideoCompression.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D6133CC60B37AAACCADD40 /* VideoCompression.m */; };
@@ -296,6 +297,7 @@
 		D5D615E2A5F1E15DC186FC94 /* BatchSizeGenerator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BatchSizeGenerator.h; sourceTree = "<group>"; };
 		D5D615E7302D6D8F19FB32D1 /* BlockingQueueTemporal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BlockingQueueTemporal.h; sourceTree = "<group>"; };
 		D5D615F63C69FA0011332EF8 /* AverageTracker.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AverageTracker.m; sourceTree = "<group>"; };
+		D5D61610C9CD766038FF060C /* SingleViewCollection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SingleViewCollection.h; sourceTree = "<group>"; };
 		D5D6164D3A71EE25A47432E8 /* BlockingQueueTemporal.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BlockingQueueTemporal.m; sourceTree = "<group>"; };
 		D5D6164EA8372CB5753B9B4D /* AudioSessionInteractions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AudioSessionInteractions.h; sourceTree = "<group>"; };
 		D5D6165C3D5AEA67C27F54DD /* NameParsing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NameParsing.h; sourceTree = "<group>"; };
@@ -320,6 +322,7 @@
 		D5D619B9B74C7F1DF1AAC7AB /* TimedGapEventTracker.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TimedGapEventTracker.m; sourceTree = "<group>"; };
 		D5D619CA51216CA55DB23208 /* CircleCountdownTimer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CircleCountdownTimer.m; sourceTree = "<group>"; };
 		D5D619F285D829AA2D54CF3A /* SoundEncodingShared.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SoundEncodingShared.h; sourceTree = "<group>"; };
+		D5D61A49BF16BDA84046560C /* SingleViewCollection.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SingleViewCollection.m; sourceTree = "<group>"; };
 		D5D61A4F18629E7753844010 /* SequenceDecodingPipe.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SequenceDecodingPipe.m; sourceTree = "<group>"; };
 		D5D61A4F9D149A8AC2058446 /* BanPaymentsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BanPaymentsViewController.h; sourceTree = "<group>"; };
 		D5D61A6B1DCCCED8F72F6EFD /* Orientation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Orientation.h; sourceTree = "<group>"; };
@@ -456,6 +459,8 @@
 				D5D6109779403FB182CA4689 /* ViewTransitions.h */,
 				D5D619CA51216CA55DB23208 /* CircleCountdownTimer.m */,
 				D5D61890953AE5E6F4A8FAF7 /* CircleCountdownTimer.h */,
+				D5D61A49BF16BDA84046560C /* SingleViewCollection.m */,
+				D5D61610C9CD766038FF060C /* SingleViewCollection.h */,
 			);
 			name = Utility;
 			sourceTree = "<group>";
@@ -1122,6 +1127,7 @@
 				D5D61B5DED259C028CBAFB90 /* ViewTransitions.m in Sources */,
 				D5D61807A8891187429E2D16 /* JoiningViewController.m in Sources */,
 				D5D612FCC8CA14CAF2CBD8A5 /* CircleCountdownTimer.m in Sources */,
+				D5D61200EB7342E8D3164555 /* SingleViewCollection.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

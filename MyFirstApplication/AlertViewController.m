@@ -25,6 +25,7 @@
     __weak IBOutlet UIButton *_backButton;
     id <MediaOperator> _mediaOperator;
     bool _movingToFacebook;
+    bool _viewVisible;
 
     // Advert.
     Timer *_timerSinceAdvertCreated;
@@ -49,12 +50,12 @@
     JoiningViewController *_joiningConversationViewController;
 
     // All views, we only have one visible at a time.
+    SingleViewCollection *_viewCollection;
     NSArray *_views;
-    UIView *_currentView;
 }
 
 - (bool)isViewCurrent:(UIView *)view {
-    return _currentView == view;
+    return [_viewCollection getCurrentlyDisplayedView] == view;
 }
 
 - (bool)isInConversationEndedView {
@@ -68,8 +69,8 @@
 - (bool)shouldVideoBeOn {
     // We need video in the joining stage so that we send some packets
     // and remove each other's disconnect view.
-    return (_currentView == _localImageViewParent ||
-            _currentView == _joiningConversationView) && !_movingToFacebook;
+    return ([_viewCollection getCurrentlyDisplayedView] == _localImageViewParent ||
+            [_viewCollection getCurrentlyDisplayedView] == _joiningConversationView) && !_movingToFacebook;
 }
 
 - (void)signalMovingToFacebookController {
@@ -109,8 +110,17 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
 
+    NSLog(@"!!!!!!LOAD!!!!!!");
+
+    _viewVisible = false;
+    
     _views = @[_conversationEndView, _matchingView, _joiningConversationView, _localImageViewParent];
 
+    for (UIView *view in _views) {
+        [view setAlpha:0];
+    }
+
+    _viewCollection = [[SingleViewCollection alloc] initWithDuration:0.5f viewChangeNotifier:self];
     _conversationRatingConsumer = nil;
     _ratingTimeoutSeconds = 0;
     _movingToFacebook = false;
@@ -119,7 +129,6 @@
     // This is always the first view to be shown!
     // And we need the video to be running so that messages can be sent across,
     // client only removes view controller when image is received.
-    _currentView = nil;
     [self showView:_localImageViewParent instant:true];
 
     // First images loaded in produce black screen for some reason, so better introduce a delay.
@@ -179,6 +188,9 @@
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
+    _viewVisible = true;
+
+    NSLog(@"!!!!!!APPEAR!!!!!!");
 
     _movingToFacebook = false;
     [_mediaOperator stopAudio];
@@ -196,13 +208,19 @@
 }
 
 - (void)viewDidDisappear:(BOOL)animated {
+    [super viewDidDisappear:animated];
+    _viewVisible = false;
+
+    NSLog(@"!!!!!!DISAPPEAR!!!!!!");
+    
     // Pause the banner view, stop it loading new adverts.
     NSLog(@"Disconnect view controller hidden, hiding banner advert and removing delegate");
 
     // Ensures state is reset, and starts the video.
-    [self hideViewsInstant:true];
+    // Which definitely will be needed if hiding the view controller.
     if (!_movingToFacebook) {
         [_mediaOperator startAudio];
+        [_mediaOperator startVideo];
     }
 
     [_joiningConversationViewController stop];
@@ -213,6 +231,7 @@
 }
 
 - (void)hideNow {
+    NSLog(@"!!!!!!HIDING!!!!!!");
     dispatch_sync_main(^{
         NSLog(@"Removing disconnect screen from parent");
         [ViewTransitions hideChildViewController:self];
@@ -259,68 +278,7 @@
 }
 
 - (void)showView:(UIView *)viewToShow instant:(bool)instant {
-    const float duration = instant ? 0 : 0.25f;
-
-    dispatch_sync_main(^{
-        bool shown = false;
-
-        if (viewToShow == _matchingView) {
-            [ViewInteractions fadeOut:_currentView completion:^(BOOL completed) {
-                [viewToShow setAlpha:0.8f];
-                [ViewInteractions fadeIn:viewToShow completion:nil duration:duration];
-            }                duration:duration];
-            shown = true;
-        } else {
-            for (UIView *view in _views) {
-                if (view == viewToShow) {
-                    continue;
-                }
-
-                if ([view alpha] > 0) {
-                    if (!shown && [view alpha] == 1) {
-                        if (viewToShow != nil) {
-                            [ViewInteractions fadeOut:view thenIn:viewToShow duration:duration];
-                        } else {
-                            [ViewInteractions fadeOut:view completion:nil duration:duration];
-                        }
-                        shown = true;
-                    } else {
-                        [view setAlpha:0];
-                    }
-                }
-            }
-        }
-
-        if (!shown && viewToShow != nil) {
-            [ViewInteractions fadeIn:viewToShow completion:nil duration:duration];
-            shown = true;
-        }
-
-        if (shown) {
-            _currentView = viewToShow;
-        } else {
-            _currentView = nil;
-        }
-
-        [self onViewShown:_currentView duration:duration * 3];
-    });
-}
-
-- (void)onViewShown:(UIView *)view duration:(float)duration {
-    if ([self shouldVideoBeOn]) {
-        [_mediaOperator startVideo];
-        [ViewInteractions fadeIn:_alertShortText completion:nil duration:duration];
-
-    } else {
-        [_alertShortText setAlpha:0];
-        [_mediaOperator stopVideo];
-    }
-
-    if (view == _conversationEndView || view == _joiningConversationView) {
-        [ViewInteractions fadeIn:_alertShortTextHigher completion:nil duration:duration];
-    } else {
-        [_alertShortTextHigher setAlpha:0];
-    }
+    [_viewCollection displayView:viewToShow];
 }
 
 - (void)setConversationEndedViewVisible:(bool)visible instantly:(bool)instant {
@@ -396,6 +354,31 @@
 
 - (IBAction)onGotoFbLogonViewButtonPress:(id)sender {
     [self onBackToSocialRequest];
+}
+
+
+- (void)onStartedDisplayingView:(UIView *)view {
+    if (!_viewVisible) {
+        return;
+    }
+
+    if ([self shouldVideoBeOn]) {
+        [_mediaOperator startVideo];
+        [ViewInteractions fadeIn:_alertShortText completion:nil duration:0.5];
+
+    } else {
+        [_alertShortText setAlpha:0];
+        [_mediaOperator stopVideo];
+    }
+
+    if (view == _conversationEndView || view == _joiningConversationView) {
+        [ViewInteractions fadeIn:_alertShortTextHigher completion:nil duration:0.5];
+    } else {
+        [_alertShortTextHigher setAlpha:0];
+    }
+}
+
+- (void)onFinishedDisplayingView:(UIView *)view {
 }
 
 @end
