@@ -79,6 +79,7 @@
 		D5D61138250F5B15745691AF /* AverageTracker.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D615F63C69FA0011332EF8 /* AverageTracker.m */; };
 		D5D611D1DE3EDA3A80460046 /* ViewInteractions.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61E1702DA62D0167A5510 /* ViewInteractions.m */; };
 		D5D61287783F9004F0945490 /* DobParsing.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61EB414FA2D1CC6954BEC /* DobParsing.m */; };
+		D5D612FCC8CA14CAF2CBD8A5 /* CircleCountdownTimer.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D619CA51216CA55DB23208 /* CircleCountdownTimer.m */; };
 		D5D6134479AE653BC9C32A65 /* VideoCompression.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D6133CC60B37AAACCADD40 /* VideoCompression.m */; };
 		D5D6137BAB800EC6DF1FD7BE /* VIdeoEncoding.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D6142C892CC20B2A5702AB /* VIdeoEncoding.m */; };
 		D5D614411E4E71114170D04A /* Analytics.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D618DEAA6848DAB2BE2ADC /* Analytics.m */; };
@@ -101,6 +102,7 @@
 		D5D61758C6E0646D1277A88C /* AudioUnitHelpers.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61D42394687AAC5C21FB8 /* AudioUnitHelpers.m */; };
 		D5D617D21FA6360C6525B632 /* AverageTrackerLimitedSize.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D618CA3E0E47943592842C /* AverageTrackerLimitedSize.m */; };
 		D5D618074CD0B5BEA7144104 /* AudioShared.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61B2954C519324141BCE0 /* AudioShared.m */; };
+		D5D61807A8891187429E2D16 /* JoiningViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61B12A55C700FB96C83C3 /* JoiningViewController.m */; };
 		D5D6184FBB9A864226D0235D /* TimedMinMaxTracker.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61DA3C9FA2DFD20EDDA21 /* TimedMinMaxTracker.m */; };
 		D5D618BBF13857535FF458BE /* BanPaymentsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D611C93EBE4BF3E3DE1D08 /* BanPaymentsViewController.m */; };
 		D5D6192DFC855EFECF623757 /* AccessDialog.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61D7435CE35550C2AB293 /* AccessDialog.m */; };
@@ -306,6 +308,7 @@
 		D5D617F6478B3F47A68D8386 /* SocialState.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SocialState.m; sourceTree = "<group>"; };
 		D5D61829DC4A7512B689E307 /* BatchSizeGeneratorTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BatchSizeGeneratorTest.m; sourceTree = "<group>"; };
 		D5D61836CE9E34E7AFC359A6 /* TimedCounter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TimedCounter.m; sourceTree = "<group>"; };
+		D5D61890953AE5E6F4A8FAF7 /* CircleCountdownTimer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CircleCountdownTimer.h; sourceTree = "<group>"; };
 		D5D61890FA8B1FC5EC686B91 /* ImageParsing.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ImageParsing.m; sourceTree = "<group>"; };
 		D5D6189F59FDCA8F6FCFC23A /* HelpViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HelpViewController.m; sourceTree = "<group>"; };
 		D5D618CA3E0E47943592842C /* AverageTrackerLimitedSize.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AverageTrackerLimitedSize.m; sourceTree = "<group>"; };
@@ -315,6 +318,7 @@
 		D5D619683E025949F93E0436 /* KeychainItemWrapper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KeychainItemWrapper.h; sourceTree = "<group>"; };
 		D5D61997A14B045AD675F65F /* VideoShared.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VideoShared.h; sourceTree = "<group>"; };
 		D5D619B9B74C7F1DF1AAC7AB /* TimedGapEventTracker.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TimedGapEventTracker.m; sourceTree = "<group>"; };
+		D5D619CA51216CA55DB23208 /* CircleCountdownTimer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CircleCountdownTimer.m; sourceTree = "<group>"; };
 		D5D619F285D829AA2D54CF3A /* SoundEncodingShared.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SoundEncodingShared.h; sourceTree = "<group>"; };
 		D5D61A4F18629E7753844010 /* SequenceDecodingPipe.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SequenceDecodingPipe.m; sourceTree = "<group>"; };
 		D5D61A4F9D149A8AC2058446 /* BanPaymentsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BanPaymentsViewController.h; sourceTree = "<group>"; };
@@ -325,6 +329,7 @@
 		D5D61AAC5191B35D5EB35D56 /* AudioShared.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AudioShared.h; sourceTree = "<group>"; };
 		D5D61ACAA18C40334DAAB46A /* TimedMinMaxTracker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TimedMinMaxTracker.h; sourceTree = "<group>"; };
 		D5D61AFC38BFDD751F10C1A5 /* VIdeoEncoding.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VIdeoEncoding.h; sourceTree = "<group>"; };
+		D5D61B12A55C700FB96C83C3 /* JoiningViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JoiningViewController.m; sourceTree = "<group>"; };
 		D5D61B2954C519324141BCE0 /* AudioShared.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AudioShared.m; sourceTree = "<group>"; };
 		D5D61BBEC1CD98FCE065A176 /* SequenceEncodingPipe.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SequenceEncodingPipe.m; sourceTree = "<group>"; };
 		D5D61BCFDFFC217775E41C2D /* BannedViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BannedViewController.m; sourceTree = "<group>"; };
@@ -333,6 +338,7 @@
 		D5D61D0AB4A7A9EA5C3AC7B8 /* GenderParsing.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GenderParsing.m; sourceTree = "<group>"; };
 		D5D61D2EF4BDE75ED5C9F0D1 /* DobParsing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DobParsing.h; sourceTree = "<group>"; };
 		D5D61D42394687AAC5C21FB8 /* AudioUnitHelpers.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AudioUnitHelpers.m; sourceTree = "<group>"; };
+		D5D61D5E91EF650CAA8D2A26 /* JoiningViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JoiningViewController.h; sourceTree = "<group>"; };
 		D5D61D60E65368E9040EE139 /* EndUserLicenseAgreementViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EndUserLicenseAgreementViewController.h; sourceTree = "<group>"; };
 		D5D61D7435CE35550C2AB293 /* AccessDialog.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AccessDialog.m; sourceTree = "<group>"; };
 		D5D61DA3C9FA2DFD20EDDA21 /* TimedMinMaxTracker.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TimedMinMaxTracker.m; sourceTree = "<group>"; };
@@ -451,6 +457,10 @@
 				517329001D2DACA200636E82 /* CallingCardViewController.m */,
 				D5D615B2E4E76396C91E252B /* ViewTransitions.m */,
 				D5D6109779403FB182CA4689 /* ViewTransitions.h */,
+				D5D61B12A55C700FB96C83C3 /* JoiningViewController.m */,
+				D5D61D5E91EF650CAA8D2A26 /* JoiningViewController.h */,
+				D5D619CA51216CA55DB23208 /* CircleCountdownTimer.m */,
+				D5D61890953AE5E6F4A8FAF7 /* CircleCountdownTimer.h */,
 			);
 			name = Storyboard;
 			sourceTree = "<group>";
@@ -1054,6 +1064,8 @@
 				D5D61CBB8D3C1862F8FD0365 /* HelpViewController.m in Sources */,
 				D5D614A66F87207C79B4A2EC /* MatchingViewController.m in Sources */,
 				D5D61B5DED259C028CBAFB90 /* ViewTransitions.m in Sources */,
+				D5D61807A8891187429E2D16 /* JoiningViewController.m in Sources */,
+				D5D612FCC8CA14CAF2CBD8A5 /* CircleCountdownTimer.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -7,55 +7,27 @@
 #import "Threading.h"
 #import "Timer.h"
 #import "Signal.h"
+#import "CircleCountdownTimer.h"
 
 
 @implementation MatchingViewController {
     id <MatchingAnswerDelegate> _matchingAnswerDelegate;
     CallingCardViewController *_callingCardViewController;
     __weak IBOutlet CircleProgressBar *_matchingCountdown;
+    CircleCountdownTimer *_matchingCountdownTimer;
+}
 
-    Timer *_timeoutTimer;
-    Signal *_updatingMatchingCountdown;
+- (Timer*)cloneTimer {
+    return [_matchingCountdownTimer cloneTimer];
 }
 
 - (void)viewDidLoad {
-    _updatingMatchingCountdown = [[Signal alloc] initWithFlag:false];
-    [_matchingCountdown setHintTextGenerationBlock:^NSString *(CGFloat progress) {
-        int secondsLeft = (int) [_timeoutTimer getSecondsUntilNextTick];
-        return [NSString stringWithFormat:@"%d", secondsLeft];
-    }];
+    _matchingCountdownTimer = [[CircleCountdownTimer alloc] initWithCircleProgressBar:_matchingCountdown matchingAnswerDelegate:_matchingAnswerDelegate];
 }
 
 - (void)reset {
-    if (_timeoutTimer != nil) {
-        [_matchingCountdown setProgress:0 animated:false];
-        [_timeoutTimer reset];
-        [self updateProgress];
-    }
-}
-
-- (void)updateProgress {
-    dispatch_sync_main(^{
-    if ([_updatingMatchingCountdown signalAll]) {
-        [self doUpdateProgress];
-    }
-        });
-}
-
-- (void)doUpdateProgress {
-    dispatch_sync_main(^{
-        float ratioProgress = [_timeoutTimer getRatioProgressThroughTick];
-        [_matchingCountdown setProgress:ratioProgress animated:true];
-        if (ratioProgress >= 1.0) {
-            [_updatingMatchingCountdown clear];
-            [_matchingAnswerDelegate onTimedOut];
-            return;
-        }
-
-        dispatch_async_main(^{
-            [self doUpdateProgress];
-        }, 100);
-    });
+    [_matchingCountdownTimer reset];
+    [_matchingCountdownTimer startUpdating];
 }
 
 - (void)setMatchingAnswerDelegate:(id <MatchingAnswerDelegate>)matchingAnswerDelegate {
@@ -81,15 +53,12 @@
 }
 
 - (IBAction)onButtonAcceptPressed:(id)sender {
+    
     [_matchingAnswerDelegate onMatchAcceptAnswer];
 }
 
 - (void)setMatchingDecisionTimeoutSeconds:(uint)seconds {
-    if (_timeoutTimer == nil) {
-        _timeoutTimer = [[Timer alloc] initWithFrequencySeconds:seconds firingInitially:false];
-    } else {
-        [_timeoutTimer setSecondsFrequency:seconds];
-    }
+    [_matchingCountdownTimer loadTimer:[[Timer alloc] initWithFrequencySeconds:seconds firingInitially:false] onlyIfNew:true];
 }
 - (IBAction)onBlockButtonPressed:(id)sender {
     [_matchingAnswerDelegate onMatchBlocked];

@@ -18,6 +18,8 @@
 
 - (id)initWithFrequencySeconds:(CFAbsoluteTime)frequency firingInitially:(Boolean)initialFire jitterSeconds:(CFAbsoluteTime)jitter;
 
+- (id)initFromTimer:(Timer*)timer;
+
 - (bool)getState;
 
 - (bool)getStateWithFrequencySeconds:(CFAbsoluteTime)frequency;

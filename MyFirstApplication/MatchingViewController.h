@@ -5,6 +5,8 @@
 #import <Foundation/Foundation.h>
 #import "CallingCardViewController.h"
 
+@class Timer;
+
 @protocol MatchingAnswerDelegate
 - (void) onMatchAcceptAnswer;
 
@@ -21,4 +23,6 @@
 - (void)setMatchingDecisionTimeoutSeconds:(uint)seconds;
 
 - (void)reset;
+
+- (Timer*)cloneTimer;
 @end

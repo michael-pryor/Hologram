@@ -22,8 +22,6 @@
 
 + (void)presentViewController:(UIViewController *)parent child:(UIViewController *)child {
     [child didMoveToParentViewController:parent];
-
-    [parent transitionFromViewController:parent toViewController:child duration:<#(NSTimeInterval)duration#> options:<#(UIViewAnimationOptions)options#> animations:<#(void (^ __nullable)(void))animations#> completion:<#(void (^ __nullable)(BOOL finished))completion#>];
 }
 
 + (UIViewController*)initializeAndLoadViewControllerIntoParent:(UIViewController *)parent name:(NSString *)viewControllerName {

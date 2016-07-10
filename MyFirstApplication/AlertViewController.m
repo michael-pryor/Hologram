@@ -11,6 +11,7 @@
 #import "Threading.h"
 #import "ViewInteractions.h"
 #import "ViewTransitions.h"
+#import "JoiningViewController.h"
 
 #define MINIMUM_WAIT_TIME 3.0
 
@@ -44,6 +45,9 @@
     id <MatchingAnswerDelegate> _matchingAnswerDelegate;
 
     bool _matchDecisionMade;
+    __weak IBOutlet UIView *_joiningConversationView;
+    JoiningViewController *_joiningConversationViewController;
+    
     __weak IBOutlet UIView *_matchingView;
     MatchingViewController *_matchingViewController;
 }
@@ -74,19 +78,21 @@
     } else if ([segueName isEqualToString:@"Matching"]) {
         _matchingViewController = [segue destinationViewController];
         [_matchingViewController setMatchingAnswerDelegate:self];
+    } else if ([segueName isEqualToString:@"JoiningConversation"]) {
+        _joiningConversationViewController = [segue destinationViewController];
+        [_joiningConversationViewController setTimeoutDelegate:self];
     }
 }
 
 - (void)viewDidLoad {
     [super viewDidLoad];
 
-    _views = @[_conversationEndView, _matchingView];
+    _views = @[_conversationEndView, _matchingView, _joiningConversationView];
 
     _matchApprovalViewControllerVisible = false;
     _conversationEndViewControllerVisible = false;
     _conversationRatingConsumer = nil;
     _ratingTimeoutSeconds = 0;
-    _conversationEndViewController = self.childViewControllers[0];
 
     // It should be shown at same time as camera, because it sits on top of camera.
     [_backButton setHidden:true];
@@ -305,8 +311,10 @@
 
 - (void)onMatchAcceptAnswer {
     _matchDecisionMade = true;
+    _matchApprovalViewControllerVisible = false;
     [_matchingAnswerDelegate onMatchAcceptAnswer];
-    [self onMatchingFinished];
+    [self showView:_joiningConversationView instant:false];
+    [_joiningConversationViewController consumeRemainingTimer:[_matchingViewController cloneTimer]];
 }
 
 - (void)onMatchingFinished {

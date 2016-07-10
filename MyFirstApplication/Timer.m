@@ -20,6 +20,18 @@
     return [self initWithFrequencySeconds:0 firingInitially:false];
 }
 
+- (id)initFromTimer:(Timer*)timer {
+    self = [super init];
+    if (self) {
+        _secondsEpoch = timer->_secondsEpoch;
+        _secondsJitter = timer->_secondsJitter;
+        _currentJitterValue = timer->_currentJitterValue;
+        _secondsFrequency = timer->_secondsFrequency;
+        _defaultSecondsFrequency = timer->_defaultSecondsFrequency;
+    }
+    return self;
+}
+
 - (id)initWithFrequencySeconds:(CFAbsoluteTime)frequency firingInitially:(Boolean)initialFire {
     return [self initWithFrequencySeconds:frequency firingInitially:initialFire jitterSeconds:0];
 }
