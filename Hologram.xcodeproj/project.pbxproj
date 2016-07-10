@@ -423,44 +423,100 @@
 			name = Pipeline;
 			sourceTree = "<group>";
 		};
-		519227E01BAEC49400DC3C53 /* Storyboard */ = {
+		512C261D1D325496002955F8 /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				512C26241D325599002955F8 /* Post Sharing */,
+				512C26231D325555002955F8 /* Banned */,
+				512C26221D32553A002955F8 /* Alert */,
+				512C26201D325502002955F8 /* Social Login */,
 				51DB961919A8EE05001A63F8 /* ConnectionViewController.h */,
 				51DB961A19A8EE05001A63F8 /* ConnectionViewController.m */,
-				511EB6641B4B0419000E287F /* FacebookLoginViewController.h */,
-				511EB6651B4B0419000E287F /* FacebookLoginViewController.m */,
-				51E219DB193B2D190066D915 /* Storyboard.storyboard */,
-				510F6DF71BA74C1800D2AF48 /* AlertViewController.h */,
-				510F6DF81BA74C1800D2AF48 /* AlertViewController.m */,
+			);
+			name = Core;
+			sourceTree = "<group>";
+		};
+		512C261E1D3254B0002955F8 /* Navigation */ = {
+			isa = PBXGroup;
+			children = (
 				D5D61A72597479299B065AE4 /* CustomNavigationController.m */,
 				D5D610A89DF4541DD9D12B97 /* CustomNavigationController.h */,
+			);
+			name = Navigation;
+			sourceTree = "<group>";
+		};
+		512C261F1D3254BE002955F8 /* Utility */ = {
+			isa = PBXGroup;
+			children = (
 				D5D61361F43525D3DF93DCE0 /* Orientation.m */,
 				D5D61A6B1DCCCED8F72F6EFD /* Orientation.h */,
 				D5D61E1702DA62D0167A5510 /* ViewInteractions.m */,
 				D5D61923E1F12385A8AA014E /* ViewInteractions.h */,
-				517C4E761D16D15300E7A185 /* ConversationEndedViewController.h */,
-				517C4E771D16D15300E7A185 /* ConversationEndedViewController.m */,
-				D5D61BCFDFFC217775E41C2D /* BannedViewController.m */,
-				D5D612FF79799E7D6233D2E9 /* BannedViewController.h */,
-				D5D611C93EBE4BF3E3DE1D08 /* BanPaymentsViewController.m */,
-				D5D61A4F9D149A8AC2058446 /* BanPaymentsViewController.h */,
-				D5D614C41CD23AF45D1CA842 /* FacebookSharedViewController.m */,
-				D5D6115F8DB92DD47B712964 /* FacebookSharedViewController.h */,
+				D5D615B2E4E76396C91E252B /* ViewTransitions.m */,
+				D5D6109779403FB182CA4689 /* ViewTransitions.h */,
+				D5D619CA51216CA55DB23208 /* CircleCountdownTimer.m */,
+				D5D61890953AE5E6F4A8FAF7 /* CircleCountdownTimer.h */,
+			);
+			name = Utility;
+			sourceTree = "<group>";
+		};
+		512C26201D325502002955F8 /* Social Login */ = {
+			isa = PBXGroup;
+			children = (
+				511EB6641B4B0419000E287F /* FacebookLoginViewController.h */,
+				511EB6651B4B0419000E287F /* FacebookLoginViewController.m */,
 				D5D616B06B0B231D072EC3E7 /* EndUserLicenseAgreementViewController.m */,
 				D5D61D60E65368E9040EE139 /* EndUserLicenseAgreementViewController.h */,
 				D5D6189F59FDCA8F6FCFC23A /* HelpViewController.m */,
 				D5D615A996F18971426E16E7 /* HelpViewController.h */,
+			);
+			name = "Social Login";
+			sourceTree = "<group>";
+		};
+		512C26221D32553A002955F8 /* Alert */ = {
+			isa = PBXGroup;
+			children = (
+				510F6DF71BA74C1800D2AF48 /* AlertViewController.h */,
+				510F6DF81BA74C1800D2AF48 /* AlertViewController.m */,
+				517C4E761D16D15300E7A185 /* ConversationEndedViewController.h */,
+				517C4E771D16D15300E7A185 /* ConversationEndedViewController.m */,
 				D5D61DD0755973A44A51380F /* MatchingViewController.m */,
 				D5D6169DAEDEFCA7CE07A6B2 /* MatchingViewController.h */,
 				517328FF1D2DACA200636E82 /* CallingCardViewController.h */,
 				517329001D2DACA200636E82 /* CallingCardViewController.m */,
-				D5D615B2E4E76396C91E252B /* ViewTransitions.m */,
-				D5D6109779403FB182CA4689 /* ViewTransitions.h */,
 				D5D61B12A55C700FB96C83C3 /* JoiningViewController.m */,
 				D5D61D5E91EF650CAA8D2A26 /* JoiningViewController.h */,
-				D5D619CA51216CA55DB23208 /* CircleCountdownTimer.m */,
-				D5D61890953AE5E6F4A8FAF7 /* CircleCountdownTimer.h */,
+			);
+			name = Alert;
+			sourceTree = "<group>";
+		};
+		512C26231D325555002955F8 /* Banned */ = {
+			isa = PBXGroup;
+			children = (
+				D5D611C93EBE4BF3E3DE1D08 /* BanPaymentsViewController.m */,
+				D5D61A4F9D149A8AC2058446 /* BanPaymentsViewController.h */,
+				D5D61BCFDFFC217775E41C2D /* BannedViewController.m */,
+				D5D612FF79799E7D6233D2E9 /* BannedViewController.h */,
+			);
+			name = Banned;
+			sourceTree = "<group>";
+		};
+		512C26241D325599002955F8 /* Post Sharing */ = {
+			isa = PBXGroup;
+			children = (
+				D5D614C41CD23AF45D1CA842 /* FacebookSharedViewController.m */,
+				D5D6115F8DB92DD47B712964 /* FacebookSharedViewController.h */,
+			);
+			name = "Post Sharing";
+			sourceTree = "<group>";
+		};
+		519227E01BAEC49400DC3C53 /* Storyboard */ = {
+			isa = PBXGroup;
+			children = (
+				512C261F1D3254BE002955F8 /* Utility */,
+				512C261E1D3254B0002955F8 /* Navigation */,
+				512C261D1D325496002955F8 /* Core */,
+				51E219DB193B2D190066D915 /* Storyboard.storyboard */,
 			);
 			name = Storyboard;
 			sourceTree = "<group>";
