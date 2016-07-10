@@ -61,6 +61,9 @@
 - (void)onDone {
     [_matchingCountdownTimer stopUpdating];
 }
+- (IBAction)onSocialBackButtonPressed:(id)sender {
+    [_matchingAnswerDelegate onBackToSocialRequest];
+}
 
 - (void)setMatchingDecisionTimeoutSeconds:(uint)seconds {
     [_matchingCountdownTimer loadTimer:[[Timer alloc] initWithFrequencySeconds:seconds firingInitially:false] onlyIfNew:true];

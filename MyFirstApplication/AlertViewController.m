@@ -23,7 +23,6 @@
     IBOutlet UILabel *_alertShortText;
     __weak IBOutlet UILabel *_alertShortTextHigher;
     __weak IBOutlet UIButton *_backButton;
-    void(^_moveToFacebookViewControllerFunc)();
     NSString *_cachedAlertShortText;
     id<MediaOperator> _videoOperator;
     bool _movingToFacebook;
@@ -119,17 +118,9 @@
     _currentView = nil;
     _conversationRatingConsumer = nil;
     _ratingTimeoutSeconds = 0;
-
     _movingToFacebook = false;
-
-    // It should be shown at same time as camera, because it sits on top of camera.
-    [_backButton setHidden:true];
-
     _cachedAlertShortText = nil;
-    _moveToFacebookViewControllerFunc = nil;
     _shouldShowAdverts = false;
-
-
     _matchDecisionMade = false;
 
     // First images loaded in produce black screen for some reason, so better introduce a delay.
@@ -199,7 +190,6 @@
     [_timerSinceAdvertCreated reset];
 
     NSLog(@"Disconnect view controller loaded, unhiding banner advert and setting delegate");
-    [_backButton setHidden:false];
 
     // Use hidden flag on appear/disappear, in case it impacts decision to display adds.
     if (_shouldShowAdverts) {
@@ -208,13 +198,12 @@
     }
 
     _matchDecisionMade = false;
+    _currentView = nil;
 }
 
 - (void)viewDidDisappear:(BOOL)animated {
     // Pause the banner view, stop it loading new adverts.
     NSLog(@"Disconnect view controller hidden, hiding banner advert and removing delegate");
-    [_backButton setHidden:true];
-    [_advertBannerView setHidden:true];
 
     // Ensures state is reset, and starts the video.
     [self hideViewsInstant:true];
@@ -267,32 +256,16 @@
     [_localImageView performSelectorOnMainThread:@selector(setImage:) withObject:image waitUntilDone:YES];
 }
 
-- (void)setMoveToFacebookViewControllerFunc:(void (^)())moveToFacebookViewControllerFunc {
-    _moveToFacebookViewControllerFunc = moveToFacebookViewControllerFunc;
-}
-
-- (IBAction)onGotoFbLogonViewButtonPress:(id)sender {
-    if (_moveToFacebookViewControllerFunc != nil) {
-        _movingToFacebook = true;
-        _moveToFacebookViewControllerFunc();
-    }
-}
-
 - (IBAction)onForwardButtonPress:(id)sender {
     [self onMatchRejectAnswer];
 }
 
-
 - (void)hideViewsInstant:(bool)instant {
-    [self showView:nil instant:instant];
+    [self showView:_localImageViewParent instant:instant];
 }
 
 - (void)showView:(UIView *)viewToShow instant:(bool)instant {
     const float duration = instant ? 0 : 0.25f;
-
-    if (viewToShow == nil ) {
-        viewToShow = _localImageViewParent;
-    }
 
     dispatch_sync_main(^{
         bool shown = false;
@@ -302,9 +275,6 @@
                 [viewToShow setAlpha:0.8f];
                 [ViewInteractions fadeIn:viewToShow completion:nil duration:duration];
             } duration:duration];
-            shown = true;
-        } else if (viewToShow == _currentView) {
-            // Nothing to do.
             shown = true;
         } else {
             for (UIView *view in _views) {
@@ -397,8 +367,8 @@
 - (void)onMatchAcceptAnswer {
     _matchDecisionMade = true;
     [_matchingAnswerDelegate onMatchAcceptAnswer];
-    [self showView:_joiningConversationView instant:false];
     [_joiningConversationViewController consumeRemainingTimer:[_matchingViewController cloneTimer]];
+    [self showView:_joiningConversationView instant:false];
 }
 
 - (void)onMatchingFinished {
@@ -426,6 +396,14 @@
 
 - (void)onTimedOut {
     [self onMatchingFinished];
+}
+
+- (void)onBackToSocialRequest {
+    [_matchingAnswerDelegate onBackToSocialRequest];
+}
+
+- (IBAction)onGotoFbLogonViewButtonPress:(id)sender {
+    [self onBackToSocialRequest];
 }
 
 @end

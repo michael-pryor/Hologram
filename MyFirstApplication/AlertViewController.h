@@ -26,8 +26,6 @@
 
 - (NSString *)getScreenName;
 
-- (void)setMoveToFacebookViewControllerFunc:(void (^)())moveToFacebookViewControllerFunc;
-
 - (void)enableAdverts;
 
 - (void)setConversationEndedViewVisible:(bool)visible instantly:(bool)instant;

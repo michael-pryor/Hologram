@@ -767,12 +767,6 @@
                     [_disconnectViewController enableAdverts];
                 }
 
-                __weak typeof(self) weakSelf = self;
-                __weak AlertViewController *weakViewController;
-                [_disconnectViewController setMoveToFacebookViewControllerFunc:^{
-                    [weakSelf onGotoFbLogonViewButtonPress:weakViewController];
-                }];
-
                 if (_mediaController != nil) {
                     [_mediaController setLocalImageDelegate:_disconnectViewController];
                 }
@@ -1033,6 +1027,10 @@
 - (void)onMatchBlocked {
     NSLog(@"Blocked and reported match");
     [self onConversationRating:S_BLOCK];
+}
+
+- (void)onBackToSocialRequest {
+    [self onGotoFbLogonViewButtonPress:self];
 }
 
 @end
