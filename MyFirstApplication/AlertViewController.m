@@ -19,7 +19,9 @@
 @implementation AlertViewController {
     // Base view, describing state of app and connection.
     __weak IBOutlet UIImageView *_localImageView;
+    __weak IBOutlet UIView *_localImageViewParent;
     IBOutlet UILabel *_alertShortText;
+    __weak IBOutlet UILabel *_alertShortTextHigher;
     __weak IBOutlet UIButton *_backButton;
     void(^_moveToFacebookViewControllerFunc)();
     NSString *_cachedAlertShortText;
@@ -68,7 +70,7 @@
 }
 
 - (bool)shouldVideoBeOn {
-    return _currentView == nil && !_movingToFacebook;
+    return _currentView == _localImageViewParent && !_movingToFacebook;
 }
 
 - (void)signalMovingToFacebookController {
@@ -90,7 +92,9 @@
         [_timerSinceAdvertCreated reset];
 
         _alertShortText.text = shortText;
+        _alertShortTextHigher.text = shortText;
         [_alertShortText setNeedsDisplay];
+        [_alertShortTextHigher setNeedsDisplay];
     });
 }
 
@@ -110,7 +114,7 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
 
-    _views = @[_conversationEndView, _matchingView, _joiningConversationView];
+    _views = @[_conversationEndView, _matchingView, _joiningConversationView, _localImageViewParent];
 
     _currentView = nil;
     _conversationRatingConsumer = nil;
@@ -185,7 +189,9 @@
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
-
+    
+    _movingToFacebook = false;
+    
     [_videoOperator stopAudio];
     [_videoOperator stopVideo];
 
@@ -215,7 +221,6 @@
     if (!_movingToFacebook) {
         [_videoOperator startAudio];
     }
-    _movingToFacebook = false;
 
     [_joiningConversationViewController stop];
 }
@@ -283,52 +288,74 @@
 }
 
 - (void)showView:(UIView *)viewToShow instant:(bool)instant {
-    const float duration = instant ? 0 : 0.75f;
+    const float duration = instant ? 0 : 0.25f;
+
+    if (viewToShow == nil ) {
+        viewToShow = _localImageViewParent;
+    }
 
     dispatch_sync_main(^{
         bool shown = false;
-        for (UIView *view in _views) {
-            if (view == viewToShow) {
-                if (viewToShow == _matchingView) {
-                    [ViewInteractions fadeOut:viewToShow thenIn:viewToShow duration:duration];
-                    shown = true;
+        
+        if (viewToShow == _matchingView) {
+            [ViewInteractions fadeOut:_currentView completion: ^(BOOL completed) {
+                [viewToShow setAlpha:0.8f];
+                [ViewInteractions fadeIn:viewToShow completion:nil duration:duration];
+            } duration:duration];
+            shown = true;
+        } else if (viewToShow == _currentView) {
+            [ViewInteractions fadeOut:viewToShow thenIn:viewToShow duration:duration];
+            shown = true;
+        } else {
+            for (UIView *view in _views) {
+                if (view == viewToShow) {
+                    continue;
                 }
-                continue;
-            }
 
-            if ([view alpha] > 0) {
-                if (!shown && [view alpha] == 1) {
-                    if (viewToShow != nil) {
-                        [ViewInteractions fadeOut:view thenIn:viewToShow duration:duration];
+                if ([view alpha] > 0) {
+                    if (!shown && [view alpha] == 1) {
+                        if (viewToShow != nil) {
+                            [ViewInteractions fadeOut:view thenIn:viewToShow duration:duration];
+                        } else {
+                            [ViewInteractions fadeOut:view completion:nil duration:duration];
+                        }
+                        shown = true;
                     } else {
-                        [ViewInteractions fadeOut:view completion:nil duration:duration];
+                        [view setAlpha:0];
                     }
-                    shown = true;
-                } else {
-                    [view setAlpha:0];
                 }
             }
         }
+
         if (!shown && viewToShow != nil) {
             [ViewInteractions fadeIn:viewToShow completion:nil duration:duration];
             shown = true;
         }
-
+        
         if (shown) {
             _currentView = viewToShow;
         } else {
             _currentView = nil;
         }
-
-        [self onViewShown:_currentView];
+        
+        [self onViewShown:_currentView duration:duration*3];
     });
 }
 
-- (void)onViewShown:(UIView*)view {
+- (void)onViewShown:(UIView*)view duration:(float)duration {
     if ([self shouldVideoBeOn]) {
         [_videoOperator startVideo];
+        [ViewInteractions fadeIn:_alertShortText completion:nil duration:duration];
+
     } else {
+        [_alertShortText setAlpha:0];
         [_videoOperator stopVideo];
+    }
+
+    if (view == _conversationEndView || view == _joiningConversationView) {
+        [ViewInteractions fadeIn:_alertShortTextHigher completion:nil duration:duration];
+    } else {
+        [_alertShortTextHigher setAlpha:0];
     }
 }
 
