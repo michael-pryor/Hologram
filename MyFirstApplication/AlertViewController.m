@@ -38,6 +38,7 @@
     ConversationEndedViewController *_conversationEndViewController;
     id <ConversationRatingConsumer> _conversationRatingConsumer;
     uint _ratingTimeoutSeconds;
+    Signal *_waitingForRating;
 
 
     // Matching i.e. viewing cards.
@@ -55,7 +56,7 @@
 }
 
 - (bool)isViewCurrent:(UIView *)view {
-    return [_viewCollection getCurrentlyDisplayedView] == view;
+    return [_viewCollection isViewDisplayedWideSearch:view];
 }
 
 - (bool)isInConversationEndedView {
@@ -113,7 +114,8 @@
     NSLog(@"!!!!!!LOAD!!!!!!");
 
     _viewVisible = false;
-    
+    _waitingForRating = [[Signal alloc] initWithFlag:false];
+
     _views = @[_conversationEndView, _matchingView, _joiningConversationView, _localImageViewParent];
 
     for (UIView *view in _views) {
@@ -129,7 +131,7 @@
     // This is always the first view to be shown!
     // And we need the video to be running so that messages can be sent across,
     // client only removes view controller when image is received.
-    [self showView:_localImageViewParent instant:true];
+    //[self showView:_localImageViewParent instant:true];
 
     // First images loaded in produce black screen for some reason, so better introduce a delay.
 
@@ -212,7 +214,7 @@
     _viewVisible = false;
 
     NSLog(@"!!!!!!DISAPPEAR!!!!!!");
-    
+
     // Pause the banner view, stop it loading new adverts.
     NSLog(@"Disconnect view controller hidden, hiding banner advert and removing delegate");
 
@@ -278,6 +280,8 @@
 }
 
 - (void)showView:(UIView *)viewToShow instant:(bool)instant {
+    NSLog(@"INITIAL!!");
+    [self printViewName:viewToShow];
     [_viewCollection displayView:viewToShow];
 }
 
@@ -286,15 +290,15 @@
         return;
     }
 
-    if (visible) {
+    if (visible && [_waitingForRating signalAll]) {
         [_conversationEndViewController reset];
         [self showView:_conversationEndView instant:instant];
         [self setViewRelevantInformationText:@"Please rate your previous conversation\nThis will influence their karma"];
         dispatch_async_main(^{
             [_conversationEndViewController onRatingsCompleted];
+            [_waitingForRating clear];
         }, _ratingTimeoutSeconds * 1000);
-
-    } else {
+    } else if (![_waitingForRating isSignaled]){
         [self hideViewsInstant:instant];
     }
 
@@ -310,8 +314,9 @@
 }
 
 - (void)onConversationRating:(ConversationRating)conversationRating {
-    [self setConversationEndedViewVisible:false instantly:false];
     [_conversationRatingConsumer onConversationRating:conversationRating];
+    [_waitingForRating clear];
+    [self setConversationEndedViewVisible:false instantly:false];
 }
 
 - (void)onMatchAcceptAnswer {
@@ -334,9 +339,13 @@
     [self showView:_matchingView instant:false];
 }
 
-- (void)onMatchRejectAnswer {
-    [_matchingAnswerDelegate onMatchRejectAnswer];
-    [self onMatchingFinished];
+- (bool)onMatchRejectAnswer {
+    if ([_matchingAnswerDelegate onMatchRejectAnswer]) {
+        [self onMatchingFinished];
+        return true;
+    }
+
+    return false;
 }
 
 - (void)onMatchBlocked {
@@ -358,6 +367,9 @@
 
 
 - (void)onStartedDisplayingView:(UIView *)view {
+    NSLog(@"STARTED!!");
+    [self printViewName:view];
+
     if (!_viewVisible) {
         return;
     }
@@ -378,7 +390,21 @@
     }
 }
 
+- (void)printViewName:(UIView *)view {
+    if (view == _joiningConversationView) {
+        NSLog(@"*******_joiningConversationView");
+    } else if (view == _matchingView) {
+        NSLog(@"*******_matchingView");
+    } else if (view == _localImageViewParent) {
+        NSLog(@"*******_localImageViewParent");
+    } else if (view == _conversationEndView) {
+        NSLog(@"*******_conversationEndView");
+    }
+}
+
 - (void)onFinishedDisplayingView:(UIView *)view {
+    NSLog(@"FINISHED!!");
+    [self printViewName:view];
 }
 
 @end

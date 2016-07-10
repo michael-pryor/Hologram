@@ -17,4 +17,6 @@
 - (void)displayView:(UIView *)view;
 
 - (UIView*)getCurrentlyDisplayedView;
+
+- (bool)isViewDisplayedWideSearch:(UIView *)view;
 @end

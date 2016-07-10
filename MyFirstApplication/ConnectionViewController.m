@@ -698,6 +698,7 @@
     [_connection sendTcpPacket:_skipPersonPacket];
     [self resetFlags];
     [self setDisconnectStateWithShortDescription:@"Matching you with somebody to talk with\nYou skipped the other person" showConversationEndView:true];
+    return;
 }
 
 - (void)doGotoFbLogonView {
@@ -849,8 +850,8 @@
 }
 
 - (void)resetFlags {
-    _waitingForCompleteMatch = true;
     _waitingForProspectiveMatch = true;
+    _waitingForCompleteMatch = true;
 
     // Note: I have deliberately not included _shouldRateAfterSessionEnd!
 }
@@ -886,7 +887,9 @@
                 return;
             }
 
-            [self resetFlags];
+            _waitingForCompleteMatch = true;
+            // Excluded prospective match, because we still want user to feel like they can reject too.
+
             [self setDisconnectStateWithShortDescription:@"Matching you with somebody to talk with\nThe other person skipped you" showConversationEndView:true];
         } else if (operation == SHARE_FACEBOOK_INFO) {
             [packet getUnsignedInteger8];
@@ -1064,9 +1067,10 @@
     [_connection sendTcpPacket:buffer];
 }
 
-- (void)onMatchRejectAnswer {
+- (bool)onMatchRejectAnswer {
     NSLog(@"Rejected conversation, skipping and rating");
     [self doSkipPerson];
+    return true;
 }
 
 - (void)onMatchBlocked {

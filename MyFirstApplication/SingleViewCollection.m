@@ -10,7 +10,7 @@
     UIView *_requestedView;
 
     UIView *_currentRealView;
-    UIView *_viewBeingDisplayedNow;
+    UIView *_viewBeingLoaded;
 
     id <ViewChangeNotifier> _viewChangeNotifier;
 }
@@ -29,23 +29,29 @@
     return _currentRealView;
 }
 
+- (bool)isViewDisplayedWideSearch:(UIView *)view {
+    return (_currentRealView == view ||
+            _viewBeingLoaded == view ||
+            _requestedView == view);
+}
+
 - (void)onCompletion:(BOOL)completed {
     UIView *viewToUse;
     UIView *previousViewToUse;
     @synchronized (self) {
         previousViewToUse = _currentRealView;
         if (completed) {
-            _currentRealView = _viewBeingDisplayedNow;
+            _currentRealView = _viewBeingLoaded;
         }
 
         if (_requestedView == nil) {
             if (previousViewToUse != nil) {
                 [_viewChangeNotifier onFinishedDisplayingView:previousViewToUse];
             }
-            _viewBeingDisplayedNow = nil;
+            _viewBeingLoaded = nil;
             return;
         }
-        viewToUse = _viewBeingDisplayedNow = _requestedView;
+        viewToUse = _viewBeingLoaded = _requestedView;
         _requestedView = nil;
     }
 
@@ -69,9 +75,9 @@
     @synchronized (self) {
         _requestedView = view;
 
-        doDisplay = _viewBeingDisplayedNow == nil;
+        doDisplay = _viewBeingLoaded == nil;
         if (doDisplay) {
-            _viewBeingDisplayedNow = view;
+            _viewBeingLoaded = view;
         }
         previousView = _currentRealView;
     }

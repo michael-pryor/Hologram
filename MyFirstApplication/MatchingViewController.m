@@ -6,7 +6,6 @@
 #import "MatchingViewController.h"
 #import "Threading.h"
 #import "Timer.h"
-#import "Signal.h"
 #import "CircleCountdownTimer.h"
 
 
@@ -17,7 +16,7 @@
     CircleCountdownTimer *_matchingCountdownTimer;
 }
 
-- (Timer*)cloneTimer {
+- (Timer *)cloneTimer {
     return [_matchingCountdownTimer cloneTimer];
 }
 
@@ -49,8 +48,9 @@
 }
 
 - (IBAction)onButtonRejectTap:(id)sender {
-    [self onDone];
-    [_matchingAnswerDelegate onMatchRejectAnswer];
+    if ([_matchingAnswerDelegate onMatchRejectAnswer]) {
+        [self onDone];
+    }
 }
 
 - (IBAction)onButtonAcceptPressed:(id)sender {
@@ -61,6 +61,7 @@
 - (void)onDone {
     [_matchingCountdownTimer stopUpdating];
 }
+
 - (IBAction)onSocialBackButtonPressed:(id)sender {
     [_matchingAnswerDelegate onBackToSocialRequest];
 }
@@ -68,6 +69,7 @@
 - (void)setMatchingDecisionTimeoutSeconds:(uint)seconds {
     [_matchingCountdownTimer loadTimer:[[Timer alloc] initWithFrequencySeconds:seconds firingInitially:false] onlyIfNew:true];
 }
+
 - (IBAction)onBlockButtonPressed:(id)sender {
     [self onDone];
     [_matchingAnswerDelegate onMatchBlocked];

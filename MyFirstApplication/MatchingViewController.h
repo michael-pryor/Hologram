@@ -10,7 +10,7 @@
 @protocol MatchingAnswerDelegate
 - (void) onMatchAcceptAnswer;
 
-- (void) onMatchRejectAnswer;
+- (bool) onMatchRejectAnswer;
 
 - (void) onMatchBlocked;
 
