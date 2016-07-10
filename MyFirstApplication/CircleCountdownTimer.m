@@ -67,8 +67,11 @@
 
 - (void)loadTimer:(Timer *)timer onlyIfNew:(bool)mustBeNew {
     if (!mustBeNew || _timeoutTimer == nil) {
-        [self restart];
+        dispatch_sync_main(^{
+            [_progressObject setProgress:[_timeoutTimer getRatioProgressThroughTick] animated:false];
+        });
         _timeoutTimer = timer;
+        [self startUpdating];
     } else {
         [_timeoutTimer setSecondsFrequency:[timer secondsFrequency]];
     }

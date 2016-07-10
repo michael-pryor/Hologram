@@ -304,7 +304,7 @@
             } duration:duration];
             shown = true;
         } else if (viewToShow == _currentView) {
-            [ViewInteractions fadeOut:viewToShow thenIn:viewToShow duration:duration];
+            // Nothing to do.
             shown = true;
         } else {
             for (UIView *view in _views) {
