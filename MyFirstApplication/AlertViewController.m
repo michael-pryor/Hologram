@@ -23,8 +23,7 @@
     IBOutlet UILabel *_alertShortText;
     __weak IBOutlet UILabel *_alertShortTextHigher;
     __weak IBOutlet UIButton *_backButton;
-    NSString *_cachedAlertShortText;
-    id<MediaOperator> _videoOperator;
+    id <MediaOperator> _mediaOperator;
     bool _movingToFacebook;
 
     // Advert.
@@ -44,8 +43,6 @@
     __weak IBOutlet UIView *_matchingView;
     MatchingViewController *_matchingViewController;
     id <MatchingAnswerDelegate> _matchingAnswerDelegate;
-    uint _matchDecisionTimeoutSeconds;
-    bool _matchDecisionMade;
 
     // Accepted a match, waiting for other side to accept too.
     __weak IBOutlet UIView *_joiningConversationView;
@@ -56,7 +53,7 @@
     UIView *_currentView;
 }
 
-- (bool)isViewCurrent:(UIView*)view {
+- (bool)isViewCurrent:(UIView *)view {
     return _currentView == view;
 }
 
@@ -69,30 +66,29 @@
 }
 
 - (bool)shouldVideoBeOn {
-    return _currentView == _localImageViewParent && !_movingToFacebook;
+    // We need video in the joining stage so that we send some packets
+    // and remove each other's disconnect view.
+    return (_currentView == _localImageViewParent ||
+            _currentView == _joiningConversationView) && !_movingToFacebook;
 }
 
 - (void)signalMovingToFacebookController {
     _movingToFacebook = true;
 }
 
-- (void)setAlertShortText:(NSString *)shortText {
-    _cachedAlertShortText = shortText;
-    if ([self isInConversationEndedView]) {
-        return;
-    }
-
-    [self doSetAlertShortText:shortText];
-}
-
-- (void)doSetAlertShortText:(NSString *)shortText {
+- (void)setGenericInformationText:(NSString *)shortText {
     dispatch_sync_main(^{
         // Alert text has changed, wait at least two seconds more before clearing display.
         [_timerSinceAdvertCreated reset];
 
         _alertShortText.text = shortText;
-        _alertShortTextHigher.text = shortText;
         [_alertShortText setNeedsDisplay];
+    });
+}
+
+- (void)setViewRelevantInformationText:(NSString *)text {
+    dispatch_sync_main(^{
+        _alertShortTextHigher.text = text;
         [_alertShortTextHigher setNeedsDisplay];
     });
 }
@@ -115,13 +111,16 @@
 
     _views = @[_conversationEndView, _matchingView, _joiningConversationView, _localImageViewParent];
 
-    _currentView = nil;
     _conversationRatingConsumer = nil;
     _ratingTimeoutSeconds = 0;
     _movingToFacebook = false;
-    _cachedAlertShortText = nil;
     _shouldShowAdverts = false;
-    _matchDecisionMade = false;
+
+    // This is always the first view to be shown!
+    // And we need the video to be running so that messages can be sent across,
+    // client only removes view controller when image is received.
+    _currentView = nil;
+    [self showView:_localImageViewParent instant:true];
 
     // First images loaded in produce black screen for some reason, so better introduce a delay.
 
@@ -180,11 +179,9 @@
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
-    
+
     _movingToFacebook = false;
-    
-    [_videoOperator stopAudio];
-    [_videoOperator stopVideo];
+    [_mediaOperator stopAudio];
 
     [_timerSinceAdvertCreated setSecondsFrequency:MINIMUM_WAIT_TIME];
     [_timerSinceAdvertCreated reset];
@@ -196,9 +193,6 @@
         [_advertBannerView setHidden:false];
         [_advertView loadAd];
     }
-
-    _matchDecisionMade = false;
-    _currentView = nil;
 }
 
 - (void)viewDidDisappear:(BOOL)animated {
@@ -208,7 +202,7 @@
     // Ensures state is reset, and starts the video.
     [self hideViewsInstant:true];
     if (!_movingToFacebook) {
-        [_videoOperator startAudio];
+        [_mediaOperator startAudio];
     }
 
     [_joiningConversationViewController stop];
@@ -226,7 +220,7 @@
 }
 
 - (Boolean)hideIfVisibleAndReady {
-    if (!_matchDecisionMade || ![_timerSinceAdvertCreated getState]) {
+    if (![_timerSinceAdvertCreated getState]) {
         return false;
     }
 
@@ -269,12 +263,12 @@
 
     dispatch_sync_main(^{
         bool shown = false;
-        
+
         if (viewToShow == _matchingView) {
-            [ViewInteractions fadeOut:_currentView completion: ^(BOOL completed) {
+            [ViewInteractions fadeOut:_currentView completion:^(BOOL completed) {
                 [viewToShow setAlpha:0.8f];
                 [ViewInteractions fadeIn:viewToShow completion:nil duration:duration];
-            } duration:duration];
+            }                duration:duration];
             shown = true;
         } else {
             for (UIView *view in _views) {
@@ -301,25 +295,25 @@
             [ViewInteractions fadeIn:viewToShow completion:nil duration:duration];
             shown = true;
         }
-        
+
         if (shown) {
             _currentView = viewToShow;
         } else {
             _currentView = nil;
         }
-        
-        [self onViewShown:_currentView duration:duration*3];
+
+        [self onViewShown:_currentView duration:duration * 3];
     });
 }
 
-- (void)onViewShown:(UIView*)view duration:(float)duration {
+- (void)onViewShown:(UIView *)view duration:(float)duration {
     if ([self shouldVideoBeOn]) {
-        [_videoOperator startVideo];
+        [_mediaOperator startVideo];
         [ViewInteractions fadeIn:_alertShortText completion:nil duration:duration];
 
     } else {
         [_alertShortText setAlpha:0];
-        [_videoOperator stopVideo];
+        [_mediaOperator stopVideo];
     }
 
     if (view == _conversationEndView || view == _joiningConversationView) {
@@ -337,26 +331,24 @@
     if (visible) {
         [_conversationEndViewController reset];
         [self showView:_conversationEndView instant:instant];
-        [self doSetAlertShortText:@"Please rate your previous conversation\nThis will influence their karma"];
+        [self setViewRelevantInformationText:@"Please rate your previous conversation\nThis will influence their karma"];
         dispatch_async_main(^{
             [_conversationEndViewController onRatingsCompleted];
         }, _ratingTimeoutSeconds * 1000);
 
     } else {
         [self hideViewsInstant:instant];
-        [self doSetAlertShortText:_cachedAlertShortText];
     }
 
 }
 
 - (void)setConversationRatingConsumer:(id <ConversationRatingConsumer>)consumer matchingAnswerDelegate:(id <MatchingAnswerDelegate>)matchingAnswerDelegate mediaOperator:(id <MediaOperator>)videoOperator ratingTimeoutSeconds:(uint)ratingTimeoutSeconds matchDecisionTimeoutSeconds:(uint)matchDecisionTimeoutSeconds {
     _conversationRatingConsumer = consumer;
-    _matchDecisionTimeoutSeconds = matchDecisionTimeoutSeconds;
     _ratingTimeoutSeconds = ratingTimeoutSeconds;
     [_conversationEndViewController setConversationRatingConsumer:self];
     [_matchingViewController setMatchingDecisionTimeoutSeconds:matchDecisionTimeoutSeconds];
     _matchingAnswerDelegate = matchingAnswerDelegate;
-    _videoOperator = videoOperator;
+    _mediaOperator = videoOperator;
 }
 
 - (void)onConversationRating:(ConversationRating)conversationRating {
@@ -365,8 +357,8 @@
 }
 
 - (void)onMatchAcceptAnswer {
-    _matchDecisionMade = true;
     [_matchingAnswerDelegate onMatchAcceptAnswer];
+    [self setViewRelevantInformationText:@"Waiting for your match to accept too"];
     [_joiningConversationViewController consumeRemainingTimer:[_matchingViewController cloneTimer]];
     [self showView:_joiningConversationView instant:false];
 }

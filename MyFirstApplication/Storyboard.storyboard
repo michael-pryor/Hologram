@@ -1705,7 +1705,7 @@
                         <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                         <constraints>
                             <constraint firstItem="mJ6-5h-TaN" firstAttribute="centerX" secondItem="XAx-Mf-MRE" secondAttribute="centerX" priority="900" constant="150" id="0wV-ZS-Mzc"/>
-                            <constraint firstItem="WbH-zj-EdI" firstAttribute="top" relation="greaterThanOrEqual" secondItem="ErH-ds-blI" secondAttribute="bottom" id="5oL-Mj-aGG"/>
+                            <constraint firstItem="WbH-zj-EdI" firstAttribute="top" relation="greaterThanOrEqual" secondItem="ErH-ds-blI" secondAttribute="bottom" constant="20" id="5oL-Mj-aGG"/>
                             <constraint firstItem="o7m-AH-8Vp" firstAttribute="centerY" secondItem="XAx-Mf-MRE" secondAttribute="centerY" id="5pW-yT-qsd"/>
                             <constraint firstItem="hHv-ej-2Dw" firstAttribute="centerY" secondItem="XAx-Mf-MRE" secondAttribute="centerY" priority="900" constant="-100" id="9PS-ly-aPU"/>
                             <constraint firstItem="UQM-WV-GRi" firstAttribute="centerX" secondItem="o7m-AH-8Vp" secondAttribute="centerX" id="HtU-xA-Ogl"/>
@@ -3316,7 +3316,7 @@ i. The laws of the State of California, excluding its conflicts of law rules, go
         <image name="video_problem" width="2482" height="1860"/>
     </resources>
     <inferredMetricsTieBreakers>
-        <segue reference="OTa-FO-5Df"/>
+        <segue reference="6jl-9h-VrO"/>
         <segue reference="8aU-hO-kz9"/>
     </inferredMetricsTieBreakers>
 </document>

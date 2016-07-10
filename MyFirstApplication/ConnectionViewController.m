@@ -67,7 +67,17 @@
     UIColor *_buttonsStartingColour;
 
     // State
-    volatile bool _waitingForNewEndPoint;
+    // These three booleans are the most important.
+
+    // Waiting for a full blown audio/video chat to start.
+    volatile bool _waitingForCompleteMatch;
+
+    // Waiting to receive a match which we can approve.
+    volatile bool _waitingForProspectiveMatch;
+
+    // Waiting to approve the prospective match.
+    volatile bool _prospectiveMatchNotYetAccepted;
+
     bool _isConnectionActive;
     bool _isScreenInUse;
     bool _hasHadAtLeastOneConversation;
@@ -111,7 +121,6 @@
     // How long in current conversation.
     Timer *_conversationDuration;
 
-    bool _askForRating;
 }
 
 // View initially load; happens once per process.
@@ -128,7 +137,6 @@
 
     _backgroundCounter = 0;
 
-    _askForRating = false;
 
     // Hack for arden crescent, should be nil.
     _cachedResolvedDns = @"192.168.1.92";
@@ -165,7 +173,10 @@
     _permDisconnectPacket = [[ByteBuffer alloc] init];
     [_permDisconnectPacket addUnsignedInteger8:DISCONNECT_PERM];
 
-    _waitingForNewEndPoint = true;
+    _waitingForCompleteMatch = true;
+    _waitingForProspectiveMatch = true;
+    _prospectiveMatchNotYetAccepted = true;
+
     _isConnectionActive = false;
 
     _gpsState = [[GpsState alloc] initWithNotifier:self timeout:5];
@@ -465,13 +476,19 @@
         if (previousState == state) {
             return;
         }
+
+        // At this point we are receiving connection details for a client ready to video chat with us,
+        // so we're not waiting for complete or prospective match.
+        _waitingForCompleteMatch = false;
+        _waitingForProspectiveMatch = false;
+
         NatState previousStateLocal = previousState;
         previousState = state;
         NSTimeInterval secondsTimed = [_connectionStateTimer getSecondsSinceLastTick];
         [_connectionStateTimer reset];
 
         // We've accepted each other and video is about to start.
-        _askForRating = true;
+        _prospectiveMatchNotYetAccepted = false;
 
         if (state == ROUTED) {
             NSLog(@"Regressed to routing mode");
@@ -511,12 +528,17 @@
     });
 }
 
+/**
+ * Note: during reconnects we get NAT punchthrough information only, so that is why _waitingForProspectiveMatch is set to false
+ * when receiving NAT information, and why it's okay that setName doesn't get called.
+ */
 - (void)setName:(NSString *)name profilePicture:(UIImage *)profilePicture callingCardText:(NSString *)callingCardText age:(uint)age distance:(uint)distance {
     [_conversationDuration reset];
     [_socialShared clear];
 
     // Just matched with somebody new, but they need to accept or reject us before video starts.
-    _askForRating = false;
+    _prospectiveMatchNotYetAccepted = true;
+    _waitingForProspectiveMatch = false;
 
     dispatch_sync_main(^{
         [_disconnectViewController setName:name profilePicture:profilePicture callingCardText:callingCardText age:age distance:distance];
@@ -550,8 +572,6 @@
 
         NSLog(@"Distance from other user: %d, producing string: %@", distance, distanceString);
         [[Analytics getInstance] pushEventWithCategory:@"conversation" action:@"distance" label:nil value:@(distance)];
-
-        _waitingForNewEndPoint = false;
     });
 }
 
@@ -608,7 +628,7 @@
     dispatch_sync_main(^{
         if (_disconnectViewController != nil) {
             // Waiting for server to match us with somebody new.
-            if (_waitingForNewEndPoint) {
+            if (![self isReadyForChat]) {
                 return;
             }
 
@@ -649,7 +669,7 @@
 }
 
 - (void)doSkipPerson {
-    if (_waitingForNewEndPoint && !_isSkippableDespiteNoMatch) {
+    if (_waitingForProspectiveMatch && !_isSkippableDespiteNoMatch) {
         NSLog(@"Ignoring skip request, nobody to skip");
         return;
     }
@@ -747,19 +767,34 @@
     });
 }
 
+- (bool)isReadyForChat {
+    return !_prospectiveMatchNotYetAccepted && !_waitingForCompleteMatch && !_waitingForProspectiveMatch;
+}
 
 // Display view overlay showing how connection is being recovered.
 - (void)setDisconnectStateWithShortDescription:(NSString *)shortDescription showConversationEndView:(bool)showConversationEndView {
-    if (!_askForRating) {
+    // If we haven't accepted or rejected the client yet, then don't ask to rate the conversation,
+    // since we can't have had one.
+    if (_prospectiveMatchNotYetAccepted) {
         showConversationEndView = false;
     }
 
     void (^block)() = ^{
         dispatch_sync_main(^{
+            if (_inDifferentView) {
+                return;
+            }
+
             // Show the disconnect storyboard.
             Boolean alreadyPresented = _disconnectViewController != nil;
             if (!alreadyPresented) {
                 [self preprepareRuntimeView];
+
+                // We don't know what is going to happen with this session, so assume the worst.
+                // Server will update us if anything can be recovered.
+                _waitingForCompleteMatch = true;
+                _waitingForProspectiveMatch = true;
+                _prospectiveMatchNotYetAccepted = true;
 
                 _disconnectViewController = (AlertViewController *) [ViewTransitions initializeViewControllerFromParent:self name:@"DisconnectAlertView"];
 
@@ -780,11 +815,10 @@
             // Set its content
             [_disconnectViewController setConversationRatingConsumer:self matchingAnswerDelegate:self mediaOperator:_mediaController ratingTimeoutSeconds:_ratingTimeoutSeconds matchDecisionTimeoutSeconds:_matchDecisionTimeout];
             [_disconnectViewController setConversationEndedViewVisible:showConversationEndView instantly:true];
-            [_disconnectViewController setAlertShortText:shortDescription];
+            [_disconnectViewController setGenericInformationText:shortDescription];
 
             if (!alreadyPresented) {
                 [ViewTransitions presentViewController:self child:_disconnectViewController];
-                _waitingForNewEndPoint = true;
 
                 // Important so that we don't notify google analytics of screen change, whilst inside FB view.
                 if (!_inDifferentView) {
@@ -884,7 +918,7 @@
         }
     } else {
         // Waiting for server to match us with somebody new.
-        if (_waitingForNewEndPoint) {
+        if (_waitingForCompleteMatch) {
             return;
         }
 

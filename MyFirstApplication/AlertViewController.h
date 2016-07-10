@@ -18,7 +18,7 @@
 @protocol MediaOperator;
 
 @interface AlertViewController : UIViewController <FBAdViewDelegate, NewImageDelegate, ConversationRatingConsumer, MatchingAnswerDelegate, CallingCardDataProvider>
-- (void)setAlertShortText:(NSString *)shortText;
+- (void)setGenericInformationText:(NSString *)shortText;
 
 - (Boolean)hideIfVisibleAndReady;
 

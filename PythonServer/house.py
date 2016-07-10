@@ -323,7 +323,8 @@ class House:
 
                 # A client has reconnected, and wants to use the old room.
                 if clientOld is not client:
-                    logger.debug("Old room reused")
+                    logger.debug("Old room reused, due to client [%s] reconnecting" % client)
+                    client.transitionState(None, Client.State.MATCHED)
                     self.room_participant[client] = clientMatch
                     self.room_participant[clientMatch] = client
 
