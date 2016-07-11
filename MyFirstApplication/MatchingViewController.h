@@ -14,9 +14,8 @@
 
 - (void) onMatchBlocked;
 
-@optional
 - (void) onBackToSocialRequest;
-@optional
+
 - (void) onTimedOut;
 @end
 

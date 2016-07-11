@@ -743,8 +743,16 @@ class Client(object):
         self.social_share_information_packet = client.social_share_information_packet
         self.state = client.state
         self.skipped_timed_out = client.skipped_timed_out
-        self.accepting_match_expiry_action = client.accepting_match_expiry_action
         self.approved_match = client.approved_match
+
+        # This isn't setup to work properly on the client side, after they reconnect
+        # they won't have the ability to give a rating. So let's make sure server
+        # side state reflects this.
+        #
+        # Mostly this will just transition our state from RATING to MATCHING.
+        if client.client_from_previous_conversation is not None:
+            self.client_from_previous_conversation = client.client_from_previous_conversation
+            self._onWaitingForRatingTimeout()
 
     # Must be protected by house lock.
     def onSuccessfulMatch(self):

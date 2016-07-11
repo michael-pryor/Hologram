@@ -315,7 +315,7 @@ class House:
             if client not in self.room_participant:
                 if client.state != Client.State.MATCHING and client.state != Client.State.MATCHED:
                     return
-                
+
                 clientMatch = self.attemptTakeRoom(client)
             else:
                 clientMatch = self.room_participant[client]

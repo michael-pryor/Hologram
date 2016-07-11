@@ -40,6 +40,7 @@
     id <ConversationRatingConsumer> _conversationRatingConsumer;
     uint _ratingTimeoutSeconds;
     Signal *_waitingForRating;
+    Timer *_ratingStartedAt;
 
 
     // Matching i.e. viewing cards.
@@ -130,6 +131,7 @@
 
     _viewCollection = [[SingleViewCollection alloc] initWithDuration:0.5f viewChangeNotifier:self];
     _conversationRatingConsumer = nil;
+    _ratingStartedAt = nil;
     _ratingTimeoutSeconds = 0;
     _movingToFacebook = false;
     _shouldShowAdverts = false;
@@ -299,7 +301,13 @@
         [_conversationEndViewController reset];
         [self showView:_conversationEndView showQuickly:showQuickly];
         [self setViewRelevantInformationText:@"Please rate your previous conversation\nThis will influence their karma"];
+        _ratingStartedAt = [[Timer alloc] init];
+        __block Timer *comparisonTimer = [[Timer alloc] initFromTimer:_ratingStartedAt];
         dispatch_async_main(^{
+            if ([comparisonTimer getTimerEpoch] != [_ratingStartedAt getTimerEpoch]) {
+                return;
+            }
+
             [_conversationEndViewController onRatingsCompleted];
             [_waitingForRating clear];
         }, _ratingTimeoutSeconds * 1000);
@@ -324,7 +332,9 @@
 - (void)onConversationRating:(ConversationRating)conversationRating {
     [_conversationRatingConsumer onConversationRating:conversationRating];
     [_waitingForRating clear];
-    [self setConversationEndedViewVisible:false showQuickly:false];
+
+    // It felt sloppy if not moving quickly out of this screen.
+    [self setConversationEndedViewVisible:false showQuickly:true];
 }
 
 - (void)onMatchAcceptAnswer {
@@ -383,7 +393,9 @@
     dispatch_sync_main(^{
         [_forwardButton setAlpha:ALPHA_BUTTON_PRESSED];
     });
-    [self onMatchRejectAnswer];
+    // Just send the skip request, don't change what view we're in. Because this could easily
+    // trigger a rating request, we don't want to interupt that in any way.
+    [_matchingAnswerDelegate onMatchRejectAnswer];
 }
 
 
@@ -428,9 +440,9 @@
 }
 
 - (void)fadeOutView:(UIView *)view duration:(float)duration {
-    [ViewInteractions fadeOut:_alertShortTextHigher completion:^(BOOL completion) {
+    [ViewInteractions fadeOut:view completion:^(BOOL completion) {
         if (!completion) {
-            [_alertShortTextHigher setAlpha:0];
+            [view setAlpha:0];
         }
     }                duration:duration];
 }
