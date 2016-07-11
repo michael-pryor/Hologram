@@ -22,6 +22,7 @@
     __weak IBOutlet UIButton *_backToSocialButton;
     __weak IBOutlet UIView *_blockButton;
 
+    __weak IBOutlet UIView *_bottomButtonsView;
     NSArray *_buttons;
 }
 
@@ -32,6 +33,9 @@
 - (void)viewDidLoad {
     _buttons = @[_skipButton, _acceptButton, _backToSocialButton, _blockButton];
     _matchingCountdownTimer = [[CircleCountdownTimer alloc] initWithCircleProgressBar:_matchingCountdown matchingAnswerDelegate:_matchingAnswerDelegate];
+
+    [_bottomButtonsView.layer setBorderColor:[[UIColor darkGrayColor] CGColor]];
+    [_bottomButtonsView.layer setBorderWidth:0.5];
 }
 
 - (void)reset {
