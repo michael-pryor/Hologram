@@ -348,8 +348,8 @@
     [self hideViewsQuickly:quicklyHideViews];
 }
 
-- (void)setName:(NSString *)name profilePicture:(UIImage *)profilePicture callingCardText:(NSString *)callingCardText age:(uint)age distance:(uint)distance {
-    [_matchingViewController setName:name profilePicture:profilePicture callingCardText:callingCardText age:age distance:distance];
+- (void)setName:(NSString *)name profilePicture:(UIImage *)profilePicture callingCardText:(NSString *)callingCardText age:(uint)age distance:(uint)distance karma:(uint)remoteKarmaRating maxKarma:(uint)maxKarma {
+    [_matchingViewController setName:name profilePicture:profilePicture callingCardText:callingCardText age:age distance:distance karma:remoteKarmaRating maxKarma:maxKarma];
     [self onMatchingStarted];
 }
 

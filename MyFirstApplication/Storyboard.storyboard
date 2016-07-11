@@ -1307,14 +1307,14 @@
                                     <segue destination="IR6-77-93L" kind="embed" id="ceA-O9-g2F"/>
                                 </connections>
                             </containerView>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="1000" verticalCompressionResistancePriority="1000" misplaced="YES" text="Label" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="R33-4T-Bn9">
-                                <rect key="frame" x="0.0" y="129" width="600" height="36"/>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="1000" verticalCompressionResistancePriority="1000" text="Label" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="R33-4T-Bn9">
+                                <rect key="frame" x="0.0" y="123" width="600" height="42"/>
                                 <fontDescription key="fontDescription" name="PingFangSC-Semibold" family="PingFang SC" pointSize="30"/>
                                 <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="1000" verticalCompressionResistancePriority="1000" misplaced="YES" text="You have run out of karma, please wait for it to regenerate" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="3" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="B4n-bL-s23">
-                                <rect key="frame" x="0.0" y="102" width="600" height="17"/>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="1000" verticalCompressionResistancePriority="1000" text="You have run out of karma, please wait for it to regenerate" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="3" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="B4n-bL-s23">
+                                <rect key="frame" x="0.0" y="93" width="600" height="20"/>
                                 <fontDescription key="fontDescription" name="PingFangSC-Regular" family="PingFang SC" pointSize="14"/>
                                 <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                 <nil key="highlightedColor"/>
@@ -1723,23 +1723,23 @@
                         <viewControllerLayoutGuide type="bottom" id="C4S-rI-Wdb"/>
                     </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="vit-86-dCO">
-                        <rect key="frame" x="0.0" y="0.0" width="590" height="448"/>
+                        <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="5" translatesAutoresizingMaskIntoConstraints="NO" id="qcR-qo-hz5">
-                                <rect key="frame" x="20" y="0.0" width="550" height="448"/>
+                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="1" translatesAutoresizingMaskIntoConstraints="NO" id="qcR-qo-hz5">
+                                <rect key="frame" x="20" y="0.0" width="560" height="600"/>
                                 <subviews>
-                                    <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="Hxx-1e-2Fy">
-                                        <rect key="frame" x="0.0" y="0.0" width="550" height="30"/>
+                                    <stackView opaque="NO" contentMode="scaleToFill" verticalCompressionResistancePriority="200" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="Hxx-1e-2Fy" userLabel="Name">
+                                        <rect key="frame" x="0.0" y="0.0" width="560" height="30"/>
                                         <subviews>
                                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="NTY-qS-O3T" userLabel="Divider Minor">
-                                                <rect key="frame" x="0.0" y="0.0" width="550" height="5"/>
+                                                <rect key="frame" x="0.0" y="0.0" width="560" height="5"/>
                                                 <subviews>
-                                                    <view contentMode="scaleToFill" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="ywB-SQ-yjq">
-                                                        <rect key="frame" x="0.0" y="2" width="590" height="1"/>
+                                                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ywB-SQ-yjq">
+                                                        <rect key="frame" x="0.0" y="2" width="560" height="1"/>
                                                         <color key="backgroundColor" red="0.67789713309999999" green="0.7711682258" blue="0.78578756309999997" alpha="1" colorSpace="calibratedRGB"/>
                                                         <constraints>
-                                                            <constraint firstAttribute="height" constant="1" id="Eaf-qf-KRV"/>
+                                                            <constraint firstAttribute="height" priority="750" constant="1" id="Eaf-qf-KRV"/>
                                                         </constraints>
                                                     </view>
                                                 </subviews>
@@ -1751,21 +1751,21 @@
                                                     <constraint firstItem="ywB-SQ-yjq" firstAttribute="leading" secondItem="NTY-qS-O3T" secondAttribute="leading" id="viB-rM-0KI"/>
                                                 </constraints>
                                             </view>
-                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="500" verticalHuggingPriority="500" horizontalCompressionResistancePriority="800" verticalCompressionResistancePriority="800" text="Remote Name" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="3" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="yNf-Ka-y9g">
-                                                <rect key="frame" x="0.0" y="5" width="550" height="20"/>
+                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="500" verticalHuggingPriority="500" horizontalCompressionResistancePriority="800" verticalCompressionResistancePriority="800" text="Remote Name" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="yNf-Ka-y9g">
+                                                <rect key="frame" x="0.0" y="5" width="560" height="20"/>
                                                 <color key="backgroundColor" red="0.86368750650000004" green="0.97713934550000003" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                                 <fontDescription key="fontDescription" name="PingFangSC-Light" family="PingFang SC" pointSize="14"/>
                                                 <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                                 <nil key="highlightedColor"/>
                                             </label>
-                                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="j4G-bX-PD2" userLabel="Divider Minor">
-                                                <rect key="frame" x="0.0" y="25" width="550" height="5"/>
+                                            <view contentMode="scaleToFill" verticalCompressionResistancePriority="100" translatesAutoresizingMaskIntoConstraints="NO" id="j4G-bX-PD2" userLabel="Divider Minor">
+                                                <rect key="frame" x="0.0" y="25" width="560" height="5"/>
                                                 <subviews>
-                                                    <view contentMode="scaleToFill" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="fMv-d3-Tif">
-                                                        <rect key="frame" x="0.0" y="2" width="590" height="1"/>
+                                                    <view contentMode="scaleToFill" verticalCompressionResistancePriority="100" translatesAutoresizingMaskIntoConstraints="NO" id="fMv-d3-Tif">
+                                                        <rect key="frame" x="0.0" y="2" width="560" height="1"/>
                                                         <color key="backgroundColor" red="0.67789713309999999" green="0.7711682258" blue="0.78578756309999997" alpha="1" colorSpace="calibratedRGB"/>
                                                         <constraints>
-                                                            <constraint firstAttribute="height" constant="1" id="2Ia-l7-RVL"/>
+                                                            <constraint firstAttribute="height" priority="750" constant="1" id="2Ia-l7-RVL"/>
                                                         </constraints>
                                                     </view>
                                                 </subviews>
@@ -1779,14 +1779,85 @@
                                             </view>
                                         </subviews>
                                     </stackView>
-                                    <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="1q5-is-hbS">
-                                        <rect key="frame" x="0.0" y="35" width="550" height="298"/>
+                                    <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="gFv-a4-XjU" userLabel="Karma">
+                                        <rect key="frame" x="0.0" y="31" width="560" height="19"/>
+                                        <subviews>
+                                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="OzE-ae-5ys">
+                                                <rect key="frame" x="0.0" y="0.0" width="560" height="14"/>
+                                                <subviews>
+                                                    <stackView opaque="NO" contentMode="scaleToFill" distribution="equalCentering" translatesAutoresizingMaskIntoConstraints="NO" id="fUr-Nh-EZc">
+                                                        <rect key="frame" x="0.0" y="0.0" width="560" height="14"/>
+                                                        <subviews>
+                                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="24 years old" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="6nC-fj-n4F" userLabel="Name">
+                                                                <rect key="frame" x="0.0" y="0.0" width="57" height="14"/>
+                                                                <fontDescription key="fontDescription" name="PingFangSC-Light" family="PingFang SC" pointSize="10"/>
+                                                                <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
+                                                                <nil key="highlightedColor"/>
+                                                            </label>
+                                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="2 km away" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="7lY-8S-OhH" userLabel="Age">
+                                                                <rect key="frame" x="251" y="0.0" width="51" height="14"/>
+                                                                <fontDescription key="fontDescription" name="PingFangSC-Regular" family="PingFang SC" pointSize="10"/>
+                                                                <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
+                                                                <nil key="highlightedColor"/>
+                                                            </label>
+                                                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="AP4-fW-g14">
+                                                                <rect key="frame" x="490" y="0.0" width="70" height="14"/>
+                                                                <subviews>
+                                                                    <progressView opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" progress="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="xRy-j7-nyA" userLabel="Karma">
+                                                                        <rect key="frame" x="0.0" y="6" width="70" height="2"/>
+                                                                        <constraints>
+                                                                            <constraint firstAttribute="height" priority="740" constant="5" id="L0X-es-8nk"/>
+                                                                            <constraint firstAttribute="width" constant="70" id="Vuk-px-UpY"/>
+                                                                        </constraints>
+                                                                    </progressView>
+                                                                </subviews>
+                                                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                                                <constraints>
+                                                                    <constraint firstAttribute="width" secondItem="xRy-j7-nyA" secondAttribute="width" id="0uJ-jh-dhZ"/>
+                                                                    <constraint firstItem="xRy-j7-nyA" firstAttribute="centerY" secondItem="AP4-fW-g14" secondAttribute="centerY" id="IAV-jY-cro"/>
+                                                                    <constraint firstAttribute="trailing" secondItem="xRy-j7-nyA" secondAttribute="trailing" id="lO2-wp-DMy"/>
+                                                                </constraints>
+                                                            </view>
+                                                        </subviews>
+                                                    </stackView>
+                                                </subviews>
+                                                <color key="backgroundColor" red="0.86368750650000004" green="0.97713934550000003" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                                <constraints>
+                                                    <constraint firstItem="fUr-Nh-EZc" firstAttribute="top" secondItem="OzE-ae-5ys" secondAttribute="top" id="JiW-i6-hhj"/>
+                                                    <constraint firstItem="fUr-Nh-EZc" firstAttribute="leading" secondItem="OzE-ae-5ys" secondAttribute="leading" id="Trj-j8-OVh"/>
+                                                    <constraint firstAttribute="bottom" secondItem="fUr-Nh-EZc" secondAttribute="bottom" id="gd3-BT-hyW"/>
+                                                    <constraint firstAttribute="trailing" secondItem="fUr-Nh-EZc" secondAttribute="trailing" id="txt-NI-YSI"/>
+                                                </constraints>
+                                            </view>
+                                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="O1z-Ir-sSe" userLabel="Divider Minor">
+                                                <rect key="frame" x="0.0" y="14" width="560" height="5"/>
+                                                <subviews>
+                                                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Qa9-ns-3z7">
+                                                        <rect key="frame" x="0.0" y="2" width="560" height="1"/>
+                                                        <color key="backgroundColor" red="0.67789713309999999" green="0.7711682258" blue="0.78578756309999997" alpha="1" colorSpace="calibratedRGB"/>
+                                                        <constraints>
+                                                            <constraint firstAttribute="height" priority="740" constant="1" id="TKI-23-cdX"/>
+                                                        </constraints>
+                                                    </view>
+                                                </subviews>
+                                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                                <constraints>
+                                                    <constraint firstAttribute="bottom" secondItem="Qa9-ns-3z7" secondAttribute="bottom" constant="2" id="Asn-do-yyg"/>
+                                                    <constraint firstItem="Qa9-ns-3z7" firstAttribute="top" secondItem="O1z-Ir-sSe" secondAttribute="top" constant="2" id="mlP-Vf-DwL"/>
+                                                    <constraint firstAttribute="trailing" secondItem="Qa9-ns-3z7" secondAttribute="trailing" id="u17-Im-uzN"/>
+                                                    <constraint firstItem="Qa9-ns-3z7" firstAttribute="leading" secondItem="O1z-Ir-sSe" secondAttribute="leading" id="wEQ-VF-QFD"/>
+                                                </constraints>
+                                            </view>
+                                        </subviews>
+                                    </stackView>
+                                    <stackView opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="100" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="1q5-is-hbS" userLabel="Profile Picture">
+                                        <rect key="frame" x="0.0" y="51" width="560" height="410"/>
                                         <subviews>
                                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="AiN-al-Cjh" userLabel="Divider Minor">
-                                                <rect key="frame" x="0.0" y="0.0" width="550" height="5"/>
+                                                <rect key="frame" x="0.0" y="0.0" width="560" height="5"/>
                                                 <subviews>
-                                                    <view contentMode="scaleToFill" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="PUy-4k-2lX">
-                                                        <rect key="frame" x="0.0" y="2" width="590" height="1"/>
+                                                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="PUy-4k-2lX">
+                                                        <rect key="frame" x="0.0" y="2" width="560" height="1"/>
                                                         <color key="backgroundColor" red="0.67789713309999999" green="0.7711682258" blue="0.78578756309999997" alpha="1" colorSpace="calibratedRGB"/>
                                                         <constraints>
                                                             <constraint firstAttribute="height" constant="1" id="qDg-l6-oW4"/>
@@ -1802,11 +1873,12 @@
                                                 </constraints>
                                             </view>
                                             <view clipsSubviews="YES" contentMode="scaleAspectFit" horizontalHuggingPriority="100" verticalHuggingPriority="100" horizontalCompressionResistancePriority="200" verticalCompressionResistancePriority="200" translatesAutoresizingMaskIntoConstraints="NO" id="1kc-zG-v40" userLabel="Profile Picture">
-                                                <rect key="frame" x="0.0" y="5" width="550" height="288"/>
+                                                <rect key="frame" x="0.0" y="5" width="560" height="400"/>
                                                 <subviews>
-                                                    <imageView contentMode="scaleAspectFit" horizontalHuggingPriority="100" verticalHuggingPriority="100" misplaced="YES" image="hologram_start_chat" translatesAutoresizingMaskIntoConstraints="NO" id="uRA-Wd-5E4">
-                                                        <rect key="frame" x="94" y="0.0" width="363" height="363"/>
+                                                    <imageView contentMode="scaleAspectFit" horizontalHuggingPriority="100" verticalHuggingPriority="100" horizontalCompressionResistancePriority="200" verticalCompressionResistancePriority="200" image="hologram_start_chat" translatesAutoresizingMaskIntoConstraints="NO" id="uRA-Wd-5E4">
+                                                        <rect key="frame" x="80" y="0.0" width="400" height="400"/>
                                                         <constraints>
+                                                            <constraint firstAttribute="height" relation="lessThanOrEqual" constant="400" id="3Wa-EG-irA"/>
                                                             <constraint firstAttribute="width" secondItem="uRA-Wd-5E4" secondAttribute="height" multiplier="1:1" id="Q50-Rx-FpW"/>
                                                         </constraints>
                                                     </imageView>
@@ -1816,14 +1888,14 @@
                                                     <constraint firstAttribute="height" relation="greaterThanOrEqual" priority="900" constant="150" id="2ti-2h-5FH"/>
                                                     <constraint firstItem="uRA-Wd-5E4" firstAttribute="centerY" secondItem="1kc-zG-v40" secondAttribute="centerY" id="4U3-26-kp5"/>
                                                     <constraint firstItem="uRA-Wd-5E4" firstAttribute="centerX" secondItem="1kc-zG-v40" secondAttribute="centerX" id="r22-RZ-dWh"/>
-                                                    <constraint firstItem="uRA-Wd-5E4" firstAttribute="height" relation="lessThanOrEqual" secondItem="1kc-zG-v40" secondAttribute="height" id="sY8-KL-sEY"/>
+                                                    <constraint firstAttribute="height" secondItem="uRA-Wd-5E4" secondAttribute="height" id="wL6-XV-Z7W"/>
                                                 </constraints>
                                             </view>
                                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="6jF-gf-GLy" userLabel="Divider Minor">
-                                                <rect key="frame" x="0.0" y="293" width="550" height="5"/>
+                                                <rect key="frame" x="0.0" y="405" width="560" height="5"/>
                                                 <subviews>
-                                                    <view contentMode="scaleToFill" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="pBF-p4-wXd">
-                                                        <rect key="frame" x="0.0" y="2" width="590" height="1"/>
+                                                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="pBF-p4-wXd">
+                                                        <rect key="frame" x="0.0" y="2" width="560" height="1"/>
                                                         <color key="backgroundColor" red="0.67789713309999999" green="0.7711682258" blue="0.78578756309999997" alpha="1" colorSpace="calibratedRGB"/>
                                                         <constraints>
                                                             <constraint firstAttribute="height" constant="1" id="5Xp-qX-Yvi"/>
@@ -1840,14 +1912,14 @@
                                             </view>
                                         </subviews>
                                     </stackView>
-                                    <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="liH-zE-f9S">
-                                        <rect key="frame" x="0.0" y="338" width="550" height="110"/>
+                                    <stackView opaque="NO" contentMode="scaleToFill" horizontalCompressionResistancePriority="200" verticalCompressionResistancePriority="200" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="liH-zE-f9S" userLabel="Profile Text">
+                                        <rect key="frame" x="0.0" y="462" width="560" height="138"/>
                                         <subviews>
                                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="3bc-5x-Cip" userLabel="Divider Minor">
-                                                <rect key="frame" x="0.0" y="0.0" width="550" height="5"/>
+                                                <rect key="frame" x="0.0" y="0.0" width="560" height="5"/>
                                                 <subviews>
-                                                    <view contentMode="scaleToFill" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="77e-CZ-dqy">
-                                                        <rect key="frame" x="0.0" y="2" width="590" height="1"/>
+                                                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="77e-CZ-dqy">
+                                                        <rect key="frame" x="0.0" y="2" width="560" height="1"/>
                                                         <color key="backgroundColor" red="0.67789713309999999" green="0.7711682258" blue="0.78578756309999997" alpha="1" colorSpace="calibratedRGB"/>
                                                         <constraints>
                                                             <constraint firstAttribute="height" constant="1" id="qKW-xS-Onp"/>
@@ -1863,7 +1935,7 @@
                                                 </constraints>
                                             </view>
                                             <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" editable="NO" textAlignment="natural" translatesAutoresizingMaskIntoConstraints="NO" id="Bsz-DC-iEt">
-                                                <rect key="frame" x="0.0" y="5" width="550" height="100"/>
+                                                <rect key="frame" x="0.0" y="5" width="560" height="128"/>
                                                 <color key="backgroundColor" red="0.86368750650000004" green="0.97713934550000003" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                                 <constraints>
                                                     <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="50" id="4iW-JC-6EG"/>
@@ -1874,10 +1946,10 @@
                                                 <textInputTraits key="textInputTraits" autocapitalizationType="sentences" autocorrectionType="no" spellCheckingType="no" keyboardAppearance="alert"/>
                                             </textView>
                                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="uFW-2O-uZn" userLabel="Divider Minor">
-                                                <rect key="frame" x="0.0" y="105" width="550" height="5"/>
+                                                <rect key="frame" x="0.0" y="133" width="560" height="5"/>
                                                 <subviews>
-                                                    <view contentMode="scaleToFill" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="FHj-0S-vJj">
-                                                        <rect key="frame" x="0.0" y="2" width="590" height="1"/>
+                                                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="FHj-0S-vJj">
+                                                        <rect key="frame" x="0.0" y="2" width="560" height="1"/>
                                                         <color key="backgroundColor" red="0.67789713309999999" green="0.7711682258" blue="0.78578756309999997" alpha="1" colorSpace="calibratedRGB"/>
                                                         <constraints>
                                                             <constraint firstAttribute="height" constant="1" id="10R-xu-l1P"/>
@@ -1905,7 +1977,11 @@
                             <constraint firstItem="qcR-qo-hz5" firstAttribute="top" secondItem="Dk0-BN-n4y" secondAttribute="bottom" id="zOz-cN-GFU"/>
                         </constraints>
                     </view>
+                    <modalPageSheetSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
                     <connections>
+                        <outlet property="_age" destination="6nC-fj-n4F" id="4dW-29-YWl"/>
+                        <outlet property="_distance" destination="7lY-8S-OhH" id="eIw-JO-Wld"/>
+                        <outlet property="_karmaProgressBar" destination="xRy-j7-nyA" id="WHU-1m-Q4H"/>
                         <outlet property="_name" destination="yNf-Ka-y9g" id="IUp-7k-aiC"/>
                         <outlet property="_profilePicture" destination="uRA-Wd-5E4" id="LR1-Dq-Aza"/>
                         <outlet property="_text" destination="Bsz-DC-iEt" id="w0p-qi-89T"/>
@@ -1913,7 +1989,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="chl-He-uz2" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1219" y="1771"/>
+            <point key="canvasLocation" x="1272" y="1580"/>
         </scene>
         <!--Help View Controller-->
         <scene sceneID="DXr-98-SNf">
@@ -1930,11 +2006,11 @@
                             <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="P6j-fo-gdb">
                                 <rect key="frame" x="0.0" y="20" width="600" height="2480"/>
                                 <subviews>
-                                    <view contentMode="scaleToFill" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Vx3-8g-wWR">
-                                        <rect key="frame" x="0.0" y="0.0" width="600" height="2186"/>
+                                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Vx3-8g-wWR">
+                                        <rect key="frame" x="0.0" y="0.0" width="600" height="2166"/>
                                         <subviews>
-                                            <stackView opaque="NO" contentMode="scaleToFill" misplaced="YES" axis="vertical" spacing="100" translatesAutoresizingMaskIntoConstraints="NO" id="vrI-XI-6zR">
-                                                <rect key="frame" x="5" y="0.0" width="590" height="2176"/>
+                                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="100" translatesAutoresizingMaskIntoConstraints="NO" id="vrI-XI-6zR">
+                                                <rect key="frame" x="5" y="0.0" width="590" height="2166"/>
                                                 <subviews>
                                                     <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="mes-uT-H1L" userLabel="Karma Stack">
                                                         <rect key="frame" x="0.0" y="0.0" width="590" height="539"/>
@@ -2047,8 +2123,8 @@ See below:</string>
                                                             </view>
                                                         </subviews>
                                                     </stackView>
-                                                    <stackView opaque="NO" contentMode="scaleToFill" misplaced="YES" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="CJw-KO-Itp" userLabel="Calling Cards Stack">
-                                                        <rect key="frame" x="0.0" y="639" width="590" height="411"/>
+                                                    <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="CJw-KO-Itp" userLabel="Calling Cards Stack">
+                                                        <rect key="frame" x="0.0" y="639" width="590" height="406"/>
                                                         <subviews>
                                                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="I8z-VH-Pbi" userLabel="Calling Card Label">
                                                                 <rect key="frame" x="0.0" y="0.0" width="590" height="22"/>
@@ -2080,14 +2156,14 @@ See below:</string>
                                                                     </view>
                                                                 </subviews>
                                                             </stackView>
-                                                            <view contentMode="scaleToFill" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="BbT-j7-iwg" userLabel="Calling card view">
-                                                                <rect key="frame" x="0.0" y="22" width="590" height="384"/>
+                                                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="BbT-j7-iwg" userLabel="Calling card view">
+                                                                <rect key="frame" x="0.0" y="22" width="590" height="379"/>
                                                                 <subviews>
-                                                                    <stackView opaque="NO" contentMode="scaleToFill" misplaced="YES" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="VOW-2K-aHM" userLabel="Calling card stack">
-                                                                        <rect key="frame" x="5" y="5" width="580" height="374"/>
+                                                                    <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="VOW-2K-aHM" userLabel="Calling card stack">
+                                                                        <rect key="frame" x="5" y="5" width="580" height="369"/>
                                                                         <subviews>
-                                                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" textAlignment="natural" lineBreakMode="wordWrap" numberOfLines="17" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="6Sm-oC-TGM" userLabel="Calling Cards Explanation">
-                                                                                <rect key="frame" x="0.0" y="0.0" width="580" height="174"/>
+                                                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" textAlignment="natural" lineBreakMode="wordWrap" numberOfLines="17" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="6Sm-oC-TGM" userLabel="Calling Cards Explanation">
+                                                                                <rect key="frame" x="0.0" y="0.0" width="580" height="169"/>
                                                                                 <string key="text">Calling cards are used to share information at the end of a call e.g. contact details.
 
 The below icon means that a user wants to share their calling card with you:
@@ -2098,8 +2174,8 @@ To share a calling card while in a conversation, double tap the screen and hold 
                                                                                 <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                                                                 <nil key="highlightedColor"/>
                                                                             </label>
-                                                                            <containerView opaque="NO" contentMode="scaleToFill" misplaced="YES" restorationIdentifier="KarmaRater" translatesAutoresizingMaskIntoConstraints="NO" id="Wal-Oc-b8n">
-                                                                                <rect key="frame" x="0.0" y="174" width="580" height="200"/>
+                                                                            <containerView opaque="NO" contentMode="scaleToFill" restorationIdentifier="KarmaRater" translatesAutoresizingMaskIntoConstraints="NO" id="Wal-Oc-b8n">
+                                                                                <rect key="frame" x="0.0" y="169" width="580" height="200"/>
                                                                                 <constraints>
                                                                                     <constraint firstAttribute="height" constant="200" id="Uqi-cp-If4"/>
                                                                                 </constraints>
@@ -2118,11 +2194,11 @@ To share a calling card while in a conversation, double tap the screen and hold 
                                                                     <constraint firstItem="VOW-2K-aHM" firstAttribute="leading" secondItem="BbT-j7-iwg" secondAttribute="leading" constant="5" id="wAF-rv-e3V"/>
                                                                 </constraints>
                                                             </view>
-                                                            <view contentMode="scaleToFill" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="odq-bQ-xTX" userLabel="Divider Minor">
-                                                                <rect key="frame" x="0.0" y="406" width="590" height="5"/>
+                                                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="odq-bQ-xTX" userLabel="Divider Minor">
+                                                                <rect key="frame" x="0.0" y="401" width="590" height="5"/>
                                                                 <subviews>
-                                                                    <view contentMode="scaleToFill" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="wOw-3S-UHl">
-                                                                        <rect key="frame" x="0.0" y="2" width="580" height="1"/>
+                                                                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="wOw-3S-UHl">
+                                                                        <rect key="frame" x="0.0" y="2" width="590" height="1"/>
                                                                         <color key="backgroundColor" red="0.67789713309999999" green="0.7711682258" blue="0.78578756309999997" alpha="1" colorSpace="calibratedRGB"/>
                                                                         <constraints>
                                                                             <constraint firstAttribute="height" constant="1" id="g3J-9q-xc3"/>
@@ -2139,8 +2215,8 @@ To share a calling card while in a conversation, double tap the screen and hold 
                                                             </view>
                                                         </subviews>
                                                     </stackView>
-                                                    <stackView opaque="NO" contentMode="scaleToFill" misplaced="YES" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="Wnb-S3-48j" userLabel="Symbol Stack">
-                                                        <rect key="frame" x="0.0" y="1150" width="590" height="866"/>
+                                                    <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="Wnb-S3-48j" userLabel="Symbol Stack">
+                                                        <rect key="frame" x="0.0" y="1145" width="590" height="861"/>
                                                         <subviews>
                                                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="l4C-3G-H1N" userLabel="Symbols Label">
                                                                 <rect key="frame" x="0.0" y="0.0" width="590" height="22"/>
@@ -2172,14 +2248,14 @@ To share a calling card while in a conversation, double tap the screen and hold 
                                                                     </view>
                                                                 </subviews>
                                                             </stackView>
-                                                            <view contentMode="scaleToFill" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="7Eu-2h-NAk">
-                                                                <rect key="frame" x="0.0" y="22" width="590" height="839"/>
+                                                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="7Eu-2h-NAk">
+                                                                <rect key="frame" x="0.0" y="22" width="590" height="834"/>
                                                                 <subviews>
-                                                                    <stackView opaque="NO" contentMode="scaleToFill" misplaced="YES" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="gcT-ss-it9">
-                                                                        <rect key="frame" x="5" y="5" width="580" height="829"/>
+                                                                    <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="gcT-ss-it9">
+                                                                        <rect key="frame" x="5" y="5" width="580" height="824"/>
                                                                         <subviews>
-                                                                            <stackView opaque="NO" contentMode="scaleToFill" misplaced="YES" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="lhZ-m3-k0r" userLabel="Symbol stack">
-                                                                                <rect key="frame" x="0.0" y="0.0" width="580" height="829"/>
+                                                                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="lhZ-m3-k0r" userLabel="Symbol stack">
+                                                                                <rect key="frame" x="0.0" y="0.0" width="580" height="824"/>
                                                                                 <subviews>
                                                                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="1000" verticalHuggingPriority="1000" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="10" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Xut-DR-efy" userLabel="Symbol explanation">
                                                                                         <rect key="frame" x="0.0" y="0.0" width="580" height="34"/>
@@ -2189,8 +2265,8 @@ To share a calling card while in a conversation, double tap the screen and hold 
                                                                                         <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                                                                         <nil key="highlightedColor"/>
                                                                                     </label>
-                                                                                    <stackView opaque="NO" contentMode="scaleToFill" misplaced="YES" axis="vertical" distribution="equalSpacing" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="Cjs-ic-Klj" userLabel="Symbols">
-                                                                                        <rect key="frame" x="0.0" y="34" width="580" height="795"/>
+                                                                                    <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" distribution="equalSpacing" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="Cjs-ic-Klj" userLabel="Symbols">
+                                                                                        <rect key="frame" x="0.0" y="34" width="580" height="790"/>
                                                                                         <subviews>
                                                                                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="ReE-pj-flZ" userLabel="Video Loss">
                                                                                                 <rect key="frame" x="0.0" y="0.0" width="580" height="210"/>
@@ -2266,8 +2342,8 @@ To share a calling card while in a conversation, double tap the screen and hold 
                                                                                                     </view>
                                                                                                 </subviews>
                                                                                             </stackView>
-                                                                                            <stackView opaque="NO" contentMode="scaleToFill" misplaced="YES" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="W6X-vP-Mh6" userLabel="Audio Loss">
-                                                                                                <rect key="frame" x="0.0" y="221" width="580" height="210"/>
+                                                                                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="W6X-vP-Mh6" userLabel="Audio Loss">
+                                                                                                <rect key="frame" x="0.0" y="220" width="580" height="210"/>
                                                                                                 <subviews>
                                                                                                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="hJm-XT-vPo" userLabel="Divider Minor">
                                                                                                         <rect key="frame" x="0.0" y="0.0" width="580" height="5"/>
@@ -2340,8 +2416,8 @@ To share a calling card while in a conversation, double tap the screen and hold 
                                                                                                     </view>
                                                                                                 </subviews>
                                                                                             </stackView>
-                                                                                            <stackView opaque="NO" contentMode="scaleToFill" misplaced="YES" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="MLV-bl-UJj" userLabel="Fast Forward">
-                                                                                                <rect key="frame" x="0.0" y="443" width="580" height="110"/>
+                                                                                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="MLV-bl-UJj" userLabel="Fast Forward">
+                                                                                                <rect key="frame" x="0.0" y="440" width="580" height="110"/>
                                                                                                 <subviews>
                                                                                                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="uF0-Jh-aUW" userLabel="Divider Minor">
                                                                                                         <rect key="frame" x="0.0" y="0.0" width="580" height="5"/>
@@ -2415,8 +2491,8 @@ To share a calling card while in a conversation, double tap the screen and hold 
                                                                                                     </view>
                                                                                                 </subviews>
                                                                                             </stackView>
-                                                                                            <stackView opaque="NO" contentMode="scaleToFill" misplaced="YES" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="vgA-MH-1WH" userLabel="Peer to peer">
-                                                                                                <rect key="frame" x="0.0" y="564" width="580" height="110"/>
+                                                                                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="vgA-MH-1WH" userLabel="Peer to peer">
+                                                                                                <rect key="frame" x="0.0" y="560" width="580" height="110"/>
                                                                                                 <subviews>
                                                                                                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="OCY-qy-rJI" userLabel="Divider Minor">
                                                                                                         <rect key="frame" x="0.0" y="0.0" width="580" height="5"/>
@@ -2489,8 +2565,8 @@ To share a calling card while in a conversation, double tap the screen and hold 
                                                                                                     </view>
                                                                                                 </subviews>
                                                                                             </stackView>
-                                                                                            <stackView opaque="NO" contentMode="scaleToFill" misplaced="YES" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="ye6-nY-mui" userLabel="Routed">
-                                                                                                <rect key="frame" x="0.0" y="685" width="580" height="110"/>
+                                                                                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="ye6-nY-mui" userLabel="Routed">
+                                                                                                <rect key="frame" x="0.0" y="680" width="580" height="110"/>
                                                                                                 <subviews>
                                                                                                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="IYa-LG-cmU" userLabel="Divider Minor">
                                                                                                         <rect key="frame" x="0.0" y="0.0" width="580" height="5"/>
@@ -2578,11 +2654,11 @@ To share a calling card while in a conversation, double tap the screen and hold 
                                                                     <constraint firstItem="gcT-ss-it9" firstAttribute="top" secondItem="7Eu-2h-NAk" secondAttribute="top" constant="5" id="rSI-Z7-S38"/>
                                                                 </constraints>
                                                             </view>
-                                                            <view contentMode="scaleToFill" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="QST-V0-yCF" userLabel="Divider Minor">
-                                                                <rect key="frame" x="0.0" y="861" width="590" height="5"/>
+                                                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="QST-V0-yCF" userLabel="Divider Minor">
+                                                                <rect key="frame" x="0.0" y="856" width="590" height="5"/>
                                                                 <subviews>
-                                                                    <view contentMode="scaleToFill" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="4rG-CB-Zuv">
-                                                                        <rect key="frame" x="0.0" y="2" width="580" height="1"/>
+                                                                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="4rG-CB-Zuv">
+                                                                        <rect key="frame" x="0.0" y="2" width="590" height="1"/>
                                                                         <color key="backgroundColor" red="0.67789713309999999" green="0.7711682258" blue="0.78578756309999997" alpha="1" colorSpace="calibratedRGB"/>
                                                                         <constraints>
                                                                             <constraint firstAttribute="height" constant="1" id="BbJ-4h-wrJ"/>
@@ -2599,8 +2675,8 @@ To share a calling card while in a conversation, double tap the screen and hold 
                                                             </view>
                                                         </subviews>
                                                     </stackView>
-                                                    <stackView opaque="NO" contentMode="scaleToFill" misplaced="YES" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="I6y-Du-wEb" userLabel="Done">
-                                                        <rect key="frame" x="0.0" y="2116" width="590" height="60"/>
+                                                    <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="I6y-Du-wEb" userLabel="Done">
+                                                        <rect key="frame" x="0.0" y="2106" width="590" height="60"/>
                                                         <subviews>
                                                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="rvw-QT-gai" userLabel="Divider Minor">
                                                                 <rect key="frame" x="0.0" y="0.0" width="590" height="5"/>
@@ -3040,14 +3116,14 @@ Regenerate your karma instantly</string>
                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="5" translatesAutoresizingMaskIntoConstraints="NO" id="M6K-wm-S6r">
                                 <rect key="frame" x="20" y="20" width="560" height="580"/>
                                 <subviews>
-                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="300" verticalHuggingPriority="300" horizontalCompressionResistancePriority="300" verticalCompressionResistancePriority="300" misplaced="YES" text="End User License Agreement" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="P8i-zE-y7V">
-                                        <rect key="frame" x="0.0" y="0.0" width="560" height="20"/>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="300" verticalHuggingPriority="300" horizontalCompressionResistancePriority="300" verticalCompressionResistancePriority="300" text="End User License Agreement" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="P8i-zE-y7V">
+                                        <rect key="frame" x="0.0" y="0.0" width="560" height="23"/>
                                         <fontDescription key="fontDescription" name="PingFangSC-Medium" family="PingFang SC" pointSize="16"/>
                                         <color key="textColor" red="0.5414693813" green="0.5414693813" blue="0.5414693813" alpha="1" colorSpace="calibratedRGB"/>
                                         <nil key="highlightedColor"/>
                                     </label>
-                                    <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" verticalHuggingPriority="200" misplaced="YES" editable="NO" textAlignment="natural" selectable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="dsm-8a-cec">
-                                        <rect key="frame" x="0.0" y="25" width="560" height="520"/>
+                                    <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" verticalHuggingPriority="200" editable="NO" textAlignment="natural" selectable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="dsm-8a-cec">
+                                        <rect key="frame" x="0.0" y="28" width="560" height="517"/>
                                         <color key="backgroundColor" red="0.9571496212121211" green="0.9571496212121211" blue="0.9571496212121211" alpha="1" colorSpace="calibratedRGB"/>
                                         <string key="text">The Products transacted through the Service are licensed, not sold, to You for use only under the terms of this license, unless a Product is accompanied by a separate license agreement, in which case the terms of that separate license agreement will govern, subject to Your prior acceptance of that separate license agreement. The licensor (“Application Provider”) reserves all rights not expressly granted to You. The Product that is subject to this license is referred to in this license as the “Licensed Application.”
 
@@ -3181,7 +3257,7 @@ i. The laws of the State of California, excluding its conflicts of law rules, go
         <image name="video_problem" width="2482" height="1860"/>
     </resources>
     <inferredMetricsTieBreakers>
-        <segue reference="8aU-hO-kz9"/>
+        <segue reference="erR-kN-89c"/>
         <segue reference="6jl-9h-VrO"/>
     </inferredMetricsTieBreakers>
 </document>

@@ -222,7 +222,7 @@
             UIImageOrientation profilePictureOrientation = [ImageParsing parseIntegerToOrientation:profilePictureOrientationInteger];
             UIImage *profilePicture = [ImageParsing convertDataToImage:profilePictureData orientation:profilePictureOrientation];
 
-            [_notifier setName:userName profilePicture:profilePicture callingCardText:cardText age:userAge distance:(uint) distanceFromUser];
+            [_notifier setName:userName profilePicture:profilePicture callingCardText:cardText age:userAge distance:(uint) distanceFromUser karma:remoteKarmaRating maxKarma:karmaMax];
             [_notifier handleKarmaMaximum:karmaMax ratingTimeoutSeconds:ratingTimeoutSeconds matchDecisionTimeout:matchDecisionTimeout];
             [_notifier handleOurKarma:ourKarmaRating remoteKarma:remoteKarmaRating];
         } else if (prefix == NAT_PUNCHTHROUGH_DISCONNECT) {

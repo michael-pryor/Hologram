@@ -36,7 +36,7 @@
     } else if ([segueName isEqualToString:@"CallingCard"]) {
         CallingCardViewController *callingCardViewController = [segue destinationViewController];
         SocialState *socialState = [SocialState getSocialInstance];
-        [callingCardViewController setName:[socialState humanFullName] profilePicture:[socialState profilePictureImage] callingCardText:[socialState callingCardText] age:[socialState age] distance:0];
+        [callingCardViewController setName:[socialState humanFullName] profilePicture:[socialState profilePictureImage] callingCardText:[socialState callingCardText] age:[socialState age] distance:0 karma:5 maxKarma:5];
     }
 }
 

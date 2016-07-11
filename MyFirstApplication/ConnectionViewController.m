@@ -17,9 +17,9 @@
 #import "Timer.h"
 #import "Analytics.h"
 #import "BannedViewController.h"
-#import "FacebookSharedViewController.h"
 #import "UniqueId.h"
 #import "ViewTransitions.h"
+#import "ViewStringFormatting.h"
 
 @implementation ConnectionViewController {
     // Connection
@@ -55,8 +55,6 @@
     __weak IBOutlet UIView *_dcVideo;
     __weak IBOutlet UIView *_dcAudio;
     __weak IBOutlet UIView *_dcAudioClear;
-
-    FacebookSharedViewController *_facebookSharedViewController;
 
     __weak IBOutlet UIButton *_backButton;
     __weak IBOutlet UIButton *_forwardsButton;
@@ -126,7 +124,6 @@
     _buttonsStartingColour = [_forwardsButton titleColorForState:UIControlStateNormal];
 
     _hasHadAtLeastOneConversation = false;
-    _facebookSharedViewController = nil;
 
     _socialState = nil;
 
@@ -352,7 +349,7 @@
 
         uint age = [state age];
         if (age > 0) {
-            [_ownerAge setText:[NSString stringWithFormat:@"%d", age]];
+            [_ownerAge setText:[ViewStringFormatting getAgeString:age]];
             [_ownerAge setHidden:false];
         } else {
             [_ownerAge setHidden:true];
@@ -429,24 +426,10 @@
     });
 }
 
-- (bool)switchToSocialSharedViewController {
-    if (_facebookSharedViewController != nil) {
-        [self.navigationController pushViewController:_facebookSharedViewController animated:YES];
-        return true;
-    }
-
-    return false;
-}
-
 // Switch to the facebook logon view controller.
 - (void)switchToFacebookLogonView {
     // We are the entry point, so we push to the Facebook view controller.
     if (_inDifferentView) {
-        return;
-    }
-
-    // Button should be disabled, this just prevent swiping.
-    if (_facebookSharedViewController != nil) {
         return;
     }
 
@@ -535,7 +518,7 @@
  * Note: during reconnects we get NAT punchthrough information only, so that is why _waitingForProspectiveMatch is set to false
  * when receiving NAT information, and why it's okay that setName doesn't get called.
  */
-- (void)setName:(NSString *)name profilePicture:(UIImage *)profilePicture callingCardText:(NSString *)callingCardText age:(uint)age distance:(uint)distance {
+- (void)setName:(NSString *)name profilePicture:(UIImage *)profilePicture callingCardText:(NSString *)callingCardText age:(uint)age distance:(uint)distance karma:(uint)remoteKarmaRating maxKarma:(uint)maxKarma {
     NSLog(@"**** LOADED PROFILE DETAILS OF MATCH *****");
 
     // Just matched with somebody new, but they need to accept or reject us before video starts.
@@ -544,30 +527,22 @@
 
     dispatch_sync_main(^{
         NSLog(@"**** PUSHED PROFILE DETAILS OF MATCH TO DISCONNECT VIEW CONTROLLER *****");
-        [_disconnectViewController setName:name profilePicture:profilePicture callingCardText:callingCardText age:age distance:distance];
+        [_disconnectViewController setName:name profilePicture:profilePicture callingCardText:callingCardText age:age distance:distance karma:remoteKarmaRating maxKarma:maxKarma];
 
         NSLog(@"Connected with user named [%@] with age [%u]", name, age);
-        _facebookSharedViewController = nil;
         [_backButton setHidden:false];
         [_forwardsButton setTitleColor:_buttonsStartingColour forState:UIControlStateNormal];
 
         [_remoteName setText:name];
 
         if (age > 0) {
-            [_remoteAge setText:[NSString stringWithFormat:@"%d", age]];
+            [_remoteAge setText:[ViewStringFormatting getAgeString:age]];
             [_remoteAge setHidden:false];
         } else {
             [_remoteAge setHidden:true];
         }
 
-        NSString *distanceString;
-        if (distance <= 1) {
-            distanceString = @"< 1 km away";
-        } else if (distance > 15000) {
-            distanceString = @"> 15000 km away";
-        } else {
-            distanceString = [NSString stringWithFormat:@"%d km away", distance];
-        }
+        NSString * distanceString = [ViewStringFormatting getStringFromDistance:distance];
         [_remoteDistance setText:distanceString];
 
         NSLog(@"Distance from other user: %d, producing string: %@", distance, distanceString);
@@ -589,14 +564,8 @@
     NSLog(@"Match decision timeout of %d seconds loaded", matchDecisionTimeout);
 }
 
-+ (float)getKarmaPercentageFromValue:(uint)karmaValue maximum:(uint)karmaMaximum {
-    float karmaFloatValue = karmaValue;
-    float karmaFloatMax = karmaMaximum;
-    return karmaFloatValue / karmaFloatMax;
-}
-
 - (float)getKarmaPercentage:(uint)karmaValue {
-    return [ConnectionViewController getKarmaPercentageFromValue:karmaValue maximum:_karmaMax];
+    return [ViewStringFormatting getKarmaRatioFromValue:karmaValue maximum:_karmaMax];
 }
 
 + (void)updateKarmaUsingProgressView:(UIProgressView *)progressView ratio:(float)ratio {
@@ -678,10 +647,6 @@
     _isSkippableDespiteNoMatch = false;
 
     [[Analytics getInstance] pushEventWithCategory:@"conversation" action:@"ended" label:@"skip_initiated"];
-
-    if ([self switchToSocialSharedViewController]) {
-        return;
-    }
 
     NSLog(@"Sending skip request");
     [_connection sendTcpPacket:_skipPersonPacket];
@@ -866,17 +831,11 @@
             [self setDisconnectStateWithShortDescription:@"Reconnecting to existing session\nThe other person disconnected temporarily" askForConversationRating:false enableSkipButton:true];
         } else if (operation == DISCONNECT_PERM) {
             NSLog(@"End point permanently disconnected");
-            if ([self switchToSocialSharedViewController]) {
-                return;
-            }
 
             [self resetFlags];
             [self setDisconnectStateWithShortDescription:@"Matching you with somebody to talk with\nThe other person left" askForConversationRating:true];
         } else if (operation == DISCONNECT_SKIPPED) {
             NSLog(@"End point skipped us");
-            if ([self switchToSocialSharedViewController]) {
-                return;
-            }
 
             _waitingForCompleteMatch = true;
             // Excluded prospective match, because we still want user to feel like they can reject too.

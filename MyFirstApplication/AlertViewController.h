@@ -35,8 +35,6 @@
 
 - (void)setRatingTimeoutSeconds:(uint)ratingTimeoutSeconds matchDecisionTimeoutSeconds:(uint)seconds;
 
-- (void)setName:(NSString *)name profilePicture:(UIImage *)profilePicture callingCardText:(NSString *)callingCardText age:(uint)age distance:(uint)distance;
-
 - (void)signalMovingToFacebookController;
 
 - (bool)shouldVideoBeOn;

@@ -8,20 +8,35 @@
 
 #import "CallingCardViewController.h"
 #import "Threading.h"
+#import "ViewStringFormatting.h"
 
 
 @implementation CallingCardViewController {
     __weak IBOutlet UIImageView *_profilePicture;
     __weak IBOutlet UILabel *_name;
     __weak IBOutlet UITextView *_text;
-
+    __weak IBOutlet UIProgressView *_karmaProgressBar;
+    __weak IBOutlet UILabel *_age;
+    __weak IBOutlet UILabel *_distance;
     void(^_prepareContentsBlock)();
 }
-- (void)setName:(NSString *)name profilePicture:(UIImage *)profilePicture callingCardText:(NSString *)callingCardText age:(uint)age distance:(uint)distance {
+- (void)setName:(NSString *)name profilePicture:(UIImage *)profilePicture callingCardText:(NSString *)callingCardText age:(uint)age distance:(uint)distance karma:(uint)remoteKarmaRating maxKarma:(uint)maxKarma {
     void(^_theBlock)() = ^{
         [_profilePicture setImage:profilePicture];
         [_name setText:name];
         [_text setText:callingCardText];
+
+        if (age == 0) {
+            [_age setAlpha:0];
+        } else {
+            [_age setAlpha:1];
+        }
+        [_age setText:[NSString stringWithFormat:@"%@ years old", [ViewStringFormatting getAgeString:age]]];
+
+        [_distance setText:[ViewStringFormatting getStringFromDistance:distance]];
+
+        float ratio = [ViewStringFormatting getKarmaRatioFromValue:remoteKarmaRating maximum:maxKarma];
+        [_karmaProgressBar setProgress:ratio animated:false];
     };
     if (_name == nil) {
         _prepareContentsBlock = _theBlock;
