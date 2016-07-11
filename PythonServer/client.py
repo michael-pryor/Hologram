@@ -60,10 +60,6 @@ class Client(object):
 
         OP_RATING = 9 # give a rating of the previous conversation.
 
-        OP_SHARE_SOCIAL_INFORMATION_PAYLOAD = 11
-
-        OP_SHARE_SOCIAL_INFORMATION = 12
-
         # Note: the opposite of this is skipping the conversation or disconnecting.
         OP_ACCEPTED_CONVERSATION = 14
 
@@ -320,29 +316,6 @@ class Client(object):
     def clearInactivityCounter(self):
         self.skipped_timed_out = 0
 
-    def notifySocialInformationShared(self, ackBack = False):
-        packet = ByteBuffer()
-        packet.addUnsignedInteger8(Client.TcpOperationCodes.OP_SHARE_SOCIAL_INFORMATION)
-        if (ackBack):
-            packet.addUnsignedInteger8(0)
-        else:
-            packet.addUnsignedInteger8(1)
-        self.tcp.sendByteBuffer(packet)
-
-    def shareSocialInformationWith(self, destinationClient):
-        assert isinstance(destinationClient, Client)
-
-        # If both shared calling cards with each other, then at end of conversation will not get a chance to rate,
-        # will skip straight to the calling cards screen, but logically if they shared calling card information with each
-        # other then they probably do like each other.
-        #
-        # Note: this will come in mid conversation, even if the conversation isn't over. Client won't see their
-        # karma increase during conversation, so this is okay.
-        destinationClient.handleRating(Client.ConversationRating.GOOD)
-
-        destinationClient.tcp.sendByteBuffer(self.social_share_information_packet)
-
-
     def isConnectedTcp(self):
         return self.connection_status != Client.ConnectionStatus.NOT_CONNECTED
 
@@ -578,9 +551,6 @@ class Client(object):
             logger.debug("Client [%s] has permanently disconnected with immediate impact" % self)
             self.house.releaseRoom(self, self.house.disconnected_permanent)
             self.closeConnection()
-        elif opCode == Client.TcpOperationCodes.OP_SHARE_SOCIAL_INFORMATION_PAYLOAD:
-            self.social_share_information_packet = packet
-            self.house.shareSocialInformation(self)
         elif opCode == Client.TcpOperationCodes.OP_ACCEPTED_CONVERSATION:
             self.clearInactivityCounter()
             if not self.house.onAcceptConversation(self):

@@ -457,24 +457,13 @@
             return;
         }
 
-        NSLog(@"**** RECEIVED NAT ADDRESS INFORMAITON FROM CLIENT *****");
-
-        // At this point we are receiving connection details for a client ready to video chat with us,
-        // so we're not waiting for complete or prospective match.
-        _waitingForCompleteMatch = false;
-        _waitingForProspectiveMatch = false;
-
         // Conversation has started.
         [_conversationDuration reset];
-
-        // We've accepted each other and video is about to start.
-        _shouldRateAfterSessionEnd = true;
 
         NatState previousStateLocal = previousState;
         previousState = state;
         NSTimeInterval secondsTimed = [_connectionStateTimer getSecondsSinceLastTick];
         [_connectionStateTimer reset];
-
 
         if (state == ROUTED) {
             NSLog(@"Regressed to routing mode");
@@ -483,7 +472,15 @@
             NSLog(@"Punched through successfully");
             [_natPunchthroughIndicator setImage:[UIImage imageNamed:@"nat_punched_through"]];
         } else if (state == ADDRESS_RECEIVED) {
-            // Noting to do.
+            NSLog(@"**** RECEIVED NAT ADDRESS INFORMAITON FROM CLIENT *****");
+
+            // At this point we are receiving connection details for a client ready to video chat with us,
+            // so we're not waiting for complete or prospective match.
+            _waitingForCompleteMatch = false;
+            _waitingForProspectiveMatch = false;
+
+            // We've accepted each other and video is about to start.
+            _shouldRateAfterSessionEnd = true;
         } else {
             NSLog(@"Unsupported punchthrough state received");
         }

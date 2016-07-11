@@ -54,6 +54,8 @@
 
     // All views, we only have one visible at a time.
     SingleViewCollection *_viewCollection;
+
+    bool _isSkipButtonRequired;
 }
 
 - (bool)isViewCurrent:(UIView *)view {
@@ -93,6 +95,7 @@
         [_alertShortText setNeedsDisplay];
 
         [_forwardButton setHidden:!skipButtonEnabled];
+        _isSkipButtonRequired = skipButtonEnabled;
     });
 }
 
@@ -135,6 +138,7 @@
     _ratingTimeoutSeconds = 0;
     _movingToFacebook = false;
     _shouldShowAdverts = false;
+    _isSkipButtonRequired = false;
 
     // This is always the first view to be shown!
     // And we need the video to be running so that messages can be sent across,
@@ -408,11 +412,17 @@
         [self fadeOutView:_forwardButton duration:duration];
         [self fadeOutView:_backButton duration:duration];
     }
+
 }
 
 - (void)onFinishedFadingOut:(UIView *)view duration:(float)duration {
     if ([self shouldVideoBeOnView:view]) {
         [_mediaOperator stopVideo];
+    }
+
+    // Rectify any temporary change we made.
+    if (!_isSkipButtonRequired) {
+        [_forwardButton setHidden:true];
     }
 }
 
@@ -423,6 +433,10 @@
 
     if ([self isAssociatedWithAlertShortTextHigher:view]) {
         [self fadeInView:_alertShortTextHigher duration:duration alpha:1.0];
+    }
+
+    if ([self doesViewRequireSkipButton:view]) {
+        [_forwardButton setHidden:false];
     }
 
     if ([self doesViewUseButtons:view]) {
@@ -452,7 +466,11 @@
 }
 
 - (bool)doesViewUseButtons:(UIView *)view {
-    return view == _localImageViewParent;
+    return view == _localImageViewParent || view == _joiningConversationView;
+}
+
+- (bool)doesViewRequireSkipButton:(UIView*)view {
+    return view == _joiningConversationView;
 }
 
 - (void)onFinishedFadingIn:(UIView *)view duration:(float)duration {

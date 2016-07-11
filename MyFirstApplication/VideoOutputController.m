@@ -19,6 +19,8 @@
 
 #define ENCODING_FRAME_RATE 15
 
+#define LOCAL_FRAME_RATE 15
+
 @implementation PacketToImageProcessor {
     id <NewImageDelegate> _newImageDelegate;
     VideoEncoding *_videoEncoder;
@@ -254,7 +256,7 @@
 // Handle data from camera device and push out to network.
 - (void)captureOutput:(AVCaptureOutput *)captureOutput didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection {
     if (_localImageDelegate != nil && !_loopbackEnabled) {
-        [_videoEncoder setFrameRate:0];
+        [_videoEncoder setFrameRate:LOCAL_FRAME_RATE];
         UIImage *localImage = [_videoEncoder convertSampleBufferToUiImage:sampleBuffer];
         if (localImage != nil) {
             // Make a copy, incase reference count goes to 0 mid way through operation.

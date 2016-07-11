@@ -32,14 +32,14 @@
                         <viewControllerLayoutGuide type="bottom" id="b6S-Yq-msf"/>
                     </layoutGuides>
                     <view key="view" multipleTouchEnabled="YES" contentMode="scaleToFill" id="a3M-hh-5zc">
-                        <rect key="frame" x="0.0" y="0.0" width="600" height="1600"/>
+                        <rect key="frame" x="0.0" y="0.0" width="600" height="2000"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="4wH-yf-2Sq">
-                                <rect key="frame" x="0.0" y="20" width="600" height="1580"/>
+                                <rect key="frame" x="0.0" y="20" width="600" height="1980"/>
                                 <subviews>
                                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="QWm-My-dkg">
-                                        <rect key="frame" x="5" y="0.0" width="590" height="1650"/>
+                                        <rect key="frame" x="5" y="0.0" width="590" height="1850"/>
                                         <subviews>
                                             <stackView opaque="NO" contentMode="scaleAspectFit" axis="vertical" spacing="50" translatesAutoresizingMaskIntoConstraints="NO" id="6VR-WX-Jea">
                                                 <rect key="frame" x="0.0" y="0.0" width="590" height="1650"/>
@@ -993,7 +993,7 @@
                                         <constraints>
                                             <constraint firstItem="6VR-WX-Jea" firstAttribute="top" secondItem="QWm-My-dkg" secondAttribute="top" id="7iH-bH-n92"/>
                                             <constraint firstItem="6VR-WX-Jea" firstAttribute="leading" secondItem="QWm-My-dkg" secondAttribute="leading" id="UyA-j3-r1w"/>
-                                            <constraint firstItem="6VR-WX-Jea" firstAttribute="bottom" secondItem="QWm-My-dkg" secondAttribute="bottom" id="jNX-TI-Ntn"/>
+                                            <constraint firstItem="6VR-WX-Jea" firstAttribute="bottom" secondItem="QWm-My-dkg" secondAttribute="bottom" constant="-200" id="jNX-TI-Ntn"/>
                                             <constraint firstAttribute="trailing" secondItem="6VR-WX-Jea" secondAttribute="trailing" id="r3B-qa-gzb"/>
                                         </constraints>
                                     </view>
@@ -1024,7 +1024,7 @@
                     </view>
                     <navigationItem key="navigationItem" id="26w-at-jnP"/>
                     <freeformSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
-                    <size key="freeformSize" width="600" height="1600"/>
+                    <size key="freeformSize" width="600" height="2000"/>
                     <connections>
                         <outlet property="_callingCardText" destination="Gx5-PM-OQA" id="ozD-TB-JDD"/>
                         <outlet property="_dateOfBirthTextBox" destination="Uzd-3b-zK5" id="m06-si-4Jg"/>
@@ -2005,10 +2005,10 @@
                             <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="P6j-fo-gdb">
                                 <rect key="frame" x="0.0" y="20" width="600" height="2480"/>
                                 <subviews>
-                                    <view contentMode="scaleToFill" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Vx3-8g-wWR">
-                                        <rect key="frame" x="0.0" y="0.0" width="600" height="2364"/>
+                                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Vx3-8g-wWR">
+                                        <rect key="frame" x="0.0" y="0.0" width="600" height="2432"/>
                                         <subviews>
-                                            <stackView opaque="NO" contentMode="scaleToFill" misplaced="YES" axis="vertical" spacing="100" translatesAutoresizingMaskIntoConstraints="NO" id="vrI-XI-6zR">
+                                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="100" translatesAutoresizingMaskIntoConstraints="NO" id="vrI-XI-6zR">
                                                 <rect key="frame" x="5" y="0.0" width="590" height="2432"/>
                                                 <subviews>
                                                     <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="mes-uT-H1L" userLabel="Karma Stack">
@@ -2120,7 +2120,7 @@ Try below to see what happens to a user's karma as you rate them:</string>
                                                             </view>
                                                         </subviews>
                                                     </stackView>
-                                                    <stackView opaque="NO" contentMode="scaleToFill" misplaced="YES" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="CJw-KO-Itp" userLabel="Calling Cards Stack">
+                                                    <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="CJw-KO-Itp" userLabel="Calling Cards Stack">
                                                         <rect key="frame" x="0.0" y="622" width="590" height="689"/>
                                                         <subviews>
                                                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="I8z-VH-Pbi" userLabel="Calling Card Label">
@@ -2153,13 +2153,13 @@ Try below to see what happens to a user's karma as you rate them:</string>
                                                                     </view>
                                                                 </subviews>
                                                             </stackView>
-                                                            <view contentMode="scaleToFill" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="BbT-j7-iwg" userLabel="Calling card view">
+                                                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="BbT-j7-iwg" userLabel="Calling card view">
                                                                 <rect key="frame" x="0.0" y="22" width="590" height="662"/>
                                                                 <subviews>
-                                                                    <stackView opaque="NO" contentMode="scaleToFill" misplaced="YES" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="VOW-2K-aHM" userLabel="Calling card stack">
+                                                                    <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="VOW-2K-aHM" userLabel="Calling card stack">
                                                                         <rect key="frame" x="5" y="5" width="580" height="652"/>
                                                                         <subviews>
-                                                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" textAlignment="natural" lineBreakMode="wordWrap" numberOfLines="17" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="6Sm-oC-TGM" userLabel="Calling Cards Explanation">
+                                                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" textAlignment="natural" lineBreakMode="wordWrap" numberOfLines="17" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="6Sm-oC-TGM" userLabel="Calling Cards Explanation">
                                                                                 <rect key="frame" x="0.0" y="0.0" width="580" height="152"/>
                                                                                 <string key="text">Before an audio/video conversation starts between you and your match, you first swap “display cards” with each other.
 
@@ -2171,7 +2171,7 @@ Your display card currently looks like this:
                                                                                 <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                                                                 <nil key="highlightedColor"/>
                                                                             </label>
-                                                                            <containerView opaque="NO" contentMode="scaleToFill" misplaced="YES" restorationIdentifier="KarmaRater" translatesAutoresizingMaskIntoConstraints="NO" id="Wal-Oc-b8n">
+                                                                            <containerView opaque="NO" contentMode="scaleToFill" restorationIdentifier="KarmaRater" translatesAutoresizingMaskIntoConstraints="NO" id="Wal-Oc-b8n">
                                                                                 <rect key="frame" x="0.0" y="152" width="580" height="500"/>
                                                                                 <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                                                                 <constraints>
@@ -2192,7 +2192,7 @@ Your display card currently looks like this:
                                                                     <constraint firstItem="VOW-2K-aHM" firstAttribute="leading" secondItem="BbT-j7-iwg" secondAttribute="leading" constant="5" id="wAF-rv-e3V"/>
                                                                 </constraints>
                                                             </view>
-                                                            <view contentMode="scaleToFill" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="odq-bQ-xTX" userLabel="Divider Minor">
+                                                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="odq-bQ-xTX" userLabel="Divider Minor">
                                                                 <rect key="frame" x="0.0" y="684" width="590" height="5"/>
                                                                 <subviews>
                                                                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="wOw-3S-UHl">
@@ -2213,7 +2213,7 @@ Your display card currently looks like this:
                                                             </view>
                                                         </subviews>
                                                     </stackView>
-                                                    <stackView opaque="NO" contentMode="scaleToFill" misplaced="YES" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="Wnb-S3-48j" userLabel="Symbol Stack">
+                                                    <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="Wnb-S3-48j" userLabel="Symbol Stack">
                                                         <rect key="frame" x="0.0" y="1411" width="590" height="861"/>
                                                         <subviews>
                                                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="l4C-3G-H1N" userLabel="Symbols Label">
@@ -2673,7 +2673,7 @@ Your display card currently looks like this:
                                                             </view>
                                                         </subviews>
                                                     </stackView>
-                                                    <stackView opaque="NO" contentMode="scaleToFill" misplaced="YES" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="I6y-Du-wEb" userLabel="Done">
+                                                    <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="I6y-Du-wEb" userLabel="Done">
                                                         <rect key="frame" x="0.0" y="2372" width="590" height="60"/>
                                                         <subviews>
                                                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="rvw-QT-gai" userLabel="Divider Minor">

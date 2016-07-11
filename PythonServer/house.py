@@ -133,36 +133,6 @@ class House:
         finally:
             self.house_lock.release()
 
-    # Retrieve person that client is currently matched with.
-    def shareSocialInformation(self, sourceClient):
-        if sourceClient.state != Client.State.MATCHED:
-            return
-
-        self.house_lock.acquire()
-        try:
-            if sourceClient.has_shared_social_information:
-                return
-
-            clientB = self.room_participant.get(sourceClient)
-            if clientB is None:
-                return
-
-            if clientB.state != Client.State.MATCHED:
-                return
-
-            sourceClient.has_shared_social_information = True
-            hasOtherClientShared = clientB.has_shared_social_information
-        finally:
-            self.house_lock.release()
-
-        clientB.notifySocialInformationShared()
-        sourceClient.notifySocialInformationShared(True)
-        if not hasOtherClientShared:
-            return
-
-        sourceClient.shareSocialInformationWith(clientB)
-        clientB.shareSocialInformationWith(sourceClient)
-
     def adviseAbortNatPunchthrough(self, client):
         assert isinstance(client, Client)
         client.tcp.sendByteBuffer(self.abort_nat_punchthrough_packet)
