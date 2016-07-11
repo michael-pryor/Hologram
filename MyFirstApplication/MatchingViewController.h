@@ -16,6 +16,7 @@
 
 - (void) onBackToSocialRequest;
 
+@optional
 - (void) onTimedOut;
 @end
 

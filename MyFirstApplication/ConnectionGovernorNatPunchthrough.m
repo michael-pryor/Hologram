@@ -72,6 +72,10 @@
     [_connectionStatusDelegate onBannedWithMagnitude:magnitude expiryTimeSeconds:numSeconds];
 }
 
+- (void)onInactivityRejection {
+    [_connectionStatusDelegate onInactivityRejection];
+}
+
 - (void)connectionStatusChangeTcp:(ConnectionStatusTcp)status withDescription:(NSString *)description {
     [_connectionGovernor connectionStatusChangeTcp:status withDescription:description];
 }

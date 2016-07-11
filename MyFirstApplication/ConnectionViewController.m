@@ -19,7 +19,6 @@
 #import "BannedViewController.h"
 #import "FacebookSharedViewController.h"
 #import "UniqueId.h"
-#import "ImageParsing.h"
 #import "ViewTransitions.h"
 
 @implementation ConnectionViewController {
@@ -57,9 +56,6 @@
     __weak IBOutlet UIView *_dcAudio;
     __weak IBOutlet UIView *_dcAudioClear;
 
-    __weak IBOutlet UIImageView *_remoteFacebookLiked;
-    __weak IBOutlet UIImageView *_localFacebookLiked;
-
     FacebookSharedViewController *_facebookSharedViewController;
 
     __weak IBOutlet UIButton *_backButton;
@@ -82,7 +78,6 @@
     bool _isScreenInUse;
     bool _hasHadAtLeastOneConversation;
     bool _inDifferentView;
-    Signal *_socialShared; // Have we shared social information with this end point?
 
     // Packets
     ByteBuffer *_skipPersonPacket;
@@ -198,7 +193,6 @@
     _karmaRegenerationReceipt = nil;
 
     _conversationDuration = [[Timer alloc] init];
-    _socialShared = [[Signal alloc] initWithFlag:false];
 }
 
 // Permanently close our session on the server, disconnect and stop media input/output.
@@ -542,8 +536,6 @@
  * when receiving NAT information, and why it's okay that setName doesn't get called.
  */
 - (void)setName:(NSString *)name profilePicture:(UIImage *)profilePicture callingCardText:(NSString *)callingCardText age:(uint)age distance:(uint)distance {
-    [_socialShared clear];
-
     NSLog(@"**** LOADED PROFILE DETAILS OF MATCH *****");
 
     // Just matched with somebody new, but they need to accept or reject us before video starts.
@@ -558,9 +550,6 @@
         _facebookSharedViewController = nil;
         [_backButton setHidden:false];
         [_forwardsButton setTitleColor:_buttonsStartingColour forState:UIControlStateNormal];
-
-        [_localFacebookLiked setHidden:true];
-        [_remoteFacebookLiked setHidden:true];
 
         [_remoteName setText:name];
 
@@ -875,9 +864,6 @@
 
             NSLog(@"End point temporarily disconnected");
             [self setDisconnectStateWithShortDescription:@"Reconnecting to existing session\nThe other person disconnected temporarily" askForConversationRating:false enableSkipButton:true];
-
-            // Just in case our request didn't get there.
-            [_socialShared clear];
         } else if (operation == DISCONNECT_PERM) {
             NSLog(@"End point permanently disconnected");
             if ([self switchToSocialSharedViewController]) {
@@ -896,40 +882,6 @@
             // Excluded prospective match, because we still want user to feel like they can reject too.
 
             [self setDisconnectStateWithShortDescription:@"Matching you with somebody to talk with\nThe other person skipped you" askForConversationRating:true];
-        } else if (operation == SHARE_FACEBOOK_INFO) {
-            [packet getUnsignedInteger8];
-            bool isAckOurs = [packet getUnsignedInteger8] == 0;
-            if (isAckOurs) {
-                NSLog(@"Our facebook information payload share has been acked by the server");
-                dispatch_sync_main(^{
-                    [_localFacebookLiked setHidden:false];
-                });
-            } else {
-                NSLog(@"Endpoint has shared Facebook information with us");
-                dispatch_sync_main(^{
-                    [_remoteFacebookLiked setHidden:false];
-                });
-            }
-        } else if (operation == SHARE_FACEBOOK_INFO_PAYLOAD) {
-            NSLog(@"Facebook shared information payload received");
-            [packet getUnsignedInteger8];
-            NSString *remoteFullName = [packet getString];
-            NSString *callingCardText = [packet getString];
-            UIImageOrientation remoteProfilePictureOrientation = (UIImageOrientation) [packet getUnsignedInteger];
-            NSData *remoteProfilePictureData = [packet getData];
-            UIImage *remoteProfilePicture = [ImageParsing convertDataToImage:remoteProfilePictureData orientation:remoteProfilePictureOrientation];
-
-            dispatch_sync_main(^{
-                UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Storyboard" bundle:nil];
-
-                _facebookSharedViewController = [storyboard instantiateViewControllerWithIdentifier:@"FacebookSharedViewController"];
-                [_facebookSharedViewController setRemoteFullName:remoteFullName remoteProfilePicture:remoteProfilePicture remoteCallingText:callingCardText localFullName:[_socialState humanFullName] localProfilePicture:[_socialState profilePictureImage] localCallingText:[_socialState callingCardText]];
-
-                [_backButton setHidden:true];
-                [_forwardsButton setTitleColor:[UIColor redColor] forState:UIControlStateNormal];
-            });
-
-
         } else {
             if (_mediaController != nil) {
                 [_mediaController onNewPacket:packet fromProtocol:protocol];
@@ -1043,28 +995,6 @@
     _karmaRegenerationReceipt = data;
 }
 
-- (IBAction)onFacebookLikeButtonPressed:(UILongPressGestureRecognizer *)sender {
-    if (sender.state != UIGestureRecognizerStateBegan) {
-        return;
-    }
-
-    if ([_socialShared signalAll]) {
-        return;
-    }
-
-    UIImageOrientation ownerProfilePictureOrientation = [_socialState profilePictureOrientation];
-    NSData *ownerProfilePictureData = [_socialState profilePictureData];
-
-    ByteBuffer *buffer = [[ByteBuffer alloc] init];
-    [buffer addUnsignedInteger8:SHARE_FACEBOOK_INFO_PAYLOAD];
-    [buffer addString:[_socialState humanFullName]];
-    [buffer addString:[_socialState callingCardText]];
-    [buffer addUnsignedInteger:ownerProfilePictureOrientation];
-    [buffer addData:ownerProfilePictureData];
-
-    [_connection sendTcpPacket:buffer];
-}
-
 - (void)onMatchAcceptAnswer {
     NSLog(@"Accepted conversation, sending accept packet");
     ByteBuffer * buffer = [[ByteBuffer alloc] init];
@@ -1086,6 +1016,11 @@
 
 - (void)onBackToSocialRequest {
     [self onGotoFbLogonViewButtonPress:self];
+}
+
+- (void)onInactivityRejection {
+    NSLog(@"Server kicked us off due to inactivity, moving back to social view controller");
+    [self onBackToSocialRequest];
 }
 
 @end

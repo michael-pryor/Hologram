@@ -327,6 +327,7 @@
         [_karmaRegenerationFailed show];
     } else if (rejectCode == INACTIVE_TIMOUT) {
         [self terminateWithConnectionStatus:P_NOT_CONNECTED withDescription:rejectDescription];
+        [_connectionStatusDelegate onInactivityRejection];
     }
 }
 

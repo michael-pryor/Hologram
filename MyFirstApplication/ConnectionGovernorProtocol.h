@@ -18,6 +18,8 @@
 - (void)connectionStatusChange:(ConnectionStatusProtocol)status withDescription:(NSString *)description;
 
 - (void)onBannedWithMagnitude:(uint8_t)magnitude expiryTimeSeconds:(uint)numSeconds;
+
+- (void)onInactivityRejection;
 @end
 
 @interface ConnectionGovernorProtocol : NSObject <ConnectionGovernor>
