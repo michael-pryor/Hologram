@@ -30,14 +30,6 @@
     return self;
 }
 
-- (void)viewDidLoad {
-    _updatingUi = [[Signal alloc] initWithFlag:false];
-    [_progressObject setHintTextGenerationBlock:^NSString *(CGFloat progress) {
-        int secondsLeft = (int) [_timeoutTimer getSecondsUntilNextTick];
-        return [NSString stringWithFormat:@"%d", secondsLeft];
-    }];
-}
-
 - (void)restart {
     dispatch_sync_main(^{
         [_progressObject setProgress:0 animated:false];
@@ -71,6 +63,12 @@
             [_progressObject setProgress:[_timeoutTimer getRatioProgressThroughTick] animated:false];
         });
         _timeoutTimer = timer;
+        
+        [_progressObject setHintTextGenerationBlock:^NSString *(CGFloat progress) {
+            int secondsLeft = (int) [timer getSecondsUntilNextTick];
+            return [NSString stringWithFormat:@"%d", secondsLeft];
+        }];
+        
         [self startUpdating];
     } else {
         [_timeoutTimer setSecondsFrequency:[timer secondsFrequency]];
@@ -107,7 +105,7 @@
 
         dispatch_async_main(^{
             [self doUpdateProgress];
-        }, 100);
+        }, 200);
     });
 }
 @end
