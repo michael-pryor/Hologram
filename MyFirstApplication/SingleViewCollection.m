@@ -47,9 +47,6 @@
         [_viewChangeNotifier onGenericAcivity:_currentRealView activity:@"_currentRealView = _viewBeingLoaded"];
 
         if (_requestedView == nil) {
-            if (previousViewToUse != nil) {
-                [_viewChangeNotifier onFinishedDisplayingView:previousViewToUse];
-            }
             _viewBeingLoaded = nil;
             [_viewChangeNotifier onGenericAcivity:_viewBeingLoaded activity:@"_viewBeingLoaded = nil"];
             return;
@@ -59,13 +56,6 @@
         [_viewChangeNotifier onGenericAcivity:_viewBeingLoaded activity:@"_viewBeingLoaded = _requestedView (_viewBeingLoaded)"];
         [_viewChangeNotifier onGenericAcivity:_requestedView activity:@"_viewBeingLoaded = _requestedView (_requestedView)"];
         _requestedView = nil;
-    }
-
-    if (_viewChangeNotifier != nil) {
-        if (previousViewToUse != nil) {
-            [_viewChangeNotifier onFinishedDisplayingView:previousViewToUse];
-        }
-        [_viewChangeNotifier onStartedDisplayingView:viewToUse];
     }
 
     [self doReplaceView:previousViewToUse withView:viewToUse];
@@ -97,33 +87,33 @@
 
 - (void)doReplaceView:(UIView *)oldView withView:(UIView *)newView {
     if (oldView == nil) {
-        [_viewChangeNotifier onStartedFadingIn:newView];
+        [_viewChangeNotifier onStartedFadingIn:newView duration:_duration];
         [ViewInteractions fadeIn:newView completion:^(BOOL completion) {
             if (!completion) {
                 NSLog(@"***FAILED TO COMPLETE FADE IN!");
                 [newView setAlpha:1];
             }
-            [_viewChangeNotifier onFinishedFadingIn:newView];
+            [_viewChangeNotifier onFinishedFadingIn:newView duration:_duration];
             [self onCompletion];
         }               duration:_duration];
 
         return;
     }
 
-    [_viewChangeNotifier onStartedFadingOut:oldView];
+    [_viewChangeNotifier onStartedFadingOut:oldView duration:_duration];
     [ViewInteractions fadeOut:oldView completion:^(BOOL completionOut) {
         if (!completionOut) {
             NSLog(@"***FAILED TO COMPLETE FADE OUT!");
             [oldView setAlpha:0];
         }
-        [_viewChangeNotifier onFinishedFadingOut:oldView];
-        [_viewChangeNotifier onStartedFadingIn:newView];
+        [_viewChangeNotifier onFinishedFadingOut:oldView duration:_duration];
+        [_viewChangeNotifier onStartedFadingIn:newView duration:_duration];
         [ViewInteractions fadeIn:newView completion:^(BOOL completionIn) {
             if (!completionIn) {
                 NSLog(@"***FAILED TO COMPLETE FADE IN!");
                 [newView setAlpha:1];
             }
-            [_viewChangeNotifier onFinishedFadingIn:newView];
+            [_viewChangeNotifier onFinishedFadingIn:newView duration:_duration];
 
             [self onCompletion];
         }               duration:_duration];

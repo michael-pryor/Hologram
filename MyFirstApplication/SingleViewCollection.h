@@ -6,17 +6,13 @@
 
 @protocol ViewChangeNotifier
 @optional
-- (void)onStartedDisplayingView:(UIView*)view;
+- (void)onStartedFadingIn:(UIView*)view duration:(float)duration;
 
-- (void)onFinishedDisplayingView:(UIView*)view;
+- (void)onStartedFadingOut:(UIView*)view duration:(float)duration;
 
-- (void)onStartedFadingIn:(UIView*)view;
+- (void)onFinishedFadingIn:(UIView*)view duration:(float)duration;
 
-- (void)onStartedFadingOut:(UIView*)view;
-
-- (void)onFinishedFadingIn:(UIView*)view;
-
-- (void)onFinishedFadingOut:(UIView*)view;
+- (void)onFinishedFadingOut:(UIView*)view duration:(float)duration;
 
 - (void)onGenericAcivity:(UIView *)view activity:(NSString*)activity;
 @end

@@ -52,7 +52,6 @@
 
     // All views, we only have one visible at a time.
     SingleViewCollection *_viewCollection;
-    NSArray *_views;
 }
 
 - (bool)isViewCurrent:(UIView *)view {
@@ -66,12 +65,15 @@
 - (bool)isInMatchApprovalView {
     return [self isViewCurrent:_matchingView];
 }
-
-- (bool)shouldVideoBeOn {
+- (bool)shouldVideoBeOnView:(UIView*)view {
     // We need video in the joining stage so that we send some packets
     // and remove each other's disconnect view.
-    return ([_viewCollection getCurrentlyDisplayedView] == _localImageViewParent ||
-            [_viewCollection getCurrentlyDisplayedView] == _joiningConversationView) && !_movingToFacebook;
+    return (view == _localImageViewParent ||
+            view == _joiningConversationView) && !_movingToFacebook;
+}
+
+- (bool)shouldVideoBeOn {
+    return [self shouldVideoBeOnView:[_viewCollection getCurrentlyDisplayedView]];
 }
 
 - (void)signalMovingToFacebookController {
@@ -116,9 +118,7 @@
     _viewVisible = false;
     _waitingForRating = [[Signal alloc] initWithFlag:false];
 
-    _views = @[_conversationEndView, _matchingView, _joiningConversationView, _localImageViewParent];
-
-    for (UIView *view in _views) {
+    for (UIView *view in @[_conversationEndView, _matchingView, _joiningConversationView, _localImageViewParent, _alertShortTextHigher]) {
         [view setAlpha:0];
     }
 
@@ -280,8 +280,6 @@
 }
 
 - (void)showView:(UIView *)viewToShow instant:(bool)instant {
-   // NSLog(@"INITIAL!!");
-    //[self printViewName:viewToShow];
     [_viewCollection displayView:viewToShow];
 }
 
@@ -366,30 +364,6 @@
 }
 
 
-- (void)onStartedDisplayingView:(UIView *)view {
-    NSLog(@"STARTED!!");
-    //[self printViewName:view];
-
-    if (!_viewVisible) {
-        return;
-    }
-
-    if ([self shouldVideoBeOn]) {
-        [_mediaOperator startVideo];
-        [ViewInteractions fadeIn:_alertShortText completion:nil duration:0.5];
-
-    } else {
-        [_alertShortText setAlpha:0];
-        [_mediaOperator stopVideo];
-    }
-
-    if (view == _conversationEndView || view == _joiningConversationView) {
-        [ViewInteractions fadeIn:_alertShortTextHigher completion:nil duration:0.5];
-    } else {
-        [_alertShortTextHigher setAlpha:0];
-    }
-}
-
 - (NSString*)getViewName:(UIView *)view {
     if (view == _joiningConversationView) {
         return @"_joiningConversationView";
@@ -404,24 +378,48 @@
     }
 }
 
-- (void)onFinishedDisplayingView:(UIView *)view {
-   // NSLog(@"FINISHED!!");
-  //  [self printViewName:view];
-}
-
-- (void)onStartedFadingIn:(UIView*)view {
-    NSLog([NSString stringWithFormat:@"*********STARTED FADE IN: %@*********", [self getViewName:view]]);
-}
-
-- (void)onStartedFadingOut:(UIView*)view {
+- (void)onStartedFadingOut:(UIView*)view duration:(float)duration{
     NSLog([NSString stringWithFormat:@"*********STARTED FADE OUT: %@*********", [self getViewName:view]]);
+
+    if ([self isAssociatedWithAlertShortTextHigher:view]) {
+        [ViewInteractions fadeOut:_alertShortTextHigher completion:^(BOOL completion) {
+            if (!completion) {
+                [_alertShortTextHigher setAlpha:0];
+            }
+        } duration:duration];
+    }
+}
+- (void)onFinishedFadingOut:(UIView*)view duration:(float)duration{
+    NSLog([NSString stringWithFormat:@"*********FINISHED FADE OUT: %@*********", [self getViewName:view]]);
+
+    if ([self shouldVideoBeOnView:view]) {
+        [_mediaOperator stopVideo];
+    }
 }
 
-- (void)onFinishedFadingIn:(UIView*)view {
-    NSLog([NSString stringWithFormat:@"*********FINISHED FADE IN: %@*********", [self getViewName:view]]);
+- (void)onStartedFadingIn:(UIView*)view duration:(float)duration{
+    NSLog([NSString stringWithFormat:@"*********STARTED FADE IN: %@*********", [self getViewName:view]]);
+
+    if ([self shouldVideoBeOnView:view]) {
+        [_mediaOperator startVideo];
+    }
+
+    if ([self isAssociatedWithAlertShortTextHigher:view]) {
+        [ViewInteractions fadeIn:_alertShortTextHigher completion:^(BOOL completion) {
+            if (!completion) {
+                [_alertShortTextHigher setAlpha:1];
+            }
+        } duration:duration];
+    }
 }
-- (void)onFinishedFadingOut:(UIView*)view {
-    NSLog([NSString stringWithFormat:@"*********FINISHED FADE OUT: %@*********", [self getViewName:view]]);
+
+
+- (bool)isAssociatedWithAlertShortTextHigher:(UIView*)view {
+    return view == _conversationEndView || view == _joiningConversationView;
+}
+
+- (void)onFinishedFadingIn:(UIView*)view duration:(float)duration{
+    NSLog([NSString stringWithFormat:@"*********FINISHED FADE IN: %@*********", [self getViewName:view]]);
 }
 
 - (void)onGenericAcivity:(UIView *)view activity:(NSString*)activity {
