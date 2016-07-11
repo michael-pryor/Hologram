@@ -9,6 +9,16 @@
 - (void)onStartedDisplayingView:(UIView*)view;
 
 - (void)onFinishedDisplayingView:(UIView*)view;
+
+- (void)onStartedFadingIn:(UIView*)view;
+
+- (void)onStartedFadingOut:(UIView*)view;
+
+- (void)onFinishedFadingIn:(UIView*)view;
+
+- (void)onFinishedFadingOut:(UIView*)view;
+
+- (void)onGenericAcivity:(UIView *)view activity:(NSString*)activity;
 @end
 
 @interface SingleViewCollection : NSObject

@@ -21,6 +21,7 @@
         _requestedView = nil;
         _currentRealView = nil;
         _viewChangeNotifier = viewChangeNotifier;
+        NSLog(@"&&&&&&&&&INSTNATIATING SingleViewController!!!");
     }
     return self;
 }
@@ -35,23 +36,28 @@
             _requestedView == view);
 }
 
-- (void)onCompletion:(BOOL)completed {
+- (void)onCompletion {
     UIView *viewToUse;
     UIView *previousViewToUse;
     @synchronized (self) {
+        // We just finished loading, so update the real view.
+        _currentRealView = _viewBeingLoaded;
         previousViewToUse = _currentRealView;
-        if (completed) {
-            _currentRealView = _viewBeingLoaded;
-        }
+
+        [_viewChangeNotifier onGenericAcivity:_currentRealView activity:@"_currentRealView = _viewBeingLoaded"];
 
         if (_requestedView == nil) {
             if (previousViewToUse != nil) {
                 [_viewChangeNotifier onFinishedDisplayingView:previousViewToUse];
             }
             _viewBeingLoaded = nil;
+            [_viewChangeNotifier onGenericAcivity:_viewBeingLoaded activity:@"_viewBeingLoaded = nil"];
             return;
         }
         viewToUse = _viewBeingLoaded = _requestedView;
+        [_viewChangeNotifier onGenericAcivity:viewToUse activity:@"viewToUse = _requestedView (viewToUse)"];
+        [_viewChangeNotifier onGenericAcivity:_viewBeingLoaded activity:@"_viewBeingLoaded = _requestedView (_viewBeingLoaded)"];
+        [_viewChangeNotifier onGenericAcivity:_requestedView activity:@"_viewBeingLoaded = _requestedView (_requestedView)"];
         _requestedView = nil;
     }
 
@@ -73,13 +79,16 @@
     bool doDisplay;
     UIView *previousView;
     @synchronized (self) {
-        _requestedView = view;
-
         doDisplay = _viewBeingLoaded == nil;
         if (doDisplay) {
             _viewBeingLoaded = view;
+            [_viewChangeNotifier onGenericAcivity:_viewBeingLoaded activity:@"_viewBeingLoaded = view (force action)"];
+        } else {
+            _requestedView = view;
+            [_viewChangeNotifier onGenericAcivity:_requestedView activity:@"_requestedView = view"];
         }
         previousView = _currentRealView;
+        [_viewChangeNotifier onGenericAcivity:previousView activity:@"previousView = _currentRealView"];
     }
     if (doDisplay) {
         [self doReplaceView:previousView withView:view];
@@ -88,19 +97,35 @@
 
 - (void)doReplaceView:(UIView *)oldView withView:(UIView *)newView {
     if (oldView == nil) {
+        [_viewChangeNotifier onStartedFadingIn:newView];
         [ViewInteractions fadeIn:newView completion:^(BOOL completion) {
-            [self onCompletion:completion];
+            if (!completion) {
+                NSLog(@"***FAILED TO COMPLETE FADE IN!");
+                [newView setAlpha:1];
+            }
+            [_viewChangeNotifier onFinishedFadingIn:newView];
+            [self onCompletion];
         }               duration:_duration];
+
         return;
     }
 
+    [_viewChangeNotifier onStartedFadingOut:oldView];
     [ViewInteractions fadeOut:oldView completion:^(BOOL completionOut) {
         if (!completionOut) {
-            return;
+            NSLog(@"***FAILED TO COMPLETE FADE OUT!");
+            [oldView setAlpha:0];
         }
-
+        [_viewChangeNotifier onFinishedFadingOut:oldView];
+        [_viewChangeNotifier onStartedFadingIn:newView];
         [ViewInteractions fadeIn:newView completion:^(BOOL completionIn) {
-            [self onCompletion:completionOut && completionIn];
+            if (!completionIn) {
+                NSLog(@"***FAILED TO COMPLETE FADE IN!");
+                [newView setAlpha:1];
+            }
+            [_viewChangeNotifier onFinishedFadingIn:newView];
+
+            [self onCompletion];
         }               duration:_duration];
     }                duration:_duration];
 }

@@ -280,8 +280,8 @@
 }
 
 - (void)showView:(UIView *)viewToShow instant:(bool)instant {
-    NSLog(@"INITIAL!!");
-    [self printViewName:viewToShow];
+   // NSLog(@"INITIAL!!");
+    //[self printViewName:viewToShow];
     [_viewCollection displayView:viewToShow];
 }
 
@@ -368,7 +368,7 @@
 
 - (void)onStartedDisplayingView:(UIView *)view {
     NSLog(@"STARTED!!");
-    [self printViewName:view];
+    //[self printViewName:view];
 
     if (!_viewVisible) {
         return;
@@ -390,21 +390,42 @@
     }
 }
 
-- (void)printViewName:(UIView *)view {
+- (NSString*)getViewName:(UIView *)view {
     if (view == _joiningConversationView) {
-        NSLog(@"*******_joiningConversationView");
+        return @"_joiningConversationView";
     } else if (view == _matchingView) {
-        NSLog(@"*******_matchingView");
+        return @"_matchingView";
     } else if (view == _localImageViewParent) {
-        NSLog(@"*******_localImageViewParent");
+        return @"_localImageViewParent";
     } else if (view == _conversationEndView) {
-        NSLog(@"*******_conversationEndView");
+        return @"_conversationEndView";
+    } else {
+        return @"unknown!!";
     }
 }
 
 - (void)onFinishedDisplayingView:(UIView *)view {
-    NSLog(@"FINISHED!!");
-    [self printViewName:view];
+   // NSLog(@"FINISHED!!");
+  //  [self printViewName:view];
+}
+
+- (void)onStartedFadingIn:(UIView*)view {
+    NSLog([NSString stringWithFormat:@"*********STARTED FADE IN: %@*********", [self getViewName:view]]);
+}
+
+- (void)onStartedFadingOut:(UIView*)view {
+    NSLog([NSString stringWithFormat:@"*********STARTED FADE OUT: %@*********", [self getViewName:view]]);
+}
+
+- (void)onFinishedFadingIn:(UIView*)view {
+    NSLog([NSString stringWithFormat:@"*********FINISHED FADE IN: %@*********", [self getViewName:view]]);
+}
+- (void)onFinishedFadingOut:(UIView*)view {
+    NSLog([NSString stringWithFormat:@"*********FINISHED FADE OUT: %@*********", [self getViewName:view]]);
+}
+
+- (void)onGenericAcivity:(UIView *)view activity:(NSString*)activity {
+    NSLog([NSString stringWithFormat:@"&&&DEBUG [%@] [%@]&&&", [self getViewName:view], activity]);
 }
 
 @end

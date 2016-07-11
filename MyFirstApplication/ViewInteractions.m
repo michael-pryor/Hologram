@@ -50,10 +50,14 @@
 + (void)fadeOut:(UIView*)viewA thenIn:(UIView*)viewB duration:(float)duration {
     [ViewInteractions fadeOut:viewA completion:^(BOOL finished) {
         if (!finished) {
-            return;
+            [viewA setAlpha:0];
         }
 
-        [ViewInteractions fadeIn:viewB completion:nil duration:duration];
+        [ViewInteractions fadeIn:viewB completion:^(BOOL completed) {
+            if (!completed) {
+                [viewB setAlpha:1];
+            }
+        } duration:duration];
     } duration:duration];
 }
 @end
