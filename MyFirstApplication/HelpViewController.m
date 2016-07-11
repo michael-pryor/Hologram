@@ -6,6 +6,7 @@
 #import "ConnectionViewController.h"
 #import "Threading.h"
 #import "CallingCardViewController.h"
+#import "ViewStringFormatting.h"
 
 
 @implementation HelpViewController {
@@ -14,6 +15,9 @@
     int _karmaMax;
 
     ConversationEndedViewController *_conversationEndedViewController;
+    
+    __weak IBOutlet UIView *_callingCardView;
+    __weak IBOutlet UIView *_callingCardContainerView;
 }
 
 - (void)viewDidLoad {
@@ -35,8 +39,9 @@
         [_conversationEndedViewController setConversationRatingConsumer:self];
     } else if ([segueName isEqualToString:@"CallingCard"]) {
         CallingCardViewController *callingCardViewController = [segue destinationViewController];
+        callingCardViewController.view.backgroundColor = _callingCardContainerView.backgroundColor;
         SocialState *socialState = [SocialState getSocialInstance];
-        [callingCardViewController setName:[socialState humanFullName] profilePicture:[socialState profilePictureImage] callingCardText:[socialState callingCardText] age:[socialState age] distance:0 karma:5 maxKarma:5];
+        [callingCardViewController setName:[socialState humanShortName] profilePicture:[socialState profilePictureImage] callingCardText:[socialState callingCardText] age:[socialState age] distance:0 karma:5 maxKarma:5];
     }
 }
 
@@ -57,7 +62,7 @@
         }
 
         float ratio = ((float) _karma) / ((float) _karmaMax);
-        [ConnectionViewController updateKarmaUsingProgressView:_karmaProgressBar ratio:ratio];
+        [ViewStringFormatting updateKarmaUsingProgressView:_karmaProgressBar ratio:ratio];
         [_conversationEndedViewController reset];
     });
 }

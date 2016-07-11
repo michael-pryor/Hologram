@@ -17,7 +17,7 @@
 
 }
 + (CGFloat)getDefaultWidthAndHeight {
-    return 200;
+    return 500;
 }
 
 + (UIImage *)resizeImage:(UIImage *)image width:(CGFloat)width height:(CGFloat)height {

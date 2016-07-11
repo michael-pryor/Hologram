@@ -33,4 +33,15 @@
 
     return [NSString stringWithFormat:@"%u", age];
 }
+
++ (void)updateKarmaUsingProgressView:(UIProgressView *)progressView ratio:(float)ratio {
+    if (ratio > 0.9) {
+        [progressView setTintColor:[UIColor greenColor]];
+    } else if (ratio < 0.3) {
+        [progressView setTintColor:[UIColor redColor]];
+    } else {
+        [progressView setTintColor:[UIColor blueColor]];
+    }
+    [progressView setProgress:ratio animated:false];
+}
 @end

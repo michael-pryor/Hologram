@@ -36,7 +36,7 @@
         [_distance setText:[ViewStringFormatting getStringFromDistance:distance]];
 
         float ratio = [ViewStringFormatting getKarmaRatioFromValue:remoteKarmaRating maximum:maxKarma];
-        [_karmaProgressBar setProgress:ratio animated:false];
+        [ViewStringFormatting updateKarmaUsingProgressView:_karmaProgressBar ratio:ratio];
     };
     if (_name == nil) {
         _prepareContentsBlock = _theBlock;

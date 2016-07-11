@@ -11,4 +11,6 @@
 + (NSString *)getStringFromDistance:(uint)distance;
 
 + (NSString*)getAgeString:(uint)age;
+
++ (void)updateKarmaUsingProgressView:(UIProgressView *)progressView ratio:(float)ratio;
 @end

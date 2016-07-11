@@ -568,25 +568,14 @@
     return [ViewStringFormatting getKarmaRatioFromValue:karmaValue maximum:_karmaMax];
 }
 
-+ (void)updateKarmaUsingProgressView:(UIProgressView *)progressView ratio:(float)ratio {
-    if (ratio > 0.9) {
-        [progressView setTintColor:[UIColor greenColor]];
-    } else if (ratio < 0.3) {
-        [progressView setTintColor:[UIColor redColor]];
-    } else {
-        [progressView setTintColor:[UIColor blueColor]];
-    }
-    [progressView setProgress:ratio animated:false];
-}
-
 - (void)handleOurKarma:(uint)ourKarma remoteKarma:(uint)remoteKarma {
     float ourKarmaPercentage = [self getKarmaPercentage:ourKarma];
     float remoteKarmaPercentage = [self getKarmaPercentage:remoteKarma];
 
     NSLog(@"Received our karma of [%.3f] and remote karma of [%.3f]", ourKarmaPercentage, remoteKarmaPercentage);
     dispatch_async_main(^{
-        [ConnectionViewController updateKarmaUsingProgressView:_remoteKarma ratio:remoteKarmaPercentage];
-        [ConnectionViewController updateKarmaUsingProgressView:_ownerKarma ratio:ourKarmaPercentage];
+        [ViewStringFormatting updateKarmaUsingProgressView:_remoteKarma ratio:remoteKarmaPercentage];
+        [ViewStringFormatting updateKarmaUsingProgressView:_ownerKarma ratio:ourKarmaPercentage];
     }, 0);
 }
 

@@ -21,5 +21,4 @@
 @import AVFoundation;
 
 @interface ConnectionViewController : UIViewController <MatchingAnswerDelegate, CallingCardDataProvider, TransactionCompletedNotifier, PaymentProductsLoadedNotifier, ConnectionStatusDelegateProtocol, NewPacketDelegate, UITextFieldDelegate, UIImagePickerControllerDelegate, NewImageDelegate, GovernorSetupProtocol, GpsStateDataLoadNotification, SocialStateDataLoadNotification, NatPunchthroughNotifier, MediaDataLossNotifier, DnsResultNotifier, ConversationRatingConsumer>
-+ (void)updateKarmaUsingProgressView:(UIProgressView *)progressView ratio:(float)ratio;
 @end
