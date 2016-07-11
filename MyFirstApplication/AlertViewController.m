@@ -280,6 +280,11 @@
 }
 
 - (void)showView:(UIView *)viewToShow instant:(bool)instant {
+    if (viewToShow == _localImageViewParent) {
+        [_viewCollection displayView:viewToShow ifNoChangeForMilliseconds:1000];
+        return;
+    }
+
     [_viewCollection displayView:viewToShow];
 }
 
@@ -363,24 +368,7 @@
     [self onBackToSocialRequest];
 }
 
-
-- (NSString*)getViewName:(UIView *)view {
-    if (view == _joiningConversationView) {
-        return @"_joiningConversationView";
-    } else if (view == _matchingView) {
-        return @"_matchingView";
-    } else if (view == _localImageViewParent) {
-        return @"_localImageViewParent";
-    } else if (view == _conversationEndView) {
-        return @"_conversationEndView";
-    } else {
-        return @"unknown!!";
-    }
-}
-
 - (void)onStartedFadingOut:(UIView*)view duration:(float)duration{
-    NSLog([NSString stringWithFormat:@"*********STARTED FADE OUT: %@*********", [self getViewName:view]]);
-
     if ([self isAssociatedWithAlertShortTextHigher:view]) {
         [ViewInteractions fadeOut:_alertShortTextHigher completion:^(BOOL completion) {
             if (!completion) {
@@ -390,16 +378,12 @@
     }
 }
 - (void)onFinishedFadingOut:(UIView*)view duration:(float)duration{
-    NSLog([NSString stringWithFormat:@"*********FINISHED FADE OUT: %@*********", [self getViewName:view]]);
-
     if ([self shouldVideoBeOnView:view]) {
         [_mediaOperator stopVideo];
     }
 }
 
 - (void)onStartedFadingIn:(UIView*)view duration:(float)duration{
-    NSLog([NSString stringWithFormat:@"*********STARTED FADE IN: %@*********", [self getViewName:view]]);
-
     if ([self shouldVideoBeOnView:view]) {
         [_mediaOperator startVideo];
     }
@@ -419,12 +403,8 @@
 }
 
 - (void)onFinishedFadingIn:(UIView*)view duration:(float)duration{
-    NSLog([NSString stringWithFormat:@"*********FINISHED FADE IN: %@*********", [self getViewName:view]]);
 }
 
-- (void)onGenericAcivity:(UIView *)view activity:(NSString*)activity {
-    NSLog([NSString stringWithFormat:@"&&&DEBUG [%@] [%@]&&&", [self getViewName:view], activity]);
-}
 
 @end
 

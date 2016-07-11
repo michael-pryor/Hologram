@@ -5,7 +5,6 @@
 #import <Foundation/Foundation.h>
 
 @protocol ViewChangeNotifier
-@optional
 - (void)onStartedFadingIn:(UIView*)view duration:(float)duration;
 
 - (void)onStartedFadingOut:(UIView*)view duration:(float)duration;
@@ -13,8 +12,6 @@
 - (void)onFinishedFadingIn:(UIView*)view duration:(float)duration;
 
 - (void)onFinishedFadingOut:(UIView*)view duration:(float)duration;
-
-- (void)onGenericAcivity:(UIView *)view activity:(NSString*)activity;
 @end
 
 @interface SingleViewCollection : NSObject
@@ -25,4 +22,6 @@
 - (UIView*)getCurrentlyDisplayedView;
 
 - (bool)isViewDisplayedWideSearch:(UIView *)view;
+
+- (void)displayView:(UIView *)view ifNoChangeForMilliseconds:(uint)milliseconds;
 @end

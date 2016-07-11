@@ -83,6 +83,10 @@
     return [Timer getSecondsEpoch] - _secondsEpoch;
 }
 
+- (CFAbsoluteTime)getTimerEpoch {
+    return _secondsEpoch;
+}
+
 - (CFAbsoluteTime)getSecondsUntilNextTick {
     CFAbsoluteTime result = _secondsFrequency - [self getSecondsSinceLastTick];
     if (result < 0) {

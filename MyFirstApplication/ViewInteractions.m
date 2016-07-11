@@ -32,17 +32,25 @@
 }
 
 + (void)fadeIn:(UIView *)label completion:(void (^)(BOOL))block duration:(float)duration {
+    [self fadeIn:label completion:block duration:duration toAlpha:1.0f];
+}
+
++ (void)fadeIn:(UIView *)label completion:(void (^)(BOOL))block duration:(float)duration toAlpha:(float)alpha {
     dispatch_sync_main(^{
         [UIView animateWithDuration:duration animations:^{
-            [label setAlpha:1.0f];
+            [label setAlpha:alpha];
         }                completion:block];
     });
 }
 
 + (void)fadeOut:(UIView *)label completion:(void (^)(BOOL))block duration:(float)duration {
+    [self fadeOut:label completion:block duration:duration toAlpha:0];
+}
+
++ (void)fadeOut:(UIView *)label completion:(void (^)(BOOL))block duration:(float)duration toAlpha:(float)alpha {
     dispatch_sync_main(^{
         [UIView animateWithDuration:duration animations:^{
-            [label setAlpha:0.0f];
+            [label setAlpha:alpha];
         }                completion:block];
     });
 }

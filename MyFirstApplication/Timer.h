@@ -42,5 +42,7 @@
 
 - (NSString *)getSecondsSinceLastTickHumanString;
 
+- (CFAbsoluteTime)getTimerEpoch;
+
 + (NSString *)convertToHumanString:(NSTimeInterval)timeSeconds;
 @end

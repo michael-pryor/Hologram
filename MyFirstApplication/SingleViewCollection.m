@@ -4,6 +4,8 @@
 
 #import "SingleViewCollection.h"
 #import "ViewInteractions.h"
+#import "Timer.h"
+#import "Threading.h"
 
 @implementation SingleViewCollection {
     float _duration;
@@ -13,6 +15,7 @@
     UIView *_viewBeingLoaded;
 
     id <ViewChangeNotifier> _viewChangeNotifier;
+    Timer *_timer;
 }
 - (id)initWithDuration:(float)duration viewChangeNotifier:(id <ViewChangeNotifier>)viewChangeNotifier {
     self = [super init];
@@ -21,7 +24,7 @@
         _requestedView = nil;
         _currentRealView = nil;
         _viewChangeNotifier = viewChangeNotifier;
-        NSLog(@"&&&&&&&&&INSTNATIATING SingleViewController!!!");
+        _timer = [[Timer alloc] init];
     }
     return self;
 }
@@ -44,17 +47,11 @@
         _currentRealView = _viewBeingLoaded;
         previousViewToUse = _currentRealView;
 
-        [_viewChangeNotifier onGenericAcivity:_currentRealView activity:@"_currentRealView = _viewBeingLoaded"];
-
         if (_requestedView == nil) {
             _viewBeingLoaded = nil;
-            [_viewChangeNotifier onGenericAcivity:_viewBeingLoaded activity:@"_viewBeingLoaded = nil"];
             return;
         }
         viewToUse = _viewBeingLoaded = _requestedView;
-        [_viewChangeNotifier onGenericAcivity:viewToUse activity:@"viewToUse = _requestedView (viewToUse)"];
-        [_viewChangeNotifier onGenericAcivity:_viewBeingLoaded activity:@"_viewBeingLoaded = _requestedView (_viewBeingLoaded)"];
-        [_viewChangeNotifier onGenericAcivity:_requestedView activity:@"_viewBeingLoaded = _requestedView (_requestedView)"];
         _requestedView = nil;
     }
 
@@ -69,20 +66,39 @@
     bool doDisplay;
     UIView *previousView;
     @synchronized (self) {
+        [_timer reset];
         doDisplay = _viewBeingLoaded == nil;
         if (doDisplay) {
             _viewBeingLoaded = view;
-            [_viewChangeNotifier onGenericAcivity:_viewBeingLoaded activity:@"_viewBeingLoaded = view (force action)"];
         } else {
             _requestedView = view;
-            [_viewChangeNotifier onGenericAcivity:_requestedView activity:@"_requestedView = view"];
         }
         previousView = _currentRealView;
-        [_viewChangeNotifier onGenericAcivity:previousView activity:@"previousView = _currentRealView"];
     }
     if (doDisplay) {
         [self doReplaceView:previousView withView:view];
     }
+}
+
+// The idea behind this is to delay switching screens, if we predict that we will not be returning
+// to that screen soon. Feels alot smoother.
+- (void)displayView:(UIView *)view ifNoChangeForMilliseconds:(uint)milliseconds {
+    bool doNow;
+    @synchronized (self) {
+        doNow = _currentRealView == nil || _currentRealView == view;
+    }
+    if (doNow) {
+        [self displayView:view];
+        return;
+    }
+
+    __block Timer *_timeSubmitted = [[Timer alloc] initFromTimer:_timer];
+    dispatch_async_main(^{
+        if ([_timeSubmitted getTimerEpoch] != [_timer getTimerEpoch]) {
+            return;
+        }
+        [self displayView:view];
+    }, milliseconds);
 }
 
 - (void)doReplaceView:(UIView *)oldView withView:(UIView *)newView {
@@ -90,7 +106,6 @@
         [_viewChangeNotifier onStartedFadingIn:newView duration:_duration];
         [ViewInteractions fadeIn:newView completion:^(BOOL completion) {
             if (!completion) {
-                NSLog(@"***FAILED TO COMPLETE FADE IN!");
                 [newView setAlpha:1];
             }
             [_viewChangeNotifier onFinishedFadingIn:newView duration:_duration];
@@ -100,24 +115,30 @@
         return;
     }
 
+    // It looks much nicer not to fade out all the way when there's no change in screen.
+    float outAlpha;
+    if (oldView == newView) {
+        outAlpha = 0.6f;
+    } else {
+        outAlpha = 0;
+    }
+
     [_viewChangeNotifier onStartedFadingOut:oldView duration:_duration];
     [ViewInteractions fadeOut:oldView completion:^(BOOL completionOut) {
         if (!completionOut) {
-            NSLog(@"***FAILED TO COMPLETE FADE OUT!");
             [oldView setAlpha:0];
         }
         [_viewChangeNotifier onFinishedFadingOut:oldView duration:_duration];
         [_viewChangeNotifier onStartedFadingIn:newView duration:_duration];
         [ViewInteractions fadeIn:newView completion:^(BOOL completionIn) {
             if (!completionIn) {
-                NSLog(@"***FAILED TO COMPLETE FADE IN!");
                 [newView setAlpha:1];
             }
             [_viewChangeNotifier onFinishedFadingIn:newView duration:_duration];
 
             [self onCompletion];
         }               duration:_duration];
-    }                duration:_duration];
+    }                duration:_duration toAlpha:outAlpha];
 }
 
 @end
