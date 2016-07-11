@@ -380,10 +380,6 @@ class Client(object):
     def closeConnection(self):
         self.cancelAcceptingMatchExpiry()
         self.connection_status = Client.ConnectionStatus.NOT_CONNECTED
-
-        # We don't support recovering during ACCEPTING_MATCH or RATING_MATCH.
-        # So don't want to transfer this state over.
-        self.transitionState(None, Client.State.MATCHING)
         self.tcp.transport.loseConnection()
 
     def getRejectBannedArguments(self, banMagnitude, expiryTime):

@@ -153,7 +153,7 @@
     _isSkippableDespiteNoMatch = false;
     _resumeAfterBecomeActive = [[Signal alloc] initWithFlag:false];
 
-    [self setDisconnectStateWithShortDescription:@"Initializing" showConversationEndView:false];
+    [self setDisconnectStateWithShortDescription:@"Initializing" askForConversationRating:false];
 
     // If failure action is triggered, application is guaranteed to be terminated by
     // _accessDialog (we may just be waiting for a user to acknowledge a dialog box).
@@ -317,7 +317,7 @@
     }
 
     // This step can take a few seconds (particularly on older devices).
-    [self setDisconnectStateWithShortDescription:@"Initializing" showConversationEndView:false];
+    [self setDisconnectStateWithShortDescription:@"Initializing" askForConversationRating:false];
     if (_mediaController == nil) {
         _mediaController = [[MediaController alloc] initWithImageDelegate:self mediaDataLossNotifier:self];
     }
@@ -364,7 +364,7 @@
             [_ownerAge setHidden:true];
         }
 
-        [self setDisconnectStateWithShortDescription:@"Loading Apple information" showConversationEndView:false];
+        [self setDisconnectStateWithShortDescription:@"Loading Apple information" askForConversationRating:false];
         [_payments queryProducts:[[UniqueId getUniqueIdInstance] getUUID]];
     });
 }
@@ -372,7 +372,7 @@
 // Callback for payments data loading.
 // Triggers GPS loading.
 - (void)onPaymentProductsLoaded {
-    [self setDisconnectStateWithShortDescription:@"Loading GPS details" showConversationEndView:false];
+    [self setDisconnectStateWithShortDescription:@"Loading GPS details" askForConversationRating:false];
     [_gpsState update];
 }
 
@@ -393,7 +393,7 @@
         return;
     }
 
-    [self setDisconnectStateWithShortDescription:@"Resolving DNS" showConversationEndView:false];
+    [self setDisconnectStateWithShortDescription:@"Resolving DNS" askForConversationRating:false];
     [_dnsResolver startResolvingDns];
 }
 
@@ -422,7 +422,7 @@
 
 // On failure retrieving GPS failure, retry every 2 seconds.
 - (void)onGpsDataLoadFailure:(GpsState *)state withDescription:(NSString *)description {
-    [self setDisconnectStateWithShortDescription:@"Failed to load GPS details, retrying" showConversationEndView:false];
+    [self setDisconnectStateWithShortDescription:@"Failed to load GPS details, retrying" askForConversationRating:false];
 
     // Try again in 2 seconds time.
     // Note this is just updating the UI. After failure, GPS automatically keeps retrying so needs
@@ -430,7 +430,7 @@
     // the situation hasn't improved.
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t) (2.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         if (![state isLoaded]) {
-            [self setDisconnectStateWithShortDescription:@"Loading GPS details" showConversationEndView:false];
+            [self setDisconnectStateWithShortDescription:@"Loading GPS details" askForConversationRating:false];
         }
     });
 }
@@ -592,7 +592,7 @@
     _matchDecisionTimeout = matchDecisionTimeout;
 
     if (_disconnectViewController != nil) {
-        [_disconnectViewController setConversationRatingConsumer:self matchingAnswerDelegate:self mediaOperator:_mediaController ratingTimeoutSeconds:_ratingTimeoutSeconds matchDecisionTimeoutSeconds:_matchDecisionTimeout];
+        [_disconnectViewController setRatingTimeoutSeconds:_ratingTimeoutSeconds matchDecisionTimeoutSeconds:_matchDecisionTimeout];
     }
 
     NSLog(@"Karma maximum of %d loaded", karmaMaximum);
@@ -697,7 +697,7 @@
     NSLog(@"Sending skip request");
     [_connection sendTcpPacket:_skipPersonPacket];
     [self resetFlags];
-    [self setDisconnectStateWithShortDescription:@"Matching you with somebody to talk with\nYou skipped the other person" showConversationEndView:true];
+    [self setDisconnectStateWithShortDescription:@"Matching you with somebody to talk with\nYou skipped the other person" askForConversationRating:true];
     return;
 }
 
@@ -722,12 +722,12 @@
 
     switch (status) {
         case P_CONNECTING:
-            [self setDisconnectStateWithShortDescription:@"Connecting" showConversationEndView:false];
+            [self setDisconnectStateWithShortDescription:@"Connecting" askForConversationRating:false];
             [_connectingNetworkTimer reset];
             break;
 
         case P_CONNECTED:
-            [self setDisconnectStateWithShortDescription:@"Matching you with somebody to talk with" showConversationEndView:false];
+            [self setDisconnectStateWithShortDescription:@"Matching you with somebody to talk with" askForConversationRating:false];
             if (_mediaController != nil) {
                 [_mediaController resetSendRate];
             }
@@ -735,7 +735,7 @@
             break;
 
         case P_CONNECTED_TO_EXISTING:
-            [self setDisconnectStateWithShortDescription:@"Reconnected to existing session" showConversationEndView:false];
+            [self setDisconnectStateWithShortDescription:@"Reconnected to existing session" askForConversationRating:false enableSkipButton:true];
             [[Analytics getInstance] pushTimer:_connectingNetworkTimer withCategory:@"setup" name:@"network_connecting" label:@"resumed_session"];
 
             // How long were we disconnected for?
@@ -743,13 +743,13 @@
             break;
 
         case P_NOT_CONNECTED:
-            [self setDisconnectStateWithShortDescription:@"Disconnected" showConversationEndView:false];
+            [self setDisconnectStateWithShortDescription:@"Disconnected" askForConversationRating:false];
             [_connectionTemporarilyDisconnectTimer reset];
             [[Analytics getInstance] pushEventWithCategory:@"conversation" action:@"ended" label:@"network_disconnect"];
             break;
 
         case P_NOT_CONNECTED_HASH_REJECTED:
-            [self setDisconnectStateWithShortDescription:@"Disconnected\nPrevious session timed out" showConversationEndView:false];
+            [self setDisconnectStateWithShortDescription:@"Disconnected\nPrevious session timed out" askForConversationRating:false];
 
             // This will trigger a new commander connection, without having to wait for
             // another DNS resolution; we'll just use the last one we did.
@@ -785,12 +785,16 @@
     return _shouldRateAfterSessionEnd && !_waitingForCompleteMatch && !_waitingForProspectiveMatch;
 }
 
+- (void)setDisconnectStateWithShortDescription:(NSString *)shortDescription askForConversationRating:(bool)askForConversationRating {
+    [self setDisconnectStateWithShortDescription:shortDescription askForConversationRating:askForConversationRating enableSkipButton:false];
+}
+
 // Display view overlay showing how connection is being recovered.
-- (void)setDisconnectStateWithShortDescription:(NSString *)shortDescription showConversationEndView:(bool)showConversationEndView {
+- (void)setDisconnectStateWithShortDescription:(NSString *)shortDescription askForConversationRating:(bool)askForConversationRating enableSkipButton:(bool)enableSkipButton {
     // If we haven't accepted or rejected the client yet, then don't ask to rate the conversation,
     // since we can't have had one.
     if (!_shouldRateAfterSessionEnd) {
-        showConversationEndView = false;
+        askForConversationRating = false;
     }
 
     void (^block)() = ^{
@@ -824,9 +828,10 @@
                 }
             }
             // Set its content
-            [_disconnectViewController setConversationRatingConsumer:self matchingAnswerDelegate:self mediaOperator:_mediaController ratingTimeoutSeconds:_ratingTimeoutSeconds matchDecisionTimeoutSeconds:_matchDecisionTimeout];
-            [_disconnectViewController setConversationEndedViewVisible:showConversationEndView instantly:true];
-            [_disconnectViewController setGenericInformationText:shortDescription];
+            [_disconnectViewController setConversationRatingConsumer:self matchingAnswerDelegate:self mediaOperator:_mediaController];
+            [_disconnectViewController setRatingTimeoutSeconds:_ratingTimeoutSeconds matchDecisionTimeoutSeconds:_matchDecisionTimeout];
+            [_disconnectViewController setConversationEndedViewVisible:askForConversationRating showQuickly:false];
+            [_disconnectViewController setGenericInformationText:shortDescription skipButtonEnabled:enableSkipButton];
 
             if (!alreadyPresented) {
                 NSLog(@"***** PRESENTING DISCONNECT VIEW CONTROLLER *****");
@@ -869,7 +874,7 @@
             _isSkippableDespiteNoMatch = true;
 
             NSLog(@"End point temporarily disconnected");
-            [self setDisconnectStateWithShortDescription:@"Reconnecting to existing session\nThe other person disconnected temporarily" showConversationEndView:false];
+            [self setDisconnectStateWithShortDescription:@"Reconnecting to existing session\nThe other person disconnected temporarily" askForConversationRating:false enableSkipButton:true];
 
             // Just in case our request didn't get there.
             [_socialShared clear];
@@ -880,7 +885,7 @@
             }
 
             [self resetFlags];
-            [self setDisconnectStateWithShortDescription:@"Matching you with somebody to talk with\nThe other person left" showConversationEndView:true];
+            [self setDisconnectStateWithShortDescription:@"Matching you with somebody to talk with\nThe other person left" askForConversationRating:true];
         } else if (operation == DISCONNECT_SKIPPED) {
             NSLog(@"End point skipped us");
             if ([self switchToSocialSharedViewController]) {
@@ -890,7 +895,7 @@
             _waitingForCompleteMatch = true;
             // Excluded prospective match, because we still want user to feel like they can reject too.
 
-            [self setDisconnectStateWithShortDescription:@"Matching you with somebody to talk with\nThe other person skipped you" showConversationEndView:true];
+            [self setDisconnectStateWithShortDescription:@"Matching you with somebody to talk with\nThe other person skipped you" askForConversationRating:true];
         } else if (operation == SHARE_FACEBOOK_INFO) {
             [packet getUnsignedInteger8];
             bool isAckOurs = [packet getUnsignedInteger8] == 0;

@@ -23,6 +23,7 @@
     IBOutlet UILabel *_alertShortText;
     __weak IBOutlet UILabel *_alertShortTextHigher;
     __weak IBOutlet UIButton *_backButton;
+    __weak IBOutlet UIButton *_forwardButton;
     id <MediaOperator> _mediaOperator;
     bool _movingToFacebook;
     bool _viewVisible;
@@ -65,7 +66,8 @@
 - (bool)isInMatchApprovalView {
     return [self isViewCurrent:_matchingView];
 }
-- (bool)shouldVideoBeOnView:(UIView*)view {
+
+- (bool)shouldVideoBeOnView:(UIView *)view {
     // We need video in the joining stage so that we send some packets
     // and remove each other's disconnect view.
     return (view == _localImageViewParent ||
@@ -78,15 +80,18 @@
 
 - (void)signalMovingToFacebookController {
     _movingToFacebook = true;
+    [self hideViewsQuickly:true];
 }
 
-- (void)setGenericInformationText:(NSString *)shortText {
+- (void)setGenericInformationText:(NSString *)shortText skipButtonEnabled:(bool)skipButtonEnabled {
     dispatch_sync_main(^{
         // Alert text has changed, wait at least two seconds more before clearing display.
         [_timerSinceAdvertCreated reset];
 
         _alertShortText.text = shortText;
         [_alertShortText setNeedsDisplay];
+
+        [_forwardButton setHidden:!skipButtonEnabled];
     });
 }
 
@@ -118,7 +123,8 @@
     _viewVisible = false;
     _waitingForRating = [[Signal alloc] initWithFlag:false];
 
-    for (UIView *view in @[_conversationEndView, _matchingView, _joiningConversationView, _localImageViewParent, _alertShortTextHigher]) {
+    for (UIView *view in @[_conversationEndView, _matchingView, _joiningConversationView, _localImageViewParent, _alertShortTextHigher,
+            _forwardButton, _backButton]) {
         [view setAlpha:0];
     }
 
@@ -271,16 +277,12 @@
     [_localImageView performSelectorOnMainThread:@selector(setImage:) withObject:image waitUntilDone:YES];
 }
 
-- (IBAction)onForwardButtonPress:(id)sender {
-    [self onMatchRejectAnswer];
+- (void)hideViewsQuickly:(bool)showQuickly {
+    [self showView:_localImageViewParent showQuickly:showQuickly];
 }
 
-- (void)hideViewsInstant:(bool)instant {
-    [self showView:_localImageViewParent instant:instant];
-}
-
-- (void)showView:(UIView *)viewToShow instant:(bool)instant {
-    if (viewToShow == _localImageViewParent) {
+- (void)showView:(UIView *)viewToShow showQuickly:(bool)showQuickly {
+    if (viewToShow == _localImageViewParent && !showQuickly) {
         [_viewCollection displayView:viewToShow ifNoChangeForMilliseconds:1000];
         return;
     }
@@ -288,49 +290,52 @@
     [_viewCollection displayView:viewToShow];
 }
 
-- (void)setConversationEndedViewVisible:(bool)visible instantly:(bool)instant {
+- (void)setConversationEndedViewVisible:(bool)visible showQuickly:(bool)showQuickly {
     if ([self isInMatchApprovalView] || ([self isInConversationEndedView] && visible)) {
         return;
     }
 
     if (visible && [_waitingForRating signalAll]) {
         [_conversationEndViewController reset];
-        [self showView:_conversationEndView instant:instant];
+        [self showView:_conversationEndView showQuickly:showQuickly];
         [self setViewRelevantInformationText:@"Please rate your previous conversation\nThis will influence their karma"];
         dispatch_async_main(^{
             [_conversationEndViewController onRatingsCompleted];
             [_waitingForRating clear];
         }, _ratingTimeoutSeconds * 1000);
-    } else if (![_waitingForRating isSignaled]){
-        [self hideViewsInstant:instant];
+    } else if (![_waitingForRating isSignaled]) {
+        [self hideViewsQuickly:showQuickly];
     }
 
 }
 
-- (void)setConversationRatingConsumer:(id <ConversationRatingConsumer>)consumer matchingAnswerDelegate:(id <MatchingAnswerDelegate>)matchingAnswerDelegate mediaOperator:(id <MediaOperator>)videoOperator ratingTimeoutSeconds:(uint)ratingTimeoutSeconds matchDecisionTimeoutSeconds:(uint)matchDecisionTimeoutSeconds {
+- (void)setConversationRatingConsumer:(id <ConversationRatingConsumer>)consumer matchingAnswerDelegate:(id <MatchingAnswerDelegate>)matchingAnswerDelegate mediaOperator:(id <MediaOperator>)videoOperator {
     _conversationRatingConsumer = consumer;
-    _ratingTimeoutSeconds = ratingTimeoutSeconds;
     [_conversationEndViewController setConversationRatingConsumer:self];
-    [_matchingViewController setMatchingDecisionTimeoutSeconds:matchDecisionTimeoutSeconds];
     _matchingAnswerDelegate = matchingAnswerDelegate;
     _mediaOperator = videoOperator;
+}
+
+- (void)setRatingTimeoutSeconds:(uint)ratingTimeoutSeconds matchDecisionTimeoutSeconds:(uint)matchDecisionTimeoutSeconds {
+    _ratingTimeoutSeconds = ratingTimeoutSeconds;
+    [_matchingViewController setMatchingDecisionTimeoutSeconds:matchDecisionTimeoutSeconds];
 }
 
 - (void)onConversationRating:(ConversationRating)conversationRating {
     [_conversationRatingConsumer onConversationRating:conversationRating];
     [_waitingForRating clear];
-    [self setConversationEndedViewVisible:false instantly:false];
+    [self setConversationEndedViewVisible:false showQuickly:false];
 }
 
 - (void)onMatchAcceptAnswer {
     [_matchingAnswerDelegate onMatchAcceptAnswer];
     [self setViewRelevantInformationText:@"Waiting for your match to accept too"];
     [_joiningConversationViewController consumeRemainingTimer:[_matchingViewController cloneTimer]];
-    [self showView:_joiningConversationView instant:false];
+    [self showView:_joiningConversationView showQuickly:false];
 }
 
-- (void)onMatchingFinished {
-    [self hideViewsInstant:false];
+- (void)onMatchingFinishedHideViews:(bool)quicklyHideViews {
+    [self hideViewsQuickly:quicklyHideViews];
 }
 
 - (void)setName:(NSString *)name profilePicture:(UIImage *)profilePicture callingCardText:(NSString *)callingCardText age:(uint)age distance:(uint)distance {
@@ -339,12 +344,12 @@
 }
 
 - (void)onMatchingStarted {
-    [self showView:_matchingView instant:false];
+    [self showView:_matchingView showQuickly:false];
 }
 
 - (bool)onMatchRejectAnswer {
     if ([_matchingAnswerDelegate onMatchRejectAnswer]) {
-        [self onMatchingFinished];
+        [self onMatchingFinishedHideViews:false];
         return true;
     }
 
@@ -353,11 +358,13 @@
 
 - (void)onMatchBlocked {
     [_matchingAnswerDelegate onMatchBlocked];
-    [self onMatchingFinished];
+
+    // Want to quickly get rid of card, since user blocked/reported them.
+    [self onMatchingFinishedHideViews:true];
 }
 
 - (void)onTimedOut {
-    [self onMatchingFinished];
+    [self onMatchingFinishedHideViews:false];
 }
 
 - (void)onBackToSocialRequest {
@@ -365,44 +372,79 @@
 }
 
 - (IBAction)onGotoFbLogonViewButtonPress:(id)sender {
+    dispatch_sync_main(^{
+        [_backButton setAlpha:ALPHA_BUTTON_PRESSED];
+    });
     [self onBackToSocialRequest];
 }
 
-- (void)onStartedFadingOut:(UIView*)view duration:(float)duration{
+
+- (IBAction)onForwardButtonPress:(id)sender {
+    dispatch_sync_main(^{
+        [_forwardButton setAlpha:ALPHA_BUTTON_PRESSED];
+    });
+    [self onMatchRejectAnswer];
+}
+
+
+- (void)onStartedFadingOut:(UIView *)view duration:(float)duration {
     if ([self isAssociatedWithAlertShortTextHigher:view]) {
-        [ViewInteractions fadeOut:_alertShortTextHigher completion:^(BOOL completion) {
-            if (!completion) {
-                [_alertShortTextHigher setAlpha:0];
-            }
-        } duration:duration];
+        [self fadeOutView:_alertShortTextHigher duration:duration];
+    }
+
+    if ([self doesViewUseButtons:view]) {
+        [self fadeOutView:_forwardButton duration:duration];
+        [self fadeOutView:_backButton duration:duration];
     }
 }
-- (void)onFinishedFadingOut:(UIView*)view duration:(float)duration{
+
+- (void)onFinishedFadingOut:(UIView *)view duration:(float)duration {
     if ([self shouldVideoBeOnView:view]) {
         [_mediaOperator stopVideo];
     }
 }
 
-- (void)onStartedFadingIn:(UIView*)view duration:(float)duration{
+- (void)onStartedFadingIn:(UIView *)view duration:(float)duration {
     if ([self shouldVideoBeOnView:view]) {
         [_mediaOperator startVideo];
     }
 
     if ([self isAssociatedWithAlertShortTextHigher:view]) {
-        [ViewInteractions fadeIn:_alertShortTextHigher completion:^(BOOL completion) {
-            if (!completion) {
-                [_alertShortTextHigher setAlpha:1];
-            }
-        } duration:duration];
+        [self fadeInView:_alertShortTextHigher duration:duration alpha:1.0];
+    }
+
+    if ([self doesViewUseButtons:view]) {
+        [self fadeInView:_forwardButton duration:duration alpha:ALPHA_BUTTON_IMAGE_READY];
+        [self fadeInView:_backButton duration:duration alpha:ALPHA_BUTTON_IMAGE_READY];
     }
 }
 
+- (void)fadeInView:(UIView *)view duration:(float)duration alpha:(float)alpha {
+    [ViewInteractions fadeIn:view completion:^(BOOL completion) {
+        if (!completion) {
+            [view setAlpha:alpha];
+        }
+    }               duration:duration toAlpha:alpha];
+}
 
-- (bool)isAssociatedWithAlertShortTextHigher:(UIView*)view {
+- (void)fadeOutView:(UIView *)view duration:(float)duration {
+    [ViewInteractions fadeOut:_alertShortTextHigher completion:^(BOOL completion) {
+        if (!completion) {
+            [_alertShortTextHigher setAlpha:0];
+        }
+    }                duration:duration];
+}
+
+- (bool)isAssociatedWithAlertShortTextHigher:(UIView *)view {
     return view == _conversationEndView || view == _joiningConversationView;
 }
 
-- (void)onFinishedFadingIn:(UIView*)view duration:(float)duration{
+- (bool)doesViewUseButtons:(UIView *)view {
+    return view == _localImageViewParent;
+}
+
+- (void)onFinishedFadingIn:(UIView *)view duration:(float)duration {
+
 }
 
 

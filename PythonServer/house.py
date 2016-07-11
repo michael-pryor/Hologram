@@ -312,10 +312,10 @@ class House:
 
         self.house_lock.acquire()
         try:
-            if client.state != Client.State.MATCHING and client.state != Client.State.MATCHED:
-                return
-
             if client not in self.room_participant:
+                if client.state != Client.State.MATCHING and client.state != Client.State.MATCHED:
+                    return
+                
                 clientMatch = self.attemptTakeRoom(client)
             else:
                 clientMatch = self.room_participant[client]
@@ -323,14 +323,21 @@ class House:
 
                 # A client has reconnected, and wants to use the old room.
                 if clientOld is not client:
-                    logger.debug("Old room reused, due to client [%s] reconnecting" % client)
-                    client.transitionState(None, Client.State.MATCHED)
+                    logger.debug("Old room reused, due to client [%s]")
                     self.room_participant[client] = clientMatch
                     self.room_participant[clientMatch] = client
 
-                    # NAT punchthrough won't be enabled on the new client and
-                    # will probably be disabled on the old client.
-                    self.adviseNatPunchthrough(client, clientMatch)
+                    if client.state == Client.State.ACCEPTING_MATCH:
+                        logger.debug("(REUSE) Readvised match details between client [%s] and [%s]" % (client, clientMatch))
+                        self.adviseMatchDetails(client, clientMatch)
+                    elif client.state == Client.State.MATCHED:
+                        logger.debug("(REUSE) Readvised NAT punchthrough details between client [%s] and [%s]" % (client, clientMatch))
+                        # NAT punchthrough won't be enabled on the new client and
+                        # will probably be disabled on the old client.
+                        self.adviseNatPunchthrough(client, clientMatch)
+                    else:
+                        logger.debug("(REUSE) Releasing room, reconnecting client state is unusual: %d and %d" % (client.state, clientMatch.state))
+                        self.releaseRoom(client)
         finally:
             self.house_lock.release()
 

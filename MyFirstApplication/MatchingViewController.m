@@ -7,6 +7,7 @@
 #import "Threading.h"
 #import "Timer.h"
 #import "CircleCountdownTimer.h"
+#import "ViewInteractions.h"
 
 
 @implementation MatchingViewController {
@@ -14,6 +15,14 @@
     CallingCardViewController *_callingCardViewController;
     __weak IBOutlet CircleProgressBar *_matchingCountdown;
     CircleCountdownTimer *_matchingCountdownTimer;
+    
+    
+    __weak IBOutlet UIView *_skipButton;
+    __weak IBOutlet UIView *_acceptButton;
+    __weak IBOutlet UIButton *_backToSocialButton;
+    __weak IBOutlet UIView *_blockButton;
+
+    NSArray *_buttons;
 }
 
 - (Timer *)cloneTimer {
@@ -21,10 +30,15 @@
 }
 
 - (void)viewDidLoad {
+    _buttons = @[_skipButton, _acceptButton, _backToSocialButton, _blockButton];
     _matchingCountdownTimer = [[CircleCountdownTimer alloc] initWithCircleProgressBar:_matchingCountdown matchingAnswerDelegate:_matchingAnswerDelegate];
 }
 
 - (void)reset {
+    for (UIView *button in _buttons) {
+        [button setAlpha:ALPHA_BUTTON_IMAGE_READY];
+    }
+
     [_matchingCountdownTimer restart];
     [_matchingCountdownTimer startUpdating];
 }
@@ -49,20 +63,28 @@
 
 - (IBAction)onButtonRejectTap:(id)sender {
     if ([_matchingAnswerDelegate onMatchRejectAnswer]) {
-        [self onDone];
+        [self onDoneWithView:_skipButton];
     }
 }
 
 - (IBAction)onButtonAcceptPressed:(id)sender {
-    [self onDone];
+    [self onDoneWithView:_acceptButton];
     [_matchingAnswerDelegate onMatchAcceptAnswer];
 }
 
-- (void)onDone {
+- (void)onButtonPressedUpdateView:(UIView*)view {
+    dispatch_sync_main(^{
+        [view setAlpha:ALPHA_BUTTON_PRESSED];
+    });
+}
+
+- (void)onDoneWithView:(UIView*)view {
     [_matchingCountdownTimer stopUpdating];
+    [self onButtonPressedUpdateView: view];
 }
 
 - (IBAction)onSocialBackButtonPressed:(id)sender {
+    [self onDoneWithView:_backToSocialButton];
     [_matchingAnswerDelegate onBackToSocialRequest];
 }
 
@@ -71,7 +93,7 @@
 }
 
 - (IBAction)onBlockButtonPressed:(id)sender {
-    [self onDone];
+    [self onDoneWithView:_blockButton];
     [_matchingAnswerDelegate onMatchBlocked];
 }
 @end

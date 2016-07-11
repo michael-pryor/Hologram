@@ -19,7 +19,7 @@
 @protocol MediaOperator;
 
 @interface AlertViewController : UIViewController <FBAdViewDelegate, NewImageDelegate, ConversationRatingConsumer, MatchingAnswerDelegate, CallingCardDataProvider, ViewChangeNotifier>
-- (void)setGenericInformationText:(NSString *)shortText;
+- (void)setGenericInformationText:(NSString *)shortText skipButtonEnabled:(bool)enabled;
 
 - (Boolean)hideIfVisibleAndReady;
 
@@ -29,9 +29,11 @@
 
 - (void)enableAdverts;
 
-- (void)setConversationEndedViewVisible:(bool)visible instantly:(bool)instant;
+- (void)setConversationEndedViewVisible:(bool)visible showQuickly:(bool)showQuickly;
 
-- (void)setConversationRatingConsumer:(id <ConversationRatingConsumer>)consumer matchingAnswerDelegate:(id <MatchingAnswerDelegate>)matchingAnswerDelegate mediaOperator:(id <MediaOperator>)videoOperator ratingTimeoutSeconds:(uint)ratingTimeoutSeconds matchDecisionTimeoutSeconds:(uint)seconds;
+- (void)setConversationRatingConsumer:(id <ConversationRatingConsumer>)consumer matchingAnswerDelegate:(id <MatchingAnswerDelegate>)matchingAnswerDelegate mediaOperator:(id <MediaOperator>)videoOperator;
+
+- (void)setRatingTimeoutSeconds:(uint)ratingTimeoutSeconds matchDecisionTimeoutSeconds:(uint)seconds;
 
 - (void)setName:(NSString *)name profilePicture:(UIImage *)profilePicture callingCardText:(NSString *)callingCardText age:(uint)age distance:(uint)distance;
 
