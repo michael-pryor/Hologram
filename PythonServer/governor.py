@@ -419,7 +419,7 @@ if __name__ == "__main__":
     mongoClient = pymongo.MongoClient("localhost", 27017)
     matchingDatabase = Matching(governorName, mongoClient)
     blockingDatabase = Blocking(mongoClient.db.blocked)
-    matchDecisionDatabase = Blocking(mongoClient.db.match_decision, expiryTimeSeconds=30)
+    matchDecisionDatabase = Blocking(mongoClient.db.match_decision, expiryTimeSeconds=60 * 60)
     karmaDatabase = KarmaLeveled(mongoClient)
     persistedIdsDatabase = PersistedIds(mongoClient)
     server = Governor(reactor, matchingDatabase, blockingDatabase, matchDecisionDatabase, karmaDatabase, persistedIdsDatabase, governorName)

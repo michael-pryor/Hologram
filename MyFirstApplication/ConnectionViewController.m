@@ -714,6 +714,11 @@
 - (void)onBannedWithMagnitude:(uint8_t)magnitude expiryTimeSeconds:(uint)numSeconds {
     dispatch_sync_main(^{
         _inDifferentView = true;
+
+        if (_disconnectViewController != nil) {
+            [_disconnectViewController signalMovingToFacebookController];
+        }
+
         UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Storyboard" bundle:nil];
         BannedViewController *viewController = [storyboard instantiateViewControllerWithIdentifier:@"BannedViewController"];
 

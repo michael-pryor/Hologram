@@ -1786,7 +1786,7 @@
                                                 <rect key="frame" x="0.0" y="0.0" width="560" height="14"/>
                                                 <subviews>
                                                     <stackView opaque="NO" contentMode="scaleToFill" distribution="equalCentering" translatesAutoresizingMaskIntoConstraints="NO" id="fUr-Nh-EZc">
-                                                        <rect key="frame" x="0.0" y="0.0" width="560" height="14"/>
+                                                        <rect key="frame" x="5" y="0.0" width="550" height="14"/>
                                                         <subviews>
                                                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="24 years old" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="6nC-fj-n4F" userLabel="Name">
                                                                 <rect key="frame" x="0.0" y="0.0" width="57" height="14"/>
@@ -1795,13 +1795,13 @@
                                                                 <nil key="highlightedColor"/>
                                                             </label>
                                                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="2 km away" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="7lY-8S-OhH" userLabel="Age">
-                                                                <rect key="frame" x="251" y="0.0" width="51" height="14"/>
+                                                                <rect key="frame" x="246" y="0.0" width="51" height="14"/>
                                                                 <fontDescription key="fontDescription" name="PingFangSC-Regular" family="PingFang SC" pointSize="10"/>
                                                                 <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
                                                                 <nil key="highlightedColor"/>
                                                             </label>
                                                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="AP4-fW-g14">
-                                                                <rect key="frame" x="490" y="0.0" width="70" height="14"/>
+                                                                <rect key="frame" x="480" y="0.0" width="70" height="14"/>
                                                                 <subviews>
                                                                     <progressView opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" progress="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="xRy-j7-nyA" userLabel="Karma">
                                                                         <rect key="frame" x="0.0" y="6" width="70" height="2"/>
@@ -1824,9 +1824,9 @@
                                                 <color key="backgroundColor" red="0.86368750650000004" green="0.97713934550000003" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                                 <constraints>
                                                     <constraint firstItem="fUr-Nh-EZc" firstAttribute="top" secondItem="OzE-ae-5ys" secondAttribute="top" id="JiW-i6-hhj"/>
-                                                    <constraint firstItem="fUr-Nh-EZc" firstAttribute="leading" secondItem="OzE-ae-5ys" secondAttribute="leading" id="Trj-j8-OVh"/>
+                                                    <constraint firstItem="fUr-Nh-EZc" firstAttribute="leading" secondItem="OzE-ae-5ys" secondAttribute="leading" constant="5" id="Trj-j8-OVh"/>
                                                     <constraint firstAttribute="bottom" secondItem="fUr-Nh-EZc" secondAttribute="bottom" id="gd3-BT-hyW"/>
-                                                    <constraint firstAttribute="trailing" secondItem="fUr-Nh-EZc" secondAttribute="trailing" id="txt-NI-YSI"/>
+                                                    <constraint firstAttribute="trailing" secondItem="fUr-Nh-EZc" secondAttribute="trailing" constant="5" id="txt-NI-YSI"/>
                                                 </constraints>
                                             </view>
                                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="O1z-Ir-sSe" userLabel="Divider Minor">

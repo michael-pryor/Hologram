@@ -42,6 +42,8 @@
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(appWillRetakeActive:) name:UIApplicationDidBecomeActiveNotification object:nil];
     _isScreenInUse = false;
 
+    [_notifyButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateDisabled];
+
     _purchaseViewController = self.childViewControllers[0];
     [_purchaseViewController setOnFinishedFunc:^{
         [self onPaymentsViewTap:self];
