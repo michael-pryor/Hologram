@@ -49,9 +49,6 @@ typedef enum {
 @protocol NatPunchthroughNotifier <CallingCardDataProvider>
 - (void)onNatPunchthrough:(ConnectionGovernorNatPunchthrough *)connection stateChange:(NatState)state;
 
-// NAT punch through also provides user name and age details as part of the login process.
-- (void)setName:(NSString *)name profilePicture:(UIImage *)profilePicture callingCardText:(NSString *)callingCardText age:(uint)age distance:(uint)distance;
-
 - (void)handleKarmaMaximum:(uint)karmaMaximum ratingTimeoutSeconds:(uint)ratingTimeoutSeconds matchDecisionTimeout:(uint)timeout;
 
 - (void)handleOurKarma:(uint)ourKarma remoteKarma:(uint)remoteKarma;

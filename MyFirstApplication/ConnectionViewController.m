@@ -131,8 +131,8 @@
 
 
     // Hack for arden crescent, should be nil.
-    _cachedResolvedDns = @"192.168.1.92";
-    //_cachedResolvedDns = nil;
+    //_cachedResolvedDns = @"192.168.1.92";
+    _cachedResolvedDns = nil;
 
     _payments = [[Payments alloc] initWithDelegate:self];
 

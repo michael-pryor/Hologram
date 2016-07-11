@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 # Representation of client from server's perspective.
 class Client(object):
-    MINIMUM_VERSION = 3
+    MINIMUM_VERSION = 4
 
     # Clients have absolute maximum of 10 seconds to give their rating before it defaults to an okay rating.
     # App is advised to send within 5 seconds.
@@ -30,7 +30,7 @@ class Client(object):
     # After client does not accept/reject anyone for 3 times, disconnect them.
     SKIPPED_TIMED_OUT_LIMIT = 3
 
-    # Client has 5 seconds to accept or reject match.
+    # Client has 60 seconds to accept or reject match.
     ACCEPTING_MATCH_EXPIRY = 60
 
     class ConnectionStatus:

@@ -31,7 +31,7 @@
 
 // Version to include in connection attempts.
 // Must be >= to server's expectation, otherwise we'l be rejected.
-#define VERSION 3
+#define VERSION 4
 
 // Client has been inactive (not accepting or rejecting conversations) for too long.
 #define INACTIVE_TIMOUT 6
