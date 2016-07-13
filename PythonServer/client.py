@@ -620,7 +620,7 @@ class Client(object):
             if rating == Client.ConversationRating.BAD:
                 logger.debug("Bad rating for client [%s] received" % self)
                 deductKarma()
-
+                self.blocking_database.pushBlock(self.client_from_previous_conversation, self)
             elif rating == Client.ConversationRating.BLOCK:
                 logger.debug("Block for client [%s] received from [%s]" % (self, self.client_from_previous_conversation))
                 deductKarma()
