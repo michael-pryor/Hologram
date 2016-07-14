@@ -31,23 +31,18 @@
     DecodingPipe *_decodingPipe;
 
     id <MediaDataLossNotifier> _mediaDelayNotifier;
-    
-    bool _loopbackEnabled;
 }
 
 - (id)initWithImageDelegate:(id <NewImageDelegate>)newImageDelegate mediaDataLossNotifier:(id <MediaDataLossNotifier>)mediaDataLossNotifier {
     self = [super init];
     if (self) {
-        // A mode for testing where audio and video is looped round avoiding the network (so we see and hear ourselves immediately).
-        _loopbackEnabled = false;
-
         _mediaDelayNotifier = mediaDataLossNotifier;
         _started = false;
 
         const uint leftPadding = sizeof(uint8_t);
 
         // Video.
-        _videoOutputController = [[VideoOutputController alloc] initWithUdpNetworkOutputSession:nil imageDelegate:newImageDelegate mediaDataLossNotifier:mediaDataLossNotifier leftPadding:leftPadding loopbackEnabled:_loopbackEnabled];
+        _videoOutputController = [[VideoOutputController alloc] initWithUdpNetworkOutputSession:nil imageDelegate:newImageDelegate mediaDataLossNotifier:mediaDataLossNotifier leftPadding:leftPadding loopbackEnabled:false];
         _decodingPipe = [[DecodingPipe alloc] init];
         [_decodingPipe addPrefix:VIDEO_ID mappingToOutputSession:_videoOutputController];
 
@@ -55,20 +50,10 @@
         _audioSequenceEncodingPipe = [[SequenceEncodingPipe alloc] initWithOutputSession:nil];
         _encodingPipeAudio = [[EncodingPipe alloc] initWithOutputSession:_audioSequenceEncodingPipe prefixId:AUDIO_ID];
 
-        if (_loopbackEnabled) {
-            // Signal to audio that it should loop back.
-            _encodingPipeAudio = nil;
-        }
-
         _audioGraph = [[AudioGraph alloc] initWithOutputSession:_encodingPipeAudio leftPadding:leftPadding + sizeof(uint16_t) sequenceGapNotifier:self timeInQueueNotifier:self];
         _audioSequenceDecodingPipe = [[SequenceDecodingPipe alloc] initWithOutputSession:_audioGraph sequenceGapNotification:self];
         [_decodingPipe addPrefix:AUDIO_ID mappingToOutputSession:_audioSequenceDecodingPipe];
         [_audioGraph initialize];
-        
-        if (_loopbackEnabled) {
-            [self startAudio];
-            [self startVideo];
-        }
     }
     return self;
 }
@@ -94,10 +79,6 @@
 }
 
 - (void)stopAudio {
-    if (_loopbackEnabled) {
-        return;
-    }
-    
     @synchronized (self) {
         if (!_started) {
             return;
@@ -120,10 +101,6 @@
 }
 
 - (void)stopVideo {
-    if (_loopbackEnabled) {
-        return;
-    }
-    
     // We use the video on the disconnect screen aswell, so once initialized, we never need to stop capturing.
     [_videoOutputController stopCapturing];
 }

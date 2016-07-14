@@ -28,6 +28,8 @@
     bool _movingToFacebook;
     bool _viewVisible;
 
+    NSString *_cachedAlertText;
+
     // Advert.
     Timer *_timerSinceAdvertCreated;
     __weak IBOutlet UIView *_advertBannerView; // The container which sizes it.
@@ -56,6 +58,10 @@
     SingleViewCollection *_viewCollection;
 
     bool _isSkipButtonRequired;
+}
+
+- (void)reset {
+    [_alertShortText setText:@""];
 }
 
 - (bool)isViewCurrent:(UIView *)view {
@@ -91,8 +97,7 @@
         // Alert text has changed, wait at least two seconds more before clearing display.
         [_timerSinceAdvertCreated reset];
 
-        _alertShortText.text = shortText;
-        [_alertShortText setNeedsDisplay];
+        _cachedAlertText = shortText;
 
         [_forwardButton setHidden:!skipButtonEnabled];
         _isSkipButtonRequired = skipButtonEnabled;
@@ -139,6 +144,8 @@
     _movingToFacebook = false;
     _shouldShowAdverts = false;
     _isSkipButtonRequired = false;
+
+    _cachedAlertText = nil;
 
     // This is always the first view to be shown!
     // And we need the video to be running so that messages can be sent across,
@@ -289,11 +296,12 @@
 
 - (void)showView:(UIView *)viewToShow showQuickly:(bool)showQuickly {
     if (viewToShow == _localImageViewParent && !showQuickly) {
-        [_viewCollection displayView:viewToShow ifNoChangeForMilliseconds:1000];
+        [_viewCollection displayView:viewToShow ifNoChangeForMilliseconds:1000 meta:_cachedAlertText];
         return;
     }
 
-    [_viewCollection displayView:viewToShow];
+    [_viewCollection displayView:viewToShow meta:_cachedAlertText];
+    _cachedAlertText = nil;
 }
 
 - (void)setConversationEndedViewVisible:(bool)visible showQuickly:(bool)showQuickly {
@@ -403,19 +411,20 @@
 }
 
 
-- (void)onStartedFadingOut:(UIView *)view duration:(float)duration {
+- (void)onStartedFadingOut:(UIView *)view duration:(float)duration alpha:(float)alpha {
     if ([self isAssociatedWithAlertShortTextHigher:view]) {
-        [self fadeOutView:_alertShortTextHigher duration:duration];
+        [self fadeOutView:_alertShortTextHigher duration:duration alpha:alpha];
     }
 
     if ([self doesViewUseButtons:view]) {
-        [self fadeOutView:_forwardButton duration:duration];
-        [self fadeOutView:_backButton duration:duration];
+        [self fadeOutView:_forwardButton duration:duration alpha:alpha];
+        [self fadeOutView:_backButton duration:duration alpha:alpha];
     }
 
+    [self fadeOutView:_alertShortText duration:duration alpha:0.4];
 }
 
-- (void)onFinishedFadingOut:(UIView *)view duration:(float)duration {
+- (void)onFinishedFadingOut:(UIView *)view duration:(float)duration alpha:(float)alpha {
     if ([self shouldVideoBeOnView:view]) {
         [_mediaOperator stopVideo];
     }
@@ -426,7 +435,7 @@
     }
 }
 
-- (void)onStartedFadingIn:(UIView *)view duration:(float)duration {
+- (void)onStartedFadingIn:(UIView *)view duration:(float)duration meta:(id)meta {
     if ([self shouldVideoBeOnView:view]) {
         [_mediaOperator startVideo];
     }
@@ -443,6 +452,12 @@
         [self fadeInView:_forwardButton duration:duration alpha:ALPHA_BUTTON_IMAGE_READY];
         [self fadeInView:_backButton duration:duration alpha:ALPHA_BUTTON_IMAGE_READY];
     }
+
+    NSString *alertText = meta;
+    if (alertText != nil) {
+        [_alertShortText setText:alertText];
+        [self fadeInView:_alertShortText duration:duration alpha:1.0f];
+    }
 }
 
 - (void)fadeInView:(UIView *)view duration:(float)duration alpha:(float)alpha {
@@ -453,12 +468,12 @@
     }               duration:duration toAlpha:alpha];
 }
 
-- (void)fadeOutView:(UIView *)view duration:(float)duration {
+- (void)fadeOutView:(UIView *)view duration:(float)duration alpha:(float)alpha{
     [ViewInteractions fadeOut:view completion:^(BOOL completion) {
         if (!completion) {
-            [view setAlpha:0];
+            [view setAlpha:alpha];
         }
-    }                duration:duration];
+    }                duration:duration toAlpha:alpha];
 }
 
 - (bool)isAssociatedWithAlertShortTextHigher:(UIView *)view {
@@ -473,7 +488,7 @@
     return view == _joiningConversationView;
 }
 
-- (void)onFinishedFadingIn:(UIView *)view duration:(float)duration {
+- (void)onFinishedFadingIn:(UIView *)view duration:(float)duration meta:(id)meta {
 
 }
 

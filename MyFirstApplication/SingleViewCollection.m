@@ -14,6 +14,8 @@
     UIView *_currentRealView;
     UIView *_viewBeingLoaded;
 
+    id _requestedMeta;
+
     id <ViewChangeNotifier> _viewChangeNotifier;
     Timer *_timer;
 }
@@ -55,10 +57,10 @@
         _requestedView = nil;
     }
 
-    [self doReplaceView:previousViewToUse withView:viewToUse];
+    [self doReplaceView:previousViewToUse withView:viewToUse meta:_requestedMeta];
 }
 
-- (void)displayView:(UIView *)view {
+- (void)displayView:(UIView *)view meta:(id)meta{
     if (view == nil) {
         return;
     }
@@ -70,25 +72,27 @@
         doDisplay = _viewBeingLoaded == nil;
         if (doDisplay) {
             _viewBeingLoaded = view;
+            _requestedMeta = nil;
         } else {
             _requestedView = view;
+            _requestedMeta = meta;
         }
         previousView = _currentRealView;
     }
     if (doDisplay) {
-        [self doReplaceView:previousView withView:view];
+        [self doReplaceView:previousView withView:view meta:meta];
     }
 }
 
 // The idea behind this is to delay switching screens, if we predict that we will not be returning
 // to that screen soon. Feels alot smoother.
-- (void)displayView:(UIView *)view ifNoChangeForMilliseconds:(uint)milliseconds {
+- (void)displayView:(UIView *)view ifNoChangeForMilliseconds:(uint)milliseconds meta:(id)meta {
     bool doNow;
     @synchronized (self) {
         doNow = _currentRealView == nil || _currentRealView == view;
     }
     if (doNow) {
-        [self displayView:view];
+        [self displayView:view meta:meta];
         return;
     }
 
@@ -97,18 +101,18 @@
         if ([_timeSubmitted getTimerEpoch] != [_timer getTimerEpoch]) {
             return;
         }
-        [self displayView:view];
+        [self displayView:view meta:meta];
     }, milliseconds);
 }
 
-- (void)doReplaceView:(UIView *)oldView withView:(UIView *)newView {
+- (void)doReplaceView:(UIView *)oldView withView:(UIView *)newView meta:(id)meta {
     if (oldView == nil) {
-        [_viewChangeNotifier onStartedFadingIn:newView duration:_duration];
+        [_viewChangeNotifier onStartedFadingIn:newView duration:_duration meta:meta];
         [ViewInteractions fadeIn:newView completion:^(BOOL completion) {
             if (!completion) {
                 [newView setAlpha:1];
             }
-            [_viewChangeNotifier onFinishedFadingIn:newView duration:_duration];
+            [_viewChangeNotifier onFinishedFadingIn:newView duration:_duration meta:meta];
             [self onCompletion];
         }               duration:_duration];
 
@@ -123,18 +127,18 @@
         outAlpha = 0;
     }
 
-    [_viewChangeNotifier onStartedFadingOut:oldView duration:_duration];
+    [_viewChangeNotifier onStartedFadingOut:oldView duration:_duration alpha:outAlpha];
     [ViewInteractions fadeOut:oldView completion:^(BOOL completionOut) {
         if (!completionOut) {
             [oldView setAlpha:0];
         }
-        [_viewChangeNotifier onFinishedFadingOut:oldView duration:_duration];
-        [_viewChangeNotifier onStartedFadingIn:newView duration:_duration];
+        [_viewChangeNotifier onFinishedFadingOut:oldView duration:_duration alpha:outAlpha];
+        [_viewChangeNotifier onStartedFadingIn:newView duration:_duration meta:meta];
         [ViewInteractions fadeIn:newView completion:^(BOOL completionIn) {
             if (!completionIn) {
                 [newView setAlpha:1];
             }
-            [_viewChangeNotifier onFinishedFadingIn:newView duration:_duration];
+            [_viewChangeNotifier onFinishedFadingIn:newView duration:_duration meta:meta];
 
             [self onCompletion];
         }               duration:_duration];

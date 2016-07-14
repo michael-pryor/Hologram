@@ -98,6 +98,7 @@
 		D5D615E9B348EFBB9B04F511 /* VideoShared.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D614114FF48DB005807969 /* VideoShared.m */; };
 		D5D6162932AFDDD7A6D1CE33 /* NameParsing.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D612C8DF947E69590A829C /* NameParsing.m */; };
 		D5D6165B63794F0F27DDF979 /* AudioPcmConversion.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61FC56AFD47784849F7C2 /* AudioPcmConversion.m */; };
+		D5D6165DA188B2DDC0E538C9 /* VideoLoopbackViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D611ECB75220DE7C79DF6B /* VideoLoopbackViewController.m */; };
 		D5D616A6CA79F7FD23FA22F6 /* ImageParsing.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61890FA8B1FC5EC686B91 /* ImageParsing.m */; };
 		D5D616C14885CA193D2FDA2E /* GenderParsing.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61D0AB4A7A9EA5C3AC7B8 /* GenderParsing.m */; };
 		D5D6172203880B4EF5E0208A /* TimedCounter.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61836CE9E34E7AFC359A6 /* TimedCounter.m */; };
@@ -258,6 +259,7 @@
 		5E6EBF7A13F99820B1F30A4E /* Pods-Hologram.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Hologram.release.xcconfig"; path = "Pods/Target Support Files/Pods-Hologram/Pods-Hologram.release.xcconfig"; sourceTree = "<group>"; };
 		C4ADB9B012761AE92D64F0BB /* Pods_Hologram.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Hologram.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		D5D610127115D2A30BBB7970 /* AudioUnitHelpers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AudioUnitHelpers.h; sourceTree = "<group>"; };
+		D5D61022B3390669AEBC27C5 /* VideoLoopbackViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VideoLoopbackViewController.h; sourceTree = "<group>"; };
 		D5D61030BA4D3A5A22FB2B3A /* IPV6Resolver.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IPV6Resolver.h; sourceTree = "<group>"; };
 		D5D610546CB5BFA2EC52AFD5 /* Threading.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Threading.m; sourceTree = "<group>"; };
 		D5D6107A9AAD70A47286A31C /* GenderParsing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GenderParsing.h; sourceTree = "<group>"; };
@@ -270,6 +272,7 @@
 		D5D6114D7017CFB660E7BE53 /* TimedCounterLogging.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TimedCounterLogging.m; sourceTree = "<group>"; };
 		D5D611882576B99D3A462BDA /* KeychainItemWrapper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KeychainItemWrapper.m; sourceTree = "<group>"; };
 		D5D611C93EBE4BF3E3DE1D08 /* BanPaymentsViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BanPaymentsViewController.m; sourceTree = "<group>"; };
+		D5D611ECB75220DE7C79DF6B /* VideoLoopbackViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = VideoLoopbackViewController.m; sourceTree = "<group>"; };
 		D5D611FD6E543664C49DA575 /* UniqueId.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UniqueId.h; sourceTree = "<group>"; };
 		D5D61207BC64C4E6C3132C20 /* AudioGraph.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AudioGraph.m; sourceTree = "<group>"; };
 		D5D61251762F6DA462F666E0 /* ReadWriteLock.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ReadWriteLock.h; sourceTree = "<group>"; };
@@ -475,6 +478,8 @@
 				D5D61D60E65368E9040EE139 /* EndUserLicenseAgreementViewController.h */,
 				D5D6189F59FDCA8F6FCFC23A /* HelpViewController.m */,
 				D5D615A996F18971426E16E7 /* HelpViewController.h */,
+				D5D611ECB75220DE7C79DF6B /* VideoLoopbackViewController.m */,
+				D5D61022B3390669AEBC27C5 /* VideoLoopbackViewController.h */,
 			);
 			name = "Social Login";
 			sourceTree = "<group>";
@@ -1120,6 +1125,7 @@
 				D5D612FCC8CA14CAF2CBD8A5 /* CircleCountdownTimer.m in Sources */,
 				D5D61200EB7342E8D3164555 /* SingleViewCollection.m in Sources */,
 				D5D6145032161E67DC8B0CB0 /* ViewStringFormatting.m in Sources */,
+				D5D6165DA188B2DDC0E538C9 /* VideoLoopbackViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

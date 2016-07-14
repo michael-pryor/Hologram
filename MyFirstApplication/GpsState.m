@@ -125,16 +125,15 @@ static NSString *gpsSaveKey = @"previousGpsLocation";
 }
 
 - (void)onGpsResolutionTimeout {
-    NSArray *result = [[NSUserDefaults standardUserDefaults] arrayForKey:gpsSaveKey];
-    if (result == nil) {
-        [_notifier onGpsDataLoadFailure:self withDescription:@"Failed to load GPS position"];
+    if (![_loaded signalAll]) {
         return;
     }
 
-    if (![_loaded signalAll]) {
-        NSLog(@"Failed to load GPS, and no past data to use");
-        [_notifier onGpsDataLoadFailure:self withDescription:@"Failed to load initial GPS position"];
-        return;
+    NSArray *result = [[NSUserDefaults standardUserDefaults] arrayForKey:gpsSaveKey];
+    if (result == nil) {
+        // Lolz
+        NSLog(@"Failed to load GPS location, defaulting to buckingham palace");
+        result = @[@(-0.141847), @(51.501207)];
     }
 
     NSNumber *lngObj = result[0];

@@ -95,9 +95,6 @@
         _resumeAfterInterruptionFinished = false;
 
         if (_loopbackEnabled) {
-            // Use the local image delegate, when that is loaded.
-            newImageDelegate = nil;
-
             // Set later on in this constructor, null out now to avoid risk of using accidently.
             udpNetworkOutputSession = nil;
         }
@@ -177,16 +174,10 @@
 
 - (void)setLocalImageDelegate:(id <NewImageDelegate>)localImageDelegate {
     _localImageDelegate = localImageDelegate;
-
-    if (_loopbackEnabled) {
-        [_packetToImageProcessor setNewImageDelegate:localImageDelegate];
-    }
 }
 
 - (void)clearLocalImageDelegate {
-    if (!_loopbackEnabled) {
-        _localImageDelegate = nil;
-    }
+    _localImageDelegate = nil;
 }
 
 - (void)startCapturing {
@@ -255,13 +246,17 @@
 
 // Handle data from camera device and push out to network.
 - (void)captureOutput:(AVCaptureOutput *)captureOutput didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection {
-    if (_localImageDelegate != nil && !_loopbackEnabled) {
+    if (_localImageDelegate != nil) {
         [_videoEncoder setFrameRate:LOCAL_FRAME_RATE];
         UIImage *localImage = [_videoEncoder convertSampleBufferToUiImage:sampleBuffer];
         if (localImage != nil) {
             // Make a copy, incase reference count goes to 0 mid way through operation.
             id <NewImageDelegate> delegate = _localImageDelegate;
             [delegate onNewImage:localImage];
+        }
+
+        if (_loopbackEnabled) {
+            return;
         }
     } else {
         [_videoEncoder setFrameRate:ENCODING_FRAME_RATE];

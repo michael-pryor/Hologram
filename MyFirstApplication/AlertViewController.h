@@ -38,4 +38,6 @@
 - (void)signalMovingToFacebookController;
 
 - (bool)shouldVideoBeOn;
+
+- (void)reset;
 @end
