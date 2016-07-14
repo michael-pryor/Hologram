@@ -15,6 +15,8 @@
 }
 
 - (void)viewDidLoad {
+    self.screenName = @"VideoLoopback";
+
     _controller = [[VideoOutputController alloc] initWithUdpNetworkOutputSession:nil imageDelegate:self mediaDataLossNotifier:nil leftPadding:sizeof(uint8_t) loopbackEnabled:true];
     [_controller setVideoDelayMs:0];
 }

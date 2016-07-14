@@ -21,6 +21,8 @@
 }
 
 - (void)viewDidLoad {
+    self.screenName = @"Help";
+
     _karmaMax = 5;
     _karma = _karmaMax;
 

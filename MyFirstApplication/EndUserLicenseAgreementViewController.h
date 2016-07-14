@@ -3,7 +3,8 @@
 //
 
 #import <Foundation/Foundation.h>
+#import <GAITrackedViewController.h>
 
 
-@interface EndUserLicenseAgreementViewController : UIViewController
+@interface EndUserLicenseAgreementViewController : GAITrackedViewController
 @end

@@ -14,6 +14,8 @@
 - (void)viewDidLoad {
     [_eulaTextView.layer setBorderColor:[[UIColor blackColor] CGColor]];
     [_eulaTextView.layer setBorderWidth:0.5];
+
+    self.screenName = @"EULA";
 }
 
 - (IBAction)onAcceptButtonPress:(id)sender {

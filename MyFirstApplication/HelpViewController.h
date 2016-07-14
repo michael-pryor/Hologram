@@ -4,7 +4,8 @@
 
 #import <Foundation/Foundation.h>
 #import "ConversationEndedViewController.h"
+#import <GAITrackedViewController.h>
 
 
-@interface HelpViewController : UIViewController<ConversationRatingConsumer>
+@interface HelpViewController : GAITrackedViewController<ConversationRatingConsumer>
 @end

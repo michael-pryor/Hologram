@@ -9,7 +9,7 @@
 #import <Foundation/Foundation.h>
 #import <FBSDKLoginKit/FBSDKLoginKit.h>
 #import <FBSDKCoreKit/FBSDKCoreKit.h>
-#import "GAITrackedViewController.h"
+#import <GAITrackedViewController.h>
 #import "SocialState.h"
 
 @interface FacebookLoginViewController : GAITrackedViewController <UITextFieldDelegate, UITextViewDelegate, FBSDKLoginButtonDelegate, UIAlertViewDelegate, SocialStateDataLoadNotification, UINavigationControllerDelegate, UIImagePickerControllerDelegate>

@@ -3,8 +3,9 @@
 //
 
 #import <Foundation/Foundation.h>
+#import <GAITrackedViewController.h>
 #import "VideoOutputController.h"
 
 
-@interface VideoLoopbackViewController : UIViewController <NewImageDelegate>
+@interface VideoLoopbackViewController : GAITrackedViewController <NewImageDelegate>
 @end

@@ -3,7 +3,7 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "GAITrackedViewController.h"
+#import <GAITrackedViewController.h>
 #import "Payments.h"
 
 @class SKProduct;
