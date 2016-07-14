@@ -12,12 +12,11 @@
     __weak IBOutlet UISwitch *_compressionSwitch;
 
     VideoOutputController *_controller;
-    Signal *_compressionEnabled;
 }
 
 - (void)viewDidLoad {
     _controller = [[VideoOutputController alloc] initWithUdpNetworkOutputSession:nil imageDelegate:self mediaDataLossNotifier:nil leftPadding:sizeof(uint8_t) loopbackEnabled:true];
-    _compressionEnabled = [[Signal alloc] initWithFlag:true];
+    [_controller setVideoDelayMs:0];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -29,12 +28,12 @@
 }
 
 - (IBAction)_onCompressionSwitchChange:(id)sender {
-    if ([_compressionEnabled clear]) {
+    if (![_compressionSwitch isOn]) {
         [_controller setLocalImageDelegate:self];
+        [_controller resetInbound];
     } else {
-        if([_compressionEnabled signalAll]) {
-            [_controller clearLocalImageDelegate];
-        }
+        [_controller resetInbound];
+        [_controller clearLocalImageDelegate];
     }
 }
 
