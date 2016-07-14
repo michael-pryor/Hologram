@@ -123,12 +123,12 @@
         outAlpha = 0;
     }
 
-    [_viewChangeNotifier onStartedFadingOut:oldView duration:_duration];
+    [_viewChangeNotifier onStartedFadingOut:oldView duration:_duration alpha:outAlpha];
     [ViewInteractions fadeOut:oldView completion:^(BOOL completionOut) {
         if (!completionOut) {
             [oldView setAlpha:0];
         }
-        [_viewChangeNotifier onFinishedFadingOut:oldView duration:_duration];
+        [_viewChangeNotifier onFinishedFadingOut:oldView duration:_duration alpha:outAlpha];
         [_viewChangeNotifier onStartedFadingIn:newView duration:_duration];
         [ViewInteractions fadeIn:newView completion:^(BOOL completionIn) {
             if (!completionIn) {

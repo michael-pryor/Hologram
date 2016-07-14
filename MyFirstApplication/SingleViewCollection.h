@@ -7,11 +7,11 @@
 @protocol ViewChangeNotifier
 - (void)onStartedFadingIn:(UIView*)view duration:(float)duration;
 
-- (void)onStartedFadingOut:(UIView*)view duration:(float)duration;
+- (void)onStartedFadingOut:(UIView *)view duration:(float)duration alpha:(float)alpha;
 
 - (void)onFinishedFadingIn:(UIView*)view duration:(float)duration;
 
-- (void)onFinishedFadingOut:(UIView*)view duration:(float)duration;
+- (void)onFinishedFadingOut:(UIView *)view duration:(float)duration alpha:(float)alpha;
 @end
 
 @interface SingleViewCollection : NSObject

@@ -28,6 +28,9 @@
     bool _movingToFacebook;
     bool _viewVisible;
 
+    NSString *_cachedAlertText;
+    NSString *_cachedAlertTextForFadeIn;
+
     // Advert.
     Timer *_timerSinceAdvertCreated;
     __weak IBOutlet UIView *_advertBannerView; // The container which sizes it.
@@ -91,8 +94,7 @@
         // Alert text has changed, wait at least two seconds more before clearing display.
         [_timerSinceAdvertCreated reset];
 
-        _alertShortText.text = shortText;
-        [_alertShortText setNeedsDisplay];
+        _cachedAlertText = shortText;
 
         [_forwardButton setHidden:!skipButtonEnabled];
         _isSkipButtonRequired = skipButtonEnabled;
@@ -139,6 +141,9 @@
     _movingToFacebook = false;
     _shouldShowAdverts = false;
     _isSkipButtonRequired = false;
+
+    _cachedAlertText = nil;
+    _cachedAlertTextForFadeIn = nil;
 
     // This is always the first view to be shown!
     // And we need the video to be running so that messages can be sent across,
@@ -403,19 +408,21 @@
 }
 
 
-- (void)onStartedFadingOut:(UIView *)view duration:(float)duration {
+- (void)onStartedFadingOut:(UIView *)view duration:(float)duration alpha:(float)alpha {
     if ([self isAssociatedWithAlertShortTextHigher:view]) {
-        [self fadeOutView:_alertShortTextHigher duration:duration];
+        [self fadeOutView:_alertShortTextHigher duration:duration alpha:alpha];
     }
 
     if ([self doesViewUseButtons:view]) {
-        [self fadeOutView:_forwardButton duration:duration];
-        [self fadeOutView:_backButton duration:duration];
+        [self fadeOutView:_forwardButton duration:duration alpha:alpha];
+        [self fadeOutView:_backButton duration:duration alpha:alpha];
     }
 
+    [self fadeOutView:_alertShortText duration:duration alpha:alpha];
+    _cachedAlertTextForFadeIn = _cachedAlertText;
 }
 
-- (void)onFinishedFadingOut:(UIView *)view duration:(float)duration {
+- (void)onFinishedFadingOut:(UIView *)view duration:(float)duration alpha:(float)alpha {
     if ([self shouldVideoBeOnView:view]) {
         [_mediaOperator stopVideo];
     }
@@ -443,6 +450,16 @@
         [self fadeInView:_forwardButton duration:duration alpha:ALPHA_BUTTON_IMAGE_READY];
         [self fadeInView:_backButton duration:duration alpha:ALPHA_BUTTON_IMAGE_READY];
     }
+
+    NSString * textToUse;
+    if (_cachedAlertTextForFadeIn == nil) {
+        textToUse = _cachedAlertText;
+    } else {
+        textToUse = _cachedAlertTextForFadeIn;
+    }
+    [_alertShortText setText:textToUse];
+
+    [self fadeInView:_alertShortText duration:duration alpha:1.0f];
 }
 
 - (void)fadeInView:(UIView *)view duration:(float)duration alpha:(float)alpha {
@@ -453,12 +470,12 @@
     }               duration:duration toAlpha:alpha];
 }
 
-- (void)fadeOutView:(UIView *)view duration:(float)duration {
+- (void)fadeOutView:(UIView *)view duration:(float)duration alpha:(float)alpha{
     [ViewInteractions fadeOut:view completion:^(BOOL completion) {
         if (!completion) {
-            [view setAlpha:0];
+            [view setAlpha:alpha];
         }
-    }                duration:duration];
+    }                duration:duration toAlpha:alpha];
 }
 
 - (bool)isAssociatedWithAlertShortTextHigher:(UIView *)view {

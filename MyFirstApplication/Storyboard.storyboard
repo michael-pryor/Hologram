@@ -85,6 +85,7 @@
         <scene sceneID="0ir-iJ-Of5">
             <objects>
                 <navigationController definesPresentationContext="YES" providesPresentationContextTransitionStyle="YES" modalTransitionStyle="crossDissolve" navigationBarHidden="YES" id="0oT-De-dHC" customClass="CustomNavigationController" sceneMemberID="viewController">
+                    <navigationItem key="navigationItem" id="U7c-x3-FBa"/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" id="Waf-bt-Ur1">
                         <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
@@ -1147,11 +1148,11 @@
                         <viewControllerLayoutGuide type="bottom" id="SN4-gs-A3A"/>
                     </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="BlS-3L-w4D">
-                        <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
+                        <rect key="frame" x="0.0" y="0.0" width="600" height="2500"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
                             <imageView clipsSubviews="YES" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="GLg-2U-XhO">
-                                <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
+                                <rect key="frame" x="0.0" y="0.0" width="600" height="2500"/>
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                 <color key="tintColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                 <gestureRecognizers/>
@@ -1166,7 +1167,7 @@
                                 <nil key="highlightedColor"/>
                             </label>
                             <progressView opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" misplaced="YES" progress="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="BIz-fU-nrs">
-                                <rect key="frame" x="8" y="585" width="70" height="5"/>
+                                <rect key="frame" x="8" y="2485" width="70" height="5"/>
                                 <color key="tintColor" red="1" green="0.098894447139999994" blue="0.1203000008" alpha="1" colorSpace="calibratedRGB"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="5" id="u7U-vw-wWA"/>
@@ -1193,7 +1194,7 @@
                                 <nil key="highlightedColor"/>
                             </label>
                             <imageView opaque="NO" userInteractionEnabled="NO" contentMode="scaleAspectFit" translatesAutoresizingMaskIntoConstraints="NO" id="Wt1-7M-iep">
-                                <rect key="frame" x="565" y="564" width="30" height="30"/>
+                                <rect key="frame" x="565" y="2464" width="30" height="30"/>
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                 <accessibility key="accessibilityConfiguration">
                                     <accessibilityTraits key="traits" notEnabled="YES"/>
@@ -1204,13 +1205,13 @@
                                 </constraints>
                             </imageView>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="cbc-sf-j5j">
-                                <rect key="frame" x="10" y="552" width="28" height="14"/>
+                                <rect key="frame" x="10" y="2452" width="28" height="14"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="11"/>
                                 <color key="textColor" red="0.0" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="TEST" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="UGl-Rn-eIt">
-                                <rect key="frame" x="10" y="566" width="28" height="14"/>
+                                <rect key="frame" x="10" y="2466" width="28" height="14"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="11"/>
                                 <color key="textColor" red="0.0" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                 <nil key="highlightedColor"/>
@@ -1254,7 +1255,7 @@
                                 </constraints>
                             </imageView>
                             <button opaque="NO" alpha="0.59999999999999998" contentMode="scaleToFill" horizontalHuggingPriority="1000" verticalHuggingPriority="1000" horizontalCompressionResistancePriority="1000" verticalCompressionResistancePriority="1000" contentHorizontalAlignment="center" contentVerticalAlignment="top" buttonType="roundedRect" lineBreakMode="clip" translatesAutoresizingMaskIntoConstraints="NO" id="4xm-sU-sjm">
-                                <rect key="frame" x="234" y="556" width="33" height="44"/>
+                                <rect key="frame" x="234" y="2456" width="33" height="44"/>
                                 <accessibility key="accessibilityConfiguration">
                                     <accessibilityTraits key="traits" button="YES" image="YES"/>
                                 </accessibility>
@@ -1267,7 +1268,7 @@
                                 </connections>
                             </button>
                             <button opaque="NO" alpha="0.59999999999999998" contentMode="scaleToFill" horizontalHuggingPriority="1000" verticalHuggingPriority="1000" horizontalCompressionResistancePriority="1000" verticalCompressionResistancePriority="1000" contentHorizontalAlignment="center" contentVerticalAlignment="top" buttonType="roundedRect" lineBreakMode="clip" translatesAutoresizingMaskIntoConstraints="NO" id="dDa-yk-yWa">
-                                <rect key="frame" x="334" y="556" width="33" height="44"/>
+                                <rect key="frame" x="334" y="2456" width="33" height="44"/>
                                 <accessibility key="accessibilityConfiguration">
                                     <accessibilityTraits key="traits" button="YES" image="YES"/>
                                 </accessibility>
@@ -2970,6 +2971,7 @@ Your display card currently looks like this:
                         <outlet property="_callingCardContainerView" destination="BbT-j7-iwg" id="0wJ-6l-p0q"/>
                         <outlet property="_callingCardView" destination="Wal-Oc-b8n" id="V9F-WS-dBA"/>
                         <outlet property="_karmaProgressBar" destination="hxN-6H-MYk" id="0ff-cy-oHR"/>
+                        <segue destination="0oT-De-dHC" kind="push" id="A4E-GV-wxz"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Qhs-zo-9An" userLabel="First Responder" sceneMemberID="firstResponder"/>
