@@ -29,7 +29,6 @@
     bool _viewVisible;
 
     NSString *_cachedAlertText;
-    NSString *_cachedAlertTextForFadeIn;
 
     // Advert.
     Timer *_timerSinceAdvertCreated;
@@ -59,6 +58,10 @@
     SingleViewCollection *_viewCollection;
 
     bool _isSkipButtonRequired;
+}
+
+- (void)reset {
+    [_alertShortText setText:@""];
 }
 
 - (bool)isViewCurrent:(UIView *)view {
@@ -143,7 +146,6 @@
     _isSkipButtonRequired = false;
 
     _cachedAlertText = nil;
-    _cachedAlertTextForFadeIn = nil;
 
     // This is always the first view to be shown!
     // And we need the video to be running so that messages can be sent across,
@@ -294,11 +296,12 @@
 
 - (void)showView:(UIView *)viewToShow showQuickly:(bool)showQuickly {
     if (viewToShow == _localImageViewParent && !showQuickly) {
-        [_viewCollection displayView:viewToShow ifNoChangeForMilliseconds:1000];
+        [_viewCollection displayView:viewToShow ifNoChangeForMilliseconds:1000 meta:_cachedAlertText];
         return;
     }
 
-    [_viewCollection displayView:viewToShow];
+    [_viewCollection displayView:viewToShow meta:_cachedAlertText];
+    _cachedAlertText = nil;
 }
 
 - (void)setConversationEndedViewVisible:(bool)visible showQuickly:(bool)showQuickly {
@@ -418,8 +421,7 @@
         [self fadeOutView:_backButton duration:duration alpha:alpha];
     }
 
-    [self fadeOutView:_alertShortText duration:duration alpha:alpha];
-    _cachedAlertTextForFadeIn = _cachedAlertText;
+    [self fadeOutView:_alertShortText duration:duration alpha:0.4];
 }
 
 - (void)onFinishedFadingOut:(UIView *)view duration:(float)duration alpha:(float)alpha {
@@ -433,7 +435,7 @@
     }
 }
 
-- (void)onStartedFadingIn:(UIView *)view duration:(float)duration {
+- (void)onStartedFadingIn:(UIView *)view duration:(float)duration meta:(id)meta {
     if ([self shouldVideoBeOnView:view]) {
         [_mediaOperator startVideo];
     }
@@ -451,15 +453,11 @@
         [self fadeInView:_backButton duration:duration alpha:ALPHA_BUTTON_IMAGE_READY];
     }
 
-    NSString * textToUse;
-    if (_cachedAlertTextForFadeIn == nil) {
-        textToUse = _cachedAlertText;
-    } else {
-        textToUse = _cachedAlertTextForFadeIn;
+    NSString *alertText = meta;
+    if (alertText != nil) {
+        [_alertShortText setText:alertText];
+        [self fadeInView:_alertShortText duration:duration alpha:1.0f];
     }
-    [_alertShortText setText:textToUse];
-
-    [self fadeInView:_alertShortText duration:duration alpha:1.0f];
 }
 
 - (void)fadeInView:(UIView *)view duration:(float)duration alpha:(float)alpha {
@@ -490,7 +488,7 @@
     return view == _joiningConversationView;
 }
 
-- (void)onFinishedFadingIn:(UIView *)view duration:(float)duration {
+- (void)onFinishedFadingIn:(UIView *)view duration:(float)duration meta:(id)meta {
 
 }
 

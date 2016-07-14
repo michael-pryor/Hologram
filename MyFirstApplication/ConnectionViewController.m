@@ -279,6 +279,11 @@
     // A sanity call, in case anything was left running while we went away.
     [self terminateCurrentSession];
 
+    if (_disconnectViewController != nil) {
+        [_disconnectViewController reset];
+        [_disconnectViewController setGenericInformationText:nil skipButtonEnabled:false];
+    }
+
     _isScreenInUse = true;
     [self start];
 }
@@ -442,6 +447,7 @@
 
         UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Storyboard" bundle:nil];
         FacebookLoginViewController *viewController = (FacebookLoginViewController *) [storyboard instantiateViewControllerWithIdentifier:@"FacebookView"];
+        UINavigationController *navigationController = self.navigationController;
         [self.navigationController pushViewController:viewController animated:YES];
     });
 }
@@ -473,6 +479,7 @@
             [_natPunchthroughIndicator setImage:[UIImage imageNamed:@"nat_punched_through"]];
         } else if (state == ADDRESS_RECEIVED) {
             NSLog(@"**** RECEIVED NAT ADDRESS INFORMAITON FROM CLIENT *****");
+            [self setDisconnectStateWithShortDescription:@"Waiting for other person to join conversation" askForConversationRating:false enableSkipButton:false];
 
             // At this point we are receiving connection details for a client ready to video chat with us,
             // so we're not waiting for complete or prospective match.
@@ -775,8 +782,8 @@
             // Set its content
             [_disconnectViewController setConversationRatingConsumer:self matchingAnswerDelegate:self mediaOperator:_mediaController];
             [_disconnectViewController setRatingTimeoutSeconds:_ratingTimeoutSeconds matchDecisionTimeoutSeconds:_matchDecisionTimeout];
-            [_disconnectViewController setConversationEndedViewVisible:askForConversationRating showQuickly:false];
             [_disconnectViewController setGenericInformationText:shortDescription skipButtonEnabled:enableSkipButton];
+            [_disconnectViewController setConversationEndedViewVisible:askForConversationRating showQuickly:false];
 
             if (!alreadyPresented) {
                 NSLog(@"***** PRESENTING DISCONNECT VIEW CONTROLLER *****");
