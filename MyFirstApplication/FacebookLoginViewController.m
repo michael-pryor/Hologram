@@ -171,6 +171,13 @@
 }
 
 - (void)viewDidAppear:(BOOL)animated {
+
+    // TODO: REMOVE.
+    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Storyboard" bundle:nil];
+    UIViewController *viewController = [storyboard instantiateViewControllerWithIdentifier:@"VideoLoopbackViewController"];
+    [self presentViewController:viewController animated:YES completion:nil];
+    // TODO: END OF REMOVE.
+
     if (_waitingForEulaCompletion) {
         _waitingForEulaCompletion = false;
         if ([_socialState hasAcceptedEula]) {
