@@ -289,6 +289,8 @@
 }
 
 - (void)start {
+    [self setDisconnectStateWithShortDescription:@"Initializing" askForConversationRating:false];
+
     // Start off in routed mode.
     previousState = NONE;
     [self resetFlags];
@@ -313,7 +315,6 @@
     }
 
     // This step can take a few seconds (particularly on older devices).
-    [self setDisconnectStateWithShortDescription:@"Initializing" askForConversationRating:false];
     if (_mediaController == nil) {
         _mediaController = [[MediaController alloc] initWithImageDelegate:self mediaDataLossNotifier:self];
     }
