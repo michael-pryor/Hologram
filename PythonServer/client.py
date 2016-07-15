@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 # Representation of client from server's perspective.
 class Client(object):
-    MINIMUM_VERSION = 4
+    MINIMUM_VERSION = 5
 
     # Clients have absolute maximum of 10 seconds to give their rating before it defaults to an okay rating.
     # App is advised to send within 5 seconds.
@@ -216,7 +216,7 @@ class Client(object):
         self.house_match_timer = None
 
         # Track previous matches which we have skipped
-        self.match_skip_history = Client.HistoryTracking(matchDecisionDatabase, self, enabled = False)
+        self.match_skip_history = Client.HistoryTracking(matchDecisionDatabase, self, enabled = True)
 
         # Client we were speaking to in last conversation, may not still be connected.
         self.client_from_previous_conversation = None
@@ -621,7 +621,7 @@ class Client(object):
             if rating == Client.ConversationRating.BLOCK:
                 logger.debug("Block for client [%s] received from [%s]" % (self, self.client_from_previous_conversation))
                 deductKarma()
-                #self.blocking_database.pushBlock(self.client_from_previous_conversation, self)
+                self.blocking_database.pushBlock(self.client_from_previous_conversation, self)
             elif rating == Client.ConversationRating.GOOD:
                 logger.debug("Good rating for client [%s] received" % self)
                 incrementKarma()

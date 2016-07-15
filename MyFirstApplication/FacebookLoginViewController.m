@@ -88,7 +88,7 @@
             [_warningEula setHidden:true];
         } else {
             [_startButtonView setAlpha:1.0];
-            [_warningEula setHidden: [_socialState hasAcceptedEula]];
+            [_warningEula setHidden:[_socialState hasAcceptedEula]];
         }
     });
 }
@@ -181,12 +181,12 @@
 }
 
 - (IBAction)onDesiredGenderChanged:(id)sender {
-    [[SocialState getSocialInstance] persistInterestedInWithSegmentIndex:(int)[_desiredGenderChooser selectedSegmentIndex]];
+    [[SocialState getSocialInstance] persistInterestedInWithSegmentIndex:(int) [_desiredGenderChooser selectedSegmentIndex]];
     [self validateForm];
 }
 
 - (IBAction)onOwnerGenderChanged:(id)sender {
-    [[SocialState getSocialInstance] persistOwnerGenderWithSegmentIndex:(int)[sender selectedSegmentIndex]];
+    [[SocialState getSocialInstance] persistOwnerGenderWithSegmentIndex:(int) [sender selectedSegmentIndex]];
     [self validateForm];
 }
 
@@ -237,7 +237,7 @@
         [self presentViewController:viewController animated:YES completion:nil];
         return;
     }
-    
+
     [self _switchToChatViewHelper];
 }
 
@@ -292,7 +292,10 @@
     NSUInteger newLength = [textField.text length] + [string length] - range.length;
 
     if (textField == _fullNameTextBox) {
-        return newLength <= 50;
+        if (newLength <= 50) {
+            return YES;
+        }
+        return NO;
     } else {
         return YES;
     }
