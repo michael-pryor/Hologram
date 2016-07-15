@@ -75,8 +75,6 @@ class Client(object):
         INACTIVE_TIMEOUT = 6
 
     class ConversationRating:
-        OKAY = 0
-        BAD = 1
         BLOCK = 2
         GOOD = 3
         AUDIT = 4 # Don't do anything, we just want to recheck for ban.
@@ -218,7 +216,7 @@ class Client(object):
         self.house_match_timer = None
 
         # Track previous matches which we have skipped
-        self.match_skip_history = Client.HistoryTracking(matchDecisionDatabase, self, enabled = True)
+        self.match_skip_history = Client.HistoryTracking(matchDecisionDatabase, self, enabled = False)
 
         # Client we were speaking to in last conversation, may not still be connected.
         self.client_from_previous_conversation = None
@@ -291,7 +289,6 @@ class Client(object):
         packet.addUnsignedInteger(KarmaLeveled.KARMA_MAXIMUM)
         packet.addUnsignedInteger(Client.ACCEPTING_MATCH_EXPIRY)
         packet.addUnsignedInteger(self.karma_rating)
-        packet.addUnsignedInteger(sourceClient.karma_rating)
         packet.addString(sourceClient.login_details.card_text)
         packet.addByteBuffer(sourceClient.login_details.profile_picture)
         packet.addUnsignedInteger(sourceClient.login_details.profile_picture_orientation)
@@ -599,38 +596,35 @@ class Client(object):
                 self.sendBanMessage(banMagnitude, banTime)
 
             def deductKarma():
-                currentKarma[0] -= 1
+                deductSize = 2
+                currentKarma[0] -= deductSize
                 if currentKarma[0] < 0:
+                    deductSize += currentKarma[0]
                     currentKarma[0] = 0
                     return
 
-                isBanned = self.karma_database.deductKarma(self, currentKarma[0])
-                if not isBanned:
-                    return
-
-                sendBannedMessage()
+                for n in range(0,deductSize):
+                    isBanned = self.karma_database.deductKarma(self, currentKarma[0])
+                    if isBanned:
+                        sendBannedMessage()
+                        return
 
             def incrementKarma():
-                currentKarma[0] += 1
-                if currentKarma[0] > KarmaLeveled.KARMA_MAXIMUM:
-                    currentKarma[0] = KarmaLeveled.KARMA_MAXIMUM
-                else:
-                    self.karma_database.incrementKarma(self)
+                incrementSize = 1
+                for n in range(0,incrementSize):
+                    currentKarma[0] += incrementSize
+                    if currentKarma[0] > KarmaLeveled.KARMA_MAXIMUM:
+                        currentKarma[0] = KarmaLeveled.KARMA_MAXIMUM
+                    else:
+                        self.karma_database.incrementKarma(self)
 
-            if rating == Client.ConversationRating.BAD:
-                logger.debug("Bad rating for client [%s] received" % self)
-                deductKarma()
-                self.blocking_database.pushBlock(self.client_from_previous_conversation, self)
-            elif rating == Client.ConversationRating.BLOCK:
+            if rating == Client.ConversationRating.BLOCK:
                 logger.debug("Block for client [%s] received from [%s]" % (self, self.client_from_previous_conversation))
                 deductKarma()
-                self.blocking_database.pushBlock(self.client_from_previous_conversation, self)
+                #self.blocking_database.pushBlock(self.client_from_previous_conversation, self)
             elif rating == Client.ConversationRating.GOOD:
                 logger.debug("Good rating for client [%s] received" % self)
                 incrementKarma()
-
-            elif rating == Client.ConversationRating.OKAY:
-                logger.debug("Okay rating for client [%s] received" % self)
             elif rating == Client.ConversationRating.AUDIT:
                 logger.debug("Audited client [%s] for bans" % self)
                 sendBannedMessage()
@@ -667,7 +661,7 @@ class Client(object):
     def _onWaitingForRatingTimeout(self):
         self.waiting_for_rating_task = None
         logger.debug("Client [%s] timed out waiting for rating from previous client [%s], defaulting value" % (self, self.client_from_previous_conversation))
-        self.setRatingOfOtherClient(Client.ConversationRating.OKAY)
+        self.setRatingOfOtherClient(Client.ConversationRating.GOOD)
 
     # Must be protected by house lock.
     def shouldMatch(self, client, recurse=True):

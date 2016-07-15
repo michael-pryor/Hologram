@@ -48,7 +48,6 @@
     IBOutlet UILabel *_remoteName;
     IBOutlet UILabel *_remoteAge;
     IBOutlet UILabel *_remoteDistance;
-    __weak IBOutlet UIProgressView *_remoteKarma;
     __weak IBOutlet UIProgressView *_ownerKarma;
 
     // UI - show connectivity issues.
@@ -131,8 +130,8 @@
 
 
     // Hack for arden crescent, should be nil.
-    //_cachedResolvedDns = @"192.168.1.92";
-    _cachedResolvedDns = nil;
+    _cachedResolvedDns = @"192.168.1.92";
+    //_cachedResolvedDns = nil;
 
     _payments = [[Payments alloc] initWithDelegate:self];
 
@@ -523,7 +522,7 @@
  * Note: during reconnects we get NAT punchthrough information only, so that is why _waitingForProspectiveMatch is set to false
  * when receiving NAT information, and why it's okay that setName doesn't get called.
  */
-- (void)setName:(NSString *)name profilePicture:(UIImage *)profilePicture callingCardText:(NSString *)callingCardText age:(uint)age distance:(uint)distance karma:(uint)remoteKarmaRating maxKarma:(uint)maxKarma {
+- (void)setName:(NSString *)name profilePicture:(UIImage *)profilePicture callingCardText:(NSString *)callingCardText age:(uint)age distance:(uint)distance karma:(uint)localKarmaRating maxKarma:(uint)maxKarma {
     NSLog(@"**** LOADED PROFILE DETAILS OF MATCH *****");
 
     // Just matched with somebody new, but they need to accept or reject us before video starts.
@@ -532,7 +531,13 @@
 
     dispatch_sync_main(^{
         NSLog(@"**** PUSHED PROFILE DETAILS OF MATCH TO DISCONNECT VIEW CONTROLLER *****");
-        [_disconnectViewController setName:name profilePicture:profilePicture callingCardText:callingCardText age:age distance:distance karma:remoteKarmaRating maxKarma:maxKarma];
+
+        float localKarmaPercentage = [self getKarmaPercentage:localKarmaRating];
+
+        NSLog(@"Received our karma of [%.3f]", localKarmaPercentage);
+        [ViewStringFormatting updateKarmaUsingProgressView:_ownerKarma ratio:localKarmaPercentage];
+
+        [_disconnectViewController setName:name profilePicture:profilePicture callingCardText:callingCardText age:age distance:distance karma:localKarmaRating maxKarma:maxKarma];
 
         NSLog(@"Connected with user named [%@] with age [%u]", name, age);
         [_backButton setHidden:false];
@@ -547,7 +552,7 @@
             [_remoteAge setHidden:true];
         }
 
-        NSString * distanceString = [ViewStringFormatting getStringFromDistance:distance];
+        NSString *distanceString = [ViewStringFormatting getStringFromDistance:distance];
         [_remoteDistance setText:distanceString];
 
         NSLog(@"Distance from other user: %d, producing string: %@", distance, distanceString);
@@ -572,18 +577,6 @@
 - (float)getKarmaPercentage:(uint)karmaValue {
     return [ViewStringFormatting getKarmaRatioFromValue:karmaValue maximum:_karmaMax];
 }
-
-- (void)handleOurKarma:(uint)ourKarma remoteKarma:(uint)remoteKarma {
-    float ourKarmaPercentage = [self getKarmaPercentage:ourKarma];
-    float remoteKarmaPercentage = [self getKarmaPercentage:remoteKarma];
-
-    NSLog(@"Received our karma of [%.3f] and remote karma of [%.3f]", ourKarmaPercentage, remoteKarmaPercentage);
-    dispatch_async_main(^{
-        [ViewStringFormatting updateKarmaUsingProgressView:_remoteKarma ratio:remoteKarmaPercentage];
-        [ViewStringFormatting updateKarmaUsingProgressView:_ownerKarma ratio:ourKarmaPercentage];
-    }, 0);
-}
-
 
 // Received a new image from network.
 // Update the UI.
@@ -903,7 +896,6 @@
         [_remoteName setAlpha:0.0f];
         [_cameraView setAlpha:0.0f];
         [_remoteDistance setAlpha:0.0f];
-        [_remoteKarma setAlpha:0.0f];
         [_ownerKarma setAlpha:0.0f];
     });
 }
@@ -911,21 +903,15 @@
 - (void)prepareRuntimeView {
     [ViewInteractions fadeIn:_cameraView completion:nil duration:1.0f];
 
-    [ViewInteractions fadeIn:_remoteKarma completion:^(BOOL completed) {
-        if (!completed || _disconnectViewController != nil) {
+    [ViewInteractions fadeIn:_remoteName completion:^(BOOL completedNext) {
+        if (!completedNext || _disconnectViewController != nil) {
             return;
         }
-
-        [ViewInteractions fadeIn:_remoteName completion:^(BOOL completedNext) {
-            if (!completedNext || _disconnectViewController != nil) {
+        [ViewInteractions fadeIn:_remoteAge completion:^(BOOL completedNextB) {
+            if (!completedNextB || _disconnectViewController != nil) {
                 return;
             }
-            [ViewInteractions fadeIn:_remoteAge completion:^(BOOL completedNextB) {
-                if (!completedNextB || _disconnectViewController != nil) {
-                    return;
-                }
-                [ViewInteractions fadeIn:_remoteDistance completion:nil duration:2.0f];
-            }               duration:2.0f];
+            [ViewInteractions fadeIn:_remoteDistance completion:nil duration:2.0f];
         }               duration:2.0f];
     }               duration:2.0f];
 
@@ -955,7 +941,7 @@
 
 - (void)onMatchAcceptAnswer {
     NSLog(@"Accepted conversation, sending accept packet");
-    ByteBuffer * buffer = [[ByteBuffer alloc] init];
+    ByteBuffer *buffer = [[ByteBuffer alloc] init];
     [buffer addUnsignedInteger8:ACCEPTED_CONVERSATION];
     [_connection sendTcpPacket:buffer];
 }

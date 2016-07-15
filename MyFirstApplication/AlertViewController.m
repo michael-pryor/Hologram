@@ -14,8 +14,6 @@
 #import "JoiningViewController.h"
 #import "MediaController.h"
 
-#define MINIMUM_WAIT_TIME 3.0
-
 @implementation AlertViewController {
     // Base view, describing state of app and connection.
     __weak IBOutlet UIImageView *_localImageView;
@@ -26,15 +24,15 @@
     __weak IBOutlet UIButton *_forwardButton;
     id <MediaOperator> _mediaOperator;
     bool _movingToFacebook;
-    bool _viewVisible;
 
     NSString *_cachedAlertText;
 
     // Advert.
-    Timer *_timerSinceAdvertCreated;
     __weak IBOutlet UIView *_advertBannerView; // The container which sizes it.
     FBAdView *_advertView; // The actual advert.
     bool _shouldShowAdverts;
+    int _actionIterationAdvertSchedule;
+    bool _isBannerAdvertLoaded;
 
     // Rating previous conversation..
     __weak IBOutlet UIView *_conversationEndView;
@@ -76,6 +74,10 @@
     return [self isViewCurrent:_matchingView];
 }
 
+- (bool)shouldAdvertBeVisible:(UIView*)view {
+    return view == _localImageViewParent && _isBannerAdvertLoaded;
+}
+
 - (bool)shouldVideoBeOnView:(UIView *)view {
     // We need video in the joining stage so that we send some packets
     // and remove each other's disconnect view.
@@ -94,9 +96,6 @@
 
 - (void)setGenericInformationText:(NSString *)shortText skipButtonEnabled:(bool)skipButtonEnabled {
     dispatch_sync_main(^{
-        // Alert text has changed, wait at least two seconds more before clearing display.
-        [_timerSinceAdvertCreated reset];
-
         _cachedAlertText = shortText;
 
         [_forwardButton setHidden:!skipButtonEnabled];
@@ -128,8 +127,10 @@
     [super viewDidLoad];
 
     NSLog(@"!!!!!!LOAD!!!!!!");
+    _actionIterationAdvertSchedule = false;
+    _actionIterationAdvertSchedule = 0;
+    _isBannerAdvertLoaded = false;
 
-    _viewVisible = false;
     _waitingForRating = [[Signal alloc] initWithFlag:false];
 
     for (UIView *view in @[_conversationEndView, _matchingView, _joiningConversationView, _localImageViewParent, _alertShortTextHigher,
@@ -138,6 +139,7 @@
     }
 
     _viewCollection = [[SingleViewCollection alloc] initWithDuration:0.5f viewChangeNotifier:self];
+    [_viewCollection registerNoFadeView:_localImageViewParent];
     _conversationRatingConsumer = nil;
     _ratingStartedAt = nil;
     _ratingTimeoutSeconds = 0;
@@ -146,17 +148,6 @@
     _isSkipButtonRequired = false;
 
     _cachedAlertText = nil;
-
-    // This is always the first view to be shown!
-    // And we need the video to be running so that messages can be sent across,
-    // client only removes view controller when image is received.
-    //[self showView:_localImageViewParent instant:true];
-
-    // First images loaded in produce black screen for some reason, so better introduce a delay.
-
-
-    // This frequency represents the maximum amount of time a user will be waiting for the advert to load.
-    _timerSinceAdvertCreated = [[Timer alloc] initWithFrequencySeconds:MINIMUM_WAIT_TIME firingInitially:false];
 
     _advertView = [[FBAdView alloc] initWithPlacementID:@"458360797698673_526756897525729"
                                                  adSize:kFBAdSizeHeight50Banner
@@ -209,28 +200,26 @@
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
-    _viewVisible = true;
 
     NSLog(@"!!!!!!APPEAR!!!!!!");
 
     _movingToFacebook = false;
-    [_mediaOperator stopAudio];
+    if ([self shouldVideoBeOn]) {
+        [_mediaOperator startVideo];
+    }
 
-    [_timerSinceAdvertCreated setSecondsFrequency:MINIMUM_WAIT_TIME];
-    [_timerSinceAdvertCreated reset];
+    [_mediaOperator stopAudio];
 
     NSLog(@"Disconnect view controller loaded, unhiding banner advert and setting delegate");
 
     // Use hidden flag on appear/disappear, in case it impacts decision to display adds.
     if (_shouldShowAdverts) {
-        [_advertBannerView setHidden:false];
         [_advertView loadAd];
     }
 }
 
 - (void)viewDidDisappear:(BOOL)animated {
     [super viewDidDisappear:animated];
-    _viewVisible = false;
 
     NSLog(@"!!!!!!DISAPPEAR!!!!!!");
 
@@ -260,18 +249,15 @@
 }
 
 - (Boolean)hideIfVisibleAndReady {
-    if (![_timerSinceAdvertCreated getState]) {
-        return false;
-    }
-
     [self hideNow];
     return true;
 }
 
 - (void)adViewDidLoad:(FBAdView *)adView; {
     dispatch_sync_main(^{
+        // On next screen refresh, we'l show the advert.
+        _isBannerAdvertLoaded = true;
         NSLog(@"Banner has loaded, unhiding it");
-        [ViewInteractions fadeIn:_advertBannerView completion:nil duration:0.5f];
     });
 }
 
@@ -279,10 +265,8 @@
 - (void)adView:(FBAdView *)adView didFailWithError:(NSError *)error; {
     dispatch_sync_main(^{
         NSLog(@"Failed to retrieve banner, hiding it; error is: %@", error);
+        _isBannerAdvertLoaded = false;
         [ViewInteractions fadeOut:_advertBannerView completion:nil duration:1.0f];
-
-        // Will not wait for banner to be displayed.
-        [_timerSinceAdvertCreated setSecondsFrequency:0];
     });
 }
 
@@ -298,6 +282,20 @@
     if (viewToShow == _localImageViewParent && !showQuickly) {
         [_viewCollection displayView:viewToShow ifNoChangeForMilliseconds:1000 meta:_cachedAlertText];
         return;
+    }
+
+    if (viewToShow == _matchingView) {
+        _actionIterationAdvertSchedule++;
+        if (_actionIterationAdvertSchedule > 3) {
+            _actionIterationAdvertSchedule = 0;
+
+            if (_shouldShowAdverts && _isBannerAdvertLoaded) {
+                dispatch_async_main(^{
+                    [_viewCollection displayView:viewToShow meta:_cachedAlertText];
+                }, 3000);
+                return;
+            }
+        }
     }
 
     [_viewCollection displayView:viewToShow meta:_cachedAlertText];
@@ -360,8 +358,8 @@
     [self hideViewsQuickly:quicklyHideViews];
 }
 
-- (void)setName:(NSString *)name profilePicture:(UIImage *)profilePicture callingCardText:(NSString *)callingCardText age:(uint)age distance:(uint)distance karma:(uint)remoteKarmaRating maxKarma:(uint)maxKarma {
-    [_matchingViewController setName:name profilePicture:profilePicture callingCardText:callingCardText age:age distance:distance karma:remoteKarmaRating maxKarma:maxKarma];
+- (void)setName:(NSString *)name profilePicture:(UIImage *)profilePicture callingCardText:(NSString *)callingCardText age:(uint)age distance:(uint)distance karma:(uint)karma maxKarma:(uint)maxKarma {
+    [_matchingViewController setName:name profilePicture:profilePicture callingCardText:callingCardText age:age distance:distance karma:karma maxKarma:maxKarma];
     [self onMatchingStarted];
 }
 
@@ -421,11 +419,15 @@
         [self fadeOutView:_backButton duration:duration alpha:alpha];
     }
 
+    if (![self shouldAdvertBeVisible:view] || alpha != 1.0f) {
+        [self fadeOutView:_advertBannerView duration:duration alpha:0];
+    }
+
     [self fadeOutView:_alertShortText duration:duration alpha:0.4];
 }
 
 - (void)onFinishedFadingOut:(UIView *)view duration:(float)duration alpha:(float)alpha {
-    if ([self shouldVideoBeOnView:view]) {
+    if ([self shouldVideoBeOnView:view] && alpha != 1.0f) {
         [_mediaOperator stopVideo];
     }
 
@@ -438,6 +440,10 @@
 - (void)onStartedFadingIn:(UIView *)view duration:(float)duration meta:(id)meta {
     if ([self shouldVideoBeOnView:view]) {
         [_mediaOperator startVideo];
+    }
+
+    if ([self shouldAdvertBeVisible:view]) {
+        [self fadeInView:_advertBannerView duration:duration alpha:1.0];
     }
 
     if ([self isAssociatedWithAlertShortTextHigher:view]) {
@@ -456,8 +462,10 @@
     NSString *alertText = meta;
     if (alertText != nil) {
         [_alertShortText setText:alertText];
-        [self fadeInView:_alertShortText duration:duration alpha:1.0f];
     }
+
+    // Never have a situation where there would be no text to show...
+    [self fadeInView:_alertShortText duration:duration alpha:1.0f];
 }
 
 - (void)fadeInView:(UIView *)view duration:(float)duration alpha:(float)alpha {

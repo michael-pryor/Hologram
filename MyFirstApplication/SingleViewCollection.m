@@ -18,6 +18,9 @@
 
     id <ViewChangeNotifier> _viewChangeNotifier;
     Timer *_timer;
+
+    // List of items which we do not fade out/in, but we do still call the fading callbacks.
+    NSMutableArray *_noFade;
 }
 - (id)initWithDuration:(float)duration viewChangeNotifier:(id <ViewChangeNotifier>)viewChangeNotifier {
     self = [super init];
@@ -27,6 +30,7 @@
         _currentRealView = nil;
         _viewChangeNotifier = viewChangeNotifier;
         _timer = [[Timer alloc] init];
+        _noFade = [[NSMutableArray alloc] init];
     }
     return self;
 }
@@ -39,6 +43,10 @@
     return (_currentRealView == view ||
             _viewBeingLoaded == view ||
             _requestedView == view);
+}
+
+- (void)registerNoFadeView:(UIView *)view {
+    [_noFade addObject:view];
 }
 
 - (void)onCompletion {
@@ -60,7 +68,7 @@
     [self doReplaceView:previousViewToUse withView:viewToUse meta:_requestedMeta];
 }
 
-- (void)displayView:(UIView *)view meta:(id)meta{
+- (void)displayView:(UIView *)view meta:(id)meta {
     if (view == nil) {
         return;
     }
@@ -122,15 +130,34 @@
     // It looks much nicer not to fade out all the way when there's no change in screen.
     float outAlpha;
     if (oldView == newView) {
-        outAlpha = 0.6f;
+        if ([_noFade containsObject:newView]) {
+            outAlpha = 1.0f;
+        } else {
+            outAlpha = 0.6f;
+        }
     } else {
         outAlpha = 0;
+    }
+
+    if (outAlpha == 1.0f) {
+        const uint durationMs = (uint)(_duration * 1000.0f);
+        [_viewChangeNotifier onStartedFadingOut:oldView duration:_duration alpha:outAlpha];
+
+        dispatch_async_main(^{
+            [_viewChangeNotifier onFinishedFadingOut:oldView duration:_duration alpha:outAlpha];
+            [_viewChangeNotifier onStartedFadingIn:newView duration:_duration meta:meta];
+            dispatch_async_main(^{
+                [_viewChangeNotifier onFinishedFadingIn:newView duration:_duration meta:meta];
+                [self onCompletion];
+            }, durationMs);
+        }, durationMs);
+        return;
     }
 
     [_viewChangeNotifier onStartedFadingOut:oldView duration:_duration alpha:outAlpha];
     [ViewInteractions fadeOut:oldView completion:^(BOOL completionOut) {
         if (!completionOut) {
-            [oldView setAlpha:0];
+            [oldView setAlpha:outAlpha];
         }
         [_viewChangeNotifier onFinishedFadingOut:oldView duration:_duration alpha:outAlpha];
         [_viewChangeNotifier onStartedFadingIn:newView duration:_duration meta:meta];

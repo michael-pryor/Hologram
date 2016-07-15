@@ -16,8 +16,8 @@ class KarmaLeveled(object):
     # Ban 4: x^4
     MAX_EXPONENTIAL_INCREASES = 4
 
-    # Karma ratings are from between 0 to 5.
-    KARMA_MAXIMUM = 5
+    # Karma ratings are from between 0 to 10.
+    KARMA_MAXIMUM = 10
 
     def __init__(self, mongoClient):
         self.karma = Karma(mongoClient.db.karma, KarmaLeveled.KARMA_BASE_EXPIRY_TIME_SECONDS, shouldLinkTimes=False)

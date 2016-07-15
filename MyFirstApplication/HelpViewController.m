@@ -23,11 +23,11 @@
 - (void)viewDidLoad {
     self.screenName = @"Help";
 
-    _karmaMax = 5;
+    _karmaMax = 10;
     _karma = _karmaMax;
 
     // Set things up, colour the bar properly.
-    [self onConversationRating:S_OKAY];
+    [self onConversationRating:S_GOOD];
 }
 
 
@@ -56,8 +56,8 @@
 
 - (void)onConversationRating:(ConversationRating)conversationRating {
     dispatch_sync_main(^{
-        if (conversationRating == S_BAD || conversationRating == S_BLOCK) {
-            _karma--;
+        if (conversationRating == S_BLOCK) {
+            _karma-=2;
         } else if (conversationRating == S_GOOD) {
             _karma++;
         }

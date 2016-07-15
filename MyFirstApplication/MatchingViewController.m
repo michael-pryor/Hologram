@@ -8,6 +8,7 @@
 #import "Timer.h"
 #import "CircleCountdownTimer.h"
 #import "ViewInteractions.h"
+#import "ViewStringFormatting.h"
 
 
 @implementation MatchingViewController {
@@ -23,6 +24,7 @@
     __weak IBOutlet UIView *_blockButton;
 
     __weak IBOutlet UIView *_bottomButtonsView;
+    __weak IBOutlet UIProgressView *_localKarmaProgressBar;
     NSArray *_buttons;
 }
 
@@ -58,9 +60,12 @@
     }
 }
 
-- (void)setName:(NSString *)name profilePicture:(UIImage *)profilePicture callingCardText:(NSString *)callingCardText age:(uint)age distance:(uint)distance karma:(uint)remoteKarmaRating maxKarma:(uint)maxKarma {
+- (void)setName:(NSString *)name profilePicture:(UIImage *)profilePicture callingCardText:(NSString *)callingCardText age:(uint)age distance:(uint)distance karma:(uint)karma maxKarma:(uint)maxKarma {
     dispatch_sync_main(^{
-        [_callingCardViewController setName:name profilePicture:profilePicture callingCardText:callingCardText age:age distance:distance karma:remoteKarmaRating maxKarma:maxKarma];
+        float ratio = [ViewStringFormatting getKarmaRatioFromValue:karma maximum:maxKarma];
+        [ViewStringFormatting updateKarmaUsingProgressView:_localKarmaProgressBar ratio:ratio];
+
+        [_callingCardViewController setName:name profilePicture:profilePicture callingCardText:callingCardText age:age distance:distance karma:karma maxKarma:maxKarma];
         [self reset];
     });
 }

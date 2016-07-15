@@ -50,6 +50,4 @@ typedef enum {
 - (void)onNatPunchthrough:(ConnectionGovernorNatPunchthrough *)connection stateChange:(NatState)state;
 
 - (void)handleKarmaMaximum:(uint)karmaMaximum ratingTimeoutSeconds:(uint)ratingTimeoutSeconds matchDecisionTimeout:(uint)timeout;
-
-- (void)handleOurKarma:(uint)ourKarma remoteKarma:(uint)remoteKarma;
 @end

@@ -24,4 +24,6 @@
 - (bool)isViewDisplayedWideSearch:(UIView *)view;
 
 - (void)displayView:(UIView *)view ifNoChangeForMilliseconds:(uint)milliseconds meta:(id)meta;
+
+- (void)registerNoFadeView:(UIView *)view;
 @end

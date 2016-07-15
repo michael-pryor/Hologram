@@ -15,7 +15,6 @@
     __weak IBOutlet UIImageView *_profilePicture;
     __weak IBOutlet UILabel *_name;
     __weak IBOutlet UITextView *_text;
-    __weak IBOutlet UIProgressView *_karmaProgressBar;
     __weak IBOutlet UILabel *_age;
     __weak IBOutlet UILabel *_distance;
     void(^_prepareContentsBlock)();
@@ -34,9 +33,6 @@
         [_age setText:[NSString stringWithFormat:@"%@ years old", [ViewStringFormatting getAgeString:age]]];
 
         [_distance setText:[ViewStringFormatting getStringFromDistance:distance]];
-
-        float ratio = [ViewStringFormatting getKarmaRatioFromValue:remoteKarmaRating maximum:maxKarma];
-        [ViewStringFormatting updateKarmaUsingProgressView:_karmaProgressBar ratio:ratio];
     };
     if (_name == nil) {
         _prepareContentsBlock = _theBlock;

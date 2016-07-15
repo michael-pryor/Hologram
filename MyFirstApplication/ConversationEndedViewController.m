@@ -9,13 +9,11 @@
 #import "ConversationEndedViewController.h"
 #import "Signal.h"
 
-#define DEFAULT_CONVERSATION_RATING S_OKAY
+#define DEFAULT_CONVERSATION_RATING S_GOOD
 
 @implementation ConversationEndedViewController {
     id <ConversationRatingConsumer> _conversationRatingConsumer;
-    __weak IBOutlet UIButton *_okayRatingButton;
     __weak IBOutlet UIButton *_goodRatingButton;
-    __weak IBOutlet UIButton *_badRatingButton;
     __weak IBOutlet UIButton *_blockButton;
 
     NSArray *_ratingButtons;
@@ -26,7 +24,7 @@
 }
 
 - (void)viewDidLoad {
-    _ratingButtons = @[_okayRatingButton, _goodRatingButton, _badRatingButton, _blockButton];
+    _ratingButtons = @[_goodRatingButton, _blockButton];
     _ratingsCompleted = [[Signal alloc] initWithFlag:false];
     _isFirstPress = [[Signal alloc] initWithFlag:false];
     [self reset];
@@ -76,16 +74,8 @@
     }
 }
 
-- (IBAction)onOkayRatingButtonPress:(id)sender {
-    [self onRatingButtonPress:sender rating:S_OKAY];
-}
-
 - (IBAction)onGoodRatingButtonPress:(id)sender {
     [self onRatingButtonPress:sender rating:S_GOOD];
-}
-
-- (IBAction)onBadRatingButtonPress:(id)sender {
-    [self onRatingButtonPress:sender rating:S_BAD];
 }
 
 - (IBAction)onBlockButtonPress:(id)sender {
