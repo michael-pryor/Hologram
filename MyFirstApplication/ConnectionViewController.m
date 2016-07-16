@@ -144,7 +144,7 @@
     _isSkippableDespiteNoMatch = false;
     _resumeAfterBecomeActive = [[Signal alloc] initWithFlag:false];
 
-    [self setDisconnectStateWithShortDescription:@"Initializing" askForConversationRating:false];
+    [self setDisconnectStateWithShortDescription:@"Initializing Core" askForConversationRating:false];
 
     // If failure action is triggered, application is guaranteed to be terminated by
     // _accessDialog (we may just be waiting for a user to acknowledge a dialog box).

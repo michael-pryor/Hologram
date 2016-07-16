@@ -59,7 +59,7 @@
 }
 
 - (void)reset {
-    [_alertShortText setText:@""];
+    [_alertShortText setText:@"Initializing"];
 }
 
 - (bool)isViewCurrent:(UIView *)view {
@@ -471,7 +471,8 @@
 - (void)fadeInView:(UIView *)view duration:(float)duration alpha:(float)alpha {
     [ViewInteractions fadeIn:view completion:^(BOOL completion) {
         if (!completion) {
-            [view setAlpha:alpha];
+            // Do nothing, do not complete the animation, it's probably
+            // been overriden by another opposite animation.
         }
     }               duration:duration toAlpha:alpha];
 }
@@ -479,7 +480,8 @@
 - (void)fadeOutView:(UIView *)view duration:(float)duration alpha:(float)alpha{
     [ViewInteractions fadeOut:view completion:^(BOOL completion) {
         if (!completion) {
-            [view setAlpha:alpha];
+            // Do nothing, do not complete the animation, it's probably
+            // been overriden by another opposite animation.
         }
     }                duration:duration toAlpha:alpha];
 }
