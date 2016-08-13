@@ -88,6 +88,9 @@
 
 - (void)updateNotifications:(MultiSelectSegmentedControl *)control {
     [_notifications cancelNotificationsWithId:kHotNotification];
+    if (![_hotEnableSwitch isOn]) {
+        return;
+    }
 
     [[control selectedSegmentIndexes] enumerateIndexesUsingBlock:^(NSUInteger idx, BOOL *stop) {
         uint dateFormattedDay = (idx + 2) % 7;
@@ -236,9 +239,6 @@
     [self _updateDisplay];
 
     // No need to put this inside updateDisplay, since it will only change from user changing, not from facebook load.
-    bool isHotEnabled = [_socialState isHotNotificationEnabled];
-    [self setHotEnableSwitch:isHotEnabled];
-
     NSArray *hotDaySelection = [_socialState hotNotificationDays];
     if (hotDaySelection != nil) {
         NSMutableIndexSet *selectedSegmentIndexes = [[NSMutableIndexSet alloc] init];
@@ -250,8 +250,10 @@
         [_hotDaySelector setSelectedSegmentIndexes:selectedSegmentIndexes];
     } else {
         [_hotDaySelector selectAllSegments:YES];
-        [self updateNotifications:_hotDaySelector];
     }
+
+    bool isHotEnabled = [_socialState isHotNotificationEnabled];
+    [self setHotEnableSwitch:isHotEnabled];
 
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(appWillRetakeActive:) name:UIApplicationDidBecomeActiveNotification object:nil];
 }
@@ -268,6 +270,8 @@
     }
     [_notificationPermissionsRequestWarning setHidden:[_notifications notificationsEnabled]];
     [_hotDayStack setHidden:!on];
+
+    [self updateNotifications:_hotDaySelector];
 }
 
 - (void)enableScreenDim {
