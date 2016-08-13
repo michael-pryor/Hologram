@@ -41,6 +41,9 @@
 
 @property(readonly) bool hasAcceptedEula;
 
+@property(readonly) bool isHotNotificationEnabled;
+@property(readonly) NSArray * hotNotificationDays;
+
 - (bool)updateFromFacebookCore;
 
 - (bool)updateFromFacebookGraph;
@@ -66,5 +69,9 @@
 - (void)persistCallingCardText:(NSString *)text;
 
 - (void)persistHasAcceptedEula;
+
+- (void)persistIsHotNotificationEnabled:(bool)isHotNotificationEnabled;
+
+- (void)persistHotNotificationDays:(NSArray*)hotNotificationDays;
 @end
 

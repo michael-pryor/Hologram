@@ -6,9 +6,11 @@
 //
 //
 
+#import <MultiSelectSegmentedControl/MultiSelectSegmentedControl.h>
 #import "FacebookLoginViewController.h"
 #import "Threading.h"
 #import "DobParsing.h"
+#import "Notifications.h"
 
 @implementation FacebookLoginViewController {
     IBOutlet UISegmentedControl *_desiredGenderChooser;
@@ -35,6 +37,12 @@
     __weak IBOutlet UILabel *_warningEula;
 
     bool _waitingForEulaCompletion;
+    __weak IBOutlet UISwitch *_hotEnableSwitch;
+    __weak IBOutlet MultiSelectSegmentedControl *_hotDaySelector;
+    __weak IBOutlet UIStackView *_hotDayStack;
+    __weak IBOutlet UILabel *_notificationPermissionsRequestWarning;
+
+    Notifications* _notifications;
 }
 
 - (void)cancelEditingTextBoxes {
@@ -58,6 +66,21 @@
 
     [picker dismissViewControllerAnimated:YES completion:nil];
     [self validateForm];
+}
+
+- (IBAction)onHotEnabledPress:(id)sender {
+    bool enabled = [_hotEnableSwitch isOn];
+    [_socialState persistIsHotNotificationEnabled:enabled];
+    [self setHotEnableSwitch:enabled];
+}
+
+- (void)multiSelect:(MultiSelectSegmentedControl *)multiSelectSegmentedControl didChangeValue:(BOOL)selected atIndex:(NSUInteger)index {
+    NSMutableArray *indexesArray = [[NSMutableArray alloc] init];
+    [[multiSelectSegmentedControl selectedSegmentIndexes] enumerateIndexesUsingBlock:^(NSUInteger idx, BOOL *stop) {
+        [indexesArray addObject:@(idx)];
+    }];
+
+    [_socialState persistHotNotificationDays:indexesArray];
 }
 
 
@@ -131,6 +154,10 @@
 
     self.screenName = @"FacebookLogin";
 
+    [_hotDaySelector setDelegate:self];
+
+    _notifications = [Notifications getNotificationsInstance];
+
     _waitingForEulaCompletion = false;
     [_loadingFacebookDetailsIndicator setAlpha:0];
 
@@ -168,6 +195,33 @@
     _dateOfBirthDatePicker.maximumDate = now;
 
     [self _updateDisplay];
+
+    // No need to put this inside updateDisplay, since it will only change from user changing, not from facebook load.
+    bool isHotEnabled = [_socialState isHotNotificationEnabled];
+    [self setHotEnableSwitch:isHotEnabled];
+
+    NSArray *hotDaySelection = [_socialState hotNotificationDays];
+    if (hotDaySelection != nil) {
+        NSMutableIndexSet *selectedSegmentIndexes = [[NSMutableIndexSet alloc] init];
+        for (NSNumber* obj in hotDaySelection) {
+            uint objNum = [obj unsignedIntValue];
+            [selectedSegmentIndexes addIndex:objNum];
+        }
+
+        [_hotDaySelector setSelectedSegmentIndexes:selectedSegmentIndexes];
+    } else {
+        [_hotDaySelector selectAllSegments:YES];
+    }
+}
+
+- (void)setHotEnableSwitch:(bool)on {
+    [_hotEnableSwitch setOn:on];
+
+    if (on) {
+        [_notifications enableNotifications];
+    }
+    [_notificationPermissionsRequestWarning setHidden:[_notifications notificationsEnabled]];
+    [_hotDayStack setHidden:!on];
 }
 
 - (void)enableScreenDim {

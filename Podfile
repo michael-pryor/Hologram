@@ -5,4 +5,5 @@ platform :ios, '8.1'
 target :Hologram do
 pod 'Google/Analytics'
 pod 'CircleProgressBar'
+pod 'MultiSelectSegmentedControl'
 end

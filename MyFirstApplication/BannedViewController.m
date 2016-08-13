@@ -11,8 +11,8 @@
 #import "ViewInteractions.h"
 #import "BanPaymentsViewController.h"
 #import "Payments.h"
+#import "Notifications.h"
 
-#define kPushNotificationRequestAlreadySeen @"pushNotificationsAlreadySeen"
 
 @implementation BannedViewController {
     Timer *_destinationTime;
@@ -31,12 +31,16 @@
 
     Payments *_payments;
     id<TransactionCompletedNotifier> _completedNotifier;
+
+    Notifications * _notifications;
 }
 
 - (void)viewDidLoad {
     [super viewDidLoad];
 
     self.screenName = @"Banned";
+
+    _notifications = [Notifications getNotificationsInstance];
 
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(appWillResignActive:) name:UIApplicationWillResignActiveNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(appWillRetakeActive:) name:UIApplicationDidBecomeActiveNotification object:nil];
@@ -78,7 +82,7 @@
 
 - (void)viewDidAppear:(BOOL)animated {
     _isScreenInUse = true;
-    if ([[NSUserDefaults standardUserDefaults] boolForKey:kPushNotificationRequestAlreadySeen]) {
+    if ([_notifications notificationsEnabled]) {
         [self onPushNotificationsEnabled];
     } else {
         _schedulePushNotification = false;
@@ -103,15 +107,7 @@
     [[UIApplication sharedApplication] cancelAllLocalNotifications];
 }
 
-- (void)setupNotificationSettings {
-    UIUserNotificationType types = (UIUserNotificationType) (UIUserNotificationTypeBadge |
-            UIUserNotificationTypeSound | UIUserNotificationTypeAlert);
 
-    UIUserNotificationSettings *mySettings =
-            [UIUserNotificationSettings settingsForTypes:types categories:nil];
-
-    [[UIApplication sharedApplication] registerUserNotificationSettings:mySettings];
-}
 
 - (void)onPushNotificationsEnabled {
     _schedulePushNotification = true;
@@ -119,7 +115,6 @@
         [_notifyButton setEnabled:false];
         [_notifyButton setTitle:@"You will be notified when ready" forState:UIControlStateNormal];
     });
-    [[NSUserDefaults standardUserDefaults] setBool:YES forKey:kPushNotificationRequestAlreadySeen];
 }
 
 - (void)scheduleNotification:(uint)numSeconds {
@@ -145,12 +140,12 @@
 }
 
 - (void)notifyBanExpired:(uint)numSeconds {
-    [self setupNotificationSettings];
+    [_notifications enableNotifications];
     [self scheduleNotification:numSeconds];
 }
 
 - (IBAction)onNotifyButtonPress:(id)sender {
-    [self setupNotificationSettings]; // so we get the permissions dialog.
+    [_notifications enableNotifications]; // so we get the permissions dialog.
     [self onPushNotificationsEnabled];
 }
 

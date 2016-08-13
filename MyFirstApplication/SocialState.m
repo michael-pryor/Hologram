@@ -27,6 +27,9 @@ NSString *callingCardTextKey = @"callingCardText";
 
 NSString *hasAcceptedEulaKey = @"hasAcceptedEula";
 
+NSString *selectedHotNotificationDaysKey = @"selectedHotNotificationDays";
+NSString *isHotNotificationEnabledKey = @"isHotNotificationEnabled";
+
 static SocialState *instance = nil;
 
 typedef void (^Block)(id);
@@ -119,8 +122,50 @@ typedef void (^Block)(id);
         } else {
             NSLog(@"No previous owner gender selection found in storage");
         }
+
+        if ([[NSUserDefaults standardUserDefaults] objectForKey:isHotNotificationEnabledKey] != nil) {
+            const bool isHotEnabled = [[NSUserDefaults standardUserDefaults] boolForKey:isHotNotificationEnabledKey];
+            NSLog(@"Loaded hot notification enabled boolean from storage: %d", isHotEnabled);
+            [self persistIsHotNotificationEnabled:isHotEnabled saving:false];
+        } else {
+            NSLog(@"No previous owner gender selection found in storage");
+        }
+
+        if ([[NSUserDefaults standardUserDefaults] objectForKey:selectedHotNotificationDaysKey] != nil) {
+            NSArray *hotNotificationDays = [[NSUserDefaults standardUserDefaults] arrayForKey:selectedHotNotificationDaysKey];
+            [self persistHotNotificationDays:hotNotificationDays saving:false];
+            NSLog(@"Loaded hot notification days from storage: %@", hotNotificationDays);
+        } else {
+            NSLog(@"No date of birth found in storage");
+        }
     }
     return self;
+}
+
+- (void)persistHotNotificationDays:(NSArray*)hotNotificationDays saving:(bool)doSave {
+    _hotNotificationDays = hotNotificationDays;
+
+    if (doSave) {
+        NSLog(@"Persisting hot notification days: %@", _hotNotificationDays);
+        [[NSUserDefaults standardUserDefaults] setObject:_hotNotificationDays forKey:selectedHotNotificationDaysKey];
+    }
+}
+
+- (void)persistHotNotificationDays:(NSArray*)hotNotificationDays {
+    [self persistHotNotificationDays:hotNotificationDays saving:true];
+}
+
+- (void)persistIsHotNotificationEnabled:(bool)isHotNotificationEnabled saving:(bool)doSave {
+    _isHotNotificationEnabled = isHotNotificationEnabled;
+
+    if (doSave) {
+        NSLog(@"Persisting is hot enabled: %d", _isHotNotificationEnabled);
+        [[NSUserDefaults standardUserDefaults] setBool:_isHotNotificationEnabled forKey:isHotNotificationEnabledKey];
+    }
+}
+
+- (void)persistIsHotNotificationEnabled:(bool)isHotNotificationEnabled {
+    [self persistIsHotNotificationEnabled:isHotNotificationEnabled saving:true];
 }
 
 - (void)persistHasAcceptedEula:(bool)hasAcceptedEula saving:(bool)doSave {
