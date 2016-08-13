@@ -170,7 +170,12 @@
     [self _updateDisplay];
 }
 
+- (void)enableScreenDim {
+    [[UIApplication sharedApplication] setIdleTimerDisabled:NO];
+}
+
 - (void)viewDidAppear:(BOOL)animated {
+    [self enableScreenDim];
     if (_waitingForEulaCompletion) {
         _waitingForEulaCompletion = false;
         if ([_socialState hasAcceptedEula]) {

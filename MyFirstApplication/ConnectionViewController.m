@@ -209,6 +209,10 @@
     _isConnectionActive = false;
 }
 
+- (void)disableScreenDim {
+    [[UIApplication sharedApplication] setIdleTimerDisabled:YES];
+}
+
 // View disappears; happens if user switches app or moves from a different view controller.
 - (void)viewDidDisappear:(BOOL)animated {
     [super viewDidDisappear:animated];
@@ -253,6 +257,8 @@
         return;
     }
 
+    [self disableScreenDim];
+
     @synchronized (_resumeAfterBecomeActive) {
         _backgroundCounter++;
         if ([_resumeAfterBecomeActive clear]) {
@@ -268,6 +274,8 @@
 // Start by loading facebook information, then do GPS and then start connection to commander.
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
+
+    [self disableScreenDim];
 
     // Reset notifications. This is in case we were waiting in the FB view contoller for the furation,
     // a badge would appear on our icon which would only go away when user goes out of app and then back in again.
