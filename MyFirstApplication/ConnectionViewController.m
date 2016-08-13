@@ -674,12 +674,21 @@
             [[Analytics getInstance] pushTimer:_connectingNetworkTimer withCategory:@"setup" name:@"network_connecting" label:@"new_session"];
             break;
 
-        case P_CONNECTED_TO_EXISTING:
-            [self setDisconnectStateWithShortDescription:@"Reconnected to existing session" askForConversationRating:false enableSkipButton:true];
+        case P_CONNECTED_TO_EXISTING: {
+            NSString *textToUse;
+            if (_waitingForProspectiveMatch) {
+                textToUse = @"Matching you with somebody to talk with";
+            } else {
+                textToUse = @"Reconnected to existing conversation";
+            }
+
+            // Only enable skip button if in a conversation, not if waiting to be matched.
+            [self setDisconnectStateWithShortDescription:textToUse askForConversationRating:false enableSkipButton:[self isReadyForChat]];
             [[Analytics getInstance] pushTimer:_connectingNetworkTimer withCategory:@"setup" name:@"network_connecting" label:@"resumed_session"];
 
             // How long were we disconnected for?
             [[Analytics getInstance] pushTimer:_connectionTemporarilyDisconnectTimer withCategory:@"conversation" name:@"disconnected" label:@"routing"];
+        }
             break;
 
         case P_NOT_CONNECTED:
