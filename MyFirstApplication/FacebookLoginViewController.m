@@ -50,6 +50,9 @@
 - (void)cancelEditingTextBoxes {
     [self.view endEditing:YES];
 }
+- (IBAction)onReviewButtonPress:(id)sender {
+    [[UIApplication sharedApplication] openURL:[[NSURL alloc] initWithString:@"itms-apps://itunes.apple.com/app/id1065376316"]];
+}
 
 - (IBAction)onProfilePictureTap:(id)sender {
     UIImagePickerController *imagePickerController = [[UIImagePickerController alloc] init];
