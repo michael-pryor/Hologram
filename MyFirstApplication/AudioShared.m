@@ -78,7 +78,7 @@
 @end
 
 BlockingQueue *buildAudioQueueEx(NSString *name, id <SequenceGapNotification> sequenceGapNotifier, id<TimeInQueueNotification> timeInQueueNotifier) {
-    return [[BlockingQueueTemporal alloc] initWithName:name maxQueueSize:5000 trackerResetFrequencySeconds:30 minimumThreshold:1 sequenceGapNotifier:sequenceGapNotifier timeInQueueNotifier:timeInQueueNotifier timeInQueueNotifierFrequency:0.5];
+    return [[BlockingQueueTemporal alloc] initWithName:name maxQueueSize:1000 trackerResetFrequencySeconds:30 minimumThreshold:1 sequenceGapNotifier:sequenceGapNotifier timeInQueueNotifier:timeInQueueNotifier timeInQueueNotifierFrequency:0.5];
 }
 
 BlockingQueue *buildAudioQueue(NSString *name, id <SequenceGapNotification> sequenceGapNotifier) {

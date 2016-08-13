@@ -24,7 +24,7 @@ class Client(object):
 
     # Clients have absolute maximum of 10 seconds to give their rating before it defaults to an okay rating.
     # App is advised to send within 5 seconds.
-    WAITING_FOR_RATING_ABSOLUTE_TIMEOUT = 10
+    WAITING_FOR_RATING_ABSOLUTE_TIMEOUT = 30
     WAITING_FOR_RATING_TIMEOUT = WAITING_FOR_RATING_ABSOLUTE_TIMEOUT / 2
 
     # After client does not accept/reject anyone for 3 times, disconnect them.
