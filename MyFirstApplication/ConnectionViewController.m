@@ -676,14 +676,15 @@
 
         case P_CONNECTED_TO_EXISTING: {
             NSString *textToUse;
-            if (_waitingForProspectiveMatch) {
+            bool inConversation = [self isReadyForChat];
+            if (!inConversation) {
                 textToUse = @"Matching you with somebody to talk with";
             } else {
-                textToUse = @"Reconnected to existing conversation";
+                textToUse = @"Reconnected to existing session";
             }
 
             // Only enable skip button if in a conversation, not if waiting to be matched.
-            [self setDisconnectStateWithShortDescription:textToUse askForConversationRating:false enableSkipButton:[self isReadyForChat]];
+            [self setDisconnectStateWithShortDescription:textToUse askForConversationRating:false enableSkipButton:inConversation];
             [[Analytics getInstance] pushTimer:_connectingNetworkTimer withCategory:@"setup" name:@"network_connecting" label:@"resumed_session"];
 
             // How long were we disconnected for?
