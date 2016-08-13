@@ -51,7 +51,7 @@
     [self.view endEditing:YES];
 }
 - (IBAction)onReviewButtonPress:(id)sender {
-    [[UIApplication sharedApplication] openURL:[[NSURL alloc] initWithString:@"itms-apps://itunes.apple.com/app/id1065376316"]];
+    [[UIApplication sharedApplication] openURL:[[NSURL alloc] initWithString:@"itms-apps://itunes.apple.com/us/app/hologram/id1065376316?ls=1&mt=8"]];
 }
 
 - (IBAction)onProfilePictureTap:(id)sender {
