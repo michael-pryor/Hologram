@@ -3483,35 +3483,35 @@ Regenerate your karma instantly</string>
                                         </subviews>
                                     </stackView>
                                     <containerView opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="100" translatesAutoresizingMaskIntoConstraints="NO" id="d6U-9N-jKN">
-                                        <rect key="frame" x="0.0" y="49" width="590" height="443"/>
+                                        <rect key="frame" x="0.0" y="49" width="590" height="435"/>
                                         <connections>
                                             <segue destination="75X-cw-Hzz" kind="embed" identifier="CallingCard" id="8aU-hO-kz9"/>
                                         </connections>
                                     </containerView>
                                     <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="GGF-ZP-csa">
-                                        <rect key="frame" x="0.0" y="497" width="590" height="78"/>
+                                        <rect key="frame" x="0.0" y="489" width="590" height="86"/>
                                         <subviews>
                                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Lxu-1l-5kz" userLabel="Bottom Buttons">
-                                                <rect key="frame" x="0.0" y="0.0" width="590" height="73"/>
+                                                <rect key="frame" x="0.0" y="0.0" width="590" height="81"/>
                                                 <subviews>
                                                     <stackView opaque="NO" contentMode="scaleToFill" alignment="top" translatesAutoresizingMaskIntoConstraints="NO" id="B3f-3V-xfS" userLabel="Bottom Buttons">
-                                                        <rect key="frame" x="0.0" y="0.0" width="590" height="73"/>
+                                                        <rect key="frame" x="0.0" y="0.0" width="590" height="81"/>
                                                         <subviews>
                                                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="kBN-k9-zBs" userLabel="Skip">
-                                                                <rect key="frame" x="0.0" y="0.0" width="95" height="73"/>
+                                                                <rect key="frame" x="0.0" y="0.0" width="65" height="81"/>
                                                                 <subviews>
                                                                     <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" alignment="center" spacing="1" translatesAutoresizingMaskIntoConstraints="NO" id="n6H-E2-pBQ" userLabel="Reject">
-                                                                        <rect key="frame" x="10" y="10" width="75" height="53"/>
+                                                                        <rect key="frame" x="10" y="10" width="45" height="61"/>
                                                                         <subviews>
-                                                                            <imageView userInteractionEnabled="NO" alpha="0.5" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" image="rating_okay" translatesAutoresizingMaskIntoConstraints="NO" id="cQo-Ic-ETv" userLabel="No">
-                                                                                <rect key="frame" x="0.0" y="0.0" width="75" height="38"/>
+                                                                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="rating_okay" translatesAutoresizingMaskIntoConstraints="NO" id="cQo-Ic-ETv" userLabel="No">
+                                                                                <rect key="frame" x="0.0" y="0.0" width="45" height="45"/>
                                                                                 <constraints>
-                                                                                    <constraint firstAttribute="width" constant="75" id="0n6-0A-vcB"/>
-                                                                                    <constraint firstAttribute="width" secondItem="cQo-Ic-ETv" secondAttribute="height" multiplier="2:1" id="IlJ-Ru-xpY"/>
+                                                                                    <constraint firstAttribute="width" constant="45" id="0n6-0A-vcB"/>
+                                                                                    <constraint firstAttribute="width" secondItem="cQo-Ic-ETv" secondAttribute="height" multiplier="1:1" id="IlJ-Ru-xpY"/>
                                                                                 </constraints>
                                                                             </imageView>
-                                                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" text="Skip" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="8GM-eN-Myt" userLabel="Skip">
-                                                                                <rect key="frame" x="25" y="39" width="25" height="14"/>
+                                                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Skip" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="8GM-eN-Myt" userLabel="Skip">
+                                                                                <rect key="frame" x="10" y="46" width="25" height="15"/>
                                                                                 <fontDescription key="fontDescription" type="system" weight="ultraLight" pointSize="12"/>
                                                                                 <color key="textColor" red="1" green="0.40000000600000002" blue="0.40000000600000002" alpha="1" colorSpace="calibratedRGB"/>
                                                                                 <nil key="highlightedColor"/>
@@ -3532,24 +3532,24 @@ Regenerate your karma instantly</string>
                                                                 </connections>
                                                             </view>
                                                             <view contentMode="scaleToFill" horizontalHuggingPriority="100" translatesAutoresizingMaskIntoConstraints="NO" id="hQz-yB-xPy" userLabel="Empty Space (sized)">
-                                                                <rect key="frame" x="95" y="0.0" width="400" height="73"/>
+                                                                <rect key="frame" x="65" y="0.0" width="450" height="80"/>
                                                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                                             </view>
                                                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="fjs-cw-dAt" userLabel="Accept">
-                                                                <rect key="frame" x="495" y="0.0" width="95" height="73"/>
+                                                                <rect key="frame" x="515" y="0.0" width="75" height="80"/>
                                                                 <subviews>
                                                                     <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" alignment="center" spacing="1" translatesAutoresizingMaskIntoConstraints="NO" id="T5n-25-m9d" userLabel="Accept">
-                                                                        <rect key="frame" x="10" y="10" width="75" height="53"/>
+                                                                        <rect key="frame" x="10" y="10" width="55" height="60"/>
                                                                         <subviews>
-                                                                            <imageView userInteractionEnabled="NO" alpha="0.5" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" image="rating_good" translatesAutoresizingMaskIntoConstraints="NO" id="af3-fV-pDP" userLabel="Yes">
-                                                                                <rect key="frame" x="0.0" y="0.0" width="75" height="38"/>
+                                                                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="facebook_shared" translatesAutoresizingMaskIntoConstraints="NO" id="af3-fV-pDP" userLabel="Yes">
+                                                                                <rect key="frame" x="0.0" y="0.0" width="55" height="44"/>
                                                                                 <constraints>
-                                                                                    <constraint firstAttribute="width" constant="75" id="2J3-MR-H8U"/>
-                                                                                    <constraint firstAttribute="width" secondItem="af3-fV-pDP" secondAttribute="height" multiplier="2:1" id="PWZ-CO-w2C"/>
+                                                                                    <constraint firstAttribute="width" constant="55" id="2J3-MR-H8U"/>
+                                                                                    <constraint firstAttribute="width" secondItem="af3-fV-pDP" secondAttribute="height" multiplier="0.5:0.4" id="PWZ-CO-w2C"/>
                                                                                 </constraints>
                                                                             </imageView>
-                                                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" text="Accept" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="PLo-w6-UP3" userLabel="Accept">
-                                                                                <rect key="frame" x="18" y="39" width="40" height="14"/>
+                                                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Accept" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="PLo-w6-UP3" userLabel="Accept">
+                                                                                <rect key="frame" x="8" y="45" width="40" height="15"/>
                                                                                 <fontDescription key="fontDescription" type="system" weight="ultraLight" pointSize="12"/>
                                                                                 <color key="textColor" red="1" green="0.40000000600000002" blue="0.40000000600000002" alpha="1" colorSpace="calibratedRGB"/>
                                                                                 <nil key="highlightedColor"/>
@@ -3584,7 +3584,7 @@ Regenerate your karma instantly</string>
                                                 </constraints>
                                             </view>
                                             <progressView opaque="NO" alpha="0.5" contentMode="scaleToFill" verticalHuggingPriority="750" misplaced="YES" progress="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="QWa-Zh-qLc" userLabel="Karma">
-                                                <rect key="frame" x="0.0" y="73" width="590" height="5"/>
+                                                <rect key="frame" x="0.0" y="81" width="590" height="5"/>
                                                 <color key="tintColor" red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                                 <constraints>
                                                     <constraint firstAttribute="height" constant="5" id="wmv-ZD-ytj"/>
@@ -3789,17 +3789,18 @@ i. The laws of the State of California, excluding its conflicts of law rules, go
     </scenes>
     <resources>
         <image name="audio_problem" width="2482" height="2420"/>
+        <image name="facebook_shared" width="683" height="622"/>
         <image name="fast_forward_audio" width="2440" height="2482"/>
         <image name="hologram_start_chat" width="785" height="194"/>
-        <image name="nat_punched_through" width="2482" height="1704"/>
+        <image name="nat_punched_through" width="683" height="150"/>
         <image name="nat_routing_through_server" width="2482" height="2400"/>
         <image name="rating_block" width="734" height="382"/>
         <image name="rating_good" width="734" height="382"/>
-        <image name="rating_okay" width="734" height="382"/>
+        <image name="rating_okay" width="683" height="683"/>
         <image name="video_problem" width="2482" height="1860"/>
     </resources>
     <inferredMetricsTieBreakers>
         <segue reference="6jl-9h-VrO"/>
-        <segue reference="erR-kN-89c"/>
+        <segue reference="8aU-hO-kz9"/>
     </inferredMetricsTieBreakers>
 </document>
