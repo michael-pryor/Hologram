@@ -10,10 +10,9 @@
 #import "Timer.h"
 #import "ViewInteractions.h"
 #import "BanPaymentsViewController.h"
-#import "Payments.h"
 #import "Notifications.h"
 
-
+#define kNoLongerBannedNotification @"noLongerBannedNotification"
 @implementation BannedViewController {
     Timer *_destinationTime;
 
@@ -104,10 +103,8 @@
 }
 
 - (void)onScreenVisible {
-    [[UIApplication sharedApplication] cancelAllLocalNotifications];
+    [_notifications cancelNotificationsWithId:kNoLongerBannedNotification];
 }
-
-
 
 - (void)onPushNotificationsEnabled {
     _schedulePushNotification = true;
@@ -118,9 +115,7 @@
 }
 
 - (void)scheduleNotification:(uint)numSeconds {
-    UILocalNotification *localNotif = [[UILocalNotification alloc] init];
-    if (localNotif == nil)
-        return;
+    UILocalNotification *localNotif = [_notifications getLocalNotificationWithId:kNoLongerBannedNotification];
 
     localNotif.fireDate = [[NSDate date] dateByAddingTimeInterval:numSeconds];
     localNotif.timeZone = [NSTimeZone defaultTimeZone];

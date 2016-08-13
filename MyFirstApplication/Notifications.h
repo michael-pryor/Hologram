@@ -11,4 +11,8 @@
 + (Notifications *)getNotificationsInstance;
 
 - (void)enableNotifications;
+
+- (UILocalNotification *)getLocalNotificationWithId:(NSString*)idString;
+
+- (void)cancelNotificationsWithId:(NSString*)idString;
 @end

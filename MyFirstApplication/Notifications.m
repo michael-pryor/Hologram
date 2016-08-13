@@ -5,6 +5,7 @@
 #import "Notifications.h"
 
 #define kPushNotificationRequestAlreadySeen @"pushNotificationsAlreadySeen"
+#define kNotificationId @"notificationId"
 static Notifications *notificationsInstance = nil;
 @implementation Notifications {
 
@@ -30,6 +31,29 @@ static Notifications *notificationsInstance = nil;
     [[NSUserDefaults standardUserDefaults] setBool:YES forKey:kPushNotificationRequestAlreadySeen];
 }
 
+- (UILocalNotification *)getLocalNotificationWithId:(NSString*)idString {
+    UILocalNotification *notification = [[UILocalNotification alloc] init];
+    notification.userInfo = @{kNotificationId : idString};
+    return notification;
+}
+
+- (void)cancelNotificationsWithId:(NSString*)idString {
+    for (UILocalNotification *localNotification in [[UIApplication sharedApplication] scheduledLocalNotifications]) {
+        NSDictionary* dictionary = [localNotification userInfo];
+        if (dictionary == nil) {
+            continue;
+        }
+
+        NSString * notificationId = dictionary[kNotificationId];
+        if (notificationId == nil) {
+            continue;
+        }
+
+        if ([idString isEqualToString:notificationId]) {
+            [[UIApplication sharedApplication] cancelLocalNotification:localNotification];
+        }
+    }
+}
 
 
 + (Notifications *)getNotificationsInstance {

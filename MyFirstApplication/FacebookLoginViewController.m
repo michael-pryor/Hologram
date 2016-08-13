@@ -12,6 +12,8 @@
 #import "DobParsing.h"
 #import "Notifications.h"
 
+#define kHotNotification @"hotNotification"
+
 @implementation FacebookLoginViewController {
     IBOutlet UISegmentedControl *_desiredGenderChooser;
     __weak IBOutlet UITextField *_dateOfBirthTextBox;
@@ -42,7 +44,7 @@
     __weak IBOutlet UIStackView *_hotDayStack;
     __weak IBOutlet UILabel *_notificationPermissionsRequestWarning;
 
-    Notifications* _notifications;
+    Notifications *_notifications;
 }
 
 - (void)cancelEditingTextBoxes {
@@ -81,6 +83,43 @@
     }];
 
     [_socialState persistHotNotificationDays:indexesArray];
+    [self updateNotifications:multiSelectSegmentedControl];
+}
+
+- (void)updateNotifications:(MultiSelectSegmentedControl *)control {
+    [_notifications cancelNotificationsWithId:kHotNotification];
+
+    [[control selectedSegmentIndexes] enumerateIndexesUsingBlock:^(NSUInteger idx, BOOL *stop) {
+        uint dateFormattedDay = (idx + 2) % 7;
+        NSDate *now = [NSDate date];
+        NSCalendar *calendar = [NSCalendar currentCalendar];
+        [calendar setTimeZone:[NSTimeZone localTimeZone]];
+        NSDateComponents *components = [calendar components:NSCalendarUnitYear | NSCalendarUnitMonth | NSCalendarUnitWeekOfYear | NSCalendarUnitWeekday fromDate:now];
+        components.weekday = dateFormattedDay;
+        components.hour = 20;
+
+        NSDate *fireDate = [calendar dateFromComponents:components];
+
+        // Ensure date is in the future, by adding one week, if it is in the past.
+        if ([fireDate earlierDate:now] == fireDate) {
+            NSDateComponents *dateComponents = [[NSDateComponents alloc] init];
+            [dateComponents setWeekOfYear:1];
+            fireDate = [calendar dateByAddingComponents:dateComponents toDate:fireDate options:0];
+        }
+
+        UILocalNotification *hotNotification = [_notifications getLocalNotificationWithId:kHotNotification];
+        [hotNotification setRepeatInterval:NSCalendarUnitWeekOfYear]; // repeat every week.
+        [hotNotification setFireDate:fireDate];
+
+        hotNotification.alertBody = @"🔥 Today's hot spot in your region has started, join in now!";
+        hotNotification.alertTitle = @"Hologram Hot Spot";
+
+        hotNotification.soundName = UILocalNotificationDefaultSoundName;
+        hotNotification.applicationIconBadgeNumber = 1;
+        [[UIApplication sharedApplication] scheduleLocalNotification:hotNotification];
+
+        NSLog(@"Scheduled weekly repeated hot notification to take place on: %@ (UTC)", fireDate);
+    }];
 }
 
 
@@ -203,7 +242,7 @@
     NSArray *hotDaySelection = [_socialState hotNotificationDays];
     if (hotDaySelection != nil) {
         NSMutableIndexSet *selectedSegmentIndexes = [[NSMutableIndexSet alloc] init];
-        for (NSNumber* obj in hotDaySelection) {
+        for (NSNumber *obj in hotDaySelection) {
             uint objNum = [obj unsignedIntValue];
             [selectedSegmentIndexes addIndex:objNum];
         }
@@ -211,7 +250,14 @@
         [_hotDaySelector setSelectedSegmentIndexes:selectedSegmentIndexes];
     } else {
         [_hotDaySelector selectAllSegments:YES];
+        [self updateNotifications:_hotDaySelector];
     }
+
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(appWillRetakeActive:) name:UIApplicationDidBecomeActiveNotification object:nil];
+}
+
+- (void)appWillRetakeActive:(id)appWillRetakeActive {
+    [[UIApplication sharedApplication] setApplicationIconBadgeNumber:0];
 }
 
 - (void)setHotEnableSwitch:(bool)on {
