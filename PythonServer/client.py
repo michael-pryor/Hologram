@@ -216,7 +216,7 @@ class Client(object):
         self.house_match_timer = None
 
         # Track previous matches which we have skipped
-        self.match_skip_history = Client.HistoryTracking(matchDecisionDatabase, self, enabled = False)
+        self.match_skip_history = Client.HistoryTracking(matchDecisionDatabase, self, enabled = True)
 
         # Client we were speaking to in last conversation, may not still be connected.
         self.client_from_previous_conversation = None
