@@ -46,12 +46,17 @@
 
 - (void)terminate {
     _isRunning = false;
+    [_batchesTimeout shutdown];
 }
 
 - (void)timeoutThreadEntryPoint:var {
     while (_isRunning) {
         @autoreleasepool {
             Batch *batch = [_batchesTimeout get];
+            if (batch == nil) {
+                break;
+            }
+
             [batch blockUntilTimeout];
 
             // If has already been processed (e.g. because it became complete) then will
@@ -59,9 +64,16 @@
             [self onBatchCompletion:batch timedOut:true];
         }
     }
+
+    NSLog(@"BatcherInput thread terminating");
 }
 
 - (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
+    if (!_isRunning) {
+        NSLog(@"BatcherInput not running, dropping new packet");
+        return;
+    }
+
     // Note: do not change the format of the batch ID (it must be a 16 bit unsigned integer), because
     // this data is inspected for packet loss by a SequenceDecodingPipe, prior to hitting this point.
     uint batchId = [packet getUnsignedInteger16];
@@ -158,5 +170,10 @@
         [[batch partialPacket] setCursorPosition:0];
         [_outputSession onNewPacket:[batch partialPacket] fromProtocol:UDP];
     }
+}
+
+- (void)dealloc {
+    [self terminate];
+    NSLog(@"BatcherInput dealloc");
 }
 @end

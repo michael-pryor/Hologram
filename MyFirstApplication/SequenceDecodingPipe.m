@@ -10,7 +10,7 @@
     bool _receivedFirstId;
     bool _moveCursor;
 
-    id <SequenceGapNotification> _sequenceGapNotification;
+    __weak id <SequenceGapNotification> _sequenceGapNotification;
 }
 - (id)initWithOutputSession:(id <NewPacketDelegate>)outputSession sequenceGapNotification:(id <SequenceGapNotification>)sequenceGapNotification {
     return [self initWithOutputSession:outputSession sequenceGapNotification:sequenceGapNotification shouldMoveCursor:true];
@@ -65,5 +65,9 @@
 
     // Packet loss, so notify.
     [_sequenceGapNotification onSequenceGap:diff fromSender:self];
+}
+
+- (void)dealloc {
+    NSLog(@"SequenceDecodingPipe dealloc");
 }
 @end

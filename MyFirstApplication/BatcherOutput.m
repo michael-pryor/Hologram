@@ -100,4 +100,8 @@
 
     return _sendBuffer;
 }
+
+- (void)dealloc {
+    NSLog(@"BatcherOutput dealloc");
+}
 @end

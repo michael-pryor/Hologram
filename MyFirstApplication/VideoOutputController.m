@@ -22,7 +22,7 @@
 #define LOCAL_FRAME_RATE 15
 
 @implementation PacketToImageProcessor {
-    id <NewImageDelegate> _newImageDelegate;
+    __weak id <NewImageDelegate> _newImageDelegate;
     VideoEncoding *_videoEncoder;
     TimedCounterLogging *_videoDataUsageCounter;
 }
@@ -53,6 +53,10 @@
 - (void)setNewImageDelegate:(id <NewImageDelegate>)newImageDelegate {
     _newImageDelegate = newImageDelegate;
 }
+
+- (void)dealloc {
+    NSLog(@"PacketToImageProcessor dealloc");
+}
 @end
 
 
@@ -82,17 +86,12 @@
     bool _loopbackEnabled;
     Timer *_fpsTracker;
     uint _fpsCount;
-
-    bool _resumeAfterInterruptionFinished;
-
 }
 - (id)initWithUdpNetworkOutputSession:(id <NewPacketDelegate>)udpNetworkOutputSession imageDelegate:(id <NewImageDelegate>)newImageDelegate mediaDataLossNotifier:(id <MediaDataLossNotifier>)mediaDataLossNotifier leftPadding:(uint)leftPadding loopbackEnabled:(bool)loopbackEnabled {
     self = [super init];
     if (self) {
         _loopbackEnabled = loopbackEnabled;
         _localImageDelegate = nil;
-
-        _resumeAfterInterruptionFinished = false;
 
         if (_loopbackEnabled) {
             // Set later on in this constructor, null out now to avoid risk of using accidently.
@@ -107,6 +106,7 @@
         _syncWithAudio = [[DelayedPipe alloc] initWithMinimumDelay:0.1 outputSession:_packetToImageProcessor];
 
         _batcherInput = [[BatcherInput alloc] initWithOutputSession:_syncWithAudio timeoutMs:1000];
+
         _dataLossDetector = [[SequenceDecodingPipe alloc] initWithOutputSession:_batcherInput sequenceGapNotification:self shouldMoveCursor:false];
         [_batcherInput initialize];
 
@@ -289,5 +289,12 @@
     [_mediaDataLossNotifier onMediaDataLossFromSender:VIDEO];
 }
 
+- (void)dealloc {
+     NSLog(@"VideoOutputController dealloc");
+    [self stopCapturing];
+
+    // Need to terminate the thread.
+    [_batcherInput terminate];
+}
 
 @end

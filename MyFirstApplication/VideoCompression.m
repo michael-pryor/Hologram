@@ -39,6 +39,17 @@
     Timer* _filterIntensityDecreaseTimer;
     float _filterIntensityDecreaseValue;
 }
+
+- (void)dealloc {
+    // Note: these use alot of memory, we can free these if under memory pressure and not using video compression.
+    avcodec_free_context(&codecEncoderContext);
+    avcodec_free_context(&codecDecoderContext);
+    
+    CVPixelBufferPoolRelease(_pixelBufferPool);
+    
+    NSLog(@"Deallocated VideoCompression");
+}
+
 - (id)init {
     self = [super init];
     if (self) {
@@ -109,6 +120,8 @@
             if (result != 0) {
                 NSLog(@"Failed to open av codec: %d", result);
             }
+            
+            av_dict_free(&codecOptions);
         }
 
         {
@@ -153,6 +166,8 @@
             if (result != 0) {
                 NSLog(@"Failed to open av codec: %d", result);
             }
+            
+            av_dict_free(&codecOptions);
         }
 
         [Orientation registerForOrientationChangeNotificationsWithObject:self selector:@selector(onOrientationChange:)];
