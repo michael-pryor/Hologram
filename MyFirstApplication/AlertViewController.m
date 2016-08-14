@@ -257,6 +257,9 @@
 
 - (void)adViewDidLoad:(FBAdView *)adView; {
     dispatch_sync_main(^{
+        // Start of initializing, no skip button.
+        [_forwardButton setHidden:true];
+
         // On next screen refresh, we'l show the advert.
         _isBannerAdvertLoaded = true;
         NSLog(@"Banner has loaded, unhiding it");
