@@ -22,9 +22,9 @@ logger = logging.getLogger(__name__)
 class Client(object):
     MINIMUM_VERSION = 5
 
-    # Clients have absolute maximum of 10 seconds to give their rating before it defaults to an okay rating.
-    # App is advised to send within 5 seconds.
-    WAITING_FOR_RATING_ABSOLUTE_TIMEOUT = 30
+    # Clients have absolute maximum of 20 seconds to give their rating before it defaults to an okay rating.
+    # App is advised to send within 10 seconds.
+    WAITING_FOR_RATING_ABSOLUTE_TIMEOUT = 20
     WAITING_FOR_RATING_TIMEOUT = WAITING_FOR_RATING_ABSOLUTE_TIMEOUT / 2
 
     # After client does not accept/reject anyone for 3 times, disconnect them.
@@ -216,7 +216,7 @@ class Client(object):
         self.house_match_timer = None
 
         # Track previous matches which we have skipped
-        self.match_skip_history = Client.HistoryTracking(matchDecisionDatabase, self, enabled = True)
+        self.match_skip_history = Client.HistoryTracking(matchDecisionDatabase, self, enabled = False)
 
         # Client we were speaking to in last conversation, may not still be connected.
         self.client_from_previous_conversation = None

@@ -41,4 +41,6 @@
 - (void)setOutputSession:(id <NewPacketDelegate>)newPacketDelegate;
 
 - (void)setVideoDelayMs:(uint)videoDelay;
+
+- (void)terminate;
 @end

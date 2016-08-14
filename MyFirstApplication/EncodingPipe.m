@@ -35,4 +35,8 @@
     }
     [_outputSession onNewPacket:packet fromProtocol:protocol];
 }
+
+- (void)dealloc {
+    NSLog(@"EncodingPipe dealloc");
+}
 @end

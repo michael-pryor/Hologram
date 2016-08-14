@@ -31,6 +31,8 @@
 
 - (void)setConversationEndedViewVisible:(bool)visible showQuickly:(bool)showQuickly;
 
+- (bool)isWaitingForMatchToJoin;
+
 - (void)setConversationRatingConsumer:(id <ConversationRatingConsumer>)consumer matchingAnswerDelegate:(id <MatchingAnswerDelegate>)matchingAnswerDelegate mediaOperator:(id <MediaOperator>)videoOperator;
 
 - (void)setRatingTimeoutSeconds:(uint)ratingTimeoutSeconds matchDecisionTimeoutSeconds:(uint)seconds;

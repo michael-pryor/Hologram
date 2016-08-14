@@ -76,5 +76,8 @@
     _delay = delay;
 }
 
+- (void)dealloc {
+    NSLog(@"DelayedPipe dealloc");
+}
 
 @end

@@ -33,6 +33,9 @@
 }
 
 - (void)dealloc {
+    NSLog(@"Queue dealloc");
+    _queueShutdown = true;
+    [self clear];
     free(_queuePtrs);
 }
 
@@ -58,7 +61,14 @@
 }
 
 - (void)clearNoLock {
-    _writePos = 0; // clear queue.
+    NSLog(@"Clearing queue");
+
+    // Sort out the ARC.
+    for (uint n = _readPos; n < _readPos + _queueSize; n++) {
+        CFBridgingRelease(_queuePtrs[n]);
+    }
+
+    _writePos = 0;
     _readPos = 0;
     _queueSize = 0;
 }

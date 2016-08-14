@@ -12,6 +12,10 @@
 - (void)setName:(NSString *)name profilePicture:(UIImage *)profilePicture callingCardText:(NSString *)callingCardText age:(uint)age distance:(uint)distance karma:(uint)karma maxKarma:(uint)maxKarma;
 @end
 
+@protocol CallingCardDataProviderEx<CallingCardDataProvider>
+- (bool)isChangeInName:(NSString *)name profilePicture:(UIImage *)profilePicture callingCardText:(NSString *)callingCardText age:(uint)age;
+@end
 
-@interface CallingCardViewController : UIViewController <CallingCardDataProvider>
+
+@interface CallingCardViewController : UIViewController <CallingCardDataProviderEx>
 @end

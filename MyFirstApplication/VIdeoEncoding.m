@@ -167,4 +167,8 @@
     // Exception to this rule is if loopback is enabled.
     return [_compression convertSampleBufferToUiImage:sampleBuffer];
 }
+
+- (void)dealloc {
+    NSLog(@"VideoEncoding dealloc");
+}
 @end

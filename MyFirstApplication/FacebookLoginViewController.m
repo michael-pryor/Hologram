@@ -37,6 +37,7 @@
     __weak IBOutlet UILabel *_warningGender;
     __weak IBOutlet UILabel *_warningAgeRestriction;
     __weak IBOutlet UILabel *_warningEula;
+    NSArray *_warningItems;
 
     bool _waitingForEulaCompletion;
     __weak IBOutlet UISwitch *_hotEnableSwitch;
@@ -129,35 +130,50 @@
 }
 
 
+
+- (bool)handleValidationItem:(UIView*)item problemFlag:(bool)problemFlag {
+    if (problemFlag) {
+        [_startButton setEnabled:false];
+        [_startButton setAlpha:0.2];
+
+        [item setHidden:false];
+        for (UIView* otherItem in _warningItems) {
+            if (otherItem == item) {
+                continue;
+            }
+            [otherItem setHidden:true];
+        }
+        return true;
+    }
+
+    [item setHidden:true];
+    return false;
+}
+
 - (void)validateForm {
     dispatch_sync_main(^{
-        bool isProblem = false;
-        bool isCurrentItemProblem;
-
-        isProblem = isProblem | (isCurrentItemProblem = [[_fullNameTextBox text] length] == 0);
-        [_warningName setHidden:!isCurrentItemProblem];
-
-        isProblem = isProblem | (isCurrentItemProblem = [[_dateOfBirthTextBox text] length] == 0);
-        [_warningDateOfBirth setHidden:!isCurrentItemProblem];
-
-        bool isAgeSet = !isCurrentItemProblem;
-        isProblem = isProblem | (isCurrentItemProblem = isAgeSet && [_socialState age] < MINIMUM_AGE);
-        [_warningAgeRestriction setHidden:!isCurrentItemProblem];
-
-        isProblem = isProblem | (isCurrentItemProblem = [_ownerGenderChooser selectedSegmentIndex] == UISegmentedControlNoSegment);
-        [_warningGender setHidden:!isCurrentItemProblem];
-
-        isProblem = isProblem | (isCurrentItemProblem = [_socialState profilePictureImage] == nil);
-        [_warningCallingCardPicture setHidden:!isCurrentItemProblem];
-
-        [_startButton setEnabled:!isProblem];
-        if (isProblem) {
-            [_startButtonView setAlpha:0.5];
-            [_warningEula setHidden:true];
-        } else {
-            [_startButtonView setAlpha:1.0];
-            [_warningEula setHidden:[_socialState hasAcceptedEula]];
+        if([self handleValidationItem:_warningName problemFlag:[[_fullNameTextBox text] length] == 0]) {
+            return;
         }
+
+        if([self handleValidationItem:_warningDateOfBirth problemFlag:[[_dateOfBirthTextBox text] length] == 0]) {
+            return;
+        }
+
+        if([self handleValidationItem:_warningAgeRestriction problemFlag:[_socialState age] < MINIMUM_AGE]) {
+            return;
+        }
+
+        if([self handleValidationItem:_warningGender problemFlag:[_ownerGenderChooser selectedSegmentIndex] == UISegmentedControlNoSegment]) {
+            return;
+        }
+
+        if([self handleValidationItem:_warningCallingCardPicture problemFlag:[_socialState profilePictureImage] == nil]) {
+            return;
+        }
+
+        [_startButton setEnabled:true];
+        [_startButton setAlpha:1];
     });
 }
 
@@ -199,7 +215,10 @@
 
     self.screenName = @"FacebookLogin";
 
+    _warningItems = @[_warningAgeRestriction, _warningCallingCardPicture, _warningDateOfBirth, _warningGender, _warningName];
+
     [_hotDaySelector setDelegate:self];
+    [_hotDaySelector setHideSeparatorBetweenSelectedSegments:YES];
 
     _notifications = [Notifications getNotificationsInstance];
 

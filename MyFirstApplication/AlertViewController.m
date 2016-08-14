@@ -74,6 +74,10 @@
     return [self isViewCurrent:_matchingView];
 }
 
+- (bool)isWaitingForMatchToJoin {
+    return [self isViewCurrent:_joiningConversationView];
+}
+
 - (bool)shouldAdvertBeVisible:(UIView*)view {
     return view == _localImageViewParent && _isBannerAdvertLoaded;
 }
@@ -97,8 +101,6 @@
 - (void)setGenericInformationText:(NSString *)shortText skipButtonEnabled:(bool)skipButtonEnabled {
     dispatch_sync_main(^{
         _cachedAlertText = shortText;
-
-        [_forwardButton setHidden:!skipButtonEnabled];
         _isSkipButtonRequired = skipButtonEnabled;
     });
 }
@@ -255,6 +257,9 @@
 
 - (void)adViewDidLoad:(FBAdView *)adView; {
     dispatch_sync_main(^{
+        // Start of initializing, no skip button.
+        [_forwardButton setHidden:true];
+
         // On next screen refresh, we'l show the advert.
         _isBannerAdvertLoaded = true;
         NSLog(@"Banner has loaded, unhiding it");
@@ -359,6 +364,13 @@
 }
 
 - (void)setName:(NSString *)name profilePicture:(UIImage *)profilePicture callingCardText:(NSString *)callingCardText age:(uint)age distance:(uint)distance karma:(uint)karma maxKarma:(uint)maxKarma {
+    // If user we are waiting for reconnects, we receive their information again, but if it is the same user, we just want to carry on waiting,
+    // without showing the card again.
+    if ([self isWaitingForMatchToJoin] && ![_matchingViewController isChangeInName:name profilePicture:profilePicture callingCardText:callingCardText age:age]) {
+        NSLog(@"Was waiting for match to join but received duplicate profile, assuming this was a reconnect and not displaying profile");
+        return;
+    }
+
     [_matchingViewController setName:name profilePicture:profilePicture callingCardText:callingCardText age:age distance:distance karma:karma maxKarma:maxKarma];
     [self onMatchingStarted];
 }
