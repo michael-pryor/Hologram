@@ -20,7 +20,7 @@
 - (void) onTimedOut;
 @end
 
-@interface MatchingViewController : UIViewController<CallingCardDataProvider>
+@interface MatchingViewController : UIViewController<CallingCardDataProviderEx>
 - (void)setMatchingAnswerDelegate:(id <MatchingAnswerDelegate>)matchingAnswerDelegate;
 
 - (void)setMatchingDecisionTimeoutSeconds:(uint)seconds;

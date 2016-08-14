@@ -82,7 +82,7 @@
             }
 
             AVDictionary *codecOptions = nil;
-            result = av_dict_set(&codecOptions, "preset", "medium", 0); // TODO: consider changing.
+            result = av_dict_set(&codecOptions, "preset", "ultrafast", 0); // TODO: consider changing.
             if (result != 0) {
                 NSLog(@"Failed to set 'preset' value of h248 encoder: %d", result);
             }
@@ -125,7 +125,7 @@
             }
 
             AVDictionary *codecOptions = nil;
-            result = av_dict_set(&codecOptions, "preset", "medium", 0); // TODO: consider changing.
+            result = av_dict_set(&codecOptions, "preset", "ultrafast", 0); // TODO: consider changing.
             if (result != 0) {
                 NSLog(@"Failed to set 'preset' value of h248 encoder: %d", result);
             }

@@ -70,6 +70,10 @@
     });
 }
 
+- (bool)isChangeInName:(NSString *)name profilePicture:(UIImage *)profilePicture callingCardText:(NSString *)callingCardText age:(uint)age {
+    return [_callingCardViewController isChangeInName:name profilePicture:profilePicture callingCardText:callingCardText age:age];
+}
+
 - (IBAction)onButtonRejectTap:(id)sender {
     if ([_matchingAnswerDelegate onMatchRejectAnswer]) {
         [self onDoneWithView:_skipButton];

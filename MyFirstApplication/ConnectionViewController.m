@@ -751,8 +751,12 @@
     [self setDisconnectStateWithShortDescription:shortDescription askForConversationRating:askForConversationRating enableSkipButton:false];
 }
 
-// Display view overlay showing how connection is being recovered.
 - (void)setDisconnectStateWithShortDescription:(NSString *)shortDescription askForConversationRating:(bool)askForConversationRating enableSkipButton:(bool)enableSkipButton {
+    [self setDisconnectStateWithShortDescription:shortDescription askForConversationRating:askForConversationRating enableSkipButton:enableSkipButton dueToEndpointTempDisconnect:false];
+}
+
+// Display view overlay showing how connection is being recovered.
+- (void)setDisconnectStateWithShortDescription:(NSString *)shortDescription askForConversationRating:(bool)askForConversationRating enableSkipButton:(bool)enableSkipButton dueToEndpointTempDisconnect:(bool)endpointTempDisconnect {
     // If we haven't accepted or rejected the client yet, then don't ask to rate the conversation,
     // since we can't have had one.
     if (!_shouldRateAfterSessionEnd) {
@@ -793,7 +797,12 @@
             [_disconnectViewController setConversationRatingConsumer:self matchingAnswerDelegate:self mediaOperator:_mediaController];
             [_disconnectViewController setRatingTimeoutSeconds:_ratingTimeoutSeconds matchDecisionTimeoutSeconds:_matchDecisionTimeout];
             [_disconnectViewController setGenericInformationText:shortDescription skipButtonEnabled:enableSkipButton];
-            [_disconnectViewController setConversationEndedViewVisible:askForConversationRating showQuickly:false];
+
+            // This conditional is a specific edge case, if we are waiting for the match to join, and that
+            // match has temporarily disconnected, do not change the view, continue waiting, in case that match reconnects.
+            if (!endpointTempDisconnect || ![_disconnectViewController isWaitingForMatchToJoin]) {
+                [_disconnectViewController setConversationEndedViewVisible:askForConversationRating showQuickly:false];
+            }
 
             if (!alreadyPresented) {
                 NSLog(@"***** PRESENTING DISCONNECT VIEW CONTROLLER *****");
@@ -836,7 +845,7 @@
             _isSkippableDespiteNoMatch = true;
 
             NSLog(@"End point temporarily disconnected");
-            [self setDisconnectStateWithShortDescription:@"Reconnecting to existing session\nThe other person disconnected temporarily" askForConversationRating:false enableSkipButton:true];
+            [self setDisconnectStateWithShortDescription:@"Reconnecting to existing session\nThe other person disconnected temporarily" askForConversationRating:false enableSkipButton:true dueToEndpointTempDisconnect:true];
         } else if (operation == DISCONNECT_PERM) {
             NSLog(@"End point permanently disconnected");
 
