@@ -147,7 +147,10 @@
     _ratingTimeoutSeconds = 0;
     _movingToFacebook = false;
     _shouldShowAdverts = false;
+
+    // Start off initializing, no skip button.
     _isSkipButtonRequired = false;
+    [_forwardButton setHidden:true];
 
     _cachedAlertText = nil;
 
@@ -257,9 +260,6 @@
 
 - (void)adViewDidLoad:(FBAdView *)adView; {
     dispatch_sync_main(^{
-        // Start of initializing, no skip button.
-        [_forwardButton setHidden:true];
-
         // On next screen refresh, we'l show the advert.
         _isBannerAdvertLoaded = true;
         NSLog(@"Banner has loaded, unhiding it");
