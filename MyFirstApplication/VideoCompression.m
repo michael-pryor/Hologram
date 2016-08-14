@@ -20,6 +20,24 @@
 
 #define ALIGN_TO_BITS 32
 
+// GOP = Group of pictures size, in number of frames.
+// We have a frame rate of 15, so this is 1 seconds before a full frame (which at least partially corrects errors).
+// GOP can't be too big because of packet loss, but having a larger GOP = less bandwidth usage
+// and therefore higher quality images.
+#define gopSize 15
+
+// B frames introduce latency but increase quality.
+// We can't have latency, so set this to 1.
+#define maxFramesB 1
+
+// Uses around 50% - 60% CPU on iPhone 5S at worst in a two way conversation.
+#define performancePreset "superfast"
+
+// 24kb per second. (Don't forget its bits, so divide by 8 first when calculating kb).
+// In practice it varies, particularly with a fast performance preset.
+// We saw around max (including audio aswell) 90kb per second.
+#define bitRate (65536*3)
+
 // For cleanup:
 // Use av_frame_free
 // Use av_packet_unref
@@ -93,12 +111,12 @@
             }
 
             AVDictionary *codecOptions = nil;
-            result = av_dict_set(&codecOptions, "preset", "ultrafast", 0); // TODO: consider changing.
+            result = av_dict_set(&codecOptions, "preset", performancePreset, 0);
             if (result != 0) {
                 NSLog(@"Failed to set 'preset' value of h248 encoder: %d", result);
             }
 
-            result = av_dict_set(&codecOptions, "tune", "zerolatency", 0); // TODO: consider changing.
+            result = av_dict_set(&codecOptions, "tune", "zerolatency", 0);
             if (result != 0) {
                 NSLog(@"Failed to set 'tune' value of h248 encoder: %d", result);
             }
@@ -107,12 +125,12 @@
             codecEncoderContext->width = 640;
             codecEncoderContext->height = 480; // based on settings used when setting up AVCapture (not ffmpeg, but the actual iOS interactions).
             codecEncoderContext->time_base = (AVRational) {1, 20};
-            codecEncoderContext->gop_size = 10;
-            codecEncoderContext->max_b_frames = 1;
+            codecEncoderContext->gop_size = gopSize;
+            codecEncoderContext->max_b_frames = maxFramesB;
 
             // Bit rate = bits per second.
             // 65536 is 8KB per sec.
-            codecEncoderContext->bit_rate = 65536*2;
+            codecEncoderContext->bit_rate = bitRate;
             codecEncoderContext->pix_fmt = AV_PIX_FMT_YUV420P;
 
 
@@ -138,12 +156,12 @@
             }
 
             AVDictionary *codecOptions = nil;
-            result = av_dict_set(&codecOptions, "preset", "ultrafast", 0); // TODO: consider changing.
+            result = av_dict_set(&codecOptions, "preset", performancePreset, 0);
             if (result != 0) {
                 NSLog(@"Failed to set 'preset' value of h248 encoder: %d", result);
             }
 
-            result = av_dict_set(&codecOptions, "tune", "zerolatency", 0); // TODO: consider changing.
+            result = av_dict_set(&codecOptions, "tune", "zerolatency", 0);
             if (result != 0) {
                 NSLog(@"Failed to set 'tune' value of h248 encoder: %d", result);
             }
@@ -152,12 +170,12 @@
             codecDecoderContext->width = 640;
             codecDecoderContext->height = 480; // based on settings used when setting up AVCapture (not ffmpeg, but the actual iOS interactions).
             codecDecoderContext->time_base = (AVRational) {1, 20};
-            codecDecoderContext->gop_size = 10;
-            codecDecoderContext->max_b_frames = 1;
+            codecDecoderContext->gop_size = gopSize;
+            codecDecoderContext->max_b_frames = maxFramesB;
 
             // Bit rate = bits per second.
             // 65536 is 8KB per sec.
-            codecDecoderContext->bit_rate = 65536*2;
+            codecDecoderContext->bit_rate = bitRate;
 
             codecDecoderContext->pix_fmt = AV_PIX_FMT_YUV420P;
 
