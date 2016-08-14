@@ -295,6 +295,16 @@
 }
 
 - (void)start {
+    // Important that we don't validate access to video/microphone before Facebook
+    // login is complete, because its in that view controller that the dialog box about
+    // how we use the video/microphone is displayed.
+    SocialState *socialState = [SocialState getSocialInstance];
+    //[socialState updateFromFacebookCore];
+    if (![socialState isDataLoadedAndEulaAccepted] || ![[NSUserDefaults standardUserDefaults] boolForKey:@"permissionsExplanationShown"]) {
+        [self switchToFacebookLogonView];
+        return;
+    }
+
     [self setDisconnectStateWithShortDescription:@"Initializing" askForConversationRating:false];
 
     // Start off in routed mode.
@@ -309,16 +319,6 @@
 
     _inDifferentView = false;
     _isSkippableDespiteNoMatch = false;
-
-    // Important that we don't validate access to video/microphone before Facebook
-    // login is complete, because its in that view controller that the dialog box about
-    // how we use the video/microphone is displayed.
-    SocialState *socialState = [SocialState getSocialInstance];
-    //[socialState updateFromFacebookCore];
-    if (![socialState isDataLoadedAndEulaAccepted] || ![[NSUserDefaults standardUserDefaults] boolForKey:@"permissionsExplanationShown"]) {
-        [self switchToFacebookLogonView];
-        return;
-    }
 
     // This step can take a few seconds (particularly on older devices).
     if (_mediaController == nil) {
