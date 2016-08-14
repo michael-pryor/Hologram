@@ -45,13 +45,13 @@
 }
 
 - (bool)isChangeInName:(NSString *)name profilePicture:(UIImage *)profilePicture callingCardText:(NSString *)callingCardText age:(uint)age {
-    if (![name isEqualToString:[_name text]] || _ageValue != age || ![_text isEqual:callingCardText]) {
-        return false;
+    if (![name isEqualToString:[_name text]] || _ageValue != age || ![[_text text] isEqual:callingCardText]) {
+        return true;
     }
 
     NSData *data1 = UIImagePNGRepresentation(profilePicture);
     NSData *data2 = UIImagePNGRepresentation([_profilePicture image]);
-    return [data1 isEqualToData:data2];
+    return ![data1 isEqualToData:data2];
 }
 
 - (void)viewDidLoad {

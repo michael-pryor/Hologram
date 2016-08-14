@@ -364,6 +364,7 @@
     // If user we are waiting for reconnects, we receive their information again, but if it is the same user, we just want to carry on waiting,
     // without showing the card again.
     if ([self isWaitingForMatchToJoin] && ![_matchingViewController isChangeInName:name profilePicture:profilePicture callingCardText:callingCardText age:age]) {
+        NSLog(@"Was waiting for match to join but received duplicate profile, assuming this was a reconnect and not displaying profile");
         return;
     }
 
