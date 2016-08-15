@@ -30,16 +30,17 @@ fi
 DESTINATION_PATH="${DIR%/*}"
 
 # Remove old directories
-pythonServerPath="${DESTINATION_PATH}/PythonServer"
-
-if [ -d "${pythonServerPath}" ] ; then
-  rm -r "${pythonServerPath}"
-fi
-
-binPath="${DESTINATION_PATH}/bin"
-if [ -d "${binPath}" ] ; then
-  rm -r "${binPath}"/*
-fi
+topLevelItemsInPackage=($(tar tzf "${SOURCE_PATH}" --exclude '*/*'))
+for itemFile in "${topLevelItemsInPackage[@]}"
+do
+   item="${DESTINATION_PATH}/${itemFile}"
+   if [ -d "${item}" ]; then
+      echo "Removing directory: [${item}]"
+      rm -rf "${item}"
+   else
+      echo "Not found directory: [${item}], no need to clear"
+   fi
+done
 
 echo "Installing package ${SOURCE_FILE} (${SOURCE_PATH}) to [${DESTINATION_PATH}]..."
 tar -xvzf "${SOURCE_PATH}" -C "${DESTINATION_PATH}"
