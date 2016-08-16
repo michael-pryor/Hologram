@@ -198,6 +198,8 @@
     if (_reconnectEnabled && ![_failureTracker increment]) {
         NSLog(@"Signaling reconnect request due to failure: %@", failureDescription);
         [_reconnectMonitor performAction];
+    } else {
+        NSLog(@"WARN: ****Aborting connection attempts, connection will remain shutdown****");
     }
 }
 

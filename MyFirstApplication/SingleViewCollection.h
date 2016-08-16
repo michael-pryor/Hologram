@@ -21,7 +21,7 @@
 
 - (UIView*)getCurrentlyDisplayedView;
 
-- (bool)isViewDisplayedWideSearch:(UIView *)view;
+- (bool)isViewCurrent:(UIView *)view;
 
 - (void)displayView:(UIView *)view ifNoChangeForMilliseconds:(uint)milliseconds meta:(id)meta;
 

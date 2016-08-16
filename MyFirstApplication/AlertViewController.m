@@ -63,7 +63,7 @@
 }
 
 - (bool)isViewCurrent:(UIView *)view {
-    return [_viewCollection isViewDisplayedWideSearch:view];
+    return [_viewCollection isViewCurrent:view];
 }
 
 - (bool)isInConversationEndedView {
@@ -363,15 +363,15 @@
     [self hideViewsQuickly:quicklyHideViews];
 }
 
-- (void)setName:(NSString *)name profilePicture:(UIImage *)profilePicture callingCardText:(NSString *)callingCardText age:(uint)age distance:(uint)distance karma:(uint)karma maxKarma:(uint)maxKarma {
+- (void)setName:(NSString *)name profilePicture:(UIImage *)profilePicture callingCardText:(NSString *)callingCardText age:(uint)age distance:(uint)distance karma:(uint)karma maxKarma:(uint)maxKarma isReconnectingClient:(bool)isReconnectingClient{
     // If user we are waiting for reconnects, we receive their information again, but if it is the same user, we just want to carry on waiting,
     // without showing the card again.
-    if ([self isWaitingForMatchToJoin] && ![_matchingViewController isChangeInName:name profilePicture:profilePicture callingCardText:callingCardText age:age]) {
-        NSLog(@"Was waiting for match to join but received duplicate profile, assuming this was a reconnect and not displaying profile");
+    if (isReconnectingClient && [self isWaitingForMatchToJoin] && ![_matchingViewController isChangeInName:name profilePicture:profilePicture callingCardText:callingCardText age:age]) {
+        NSLog(@"Was waiting for match to join but received duplicate profile while waiting for reconnect; not displaying profile");
         return;
     }
 
-    [_matchingViewController setName:name profilePicture:profilePicture callingCardText:callingCardText age:age distance:distance karma:karma maxKarma:maxKarma];
+    [_matchingViewController setName:name profilePicture:profilePicture callingCardText:callingCardText age:age distance:distance karma:karma maxKarma:maxKarma isReconnectingClient:isReconnectingClient];
     [self onMatchingStarted];
 }
 

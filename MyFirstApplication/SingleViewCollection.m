@@ -9,12 +9,18 @@
 
 @implementation SingleViewCollection {
     float _duration;
+
+    // View requested to be faded in, but not currently being actioned.
     UIView *_requestedView;
 
+    // Currently fully displayed view (or partially if something is currently being loaded).
     UIView *_currentRealView;
+
+    // View currently fading in.
     UIView *_viewBeingLoaded;
 
     id _requestedMeta;
+    id _metaBeingLoaded;
 
     id <ViewChangeNotifier> _viewChangeNotifier;
     Timer *_timer;
@@ -27,6 +33,7 @@
     if (self) {
         _duration = duration;
         _requestedView = nil;
+        _requestedMeta = nil;
         _currentRealView = nil;
         _viewChangeNotifier = viewChangeNotifier;
         _timer = [[Timer alloc] init];
@@ -39,8 +46,11 @@
     return _currentRealView;
 }
 
-- (bool)isViewDisplayedWideSearch:(UIView *)view {
-    return (_currentRealView == view ||
+- (bool)isViewCurrent:(UIView *)view {
+    // If its the currently displayed view, and nothing else is loaded OR
+    // If its the view currently being loaded OR
+    // If its the next requested view.
+    return ((_currentRealView == view && _viewBeingLoaded == nil) ||
             _viewBeingLoaded == view ||
             _requestedView == view);
 }
@@ -52,6 +62,7 @@
 - (void)onCompletion {
     UIView *viewToUse;
     UIView *previousViewToUse;
+    id metaToUse;
     @synchronized (self) {
         // We just finished loading, so update the real view.
         _currentRealView = _viewBeingLoaded;
@@ -59,13 +70,16 @@
 
         if (_requestedView == nil) {
             _viewBeingLoaded = nil;
+            _metaBeingLoaded = nil;
             return;
         }
         viewToUse = _viewBeingLoaded = _requestedView;
+        metaToUse = _metaBeingLoaded = _requestedMeta;
         _requestedView = nil;
+        _requestedMeta = nil;
     }
 
-    [self doReplaceView:previousViewToUse withView:viewToUse meta:_requestedMeta];
+    [self doReplaceView:previousViewToUse withView:viewToUse meta:metaToUse];
 }
 
 - (void)displayView:(UIView *)view meta:(id)meta {
@@ -80,7 +94,7 @@
         doDisplay = _viewBeingLoaded == nil;
         if (doDisplay) {
             _viewBeingLoaded = view;
-            _requestedMeta = nil;
+            _metaBeingLoaded = meta;
         } else {
             _requestedView = view;
             _requestedMeta = meta;

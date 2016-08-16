@@ -119,9 +119,10 @@ class House:
     def adviseNatPunchthrough(self, clientA, clientB):
         self.mutualAdvise(clientA, clientB, Client.adviseNatPunchthrough)
 
-    def adviseMatchDetails(self, clientA, clientB):
+    # reconnectingClient is true if one of the clients reconnected, and that's why it was resent match details.
+    def adviseMatchDetails(self, clientA, clientB, reconnectingClient = False):
         distance = self.getDistance(clientA, clientB)
-        self.mutualAdvise(clientA, clientB, lambda x,y: Client.adviseMatchDetails(x, y, distance))
+        self.mutualAdvise(clientA, clientB, lambda x,y: Client.adviseMatchDetails(x, y, distance, reconnectingClient))
         logger.debug("Shared profiles between client [%s] and [%s], distance between them [%.2fkm]" % (clientA, clientB, distance))
 
     def readviseNatPunchthrough(self, client):
@@ -299,7 +300,7 @@ class House:
 
                     if client.state == Client.State.ACCEPTING_MATCH:
                         logger.debug("(REUSE) Readvised match details between client [%s] and [%s]" % (client, clientMatch))
-                        self.adviseMatchDetails(client, clientMatch)
+                        self.adviseMatchDetails(client, clientMatch, reconnectingClient = True)
                     elif client.state == Client.State.MATCHED:
                         logger.debug("(REUSE) Readvised NAT punchthrough details between client [%s] and [%s]" % (client, clientMatch))
                         # NAT punchthrough won't be enabled on the new client and

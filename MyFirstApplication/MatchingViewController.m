@@ -60,12 +60,12 @@
     }
 }
 
-- (void)setName:(NSString *)name profilePicture:(UIImage *)profilePicture callingCardText:(NSString *)callingCardText age:(uint)age distance:(uint)distance karma:(uint)karma maxKarma:(uint)maxKarma {
+- (void)setName:(NSString *)name profilePicture:(UIImage *)profilePicture callingCardText:(NSString *)callingCardText age:(uint)age distance:(uint)distance karma:(uint)karma maxKarma:(uint)maxKarma isReconnectingClient:(bool)isReconnectingClient {
     dispatch_sync_main(^{
         float ratio = [ViewStringFormatting getKarmaRatioFromValue:karma maximum:maxKarma];
         [ViewStringFormatting updateKarmaUsingProgressView:_localKarmaProgressBar ratio:ratio];
 
-        [_callingCardViewController setName:name profilePicture:profilePicture callingCardText:callingCardText age:age distance:distance karma:karma maxKarma:maxKarma];
+        [_callingCardViewController setName:name profilePicture:profilePicture callingCardText:callingCardText age:age distance:distance karma:karma maxKarma:maxKarma isReconnectingClient:isReconnectingClient];
         [self reset];
     });
 }

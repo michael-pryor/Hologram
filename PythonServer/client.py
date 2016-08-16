@@ -279,7 +279,7 @@ class Client(object):
 
         self.tcp.sendByteBuffer(packet)
 
-    def adviseMatchDetails(self, sourceClient, distance):
+    def adviseMatchDetails(self, sourceClient, distance, reconnectingClient = False):
         packet = ByteBuffer()
         packet.addUnsignedInteger8(Client.TcpOperationCodes.OP_ADVISE_MATCH_INFORMATION)
         packet.addString(sourceClient.login_details.short_name)
@@ -292,6 +292,8 @@ class Client(object):
         packet.addString(sourceClient.login_details.card_text)
         packet.addByteBuffer(sourceClient.login_details.profile_picture)
         packet.addUnsignedInteger(sourceClient.login_details.profile_picture_orientation)
+        packet.addUnsignedInteger8(1 if reconnectingClient else 0)
+
         self.transitionState(Client.State.MATCHING, Client.State.ACCEPTING_MATCH)
 
 
