@@ -100,6 +100,7 @@
 		D5D6162932AFDDD7A6D1CE33 /* NameParsing.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D612C8DF947E69590A829C /* NameParsing.m */; };
 		D5D6165B63794F0F27DDF979 /* AudioPcmConversion.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61FC56AFD47784849F7C2 /* AudioPcmConversion.m */; };
 		D5D6165DA188B2DDC0E538C9 /* VideoLoopbackViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D611ECB75220DE7C79DF6B /* VideoLoopbackViewController.m */; };
+		D5D6165FE619E631E977A782 /* MemoryAwareObjectContainer.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D612A25F017863AB12C008 /* MemoryAwareObjectContainer.m */; };
 		D5D616A6CA79F7FD23FA22F6 /* ImageParsing.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61890FA8B1FC5EC686B91 /* ImageParsing.m */; };
 		D5D616C14885CA193D2FDA2E /* GenderParsing.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61D0AB4A7A9EA5C3AC7B8 /* GenderParsing.m */; };
 		D5D6172203880B4EF5E0208A /* TimedCounter.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61836CE9E34E7AFC359A6 /* TimedCounter.m */; };
@@ -282,6 +283,7 @@
 		D5D611FD6E543664C49DA575 /* UniqueId.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UniqueId.h; sourceTree = "<group>"; };
 		D5D61207BC64C4E6C3132C20 /* AudioGraph.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AudioGraph.m; sourceTree = "<group>"; };
 		D5D61251762F6DA462F666E0 /* ReadWriteLock.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ReadWriteLock.h; sourceTree = "<group>"; };
+		D5D612A25F017863AB12C008 /* MemoryAwareObjectContainer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MemoryAwareObjectContainer.m; sourceTree = "<group>"; };
 		D5D612C8DF947E69590A829C /* NameParsing.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NameParsing.m; sourceTree = "<group>"; };
 		D5D612C8E5F02C628B3B7961 /* VideoCompression.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VideoCompression.h; sourceTree = "<group>"; };
 		D5D612CDFF7D57CACE8B1BE6 /* AccessDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AccessDialog.h; sourceTree = "<group>"; };
@@ -357,6 +359,7 @@
 		D5D61DCE61D1A8B9C8957FE1 /* Threading.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Threading.h; sourceTree = "<group>"; };
 		D5D61DD0755973A44A51380F /* MatchingViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MatchingViewController.m; sourceTree = "<group>"; };
 		D5D61E1702DA62D0167A5510 /* ViewInteractions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ViewInteractions.m; sourceTree = "<group>"; };
+		D5D61E435BCC84703EE2F887 /* MemoryAwareObjectContainer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MemoryAwareObjectContainer.h; sourceTree = "<group>"; };
 		D5D61E4B1884B7D3391A9057 /* ImageParsing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ImageParsing.h; sourceTree = "<group>"; };
 		D5D61EB414FA2D1CC6954BEC /* DobParsing.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DobParsing.m; sourceTree = "<group>"; };
 		D5D61EE419CC5906D3D54D80 /* UniqueId.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UniqueId.m; sourceTree = "<group>"; };
@@ -789,6 +792,8 @@
 				D5D61F936E4BD471748152DB /* Random.m */,
 				D5D616646ABDADCE4F01A9DA /* Random.h */,
 				D5D61CD071C278D698D4A9DD /* Keychain */,
+				D5D612A25F017863AB12C008 /* MemoryAwareObjectContainer.m */,
+				D5D61E435BCC84703EE2F887 /* MemoryAwareObjectContainer.h */,
 			);
 			name = Util;
 			sourceTree = "<group>";
@@ -1146,6 +1151,7 @@
 				D5D6145032161E67DC8B0CB0 /* ViewStringFormatting.m in Sources */,
 				D5D6165DA188B2DDC0E538C9 /* VideoLoopbackViewController.m in Sources */,
 				D5D61F832CD2B33F843D6A03 /* Notifications.m in Sources */,
+				D5D6165FE619E631E977A782 /* MemoryAwareObjectContainer.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

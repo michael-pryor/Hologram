@@ -11,9 +11,10 @@
 #import "ByteBuffer.h"
 
 @class VideoCompression;
+@class MemoryAwareObjectContainer;
 
 @interface VideoEncoding : NSObject
-- (id)initWithVideoCompression:(VideoCompression*)videoCompression;
+- (id)initWithVideoCompression:(MemoryAwareObjectContainer *)videoCompression;
 
 - (AVCaptureSession *)setupCaptureSessionWithDelegate:(id <AVCaptureVideoDataOutputSampleBufferDelegate>)delegate;
 

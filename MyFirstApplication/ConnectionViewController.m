@@ -130,8 +130,8 @@
 
 
     // Hack for arden crescent, should be nil.
-    //_cachedResolvedDns = @"192.168.1.92";
-    _cachedResolvedDns = nil;
+    _cachedResolvedDns = @"192.168.1.92";
+    //_cachedResolvedDns = nil;
 
     _payments = [[Payments alloc] initWithDelegate:self];
 
@@ -174,6 +174,7 @@
 
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(appWillResignActive:) name:UIApplicationWillResignActiveNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(appWillRetakeActive:) name:UIApplicationDidBecomeActiveNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didReceiveMemoryWarning:) name:UIApplicationDidReceiveMemoryWarningNotification object:nil];
 
     _isInBackground = false;
     _isScreenInUse = false;
@@ -189,7 +190,14 @@
     _karmaRegenerationReceipt = nil;
 
     _conversationDuration = [[Timer alloc] init];
+
+   /* [NSTimer scheduledTimerWithTimeInterval:10.0f
+                                     target:self selector:@selector(simulateMemoryWarning:) userInfo:nil repeats:YES];*/
 }
+/*
+- (void) simulateMemoryWarning:(NSTimer*)timer {
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"UIApplicationDidReceiveMemoryWarningNotification" object:nil];
+}*/
 
 // Permanently close our session on the server, disconnect and stop media input/output.
 // In order to resume, we need to reconnect to commander and get a brand new session.
@@ -222,6 +230,19 @@
     [self stop];
 }
 
+- (void)didReceiveMemoryWarning:(NSNotification *)note {
+    if (!_isScreenInUse) {
+        NSLog(@"****Memory warning received, taking action****");
+        [self reduceMemoryUsage];
+    } else {
+        NSLog(@"****Memory warning received, ignoring****");
+    }
+}
+
+- (void)reduceMemoryUsage {
+    [_mediaController reduceMemoryUsage];
+}
+
 // Doesn't terminate the session, remains connected but pauses media input/output
 // Once reconnecting, this resumes and hopefully we're still connected (if not we recover
 // down the usual disconnection logic).
@@ -245,6 +266,7 @@
             [_resumeAfterBecomeActive signalAll];
 
             [self stop];
+            [self reduceMemoryUsage];
 
             NSLog(@"Returned");
         }

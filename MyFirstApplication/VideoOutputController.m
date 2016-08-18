@@ -15,6 +15,7 @@
 #import "DecodingPipe.h"
 #import "TimedCounterLogging.h"
 #import "Threading.h"
+#import "MemoryAwareObjectContainer.h"
 
 
 #define ENCODING_FRAME_RATE 15
@@ -79,7 +80,7 @@
     id <NewImageDelegate> _localImageDelegate;         // Display user's own camera to user (so that can see what other people see of them.
 
     // Does all the image compression/decompression and applying of filters.
-    VideoCompression *_videoCompression;
+    MemoryAwareObjectContainer *_videoCompression;
 
     Signal *_isRunning;
 
@@ -98,7 +99,10 @@
             udpNetworkOutputSession = nil;
         }
 
-        _videoCompression = [[VideoCompression alloc] init];
+        _videoCompression = [[MemoryAwareObjectContainer alloc] initWithConstructorBlock:^{
+            return [[VideoCompression alloc] init];
+        }];
+
         _videoEncoder = [[VideoEncoding alloc] initWithVideoCompression:_videoCompression];
 
         _packetToImageProcessor = [[PacketToImageProcessor alloc] initWithImageDelegate:newImageDelegate encoder:_videoEncoder];
@@ -240,7 +244,7 @@
 // Called when changing person we're talking to.
 - (void)resetInbound {
     [_batcherInput reset];
-    [_videoCompression resetFilters];
+    [[_videoCompression get] resetFilters];
     [_syncWithAudio reset];
 }
 
@@ -297,4 +301,7 @@
     [_batcherInput terminate];
 }
 
+- (void)reduceMemoryUsage {
+    [_videoCompression reduceMemoryUsage];
+}
 @end

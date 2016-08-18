@@ -10,19 +10,20 @@
 #import "VideoCompression.h"
 #import "Orientation.h"
 #import "VideoShared.h"
+#import "MemoryAwareObjectContainer.h"
 
 @implementation VideoEncoding {
     NSString *_sessionPreset;
     dispatch_queue_t _videoOutputQueue;
 
-    VideoCompression *_compression;
+    MemoryAwareObjectContainer *_compression;
     AVCaptureConnection *_connection;
     
     AVCaptureDevice *_device;
 
     int _currentFps;
 }
-- (id)initWithVideoCompression:(VideoCompression *)videoCompression {
+- (id)initWithVideoCompression:(MemoryAwareObjectContainer *)videoCompression {
     self = [super init];
     if (self) {
         _sessionPreset = AVCaptureSessionPreset640x480;
@@ -154,18 +155,18 @@
 }
 
 - (bool)addImage:(CMSampleBufferRef)image toByteBuffer:(ByteBuffer *)buffer {
-    return [_compression encodeSampleBuffer:(CMSampleBufferRef) image toByteBuffer:buffer];
+    return [[_compression get] encodeSampleBuffer:(CMSampleBufferRef) image toByteBuffer:buffer];
 }
 
 
 - (UIImage *)getImageFromByteBuffer:(ByteBuffer *)byteBuffer {
-    return [_compression decodeByteBuffer:byteBuffer];
+    return [[_compression get] decodeByteBuffer:byteBuffer];
 }
 
 - (UIImage *)convertSampleBufferToUiImage:(CMSampleBufferRef)sampleBuffer {
     // No actual compression/decompression here, but reusing some of the same logic.
     // Exception to this rule is if loopback is enabled.
-    return [_compression convertSampleBufferToUiImage:sampleBuffer];
+    return [[_compression get] convertSampleBufferToUiImage:sampleBuffer];
 }
 
 - (void)dealloc {

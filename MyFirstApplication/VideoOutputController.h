@@ -42,5 +42,5 @@
 
 - (void)setVideoDelayMs:(uint)videoDelay;
 
-- (void)terminate;
+- (void)reduceMemoryUsage;
 @end

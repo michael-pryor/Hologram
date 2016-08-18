@@ -44,4 +44,6 @@
 - (void)clearLocalImageDelegate;
 
 - (bool)isAudioPacket:(ByteBuffer*)buffer;
+
+- (void)reduceMemoryUsage;
 @end

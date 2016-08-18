@@ -147,4 +147,7 @@
 }
 
 
+- (void)reduceMemoryUsage {
+    [_videoOutputController reduceMemoryUsage];
+}
 @end
