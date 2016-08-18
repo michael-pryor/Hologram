@@ -29,6 +29,7 @@ static Notifications *notificationsInstance = nil;
 
     [[UIApplication sharedApplication] registerUserNotificationSettings:mySettings];
     [[NSUserDefaults standardUserDefaults] setBool:YES forKey:kPushNotificationRequestAlreadySeen];
+    _notificationsEnabled = true;
 }
 
 - (UILocalNotification *)getLocalNotificationWithId:(NSString*)idString {
