@@ -462,10 +462,6 @@
         [self fadeInView:_alertShortTextHigher duration:duration alpha:1.0];
     }
 
-    if ([self doesViewRequireSkipButton:view]) {
-        [_forwardButton setHidden:false];
-    }
-
     if ([self doesViewUseButtons:view]) {
         [self fadeInView:_forwardButton duration:duration alpha:ALPHA_BUTTON_IMAGE_READY];
         [self fadeInView:_backButton duration:duration alpha:ALPHA_BUTTON_IMAGE_READY];
@@ -511,7 +507,7 @@
 }
 
 - (void)onFinishedFadingIn:(UIView *)view duration:(float)duration meta:(id)meta {
-    [_forwardButton setHidden:!_isSkipButtonRequired];
+    [_forwardButton setHidden:!_isSkipButtonRequired && ![self doesViewRequireSkipButton:view]];
 }
 
 
