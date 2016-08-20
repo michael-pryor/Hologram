@@ -523,25 +523,29 @@ class Client(object):
         elif opCode == Client.TcpOperationCodes.OP_SKIP_PERSON:
             self.doSkip()
         elif opCode == Client.TcpOperationCodes.OP_RATING:
-            # When in accepting match mode, we may want to report/block a client, this block below facilitates this,
-            # by finding our match. We check (within the house lock) that we are in 'accepting match' mode still, to
-            # avoid race conditions.
-            forceSkip = False
-            if self.client_from_previous_conversation is None:
-                self.client_from_previous_conversation = self.house.getCurrentMatchOfClient(self, requiredState=Client.State.ACCEPTING_MATCH)
-                if self.client_from_previous_conversation is not None:
-                    self.client_from_previous_conversation.client_from_previous_conversation = self
-                    forceSkip = True
-                    logger.debug("Retrieved match during ACCEPTING_MATCH stage, [%s] has blocked [%s]" % (self, self.client_from_previous_conversation))
-                else:
-                    logger.debug("Failed to retrieve match during ACCEPTING_MATCH stage, client block request failed [%s]" % self)
+            self.house.house_lock.acquire()
+            try:
+                # When in accepting match mode, we may want to report/block a client, this block below facilitates this,
+                # by finding our match. We check (within the house lock) that we are in 'accepting match' mode still, to
+                # avoid race conditions.
+                forceSkip = False
+                if self.client_from_previous_conversation is None:
+                    self.client_from_previous_conversation = self.house.getCurrentMatchOfClient(self, requiredState=Client.State.ACCEPTING_MATCH)
+                    if self.client_from_previous_conversation is not None:
+                        self.client_from_previous_conversation.client_from_previous_conversation = self
+                        forceSkip = True
+                        logger.debug("Retrieved match during ACCEPTING_MATCH stage, [%s] has blocked [%s]" % (self, self.client_from_previous_conversation))
+                    else:
+                        logger.debug("Failed to retrieve match during ACCEPTING_MATCH stage, client block request failed [%s]" % self)
 
-            if self.client_from_previous_conversation is None:
-                logger.debug("No previous conversation to rate")
-                return
+                if self.client_from_previous_conversation is None:
+                    logger.debug("No previous conversation to rate")
+                    return
 
-            rating = packet.getUnsignedInteger8()
-            self.setRatingOfOtherClient(rating)
+                rating = packet.getUnsignedInteger8()
+                self.setRatingOfOtherClient(rating)
+            finally:
+                self.house.house_lock.release()
 
             if forceSkip:
                 self.doSkip()
@@ -560,24 +564,28 @@ class Client(object):
             self.closeConnection()
 
     def setRatingOfOtherClient(self, rating):
+        self.house.house_lock.acquire()
         try:
-            if self.waiting_for_rating_task is not None:
-                self.waiting_for_rating_task.cancel()
-        except (AlreadyCalled, AlreadyCancelled):
-            pass
-        else:
-            self.client_from_previous_conversation.handleRating(rating)
-            if self.client_from_previous_conversation.waiting_for_rating_task is None:
-                logger.debug("Both clients have received ratings, putting them back into house [%s, %s]" % (self, self.client_from_previous_conversation))
+            try:
+                if self.waiting_for_rating_task is not None:
+                    self.waiting_for_rating_task.cancel()
+            except (AlreadyCalled, AlreadyCancelled):
+                pass
+            else:
+                self.client_from_previous_conversation.handleRating(rating)
+                if self.client_from_previous_conversation.waiting_for_rating_task is None:
+                    logger.debug("Both clients have received ratings, putting them back into house [%s, %s]" % (self, self.client_from_previous_conversation))
 
-                # At this point, both sides will have set their rating so let's put them back in the queue.
-                # Important to do both at the same time so that karma is updated prior to next conversation.
-                self.transitionState(Client.State.RATING_MATCH, Client.State.MATCHING)
-                self.client_from_previous_conversation.transitionState(Client.State.RATING_MATCH, Client.State.MATCHING)
+                    # At this point, both sides will have set their rating so let's put them back in the queue.
+                    # Important to do both at the same time so that karma is updated prior to next conversation.
+                    self.transitionState(Client.State.RATING_MATCH, Client.State.MATCHING)
+                    self.client_from_previous_conversation.transitionState(Client.State.RATING_MATCH, Client.State.MATCHING)
 
-            self.client_from_previous_conversation = None
+                self.client_from_previous_conversation = None
 
-        self.waiting_for_rating_task = None
+            self.waiting_for_rating_task = None
+        finally:
+            self.house.house_lock.release()
 
     def sendBanMessage(self, magnitude, expiryTime):
         packet = self.buildRejectPacket(*self.getRejectBannedArguments(magnitude, expiryTime))
@@ -643,25 +651,30 @@ class Client(object):
 
     # We need to wait for the client to send a rating, indicating how they felt about their previous conversation.
     def setToWaitForRatingOfPreviousConversation(self, clientFromPreviousConversation):
-        if self.client_from_previous_conversation is not None:
-            return
-
         self.house.house_lock.acquire()
         try:
-            if self.approved_match:
-                self.transitionState(Client.State.ACCEPTING_MATCH, Client.State.MATCHING)
-
-            if not self.transitionState(Client.State.MATCHED, Client.State.RATING_MATCH):
+            if self.client_from_previous_conversation is not None:
                 return
+
+            self.house.house_lock.acquire()
+            try:
+                if self.approved_match:
+                    self.transitionState(Client.State.ACCEPTING_MATCH, Client.State.MATCHING)
+
+                if not self.transitionState(Client.State.MATCHED, Client.State.RATING_MATCH):
+                    return
+            finally:
+                self.house.house_lock.release()
+
+            self.client_from_previous_conversation = clientFromPreviousConversation
+            self.waiting_for_rating_task = self.reactor.callLater(Client.WAITING_FOR_RATING_ABSOLUTE_TIMEOUT, self._onWaitingForRatingTimeout)
+            logger.debug("Client [%s] is waiting for rating from previous conversation with client [%s]" % (self, clientFromPreviousConversation))
         finally:
             self.house.house_lock.release()
 
-        self.client_from_previous_conversation = clientFromPreviousConversation
-        self.waiting_for_rating_task = self.reactor.callLater(Client.WAITING_FOR_RATING_ABSOLUTE_TIMEOUT, self._onWaitingForRatingTimeout)
-        logger.debug("Client [%s] is waiting for rating from previous conversation with client [%s]" % (self, clientFromPreviousConversation))
-
-    def _onWaitingForRatingTimeout(self):
-        self.waiting_for_rating_task = None
+    def _onWaitingForRatingTimeout(self, forced = False):
+        if not forced:
+            self.waiting_for_rating_task = None
         logger.debug("Client [%s] timed out waiting for rating from previous client [%s], defaulting value" % (self, self.client_from_previous_conversation))
         self.setRatingOfOtherClient(Client.ConversationRating.GOOD)
 
@@ -711,22 +724,37 @@ class Client(object):
         self.skipped_timed_out = client.skipped_timed_out
         self.approved_match = client.approved_match
 
-        # This isn't setup to work properly on the client side, after they reconnect
-        # they won't have the ability to give a rating. So let's make sure server
-        # side state reflects this.
-        #
-        # Mostly this will just transition our state from RATING to MATCHING.
-        if client.client_from_previous_conversation is not None:
-            self.client_from_previous_conversation = client.client_from_previous_conversation
-            self._onWaitingForRatingTimeout()
+
+        self.house.house_lock.acquire()
+        try:
+            # This isn't setup to work properly on the client side, after they reconnect
+            # they won't have the ability to give a rating. So let's make sure server
+            # side state reflects this.
+            #
+            # Mostly this will just transition our state from RATING to MATCHING.
+            if client.client_from_previous_conversation is not None:
+                self.client_from_previous_conversation = client.client_from_previous_conversation
+                self.waiting_for_rating_task = client.waiting_for_rating_task
+                self._onWaitingForRatingTimeout(forced=True)
+
+                # Point our match to the new client object.
+                if self.client_from_previous_conversation is not None and self.client_from_previous_conversation.client_from_previous_conversation is not None:
+                    self.client_from_previous_conversation.client_from_previous_conversation = self
+        finally:
+            self.house.house_lock.release()
 
     # Must be protected by house lock.
     def onSuccessfulMatch(self):
-        self.has_shared_social_information = False
-        self.social_share_information_packet = None
-        self.client_from_previous_conversation = None
-        self.approved_match = False
-        self.transitionState(Client.State.MATCHING, Client.State.ACCEPTING_MATCH)
+        self.house.house_lock.acquire()
+        try:
+            self.has_shared_social_information = False
+            self.social_share_information_packet = None
+            self.client_from_previous_conversation = None
+
+            self.approved_match = False
+            self.transitionState(Client.State.MATCHING, Client.State.ACCEPTING_MATCH)
+        finally:
+            self.house.house_lock.release()
 
     def clearKarma(self):
         self.karma_database.clearKarma(self)
