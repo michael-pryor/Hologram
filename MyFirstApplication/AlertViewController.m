@@ -511,7 +511,7 @@
 }
 
 - (void)onFinishedFadingIn:(UIView *)view duration:(float)duration meta:(id)meta {
-
+    [_forwardButton setHidden:!_isSkipButtonRequired];
 }
 
 

@@ -51,8 +51,35 @@
     [_newImageDelegate onNewImage:image];
 }
 
-- (void)setNewImageDelegate:(id <NewImageDelegate>)newImageDelegate {
-    _newImageDelegate = newImageDelegate;
+- (void)dealloc {
+    NSLog(@"PacketToImageProcessor dealloc");
+}
+@end
+
+@implementation SyntheticImageProcessor {
+    __weak id <NewImageDelegate> _newImageDelegate;
+    VideoEncoding *_videoEncoder;
+}
+
+- (id)initWithImageDelegate:(id <NewImageDelegate>)newImageDelegate {
+    self = [super init];
+    if (self) {
+        _newImageDelegate = newImageDelegate;
+    }
+    return self;
+}
+
+- (void)onNewPacket:(ByteBuffer *)packet fromProtocol:(ProtocolType)protocol {
+    if (_newImageDelegate == nil) {
+        return;
+    }
+
+    UIImage * image = [UIImage imageNamed:@"stock_photo"];
+    if (image == nil) {
+        return;
+    }
+
+    [_newImageDelegate onNewImage:image];
 }
 
 - (void)dealloc {
@@ -66,7 +93,7 @@
     BatcherOutput *_batcherOutput;                     // Split up image into multiple packets for network.
     VideoEncoding *_videoEncoder;                      // Convert between network and image formats.
     EncodingPipe *_encodingPipeVideo;                  // Add appropriate prefix for transport over network.
-    PacketToImageProcessor *_packetToImageProcessor;   // Convert compressed network packets into UIImage objects.
+    id<NewPacketDelegate> _packetToImageProcessor;   // Convert compressed network packets into UIImage objects.
 
     BatcherInput *_batcherInput;                       // Join up networked packets into one image.
 
@@ -105,7 +132,13 @@
 
         _videoEncoder = [[VideoEncoding alloc] initWithVideoCompression:_videoCompression];
 
-        _packetToImageProcessor = [[PacketToImageProcessor alloc] initWithImageDelegate:newImageDelegate encoder:_videoEncoder];
+        const bool syntheticEnabled = false;
+        if (!syntheticEnabled) {
+            _packetToImageProcessor = [[PacketToImageProcessor alloc] initWithImageDelegate:newImageDelegate encoder:_videoEncoder];
+        } else {
+            // We use this to get our photos for the app store.
+            _packetToImageProcessor = [[SyntheticImageProcessor alloc] initWithImageDelegate:newImageDelegate];
+        }
 
         _syncWithAudio = [[DelayedPipe alloc] initWithMinimumDelay:0.1 outputSession:_packetToImageProcessor];
 

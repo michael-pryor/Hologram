@@ -24,6 +24,9 @@
 @interface PacketToImageProcessor : NSObject <NewPacketDelegate>
 @end
 
+@interface SyntheticImageProcessor : NSObject <NewPacketDelegate>
+@end
+
 
 @interface VideoOutputController : NSObject <AVCaptureVideoDataOutputSampleBufferDelegate, NewPacketDelegate, SequenceGapNotification>
 - (id)initWithUdpNetworkOutputSession:(id <NewPacketDelegate>)udpNetworkOutputSession imageDelegate:(id <NewImageDelegate>)newImageDelegate mediaDataLossNotifier:(id <MediaDataLossNotifier>)mediaDataLossNotifier leftPadding:(uint)leftPadding loopbackEnabled:(bool)loopbackEnabled;
