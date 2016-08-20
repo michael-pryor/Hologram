@@ -216,7 +216,7 @@
 - (void)attemptStart {
     @synchronized (self) {
         __weak VideoOutputController *weakSelf = self;
-        if (_captureSession == nil) {
+        if (_captureSession != nil) {
             dispatch_async_main(^{
                 [weakSelf startCapturing];
             }, 1000);
