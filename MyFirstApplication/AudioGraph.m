@@ -159,10 +159,10 @@ static OSStatus audioOutputPullCallback(
         _syncInProgress = [[Signal alloc] initWithFlag:false];
 
         // Average over last 5 seconds, assumes we receive updated every half second.
-        // Perform sync max every 10 seconds, with 4 seconds jitter (so between 10 and 14 seconds).
+        // Perform sync max every 5 seconds, with 4 seconds jitter (so between 5 and 9 seconds).
         // If no latency received for a while, then do not sync immediately on the first item, reset timers.
         _syncLastUpdateTimer = [[Timer alloc] init];
-        _syncMaxFrequency = [[Timer alloc] initWithFrequencySeconds:10 firingInitially:true jitterSeconds:4.0];
+        _syncMaxFrequency = [[Timer alloc] initWithFrequencySeconds:5 firingInitially:true jitterSeconds:4.0];
         _syncLatencyAverageTracker = [[AverageTrackerLimitedSize alloc] initWithMaxSize:10];
 
         [self buildAudioUnit];
@@ -641,7 +641,7 @@ static OSStatus audioOutputPullCallback(
         uint adjustedTimeMs = ((uint)timeInQueueAverageMs) - timeLagMs;
 
         // Phone may just be too slow, this kind of time gap is not about syncing.
-        if (adjustedTimeMs > 2000) {
+        if (adjustedTimeMs > 4000) {
             return;
         }
 
