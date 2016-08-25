@@ -31,8 +31,8 @@
 
 - (IBAction)_onCompressionSwitchChange:(id)sender {
     if (![_compressionSwitch isOn]) {
-        [_controller setLocalImageDelegate:self];
         [_controller resetInbound];
+        [_controller setLocalImageDelegate:self];
     } else {
         [_controller resetInbound];
         [_controller clearLocalImageDelegate];

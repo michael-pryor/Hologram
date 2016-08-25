@@ -12,8 +12,6 @@
 #import "VideoOutputController.h"
 #import "Orientation.h"
 #import "VideoShared.h"
-#import "Timer.h"
-#import <CoreImage/CoreImage.h>
 
 // Handle endianness
 #define clamp(a) (a>255?255:(a<0?0:a))
@@ -44,39 +42,35 @@
 @implementation VideoCompression {
     AVCodec *_codecEncoder;
     struct AVCodecContext *codecEncoderContext;
+    NSObject *_codecEncoderLock;
 
     AVCodec *_codecDecoder;
     struct AVCodecContext *codecDecoderContext;
+    NSObject *_codecDecoderLock;
 
     CVPixelBufferPoolRef _pixelBufferPool;
     UIImageOrientation _imageOrientation;
 
     CIContext *_context;
-
-    float _filterIntensity;
-    Timer* _filterIntensityDecreaseTimer;
-    float _filterIntensityDecreaseValue;
 }
 
 - (void)dealloc {
     // Note: these use alot of memory, we can free these if under memory pressure and not using video compression.
+    // Note: If object is in use, we won't dealloc, so no need to synchronize here.
     avcodec_free_context(&codecEncoderContext);
     avcodec_free_context(&codecDecoderContext);
-    
+
     CVPixelBufferPoolRelease(_pixelBufferPool);
-    
     NSLog(@"Deallocated VideoCompression");
 }
 
 - (id)init {
     self = [super init];
     if (self) {
+        _codecEncoderLock = [[NSObject alloc] init];
+        _codecDecoderLock = [[NSObject alloc] init];
+
         int result;
-
-        _filterIntensity = 1.0f;
-        _filterIntensityDecreaseTimer = [[Timer alloc] initWithFrequencySeconds:1.0f firingInitially:false];
-        _filterIntensityDecreaseValue = 0.01;
-
         {
             // Note: this call leaks memory, so its important to only call it once per lifetime of app.
             _context = [CIContext contextWithOptions:nil];
@@ -138,7 +132,7 @@
             if (result != 0) {
                 NSLog(@"Failed to open av codec: %d", result);
             }
-            
+
             av_dict_free(&codecOptions);
         }
 
@@ -184,7 +178,7 @@
             if (result != 0) {
                 NSLog(@"Failed to open av codec: %d", result);
             }
-            
+
             av_dict_free(&codecOptions);
         }
 
@@ -212,28 +206,6 @@
             _imageOrientation = UIImageOrientationLeft;
             break;
     }
-}
-
-- (CIImage*)applyFilter:(CIImage *)coreImage {
-    if ([_filterIntensityDecreaseTimer getState]) {
-        if (_filterIntensity > 0) {
-            _filterIntensity -= _filterIntensityDecreaseValue;
-        }
-    }
-
-    if (_filterIntensity <= 0) {
-        return coreImage;
-    }
-
-    CIFilter * filter = [CIFilter filterWithName:@"CISepiaTone"];
-    [filter setValue:coreImage forKey:kCIInputImageKey];
-    [filter setValue:@(_filterIntensity) forKey:kCIInputIntensityKey];
-    return [filter valueForKey:kCIOutputImageKey];
-}
-
-- (void)resetFilters {
-    [_filterIntensityDecreaseTimer reset];
-    _filterIntensity = 1.0f;
 }
 
 // Sadly we can't make this loop faster because iOS doesn't support tri planar i.e. 3 seperate
@@ -348,17 +320,18 @@
 
     // Allocates memory to 'picture', memory is owned by codec so we simply unref it to say that
     // we are done with it. Do not free the actual allocated memory.
-    int result = avcodec_decode_video2(codecDecoderContext, picture, &gotOutput, &packet);
-    if (result <= 0) {
-        NSLog(@"Failed avcodec_decode_video2: %d", result);
-        av_packet_unref(&packet);
-        av_frame_free(&picture);
-        return nil;
+    @synchronized (_codecDecoderLock) {
+        int result = avcodec_decode_video2(codecDecoderContext, picture, &gotOutput, &packet);
+        if (result <= 0) {
+            NSLog(@"Failed avcodec_decode_video2: %d", result);
+            av_packet_unref(&packet);
+            av_frame_free(&picture);
+            return nil;
+        }
     }
 
     if (gotOutput) {
         //NSLog(@"Retrieved YUV image of size: %d, bytes written: %d", resultImageSizeBytes, result);
-
         av_packet_unref(&packet);
         return picture;
     } else {
@@ -475,7 +448,9 @@
 
     // Do the encoding.
     int gotOutput;
-    result = avcodec_encode_video2(codecEncoderContext, &packet, picture, &gotOutput);
+    @synchronized (_codecEncoderLock) {
+        result = avcodec_encode_video2(codecEncoderContext, &packet, picture, &gotOutput);
+    }
 
     [self freeYuvFrame:picture];
 
@@ -523,6 +498,17 @@
     UIImage *image = [self convertYuvFrameToImage:frame];
     [self freeYuvFrame:frame];
     return image;
+}
+
+- (void)reset {
+    @synchronized (_codecEncoderLock) {
+        avcodec_flush_buffers(codecEncoderContext);
+    }
+
+    @synchronized (_codecDecoderLock) {
+        avcodec_flush_buffers(codecDecoderContext);
+    }
+
 }
 
 

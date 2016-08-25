@@ -276,8 +276,8 @@
 
 // Called when changing person we're talking to.
 - (void)resetInbound {
+    [[_videoCompression get] reset];
     [_batcherInput reset];
-    [[_videoCompression get] resetFilters];
     [_syncWithAudio reset];
 }
 

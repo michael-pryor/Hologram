@@ -21,5 +21,5 @@
 
 - (UIImage *)convertSampleBufferToUiImage:(CMSampleBufferRef)sampleBuffer;
 
-- (void)resetFilters;
+- (void)reset;
 @end
