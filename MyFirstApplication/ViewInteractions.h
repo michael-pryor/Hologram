@@ -25,7 +25,11 @@
 
 + (void)fadeOut:(UIView*)viewA thenIn:(UIView*)viewB duration:(float)duration;
 
++ (void)fadeOut:(UIView *)label completion:(void (^)(BOOL))block duration:(float)duration toAlpha:(float)alpha options:(UIViewAnimationOptions)options;
+
 + (void)fadeOut:(UIView *)label completion:(void (^)(BOOL))block duration:(float)duration toAlpha:(float)alpha;
+
++ (void)fadeIn:(UIView *)label completion:(void (^)(BOOL))block duration:(float)duration toAlpha:(float)alpha options:(UIViewAnimationOptions)options;
 
 + (void)fadeIn:(UIView *)label completion:(void (^)(BOOL))block duration:(float)duration toAlpha:(float)alpha;
 @end

@@ -35,12 +35,17 @@
     [self fadeIn:label completion:block duration:duration toAlpha:1.0f];
 }
 
-+ (void)fadeIn:(UIView *)label completion:(void (^)(BOOL))block duration:(float)duration toAlpha:(float)alpha {
+
++ (void)fadeIn:(UIView *)label completion:(void (^)(BOOL))block duration:(float)duration toAlpha:(float)alpha options:(UIViewAnimationOptions)options {
     dispatch_sync_main(^{
-        [UIView animateWithDuration:duration animations:^{
+        [UIView animateWithDuration:duration delay:0 options:options animations:^{
             [label setAlpha:alpha];
         }                completion:block];
     });
+}
+
++ (void)fadeIn:(UIView *)label completion:(void (^)(BOOL))block duration:(float)duration toAlpha:(float)alpha {
+    [self fadeIn:label completion:block duration:duration toAlpha:alpha options:UIViewAnimationOptionCurveEaseInOut | UIViewAnimationOptionTransitionNone];
 }
 
 + (void)fadeOut:(UIView *)label completion:(void (^)(BOOL))block duration:(float)duration {
@@ -48,14 +53,18 @@
 }
 
 + (void)fadeOut:(UIView *)label completion:(void (^)(BOOL))block duration:(float)duration toAlpha:(float)alpha {
+    [self fadeOut:label completion:block duration:duration toAlpha:alpha options:UIViewAnimationOptionCurveEaseInOut | UIViewAnimationOptionTransitionNone];
+}
+
++ (void)fadeOut:(UIView *)label completion:(void (^)(BOOL))block duration:(float)duration toAlpha:(float)alpha options:(UIViewAnimationOptions)options {
     dispatch_sync_main(^{
-        [UIView animateWithDuration:duration animations:^{
+        [UIView animateWithDuration:duration delay:0 options:options animations:^{
             [label setAlpha:alpha];
         }                completion:block];
     });
 }
 
-+ (void)fadeOut:(UIView*)viewA thenIn:(UIView*)viewB duration:(float)duration {
++ (void)fadeOut:(UIView *)viewA thenIn:(UIView *)viewB duration:(float)duration {
     [ViewInteractions fadeOut:viewA completion:^(BOOL finished) {
         if (!finished) {
             [viewA setAlpha:0];
@@ -65,7 +74,7 @@
             if (!completed) {
                 [viewB setAlpha:1];
             }
-        } duration:duration];
-    } duration:duration];
+        }               duration:duration];
+    }                duration:duration];
 }
 @end

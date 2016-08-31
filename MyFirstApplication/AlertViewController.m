@@ -482,7 +482,7 @@
             // Do nothing, do not complete the animation, it's probably
             // been overriden by another opposite animation.
         }
-    }               duration:duration toAlpha:alpha];
+    }               duration:duration toAlpha:alpha options:UIViewAnimationOptionCurveEaseInOut | UIViewAnimationOptionTransitionNone | UIViewAnimationOptionAllowUserInteraction];
 }
 
 - (void)fadeOutView:(UIView *)view duration:(float)duration alpha:(float)alpha{
@@ -491,7 +491,7 @@
             // Do nothing, do not complete the animation, it's probably
             // been overriden by another opposite animation.
         }
-    }                duration:duration toAlpha:alpha];
+    }                duration:duration toAlpha:alpha options:UIViewAnimationOptionCurveEaseInOut | UIViewAnimationOptionTransitionNone | UIViewAnimationOptionAllowUserInteraction];
 }
 
 - (bool)isAssociatedWithAlertShortTextHigher:(UIView *)view {
