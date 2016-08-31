@@ -30,6 +30,8 @@ NSString *hasAcceptedEulaKey = @"hasAcceptedEula";
 NSString *selectedHotNotificationDaysKey = @"selectedHotNotificationDays";
 NSString *isHotNotificationEnabledKey = @"isHotNotificationEnabled";
 
+NSString *isLoadingFacebookDataKey = @"isLoadingFacebookData";
+
 static SocialState *instance = nil;
 
 typedef void (^Block)(id);
@@ -128,7 +130,7 @@ typedef void (^Block)(id);
             NSLog(@"Loaded hot notification enabled boolean from storage: %d", isHotEnabled);
             [self persistIsHotNotificationEnabled:isHotEnabled saving:false];
         } else {
-            NSLog(@"No previous owner gender selection found in storage");
+            NSLog(@"No previous hot notification enabled found in storage");
         }
 
         if ([[NSUserDefaults standardUserDefaults] objectForKey:selectedHotNotificationDaysKey] != nil) {
@@ -138,8 +140,29 @@ typedef void (^Block)(id);
         } else {
             NSLog(@"No date of birth found in storage");
         }
+
+        if ([[NSUserDefaults standardUserDefaults] objectForKey:isLoadingFacebookDataKey] != nil) {
+            const bool isLoadingFacebookData = [[NSUserDefaults standardUserDefaults] boolForKey:isLoadingFacebookDataKey];
+            NSLog(@"Loaded is loading facebook data boolean from storage: %d", isLoadingFacebookData);
+            [self persistIsLoadingFacebookData:isLoadingFacebookData saving:false];
+        } else {
+            NSLog(@"No previous is loading facebook data boolean found in storage");
+        }
     }
     return self;
+}
+
+- (void)persistIsLoadingFacebookData:(bool)isLoadingFacebookData saving:(bool)doSave {
+    _isLoadingFacebookData = isLoadingFacebookData;
+
+    if (doSave) {
+        NSLog(@"Persisting is loading facebook data boolean: %d", _isLoadingFacebookData);
+        [[NSUserDefaults standardUserDefaults] setBool:_isLoadingFacebookData forKey:isLoadingFacebookDataKey];
+    }
+}
+
+- (void)persistIsLoadingFacebookData:(bool)isLoadingFacebookData {
+    [self persistIsLoadingFacebookData:isLoadingFacebookData saving:true];
 }
 
 - (void)persistHotNotificationDays:(NSArray*)hotNotificationDays saving:(bool)doSave {
@@ -379,6 +402,14 @@ typedef void (^Block)(id);
                 });
                 return;
             }
+
+            // We may get updates, even if user hasn't recently logged in, i.e. we can get multiple (some may be hours or days later).
+            if (![self isLoadingFacebookData]) {
+                NSLog(@"Facebook profile graph update received, IGNORING!!");
+            }
+
+            // Prevent further updates. User has to logout and in again first.
+            [self persistIsLoadingFacebookData:false];
 
             NSString *dob = [result objectForKey:@"birthday"];
             if (dob == nil) {

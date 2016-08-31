@@ -44,6 +44,8 @@
 @property(readonly) bool isHotNotificationEnabled;
 @property(readonly) NSArray * hotNotificationDays;
 
+@property(readonly) bool isLoadingFacebookData;
+
 - (bool)updateFromFacebookCore;
 
 - (bool)updateFromFacebookGraph;
@@ -73,5 +75,7 @@
 - (void)persistIsHotNotificationEnabled:(bool)isHotNotificationEnabled;
 
 - (void)persistHotNotificationDays:(NSArray*)hotNotificationDays;
+
+- (void)persistIsLoadingFacebookData:(bool)isLoadingFacebookData;
 @end
 

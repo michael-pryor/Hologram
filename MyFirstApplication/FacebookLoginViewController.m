@@ -50,12 +50,16 @@
 
 - (void)cancelEditingTextBoxes {
     [self.view endEditing:YES];
+    [self saveTextBoxes];
 }
+
 - (IBAction)onReviewButtonPress:(id)sender {
     [[UIApplication sharedApplication] openURL:[[NSURL alloc] initWithString:@"itms-apps://itunes.apple.com/us/app/hologram/id1065376316?ls=1&mt=8"]];
 }
 
 - (IBAction)onProfilePictureTap:(id)sender {
+    [self cancelEditingTextBoxes];
+
     UIImagePickerController *imagePickerController = [[UIImagePickerController alloc] init];
     imagePickerController.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
     imagePickerController.delegate = self;
@@ -75,12 +79,16 @@
 }
 
 - (IBAction)onHotEnabledPress:(id)sender {
+    [self cancelEditingTextBoxes];
+
     bool enabled = [_hotEnableSwitch isOn];
     [_socialState persistIsHotNotificationEnabled:enabled];
     [self setHotEnableSwitch:enabled];
 }
 
 - (void)multiSelect:(MultiSelectSegmentedControl *)multiSelectSegmentedControl didChangeValue:(BOOL)selected atIndex:(NSUInteger)index {
+    [self cancelEditingTextBoxes];
+
     NSMutableArray *indexesArray = [[NSMutableArray alloc] init];
     [[multiSelectSegmentedControl selectedSegmentIndexes] enumerateIndexesUsingBlock:^(NSUInteger idx, BOOL *stop) {
         [indexesArray addObject:@(idx)];
@@ -130,14 +138,13 @@
 }
 
 
-
-- (bool)handleValidationItem:(UIView*)item problemFlag:(bool)problemFlag {
+- (bool)handleValidationItem:(UIView *)item problemFlag:(bool)problemFlag {
     if (problemFlag) {
         [_startButton setEnabled:false];
         [_startButton setAlpha:0.2];
 
         [item setHidden:false];
-        for (UIView* otherItem in _warningItems) {
+        for (UIView *otherItem in _warningItems) {
             if (otherItem == item) {
                 continue;
             }
@@ -152,23 +159,23 @@
 
 - (void)validateForm {
     dispatch_sync_main(^{
-        if([self handleValidationItem:_warningName problemFlag:[[_fullNameTextBox text] length] == 0]) {
+        if ([self handleValidationItem:_warningName problemFlag:[[_fullNameTextBox text] length] == 0]) {
             return;
         }
 
-        if([self handleValidationItem:_warningDateOfBirth problemFlag:[[_dateOfBirthTextBox text] length] == 0]) {
+        if ([self handleValidationItem:_warningDateOfBirth problemFlag:[[_dateOfBirthTextBox text] length] == 0]) {
             return;
         }
 
-        if([self handleValidationItem:_warningAgeRestriction problemFlag:[_socialState age] < MINIMUM_AGE]) {
+        if ([self handleValidationItem:_warningAgeRestriction problemFlag:[_socialState age] < MINIMUM_AGE]) {
             return;
         }
 
-        if([self handleValidationItem:_warningGender problemFlag:[_ownerGenderChooser selectedSegmentIndex] == UISegmentedControlNoSegment]) {
+        if ([self handleValidationItem:_warningGender problemFlag:[_ownerGenderChooser selectedSegmentIndex] == UISegmentedControlNoSegment]) {
             return;
         }
 
-        if([self handleValidationItem:_warningCallingCardPicture problemFlag:[_socialState profilePictureImage] == nil]) {
+        if ([self handleValidationItem:_warningCallingCardPicture problemFlag:[_socialState profilePictureImage] == nil]) {
             return;
         }
 
@@ -189,12 +196,10 @@
 
 - (IBAction)onTextBoxDonePressed:(id)sender {
     [self cancelEditingTextBoxes];
-    [self saveTextBoxes];
 }
 
 - (IBAction)onViewControllerTap:(id)sender {
     [self cancelEditingTextBoxes];
-    [self saveTextBoxes];
 }
 
 - (IBAction)onFinishedButtonClick:(id)sender {
@@ -228,12 +233,7 @@
     _socialState = [SocialState getSocialInstance];
     [_socialState registerNotifier:self];
 
-    _dateOfBirthDatePicker = [[UIDatePicker alloc] init]; // needs to be retained.
-    _dateOfBirthDatePicker.datePickerMode = UIDatePickerModeDate;
-    [_dateOfBirthTextBox setInputView:_dateOfBirthDatePicker];
-    [_dateOfBirthDatePicker addTarget:self action:@selector(updateTextField:)
-                     forControlEvents:UIControlEventValueChanged];
-    [_dateOfBirthTextBox setInputView:_dateOfBirthDatePicker];
+    [self initializeDatePicker];
 
     [_profilePicture.layer setBorderColor:[[UIColor blackColor] CGColor]];
     [_profilePicture.layer setBorderWidth:2.0];
@@ -280,6 +280,15 @@
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(appWillRetakeActive:) name:UIApplicationDidBecomeActiveNotification object:nil];
 }
 
+- (void)initializeDatePicker {
+    _dateOfBirthDatePicker = [[UIDatePicker alloc] init]; // needs to be retained.
+    _dateOfBirthDatePicker.datePickerMode = UIDatePickerModeDate;
+    [_dateOfBirthTextBox setInputView:_dateOfBirthDatePicker];
+    [_dateOfBirthDatePicker addTarget:self action:@selector(updateTextField:)
+                     forControlEvents:UIControlEventValueChanged];
+    [_dateOfBirthTextBox setInputView:_dateOfBirthDatePicker];
+}
+
 - (void)appWillRetakeActive:(id)appWillRetakeActive {
     [[UIApplication sharedApplication] setApplicationIconBadgeNumber:0];
 }
@@ -312,31 +321,41 @@
 }
 
 - (IBAction)onDesiredGenderChanged:(id)sender {
+    [self cancelEditingTextBoxes];
+
     [[SocialState getSocialInstance] persistInterestedInWithSegmentIndex:(int) [_desiredGenderChooser selectedSegmentIndex]];
     [self validateForm];
 }
 
 - (IBAction)onOwnerGenderChanged:(id)sender {
+    [self cancelEditingTextBoxes];
+
     [[SocialState getSocialInstance] persistOwnerGenderWithSegmentIndex:(int) [sender selectedSegmentIndex]];
     [self validateForm];
 }
 
 - (void)_updateDisplay {
-    NSDate *dobObject = [_socialState dobObject];
-    if (dobObject != nil) {
-        [(UIDatePicker *) [_dateOfBirthTextBox inputView] setDate:dobObject];
-        [_dateOfBirthTextBox setText:[_socialState dobString]];
-    }
+    dispatch_sync_main(^{
+        NSDate *dobObject = [_socialState dobObject];
+        if (dobObject != nil) {
+            // Reinitializing here prevents a crash.
+            // The crash we saw was: load from FB, adjust date manually, load from FB, adjust date manually (crash here).
+            [self initializeDatePicker];
+            
+            [_dateOfBirthDatePicker setDate:dobObject];
+            [_dateOfBirthTextBox setText:[_socialState dobString]];
+        }
 
-    _desiredGenderChooser.selectedSegmentIndex = [_socialState interestedInSegmentIndex];
-    _ownerGenderChooser.selectedSegmentIndex = [_socialState genderSegmentIndex];
+        _desiredGenderChooser.selectedSegmentIndex = [_socialState interestedInSegmentIndex];
+        _ownerGenderChooser.selectedSegmentIndex = [_socialState genderSegmentIndex];
 
-    _fullNameTextBox.text = [_socialState humanFullName];
+        _fullNameTextBox.text = [_socialState humanFullName];
 
-    [_profilePicture setImage:[_socialState profilePictureImage]];
+        [_profilePicture setImage:[_socialState profilePictureImage]];
 
-    [_callingCardText setText:[_socialState callingCardText]];
-    [self validateForm];
+        [_callingCardText setText:[_socialState callingCardText]];
+        [self validateForm];
+    });
 }
 
 - (void)_switchToChatViewHelper {
@@ -381,6 +400,12 @@
 }
 
 - (void)onProfileUpdated:(NSNotification *)notification {
+    // We may get updates, even if user hasn't recently logged in, i.e. we can get multiple (some may be hours or days later).
+    if (![_socialState isLoadingFacebookData]) {
+        NSLog(@"Facebook profile updated notification received, IGNORING!!");
+        return;
+    }
+
     NSLog(@"Facebook profile updated notification received, updating information");
 
     [[SocialState getSocialInstance] updateFromFacebookCore];
@@ -441,18 +466,25 @@
 }
 
 - (void)loginButton:(FBSDKLoginButton *)loginButton didCompleteWithResult:(FBSDKLoginManagerLoginResult *)result error:(NSError *)error {
+    [self cancelEditingTextBoxes];
+
     if ([result isCancelled]) {
         NSLog(@"User cancelled login attempt");
+        [_socialState persistIsLoadingFacebookData:false];
     } else {
         NSLog(@"Logged in successfully, retrieving credentials...");
+        [_socialState persistIsLoadingFacebookData:true];
     }
 }
 
 - (void)loginButtonDidLogOut:(FBSDKLoginButton *)loginButton {
     NSLog(@"Logged out successfully");
+    [_socialState persistIsLoadingFacebookData:false];
 }
 
 - (IBAction)onGuideButtonPress:(id)sender {
+    [self cancelEditingTextBoxes];
+
     UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Storyboard" bundle:nil];
     UIViewController *viewController = [storyboard instantiateViewControllerWithIdentifier:@"HelpViewController"];
     [self presentViewController:viewController animated:YES completion:nil];
