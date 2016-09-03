@@ -407,10 +407,6 @@
     _cursorPosition += prefixLength;
 
     id result = dataHandler(_buffer + _cursorPosition, length);
-
-    if (result == nil) {
-        NSLog(@"FAILED TO RETRIEVE VARIABLE LENGTH DATA!!");
-    }
     
     _cursorPosition += length;
     return result;
