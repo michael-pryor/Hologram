@@ -31,7 +31,7 @@
     while (true) {
         uint packetSize = [dataStream getUnsignedIntegerAtPosition:0];
         //  NSLog(@"Waiting for packet of size: %ul, so far: %ul", packetSize, [dataStream bufferUsedSize]);
-        if (packetSize > 0 && [dataStream bufferUsedSize] >= packetSize) {
+        if (packetSize > 0 && [dataStream bufferUsedSize] >= packetSize + sizeof(uint)) {
             // cursor will always be 0 at this point if everything is working.
             if ([dataStream cursorPosition] != 0) {
                 NSLog(@"Cursor is not 0 (check 1), something is wrong: %u", [dataStream cursorPosition]);
@@ -39,6 +39,9 @@
 
             // Retrieve complete packet.
             ByteBuffer *packet = [dataStream getByteBuffer];
+            if (packet == nil) {
+                NSLog(@"FAILED TO RETRIEVE BUFFER, STREAM IS CORRUPT!!!");
+            }
 
             // Erase packet from buffer.
             [dataStream setCursorPosition:0];
