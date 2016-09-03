@@ -219,7 +219,7 @@
                                                                     <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="5" translatesAutoresizingMaskIntoConstraints="NO" id="IeJ-dN-EbL">
                                                                         <rect key="frame" x="5" y="5" width="580" height="160"/>
                                                                         <subviews>
-                                                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="⚠︎ You must be aged 18 or over to use this application" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Z7z-JE-ZSP">
+                                                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="⚠︎ You must be aged 18 or over to use this application (check your age)" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="4" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Z7z-JE-ZSP">
                                                                                 <rect key="frame" x="0.0" y="0.0" width="580" height="17"/>
                                                                                 <fontDescription key="fontDescription" type="system" weight="thin" pointSize="14"/>
                                                                                 <color key="textColor" red="1" green="0.40000000600000002" blue="0.40000000600000002" alpha="1" colorSpace="calibratedRGB"/>
@@ -983,7 +983,7 @@
                                                             </view>
                                                         </subviews>
                                                     </stackView>
-                                                    <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="9ba-Ym-JOh" userLabel="Hot Spots">
+                                                    <stackView opaque="NO" contentMode="scaleToFill" misplaced="YES" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="9ba-Ym-JOh" userLabel="Hot Spots">
                                                         <rect key="frame" x="0.0" y="1574" width="590" height="359"/>
                                                         <subviews>
                                                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="ErA-CQ-wIl" userLabel="Host spots label">
@@ -1016,26 +1016,26 @@
                                                                     </view>
                                                                 </subviews>
                                                             </stackView>
-                                                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Hyq-wu-HaI" userLabel="Hot settings">
+                                                            <view contentMode="scaleToFill" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Hyq-wu-HaI" userLabel="Hot settings">
                                                                 <rect key="frame" x="0.0" y="22" width="590" height="332"/>
                                                                 <subviews>
-                                                                    <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="20" translatesAutoresizingMaskIntoConstraints="NO" id="PPp-Pz-06d">
+                                                                    <stackView opaque="NO" contentMode="scaleToFill" misplaced="YES" axis="vertical" spacing="20" translatesAutoresizingMaskIntoConstraints="NO" id="PPp-Pz-06d">
                                                                         <rect key="frame" x="5" y="5" width="580" height="322"/>
                                                                         <subviews>
-                                                                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="3" translatesAutoresizingMaskIntoConstraints="NO" id="fDj-GH-7je" userLabel="Hot explanation">
-                                                                                <rect key="frame" x="0.0" y="0.0" width="580" height="117"/>
+                                                                            <stackView opaque="NO" contentMode="scaleToFill" misplaced="YES" axis="vertical" spacing="3" translatesAutoresizingMaskIntoConstraints="NO" id="fDj-GH-7je" userLabel="Hot explanation">
+                                                                                <rect key="frame" x="0.0" y="0.0" width="580" height="100"/>
                                                                                 <subviews>
-                                                                                    <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="hsh-Ku-zGn" userLabel="Hot explanation label">
-                                                                                        <rect key="frame" x="0.0" y="0.0" width="580" height="22"/>
+                                                                                    <stackView opaque="NO" contentMode="scaleToFill" misplaced="YES" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="hsh-Ku-zGn" userLabel="Hot explanation label">
+                                                                                        <rect key="frame" x="0.0" y="0.0" width="580" height="5"/>
                                                                                         <subviews>
-                                                                                            <label opaque="NO" contentMode="left" horizontalCompressionResistancePriority="250" verticalCompressionResistancePriority="1" text="EXPLANATION" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ves-jc-WAN" userLabel="Explanation Label">
-                                                                                                <rect key="frame" x="0.0" y="0.0" width="580" height="17"/>
+                                                                                            <label opaque="NO" contentMode="left" horizontalCompressionResistancePriority="250" verticalCompressionResistancePriority="1" misplaced="YES" text="EXPLANATION" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ves-jc-WAN" userLabel="Explanation Label">
+                                                                                                <rect key="frame" x="0.0" y="0.0" width="580" height="0.0"/>
                                                                                                 <fontDescription key="fontDescription" name="PingFangSC-Light" family="PingFang SC" pointSize="12"/>
                                                                                                 <color key="textColor" red="0.5414693813" green="0.5414693813" blue="0.5414693813" alpha="1" colorSpace="calibratedRGB"/>
                                                                                                 <nil key="highlightedColor"/>
                                                                                             </label>
-                                                                                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="sUb-Vy-0MD" userLabel="Divider Minor">
-                                                                                                <rect key="frame" x="0.0" y="17" width="580" height="5"/>
+                                                                                            <view contentMode="scaleToFill" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="sUb-Vy-0MD" userLabel="Divider Minor">
+                                                                                                <rect key="frame" x="0.0" y="0.0" width="580" height="5"/>
                                                                                                 <subviews>
                                                                                                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Gnv-6B-mvP">
                                                                                                         <rect key="frame" x="0.0" y="2" width="580" height="1"/>
@@ -1055,8 +1055,8 @@
                                                                                             </view>
                                                                                         </subviews>
                                                                                     </stackView>
-                                                                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="252" horizontalCompressionResistancePriority="1000" verticalCompressionResistancePriority="1000" lineBreakMode="wordWrap" numberOfLines="16" baselineAdjustment="none" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="nQA-P3-7M4" userLabel="Hot explanation">
-                                                                                        <rect key="frame" x="0.0" y="25" width="580" height="84"/>
+                                                                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="252" horizontalCompressionResistancePriority="1000" verticalCompressionResistancePriority="1000" misplaced="YES" lineBreakMode="wordWrap" numberOfLines="16" baselineAdjustment="none" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="nQA-P3-7M4" userLabel="Hot explanation">
+                                                                                        <rect key="frame" x="0.0" y="8" width="580" height="84"/>
                                                                                         <string key="text">Once every evening there is a "hot spot" in your region, where members of the Hologram community are notified and encouraged to log on. During the hot spot period, there are more people to talk with than normal.
 
 If enabled, Hologram will notify you when the hot spots are starting.</string>
@@ -1064,8 +1064,8 @@ If enabled, Hologram will notify you when the hot spots are starting.</string>
                                                                                         <color key="textColor" red="0.50196081400000003" green="0.50196081400000003" blue="0.50196081400000003" alpha="1" colorSpace="calibratedRGB"/>
                                                                                         <nil key="highlightedColor"/>
                                                                                     </label>
-                                                                                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="z0Q-I6-fXD" userLabel="Divider Minor">
-                                                                                        <rect key="frame" x="0.0" y="112" width="580" height="5"/>
+                                                                                    <view contentMode="scaleToFill" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="z0Q-I6-fXD" userLabel="Divider Minor">
+                                                                                        <rect key="frame" x="0.0" y="95" width="580" height="5"/>
                                                                                         <subviews>
                                                                                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="5iD-u5-dOW">
                                                                                                 <rect key="frame" x="0.0" y="2" width="580" height="1"/>
@@ -1085,8 +1085,8 @@ If enabled, Hologram will notify you when the hot spots are starting.</string>
                                                                                     </view>
                                                                                 </subviews>
                                                                             </stackView>
-                                                                            <stackView opaque="NO" contentMode="scaleToFill" verticalCompressionResistancePriority="200" axis="vertical" spacing="3" translatesAutoresizingMaskIntoConstraints="NO" id="sMv-NQ-LBy" userLabel="Hot enable">
-                                                                                <rect key="frame" x="0.0" y="137" width="580" height="84"/>
+                                                                            <stackView opaque="NO" contentMode="scaleToFill" verticalCompressionResistancePriority="200" misplaced="YES" axis="vertical" spacing="3" translatesAutoresizingMaskIntoConstraints="NO" id="sMv-NQ-LBy" userLabel="Hot enable">
+                                                                                <rect key="frame" x="0.0" y="120" width="580" height="84"/>
                                                                                 <subviews>
                                                                                     <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="3" translatesAutoresizingMaskIntoConstraints="NO" id="HRI-9k-A88" userLabel="Hot enable">
                                                                                         <rect key="frame" x="0.0" y="0.0" width="580" height="76"/>
@@ -1165,8 +1165,8 @@ If enabled, Hologram will notify you when the hot spots are starting.</string>
                                                                                     </view>
                                                                                 </subviews>
                                                                             </stackView>
-                                                                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="3" translatesAutoresizingMaskIntoConstraints="NO" id="GAR-AA-tn7" userLabel="Hot days">
-                                                                                <rect key="frame" x="0.0" y="241" width="580" height="81"/>
+                                                                            <stackView opaque="NO" contentMode="scaleToFill" misplaced="YES" axis="vertical" spacing="3" translatesAutoresizingMaskIntoConstraints="NO" id="GAR-AA-tn7" userLabel="Hot days">
+                                                                                <rect key="frame" x="0.0" y="224" width="580" height="98"/>
                                                                                 <subviews>
                                                                                     <label opaque="NO" contentMode="left" horizontalCompressionResistancePriority="250" verticalCompressionResistancePriority="1" text="DAYS" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Sfc-O6-iJo" userLabel="Hot days label">
                                                                                         <rect key="frame" x="0.0" y="0.0" width="580" height="17"/>
@@ -1193,7 +1193,7 @@ If enabled, Hologram will notify you when the hot spots are starting.</string>
                                                                                             <constraint firstItem="gb8-hY-J2B" firstAttribute="leading" secondItem="fYT-Am-zXq" secondAttribute="leading" id="qpQ-Uc-kMj"/>
                                                                                         </constraints>
                                                                                     </view>
-                                                                                    <label opaque="NO" contentMode="left" horizontalCompressionResistancePriority="250" verticalCompressionResistancePriority="1" text="⚡︎ Choose which days you would like to be notified about hot spots." lineBreakMode="tailTruncation" numberOfLines="3" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="O2a-i0-3mS" userLabel="Permission request">
+                                                                                    <label opaque="NO" contentMode="left" horizontalCompressionResistancePriority="250" verticalCompressionResistancePriority="1" text="⚡︎ Choose which days you would like to be notified about hot spots." lineBreakMode="tailTruncation" numberOfLines="3" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="O2a-i0-3mS" userLabel="Choose day label">
                                                                                         <rect key="frame" x="0.0" y="28" width="580" height="14"/>
                                                                                         <fontDescription key="fontDescription" name="PingFangSC-Light" family="PingFang SC" pointSize="10"/>
                                                                                         <color key="textColor" red="0.5414693813" green="0.5414693813" blue="0.5414693813" alpha="1" colorSpace="calibratedRGB"/>
@@ -1212,8 +1212,14 @@ If enabled, Hologram will notify you when the hot spots are starting.</string>
                                                                                         </segments>
                                                                                         <color key="tintColor" red="1" green="0.40000000600000002" blue="0.40000000600000002" alpha="1" colorSpace="calibratedRGB"/>
                                                                                     </segmentedControl>
+                                                                                    <label opaque="NO" contentMode="left" horizontalCompressionResistancePriority="250" verticalCompressionResistancePriority="1" text="You will be notified every day" lineBreakMode="tailTruncation" numberOfLines="5" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Z0X-XG-eIy" userLabel="Selected days label">
+                                                                                        <rect key="frame" x="0.0" y="76" width="580" height="14"/>
+                                                                                        <fontDescription key="fontDescription" name="PingFangSC-Light" family="PingFang SC" pointSize="10"/>
+                                                                                        <color key="textColor" red="0.5414693813" green="0.5414693813" blue="0.5414693813" alpha="1" colorSpace="calibratedRGB"/>
+                                                                                        <nil key="highlightedColor"/>
+                                                                                    </label>
                                                                                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="qvv-GC-bu2" userLabel="Divider Minor">
-                                                                                        <rect key="frame" x="0.0" y="76" width="580" height="5"/>
+                                                                                        <rect key="frame" x="0.0" y="93" width="580" height="5"/>
                                                                                         <subviews>
                                                                                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="uWb-2z-Up0">
                                                                                                 <rect key="frame" x="0.0" y="2" width="580" height="1"/>
@@ -1244,7 +1250,7 @@ If enabled, Hologram will notify you when the hot spots are starting.</string>
                                                                     <constraint firstItem="PPp-Pz-06d" firstAttribute="leading" secondItem="Hyq-wu-HaI" secondAttribute="leading" constant="5" id="hkV-h1-QdG"/>
                                                                 </constraints>
                                                             </view>
-                                                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ASw-Pg-Cnp" userLabel="Divider Minor">
+                                                            <view contentMode="scaleToFill" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="ASw-Pg-Cnp" userLabel="Divider Minor">
                                                                 <rect key="frame" x="0.0" y="354" width="590" height="5"/>
                                                                 <subviews>
                                                                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="1wE-Sg-b5t">
@@ -1524,6 +1530,7 @@ If enabled, Hologram will notify you when the hot spots are starting.</string>
                         <outlet property="_fullNameTextBox" destination="tMk-MI-Q0h" id="LFG-NS-rfh"/>
                         <outlet property="_hotDaySelector" destination="qsp-3r-YVj" id="Op8-l7-qhG"/>
                         <outlet property="_hotDayStack" destination="GAR-AA-tn7" id="vhd-cD-YMl"/>
+                        <outlet property="_hotDescription" destination="Z0X-XG-eIy" id="VCb-Sb-NnC"/>
                         <outlet property="_hotEnableSwitch" destination="zKI-w9-0I8" id="Lmg-le-QRl"/>
                         <outlet property="_loadingFacebookDetailsIndicator" destination="shK-0J-Eyy" id="3qe-sM-Fb9"/>
                         <outlet property="_notificationPermissionsRequestWarning" destination="Prv-Za-ZxI" id="abs-iS-biL"/>

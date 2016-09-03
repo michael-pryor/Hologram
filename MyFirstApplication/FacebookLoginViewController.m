@@ -44,7 +44,7 @@
     __weak IBOutlet MultiSelectSegmentedControl *_hotDaySelector;
     __weak IBOutlet UIStackView *_hotDayStack;
     __weak IBOutlet UILabel *_notificationPermissionsRequestWarning;
-
+    __weak IBOutlet UILabel *_hotDescription;
     Notifications *_notifications;
 }
 
@@ -104,7 +104,10 @@
         return;
     }
 
+    NSMutableString *daysHumanReadable = [[NSMutableString alloc] init];
+    NSMutableArray *daysIntegers = [[NSMutableArray alloc] init];
     [[control selectedSegmentIndexes] enumerateIndexesUsingBlock:^(NSUInteger idx, BOOL *stop) {
+        // Sunday = 1, Monday = 2, Tuesday = 3, Wednesday = 4, Thursday = 5, Friday = 6, Saturday = 7
         uint dateFormattedDay = (idx + 2) % 7;
         NSDate *now = [NSDate date];
         NSCalendar *calendar = [NSCalendar currentCalendar];
@@ -112,6 +115,8 @@
         NSDateComponents *components = [calendar components:NSCalendarUnitYear | NSCalendarUnitMonth | NSCalendarUnitWeekOfYear | NSCalendarUnitWeekday fromDate:now];
         components.weekday = dateFormattedDay;
         components.hour = 20;
+
+        [daysIntegers addObject:@(dateFormattedDay)];
 
         NSDate *fireDate = [calendar dateFromComponents:components];
 
@@ -135,6 +140,69 @@
 
         NSLog(@"Scheduled weekly repeated hot notification to take place on: %@ (UTC)", fireDate);
     }];
+
+    if ([daysIntegers count] == 7) {
+        dispatch_sync_main(^{
+            [_hotDescription setText:@"\U0001F525 You will receive hot spot notifications every day"];
+        });
+        return;
+    } else if ([daysIntegers count] == 0) {
+        dispatch_sync_main(^{
+            [_hotDescription setText:@"\U0001F525 You will not receive hot spot notifications"];
+        });
+        return;
+    } else {
+        int count = 0;
+        for (NSNumber *num in daysIntegers) {
+            int numI = [num unsignedIntValue];
+            switch (numI) {
+                case 1:
+                    [daysHumanReadable appendString:@"Sunday"];
+                    break;
+
+                case 2:
+                    [daysHumanReadable appendString:@"Monday"];
+                    break;
+
+                case 3:
+                    [daysHumanReadable appendString:@"Tuesday"];
+                    break;
+
+                case 4:
+                    [daysHumanReadable appendString:@"Wednesday"];
+                    break;
+
+                case 5:
+                    [daysHumanReadable appendString:@"Thursday"];
+                    break;
+
+                case 6:
+                    [daysHumanReadable appendString:@"Friday"];
+                    break;
+
+                case 0:
+                    [daysHumanReadable appendString:@"Saturday"];
+                    break;
+
+                default:
+                    [daysHumanReadable appendString:@"Unknown day!"];
+                    break;
+            }
+            count++;
+
+            if (count == ((int) [daysIntegers count]) - 1) {
+                [daysHumanReadable appendString:@" and "];
+            }
+            if (count <= ((int) [daysIntegers count]) - 2) {
+                [daysHumanReadable appendString:@", "];
+            }
+        }
+    }
+
+    [daysHumanReadable insertString:@"\U0001F525 You will receive hot spot notifications on " atIndex:0];
+    dispatch_sync_main(^{
+        [_hotDescription setText:daysHumanReadable];
+    });
 }
 
 
@@ -341,7 +409,7 @@
             // Reinitializing here prevents a crash.
             // The crash we saw was: load from FB, adjust date manually, load from FB, adjust date manually (crash here).
             [self initializeDatePicker];
-            
+
             [_dateOfBirthDatePicker setDate:dobObject];
             [_dateOfBirthTextBox setText:[_socialState dobString]];
         }
