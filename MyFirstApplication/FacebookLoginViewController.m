@@ -444,6 +444,7 @@
 }
 
 - (void)_switchToChatView {
+    [self cancelEditingTextBoxes];
     if (![[SocialState getSocialInstance] isDataLoaded]) {
         return;
     }
