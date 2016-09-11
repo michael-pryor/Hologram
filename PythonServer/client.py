@@ -129,7 +129,7 @@ class Client(object):
             return self.unique_id == other
 
         def __str__(self):
-            return "[Name: %s, age: %d, gender: %d, interested_in: %d]" % (self.name, self.age, self.gender, self.interested_in)
+            return "[Name: %s, age: %d, gender: %d, interested_in: %d]" % (self.short_name, self.age, self.gender, self.interested_in)
 
     # Designed to prevent immediately rematching with person that the client skipped.
     class HistoryTracking(object):
@@ -355,7 +355,9 @@ class Client(object):
 
     # Closes the TCP socket, triggering indirectly onDisconnect to be called.
     def closeConnection(self):
-        logger.info("Client %s has disconnected", self.login_details)
+        if self.connection_status != Client.ConnectionStatus.NOT_CONNECTED:
+            logger.info("Client %s has disconnected", self.login_details)
+
         self.cancelAcceptingMatchExpiry()
         self.connection_status = Client.ConnectionStatus.NOT_CONNECTED
         self.tcp.transport.loseConnection()
