@@ -129,7 +129,7 @@ class Client(object):
             return self.unique_id == other
 
         def __str__(self):
-            return "[Name: %s, age: %d, gender: %d, interested_in: %d, longitude: %.2f, latitude: %.2f]" % (self.name, self.age, self.gender, self.interested_in, self.longitude, self.latitude)
+            return "[Name: %s, age: %d, gender: %d, interested_in: %d]" % (self.name, self.age, self.gender, self.interested_in)
 
     # Designed to prevent immediately rematching with person that the client skipped.
     class HistoryTracking(object):
@@ -299,7 +299,6 @@ class Client(object):
 
         self.transitionState(Client.State.MATCHING, Client.State.ACCEPTING_MATCH)
 
-
         self.cancelAcceptingMatchExpiry()
         if logger.isEnabledFor(logging.DEBUG):
             logger.debug("Scheduled new accepting match expiry for client [%s] in [%s] seconds" % (self, Client.ACCEPTING_MATCH_EXPIRY))
@@ -356,6 +355,7 @@ class Client(object):
 
     # Closes the TCP socket, triggering indirectly onDisconnect to be called.
     def closeConnection(self):
+        logger.info("Client %s has disconnected", self.login_details)
         self.cancelAcceptingMatchExpiry()
         self.connection_status = Client.ConnectionStatus.NOT_CONNECTED
         self.tcp.transport.loseConnection()
@@ -422,7 +422,7 @@ class Client(object):
 
         if logger.isEnabledFor(logging.DEBUG):
             logger.debug("(Full details) Login processed with details, udp hash: [%s], full name: [%s], short name: [%s], age: [%d], gender [%d], interested in [%d], GPS: [(%d,%d)], Karma [%d]" % (self.udp_hash, fullName, shortName, age, gender, interestedIn, longitude, latitude, self.karma_rating))
-        logger.info("Login processed with udp hash: [%s]; identifier: [%s/%d]; karma: [%d]" % (self.udp_hash, shortName, age, self.karma_rating))
+        logger.info("Client %s login accepted with udp hash: [%s]" % (self.login_details, self.udp_hash))
 
         return Client.RejectCodes.SUCCESS, self.udp_hash, karmaRegenerationReceipt, None
 

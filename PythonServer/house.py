@@ -94,6 +94,8 @@ class House:
             if logger.isEnabledFor(logging.DEBUG):
                 logger.debug("Both client [%s] and client [%s] have accepted the conversation, starting conversation" % (sourceClient, clientB))
 
+            logger.info("Client %s and %s have started a conversation", sourceClient.login_details, clientB.login_details)
+
             sourceClient.transitionState(Client.State.ACCEPTING_MATCH, Client.State.MATCHED)
             clientB.transitionState(Client.State.ACCEPTING_MATCH, Client.State.MATCHED)
 
@@ -129,8 +131,9 @@ class House:
         distance = self.getDistance(clientA, clientB)
         self.mutualAdvise(clientA, clientB, lambda x,y: Client.adviseMatchDetails(x, y, distance, reconnectingClient))
 
+        logger.info("Client %s and %s have swapped cards", clientA.login_details, clientB.login_details)
         if logger.isEnabledFor(logging.DEBUG):
-            logger.debug("Shared profiles between client [%s] and [%s], distance between them [%.2fkm]" % (clientA, clientB, distance))
+            logger.debug("Shared profiles between client [%s] and [%s], distance between them [%.2fkm]" % (clientB, clientA, distance))
 
     def readviseNatPunchthrough(self, client):
         self.house_lock.acquire()
