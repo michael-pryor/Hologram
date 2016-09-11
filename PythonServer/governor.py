@@ -63,7 +63,8 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
         return self.kilobyte_per_second_tracker.average_tick_rate
 
     def startedConnecting(self, connector):
-        logger.debug('Started to connect.')
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug('Started to connect.')
 
     def _lockClm(self):
         self.client_mappings_lock.acquire()
@@ -76,10 +77,12 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
 
         udpClient = client.udp
         try:
-            logger.debug("Cleaning up UDP client: [%s]" % udpClient)
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug("Cleaning up UDP client: [%s]" % udpClient)
             del self.clients_by_udp_address[udpClient.remote_address]
         except KeyError:
-            logger.debug("Attempt to cleanup UDP address [%s] failed, not yet connected via UDP" % udpClient)
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug("Attempt to cleanup UDP address [%s] failed, not yet connected via UDP" % udpClient)
 
         self.cleanupClientUdpHash(client)
 
@@ -92,18 +95,22 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
 
             cleanAction = self.clean_actions_by_udp_hash.get(client.udp_hash)
             if cleanAction is None:
-                logger.debug("Scheduled new session expiry for client [%s] in [%s] seconds" % (client, UdpConnectionLinker.DELAY))
+                if logger.isEnabledFor(logging.DEBUG):
+                    logger.debug("Scheduled new session expiry for client [%s] in [%s] seconds" % (client, UdpConnectionLinker.DELAY))
                 cleanAction = self.reactor.callLater(UdpConnectionLinker.DELAY, self._doClientHashCleanup, client)
 
                 self.clean_actions_by_udp_hash[client.udp_hash] = cleanAction
             else:
-                logger.debug("Reset expiry of [%s] seconds remaining for client [%s] to [%.2f] seconds" % (getRemainingTimeOnAction(cleanAction), client, UdpConnectionLinker.DELAY))
+                if logger.isEnabledFor(logging.DEBUG):
+                    logger.debug("Reset expiry of [%s] seconds remaining for client [%s] to [%.2f] seconds" % (getRemainingTimeOnAction(cleanAction), client, UdpConnectionLinker.DELAY))
                 try:
                     cleanAction.reset(self, UdpConnectionLinker.DELAY)
                 except AlreadyCalled:
-                    logger.debug("Failed to reset, timer already fired for client [%s]" % client)
+                    if logger.isEnabledFor(logging.DEBUG):
+                        logger.debug("Failed to reset, timer already fired for client [%s]" % client)
                 except AlreadyCancelled:
-                    logger.debug("Failed to reset, action cancelled for client [%s], attempting fresh schedule" % client)
+                    if logger.isEnabledFor(logging.DEBUG):
+                        logger.debug("Failed to reset, action cancelled for client [%s], attempting fresh schedule" % client)
                     del self.clean_actions_by_udp_hash[client.udp_hash]
                     self.cleanupClientUdpHash(client)
         finally:
@@ -121,7 +128,8 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
             if cleanAction is None:
                 return
 
-            logger.debug("Cancelling new session expiry for client [%s] in [%.2f] seconds" % (client, getRemainingTimeOnAction(cleanAction)))
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug("Cancelling new session expiry for client [%s] in [%.2f] seconds" % (client, getRemainingTimeOnAction(cleanAction)))
             try:
                 cleanAction.cancel()
             except (AlreadyCancelled, AlreadyCalled) as e:
@@ -141,12 +149,15 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
 
                 existing = self.clients_by_udp_hash.get(udpHash)
                 if existing is None:
-                    logger.debug("UDP hash [%s] for client [%s] not found in server" % (udpHash, client))
+                    if logger.isEnabledFor(logging.DEBUG):
+                        logger.debug("UDP hash [%s] for client [%s] not found in server" % (udpHash, client))
                 else:
                     if existing is not client:
-                        logger.debug("Hash has been reused, not cleaning up UDP hash (old: [%s], new: [%s], hash [%s])" % (existing, client, udpHash))
+                        if logger.isEnabledFor(logging.DEBUG):
+                            logger.debug("Hash has been reused, not cleaning up UDP hash (old: [%s], new: [%s], hash [%s])" % (existing, client, udpHash))
                     else:
-                        logger.debug("Cleaning up UDP hash [%s] of client [%s]" % (udpHash, client))
+                        if logger.isEnabledFor(logging.DEBUG):
+                            logger.debug("Cleaning up UDP hash [%s] of client [%s]" % (udpHash, client))
                         del self.clients_by_udp_hash[udpHash]
 
                         # We need to make sure that client data is not left dangling without a UDP hash.
@@ -167,9 +178,13 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
                 # Already disconnected.
                 return
 
-            logger.debug("Cleaning up TCP: %s" % origClient.tcp)
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug("Cleaning up TCP: %s" % origClient.tcp)
+
             del self.clients_by_tcp_address[origClient.tcp.remote_address]
-            logger.debug("Client has disconnected: %s" % origClient)
+
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug("Client has disconnected: %s" % origClient)
 
             # There is the possibility that client reconnected, creating new
             # Client object, but there was a delay in the original client
@@ -180,10 +195,12 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
                 if origClient is not client:
                     # Only need to cleanup UDP address if they are different.
                     if origClient.udp != client.udp:
-                        logger.debug("Client has reconnected via UDP on a different interface, cleaning up old UDP connection. Old [%s] vs new [%s]" % (origClient.udp, client.udp))
+                        if logger.isEnabledFor(logging.DEBUG):
+                            logger.debug("Client has reconnected via UDP on a different interface, cleaning up old UDP connection. Old [%s] vs new [%s]" % (origClient.udp, client.udp))
                         self._cleanupUdp(origClient)
                     else:
-                        logger.debug("Not cleaning up UDP address; as has been reused by reconnect [%s]" % client.udp)
+                        if logger.isEnabledFor(logging.DEBUG):
+                            logger.debug("Not cleaning up UDP address; as has been reused by reconnect [%s]" % client.udp)
                 else:
                     # No reconnect concerns, cleanup the client normally.
                     self._cleanupUdp(origClient)
@@ -191,7 +208,8 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
             self._unlockClm()
 
     def buildProtocol(self, addr):
-        logger.debug('TCP connection initiated with new client [%s]' % addr)
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug('TCP connection initiated with new client [%s]' % addr)
 
         tcpCon = ClientTcp(addr)
         client = Client(reactor, tcpCon, self.clientDisconnected, self.udp_connection_linker, self.house, self.blocking_database, self.match_decision_database, self.karma_database, self.payments_verifier, self.persisted_ids_verifier)
@@ -205,10 +223,12 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
         return tcpCon
 
     def clientConnectionLost(self, connector, reason):
-        logger.debug('Lost connection.  Reason:')
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug('Lost connection.  Reason:')
 
     def clientConnectionFailed(self, connector, reason):
-        logger.debug('Connection failed. Reason:')
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug('Connection failed. Reason:')
 
     def datagramReceived(self, data, remoteAddress):
         self.kilobyte_per_second_tracker.tick(float(len(data)) / 1024.0)
@@ -227,7 +247,8 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
 
     @Throttle(1)
     def _onMalformed(self, fromAddress):
-        logger.debug("Malformed UDP data received from unknown client [%s], discarding" % unicode(fromAddress))
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug("Malformed UDP data received from unknown client [%s], discarding" % unicode(fromAddress))
 
     def onUnknownData(self, data, remoteAddress):
         assert isinstance(data, ByteBuffer)
@@ -250,7 +271,8 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
             try:
                 existingClient = self.clients_by_udp_hash.get(theHash)
                 if existingClient is not None:
-                    logger.debug("Cleaning up existing client before processing reconnect: %s" % existingClient)
+                    if logger.isEnabledFor(logging.DEBUG):
+                        logger.debug("Cleaning up existing client before processing reconnect: %s" % existingClient)
                     registeredClient.consumeMetaState(existingClient)
                     self.clientDisconnected(existingClient)
 
@@ -263,13 +285,15 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
             successPing = ByteBuffer()
             successPing.addUnsignedInteger8(Client.TcpOperationCodes.OP_ACCEPT_UDP)
 
-            logger.debug("Sending fully connected ACK")
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug("Sending fully connected ACK")
             registeredClient.tcp.sendByteBuffer(successPing)
 
             # Must be done AFTER success ack, to avoid race conditions on client side.
             registeredClient.connection_status = Client.ConnectionStatus.CONNECTED
 
-            logger.debug("Client successfully connected, sent success ack and registered with house")
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug("Client successfully connected, sent success ack and registered with house")
         else:
             # This case is most commonly seen if user switches from 3G to wifi, UDP route changes to go via wifi but
             # TCP route stays unchanged, so we need to update on the fly.
@@ -279,7 +303,8 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
                 try:
                     newUdp = ClientUdp(remoteAddress, self.transport.write)
                     oldUdp = client.udp
-                    logger.debug("Client UDP routing has changed from [%s] to [%s]" % (oldUdp, newUdp))
+                    if logger.isEnabledFor(logging.DEBUG):
+                        logger.debug("Client UDP routing has changed from [%s] to [%s]" % (oldUdp, newUdp))
 
                     try:
                         del self.clients_by_udp_address[oldUdp.remote_address]
@@ -323,7 +348,8 @@ class CommanderConnection(ReconnectingClientFactory):
         self.scheduled_ping = None
 
     def buildProtocol(self, addr):
-        logger.debug('TCP connection initiated with new client [%s]' % addr)
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug('TCP connection initiated with new client [%s]' % addr)
         self.tcp = ClientTcp(addr)
         self.tcp.parent = self
 

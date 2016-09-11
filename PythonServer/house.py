@@ -63,7 +63,8 @@ class House:
 
         self.adviseMatchDetails(clientA, clientB)
 
-        logger.debug("New room set up between client [%s] and [%s]" % (clientA, clientB))
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug("New room set up between client [%s] and [%s]" % (clientA, clientB))
         return True
 
     # Return false if we should skip this; the acceptance will never complete.
@@ -76,7 +77,8 @@ class House:
                 # This happens close to the end of the timeout, when client accepts but has already timed out.
                 # State does not need correcting in this case.
                 return True
-            logger.debug("Client [%s] has accepted the conversation")
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug("Client [%s] has accepted the conversation")
 
             clientB = self.room_participant.get(sourceClient)
             if clientB is None:
@@ -89,7 +91,8 @@ class House:
             if not clientB.approved_match:
                 return True
 
-            logger.debug("Both client [%s] and client [%s] have accepted the conversation, starting conversation" % (sourceClient, clientB))
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug("Both client [%s] and client [%s] have accepted the conversation, starting conversation" % (sourceClient, clientB))
 
             sourceClient.transitionState(Client.State.ACCEPTING_MATCH, Client.State.MATCHED)
             clientB.transitionState(Client.State.ACCEPTING_MATCH, Client.State.MATCHED)
@@ -114,7 +117,9 @@ class House:
     def mutualAdvise(self, clientA, clientB, adviseFunc):
         adviseFunc(clientA, clientB)
         adviseFunc(clientB, clientA)
-        logger.debug("NAT punchthrough introduction made between client [%s] and [%s]" % (clientA, clientB))
+
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug("NAT punchthrough introduction made between client [%s] and [%s]" % (clientA, clientB))
 
     def adviseNatPunchthrough(self, clientA, clientB):
         self.mutualAdvise(clientA, clientB, Client.adviseNatPunchthrough)
@@ -123,7 +128,9 @@ class House:
     def adviseMatchDetails(self, clientA, clientB, reconnectingClient = False):
         distance = self.getDistance(clientA, clientB)
         self.mutualAdvise(clientA, clientB, lambda x,y: Client.adviseMatchDetails(x, y, distance, reconnectingClient))
-        logger.debug("Shared profiles between client [%s] and [%s], distance between them [%.2fkm]" % (clientA, clientB, distance))
+
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug("Shared profiles between client [%s] and [%s], distance between them [%.2fkm]" % (clientA, clientB, distance))
 
     def readviseNatPunchthrough(self, client):
         self.house_lock.acquire()
@@ -158,7 +165,9 @@ class House:
         if realClient is not None and client is realClient:
             self.adviseAbortNatPunchthrough(clientB)
             clientB.tcp.sendByteBuffer(self.disconnected_temporary)
-            logger.debug("Session pause signaled to client [%s] because of client disconnect [%s]" % (clientB, client))
+
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug("Session pause signaled to client [%s] because of client disconnect [%s]" % (clientB, client))
 
     def _removeFromWaitingList(self, client):
         self.house_lock.acquire()
@@ -193,7 +202,8 @@ class House:
 
                 clientB.setToWaitForRatingOfPreviousConversation(client)
 
-                logger.debug("Permanent closure of session between client [%s] and [%s] due to client [%s] leaving the room" % (client, clientB, client))
+                if logger.isEnabledFor(logging.DEBUG):
+                    logger.debug("Permanent closure of session between client [%s] and [%s] due to client [%s] leaving the room" % (client, clientB, client))
 
                 # Return the other client.
                 return clientB
@@ -235,7 +245,8 @@ class House:
                     try:
                         databaseResultMatch = self.matchingDatabase.findMatch(client)
                     except ValueError as e:
-                        logger.debug("Bad database query attempt [%s], forcefully disconnecting client: [%s]" % (e, client))
+                        if logger.isEnabledFor(logging.DEBUG):
+                            logger.debug("Bad database query attempt [%s], forcefully disconnecting client: [%s]" % (e, client))
                         client.closeConnection()
                         return
 
@@ -294,20 +305,24 @@ class House:
 
                 # A client has reconnected, and wants to use the old room.
                 if clientOld is not client:
-                    logger.debug("Old room reused, due to client [%s]")
+                    if logger.isEnabledFor(logging.DEBUG):
+                        logger.debug("Old room reused, due to client [%s]")
                     self.room_participant[client] = clientMatch
                     self.room_participant[clientMatch] = client
 
                     if client.state == Client.State.ACCEPTING_MATCH:
-                        logger.debug("(REUSE) Readvised match details between client [%s] and [%s]" % (client, clientMatch))
+                        if logger.isEnabledFor(logging.DEBUG):
+                            logger.debug("(REUSE) Readvised match details between client [%s] and [%s]" % (client, clientMatch))
                         self.adviseMatchDetails(client, clientMatch, reconnectingClient = True)
                     elif client.state == Client.State.MATCHED:
-                        logger.debug("(REUSE) Readvised NAT punchthrough details between client [%s] and [%s]" % (client, clientMatch))
+                        if logger.isEnabledFor(logging.DEBUG):
+                            logger.debug("(REUSE) Readvised NAT punchthrough details between client [%s] and [%s]" % (client, clientMatch))
                         # NAT punchthrough won't be enabled on the new client and
                         # will probably be disabled on the old client.
                         self.adviseNatPunchthrough(client, clientMatch)
                     else:
-                        logger.debug("(REUSE) Releasing room, reconnecting client state is unusual: %d and %d" % (client.state, clientMatch.state))
+                        if logger.isEnabledFor(logging.DEBUG):
+                            logger.debug("(REUSE) Releasing room, reconnecting client state is unusual: %d and %d" % (client.state, clientMatch.state))
                         self.releaseRoom(client)
         finally:
             self.house_lock.release()

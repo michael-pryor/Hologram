@@ -39,11 +39,13 @@ class UdpConnectionLinker(object):
     def registerInterest(self, udpHash, waitingClient):
         obj = UdpConnectionLink(udpHash, waitingClient)
         if obj in self.waiting_hashes:
-            logger.debug("Duplicate UDP hash detected [%s], not registering interest" % udpHash)
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug("Duplicate UDP hash detected [%s], not registering interest" % udpHash)
             return False
 
         self.waiting_hashes[obj] = obj
-        logger.debug("Interest registered in UDP hash [%s]" % udpHash)
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug("Interest registered in UDP hash [%s]" % udpHash)
         return True
 
     def generateHash(self):
@@ -54,7 +56,8 @@ class UdpConnectionLinker(object):
                 return newHash
 
             # Incase we end up with lots of spinning.
-            logger.debug("Hash clash found with hash [%s], generating new hash" % newHash)
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug("Hash clash found with hash [%s], generating new hash" % newHash)
 
 
     def registerInterestGenerated(self, waitingClient, newHash = None):
@@ -74,9 +77,11 @@ class UdpConnectionLinker(object):
     def registerPrematureCompletion(self, udpHash, waitingClient):
         try:
             del self.waiting_hashes[UdpConnectionLink(udpHash, waitingClient)]
-            logger.debug("UDP connection with hash [%s] was prematurely aborted" % udpHash)
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug("UDP connection with hash [%s] was prematurely aborted" % udpHash)
         except KeyError:
-            logger.debug("UDP hash not found in waiting hashes, no need to remove [%s]" % udpHash)
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug("UDP hash not found in waiting hashes, no need to remove [%s]" % udpHash)
 
 
     def registerCompletion(self, udpHash, clientUdp):
@@ -87,7 +92,8 @@ class UdpConnectionLinker(object):
             hashObj.waiting_client.setUdp(clientUdp)
             del self.waiting_hashes[hashObj]
 
-            logger.debug("UDP connection with hash [%s] and details [%s] has been established" % (udpHash, unicode(clientUdp)))
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug("UDP connection with hash [%s] and details [%s] has been established" % (udpHash, unicode(clientUdp)))
             return hashObj.waiting_client
         except KeyError:
             pass

@@ -80,7 +80,8 @@ class Karma(object):
         recordToInsert = {"socialId" : clientSocialId,
                           "date": utcNow } # For TTL removing.
 
-        logger.debug("Writing karma deduction to database for Social ID: [%s]" % (clientSocialId))
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug("Writing karma deduction to database for Social ID: [%s]" % (clientSocialId))
         self.karma_collection.insert_one(recordToInsert)
 
         # If we want all records to have the latest timestamp.
@@ -103,10 +104,12 @@ class Karma(object):
         #assert isinstance(client, Client)
         clientSocialId = client.login_details.persisted_unique_id
 
-        logger.debug("Incrementing karma for Social ID: %s" % clientSocialId)
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug("Incrementing karma for Social ID: %s" % clientSocialId)
         record = self.karma_collection.find_one_and_delete({"socialId": clientSocialId}, sort=[("date", pymongo.ASCENDING)])
         if record is None:
-            logger.debug("Failed to increment karma, could not find any records for Social ID: %s" % clientSocialId)
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug("Failed to increment karma, could not find any records for Social ID: %s" % clientSocialId)
 
     def listItems(self):
         for item in self.karma_collection.find():

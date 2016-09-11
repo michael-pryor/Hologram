@@ -25,7 +25,8 @@ class ClientTcp(IntNStringReceiver):
         self.parent = None
 
     def connectionMade(self):
-        logger.debug("New client connection [%s]" % self)
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug("New client connection [%s]" % self)
         try:
             if self.parent is not None:
                 self.parent.onConnectionMade()
@@ -33,7 +34,8 @@ class ClientTcp(IntNStringReceiver):
             pass
 
     def connectionLost(self, reason):
-        logger.debug("Client TCP connection lost [%s]", self);
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug("Client TCP connection lost [%s]", self);
         try:
             if self.parent is not None:
                 self.parent.onTcpSocketDisconnect()
@@ -46,7 +48,8 @@ class ClientTcp(IntNStringReceiver):
             if self.parent is not None:
                 self.parent.handleTcpPacket(byteBuffer)
         except AttributeError as e:
-            logger.debug("Attribute error: %s" % unicode(e))
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug("Attribute error: %s" % unicode(e))
 
     def sendByteBuffer(self, byteBuffer):
         assert isinstance(byteBuffer, ByteBuffer)

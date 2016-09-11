@@ -71,7 +71,8 @@ class Blocking(object):
             utcNow = datetime.utcnow()
             recordToInsert.update({"date": utcNow})
 
-        logger.debug("Writing block record with expiration time of [%s] to DB for social ID: [%s] and [%s]" % (self.expiry_time_seconds, blockerSocialId, blockedSocialId))
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug("Writing block record with expiration time of [%s] to DB for social ID: [%s] and [%s]" % (self.expiry_time_seconds, blockerSocialId, blockedSocialId))
         self.block_collection.insert_one(recordToInsert)
 
     def listItems(self):

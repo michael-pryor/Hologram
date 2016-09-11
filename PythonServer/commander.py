@@ -196,7 +196,8 @@ class CommanderClientRouting(ClientFactory):
             result.addUnsignedInteger8(CommanderClientRouting.RouterCodes.FAILURE)
             result.addString("No governors available")
         else:
-            logger.debug("Directed client to governor: [%s]" % subServer)
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug("Directed client to governor: [%s]" % subServer)
             result.addUnsignedInteger8(CommanderClientRouting.RouterCodes.SUCCESS)
             result.addByteBuffer(subServer.forwardPacket, includePrefix=False)
 

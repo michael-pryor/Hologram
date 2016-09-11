@@ -90,14 +90,16 @@ class Payments(object):
 
             if verificationStatus != 0:
                 if verificationStatus == self.error_code_to_redirect:
-                    logger.debug("Redirecting status code = %d" % verificationStatus)
+                    if logger.isEnabledFor(logging.DEBUG):
+                        logger.debug("Redirecting status code = %d" % verificationStatus)
                     self.error_redirect_func(transaction, client, udpHash)
                     return
 
                 self.onTransactionFailure(client, verificationStatus)
                 return
 
-            logger.debug("Successfully validated transaction: [%s] (live count = %d)" % (result.reason, self.live_count))
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug("Successfully validated transaction: [%s] (live count = %d)" % (result.reason, self.live_count))
             self.onTransactionSuccess(client, udpHash)
         else:
             logger.error("Failed to validate transaction status code [%d]: [%s] (live count = %d)" % (result.status_code, result.reason, self.live_count))
@@ -113,7 +115,8 @@ class Payments(object):
         self.live_count+=1
         item = threads.deferToThread(lambda: self._doPushEvent(transactionToVerify, client))
         item.addCallback(lambda code: self._onEventCompletion(code, transactionToVerify, client, udpHash))
-        logger.debug("Payments event pushed, live count is %d" % self.live_count)
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug("Payments event pushed, live count is %d" % self.live_count)
 
 
 

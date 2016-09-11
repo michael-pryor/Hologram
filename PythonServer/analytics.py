@@ -17,7 +17,8 @@ class Analytics(object):
 
     # Do the actual HTTP request to Google analytics.
     def _doPushEvent(self, value, category, name, label):
-        logger.debug("Pushing event with category [%s], name [%s], label [%s], value [%s]" % (category, name, label, value))
+        if logger.isEnabledFor(logging.DEBUG):
+            loggerDebug("Pushing event with category [%s], name [%s], label [%s], value [%s]" % (category, name, label, value))
 
         postToMake = {
             'v': 1, # Protocol version (required)
@@ -37,7 +38,8 @@ class Analytics(object):
         self.live_count-=1
 
         if result.status_code == 200:
-            logger.debug("Successfully pushed analytics result: [%s] (live count = %d)" % (result.reason, self.live_count))
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug("Successfully pushed analytics result: [%s] (live count = %d)" % (result.reason, self.live_count))
         else:
             logger.error("Failed to push analytics result with status code [%d]: [%s] (live count = %d)" % (result.status_code, result.reason, self.live_count))
 

@@ -19,7 +19,8 @@ class PersistedIds(object):
         recordToInsert = {"_id" : persistedId}
         mongoResult = self.collection.update(recordToInsert, recordToInsert, upsert=True)
         result = not mongoResult['updatedExisting']
-        logger.debug("Validated ID [%s], is new: [%s]" % (recordToInsert, result))
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug("Validated ID [%s], is new: [%s]" % (recordToInsert, result))
         return result
 
 
