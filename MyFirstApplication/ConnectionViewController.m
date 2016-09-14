@@ -130,8 +130,8 @@
 
 
     // Hack for arden crescent, should be nil.
-    //_cachedResolvedDns = @"192.168.1.92";
-    _cachedResolvedDns = nil;
+    _cachedResolvedDns = @"192.168.1.92";
+    //_cachedResolvedDns = nil;
 
     _payments = [[Payments alloc] initWithDelegate:self];
 
@@ -869,9 +869,16 @@
             NSLog(@"End point temporarily disconnected");
             [self setDisconnectStateWithShortDescription:@"Reconnecting to existing session\nThe other person disconnected temporarily" askForConversationRating:false enableSkipButton:true dueToEndpointTempDisconnect:true];
         } else if (operation == DISCONNECT_PERM) {
+            // The 'house' session between you and the other client has ended, but still
+            // the behaviour we have is that while MATCHING, the screen stays up and you don't get alerted
+            // that the other person has left. Similarly, you won't be matched again, until you press skip, or
+            // the matching times out on the server side. So for this reason, we need to make sure you can
+            // skip, to fast track that process.
             NSLog(@"End point permanently disconnected");
 
-            [self resetFlags];
+            _isSkippableDespiteNoMatch = true;
+            _waitingForCompleteMatch = true;
+
             [self setDisconnectStateWithShortDescription:@"Matching you with somebody to talk with\nThe other person left" askForConversationRating:true];
         } else if (operation == DISCONNECT_SKIPPED) {
             NSLog(@"End point skipped us");

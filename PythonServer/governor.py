@@ -376,7 +376,8 @@ class CommanderConnection(ReconnectingClientFactory):
         self.schedulePing()
 
         # Tell Google analytics how much load we are handling
-        analytics.pushEvent(load, "governor_load", "bandwidth", self.governor.governor_name)
+        if analytics is not None:
+            analytics.pushEvent(load, "governor_load", "bandwidth", self.governor.governor_name)
 
     # Always have one, and only one, ping scheduled.
     def schedulePing(self):
@@ -450,7 +451,7 @@ if __name__ == "__main__":
     persistedIdsDatabase = PersistedIds(mongoClient)
     server = Governor(reactor, matchingDatabase, blockingDatabase, matchDecisionDatabase, karmaDatabase, persistedIdsDatabase, governorName)
 
-    analytics = Analytics(100, governorName)
+    analytics =  None#Analytics(100, governorName)
 
     commanderConnection = CommanderConnection(commanderHost, commanderPort, tcpPort, udpPort, server, analytics)
     logger.info("Connecting to commander via TCP with address: [%s:%d]" % (commanderHost, commanderPort))

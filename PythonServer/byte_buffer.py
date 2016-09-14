@@ -122,7 +122,7 @@ class ByteBuffer(object):
     def getValueAtPosition(self, startPosition, valueDataSize):
         endPosition = startPosition + valueDataSize
         if endPosition > self.used_size:
-            return endPosition
+            return self.used_size, "0" * valueDataSize
 
         return endPosition, self.buffer[startPosition:endPosition]
 

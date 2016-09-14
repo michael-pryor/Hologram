@@ -9,9 +9,11 @@
 
 
 @interface JoiningViewController : UIViewController
-- (void)consumeRemainingTimer:(Timer*)timer;
+- (void)consumeRemainingTimer:(Timer *)timer;
 
-- (void) setTimeoutDelegate:(id<MatchingAnswerDelegate>)timeoutDelegate;
+- (void)setTimeoutDelegate:(id <MatchingAnswerDelegate>)timeoutDelegate;
 
 - (void)stop;
+
+- (void)reset;
 @end

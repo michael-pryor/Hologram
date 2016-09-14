@@ -78,7 +78,7 @@ class House:
                 # State does not need correcting in this case.
                 return True
             if logger.isEnabledFor(logging.DEBUG):
-                logger.debug("Client [%s] has accepted the conversation")
+                logger.debug("Client [%s] has accepted the conversation" % sourceClient)
 
             clientB = self.room_participant.get(sourceClient)
             if clientB is None:

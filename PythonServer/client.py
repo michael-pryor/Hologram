@@ -181,6 +181,7 @@ class Client(object):
         if karmaDatabase is not None:
             assert isinstance(karmaDatabase, KarmaLeveled)
 
+        self.login_details = None
         self.reactor = reactor
         self.udp = None
         self.tcp = tcp
@@ -756,6 +757,12 @@ class Client(object):
         self.has_shared_social_information = client.has_shared_social_information
         self.social_share_information_packet = client.social_share_information_packet
         self.state = client.state
+
+        # Upon reconnecting, need to go back to matching state. During the connecting stages to come,
+        # If we are indeed still in ACCEPTING_MATCH, we will be rematched with house correctly and timeouts
+        # will be setup, to ensure that we move out of MATCHING state.
+        self.transitionState(Client.State.ACCEPTING_MATCH, Client.State.MATCHING)
+        
         self.skipped_timed_out = client.skipped_timed_out
         self.approved_match = client.approved_match
 
