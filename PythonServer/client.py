@@ -758,17 +758,18 @@ class Client(object):
         self.social_share_information_packet = client.social_share_information_packet
         self.state = client.state
 
-        # Upon reconnecting, need to go back to matching state. During the connecting stages to come,
-        # If we are indeed still in ACCEPTING_MATCH, we will be rematched with house correctly and timeouts
-        # will be setup, to ensure that we move out of MATCHING state.
-        self.transitionState(Client.State.ACCEPTING_MATCH, Client.State.MATCHING)
-        
         self.skipped_timed_out = client.skipped_timed_out
         self.approved_match = client.approved_match
 
 
         self.house.house_lock.acquire()
         try:
+            # Upon reconnecting, need to go back to matching state. During the connecting stages to come,
+            # If we are indeed still in ACCEPTING_MATCH, we will be rematched with house correctly and timeouts
+            # will be setup, to ensure that we move out of MATCHING state.
+            if client not in self.house.room_participant:
+                self.transitionState(Client.State.ACCEPTING_MATCH, Client.State.MATCHING)
+
             # This isn't setup to work properly on the client side, after they reconnect
             # they won't have the ability to give a rating. So let's make sure server
             # side state reflects this.
