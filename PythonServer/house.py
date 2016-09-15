@@ -8,13 +8,22 @@ from utility import getRemainingTimeOnAction, getEpoch
 from geography import distanceBetweenPointsKm
 import math
 from database.karma_leveled import KarmaLeveled
+from handshaking import UdpConnectionLinker
 
 logger = logging.getLogger(__name__)
 
 # A house has lots of rooms in it, each room has two participants in it (the video call).
 class House:
-    def __init__(self, matchingDatabase):
+    def __init__(self, matchingDatabase, udpConnectionLinker, buildOfflineClientFunc):
         assert isinstance(matchingDatabase, Matching)
+        assert isinstance(udpConnectionLinker, Udp)
+
+        # When clients are offline, and matched with somebody, we need to add
+        # them to the clients by UDP hash map, which is contained within this object.
+        self.udp_connection_linker = udpConnectionLinker
+
+        # Function which (with no parameters) can build a client for matching.
+        self.build_offline_client_func = buildOfflineClientFunc
 
         # Contains links e.g.
         # Participant A -> Participant B
@@ -86,6 +95,7 @@ class House:
 
             # Only advise when both clients have accepted.
             if clientB.state != Client.State.ACCEPTING_MATCH:
+                # ***** Here we would do the notify.
                 return False
 
             if not clientB.approved_match:
@@ -146,7 +156,11 @@ class House:
 
     def adviseAbortNatPunchthrough(self, client):
         assert isinstance(client, Client)
-        client.tcp.sendByteBuffer(self.abort_nat_punchthrough_packet)
+        if client.tcp is not None:
+            client.tcp.sendByteBuffer(self.abort_nat_punchthrough_packet)
+        else:
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug("Not sending abort NAT punchthrough message to offline client: %s" % self)
 
     # A client has disconnected (temporarily at this stage), so
     # tell the other client to stop sending data via NAT punchthrough.
@@ -189,6 +203,9 @@ class House:
         self.house_lock.acquire()
         try:
             self._removeFromWaitingList(client)
+
+            # ***** Here if notify enabled upsert on the DB record, indicating that should be notified.
+            # Has to be a parameter indicating whether we shoudl do this. For example we shouldn't do on skip.
 
             clientB = self.room_participant.get(client)
             if clientB is not None:
@@ -261,6 +278,8 @@ class House:
                     key = databaseResultMatch['_id']
                     clientMatch = self.waiting_clients_by_key.get(key)
                     if clientMatch is None:
+                        # ***** Here if notify enabled on the record, we synthesize a client out of that record.
+
                         self.matchingDatabase.removeMatchById(key)
                         logger.warn("Client in DB not found in waiting list, database inconsistency detected, removing key from database: " + key + ", and retrying")
                         continue # Retry repeatedly.

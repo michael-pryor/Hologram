@@ -171,7 +171,8 @@ class Client(object):
 
     def __init__(self, reactor, tcp, onCloseFunc, udpConnectionLinker, house, blockingDatabase, matchDecisionDatabase, karmaDatabase, paymentVerifier, persistedIdsVerifier):
         super(Client, self).__init__()
-        assert isinstance(tcp, ClientTcp)
+        if tcp is not None:
+            assert isinstance(tcp, ClientTcp)
         #assert isinstance(paymentVerifier, Payments)
         assert isinstance(persistedIdsVerifier, PersistedIds)
 
@@ -185,12 +186,13 @@ class Client(object):
         self.reactor = reactor
         self.udp = None
         self.tcp = tcp
-        self.tcp.parent = self
+        if self.tcp is not None:
+            self.tcp.parent = self
+
         self.connection_status = Client.ConnectionStatus.WAITING_LOGON
         self.on_close_func = onCloseFunc
         self.udp_connection_linker = udpConnectionLinker
         self.udp_hash = None
-        self.udp_remote_address = None
         self.house = house
         self.blocking_database = blockingDatabase
 
@@ -237,6 +239,9 @@ class Client(object):
         self.accepting_match_expiry_action = None
         self.approved_match = False
 
+        # Placeholder, should set this only when received packet from client signaling it.
+        self.should_notify_on_match_accept = True
+
     def transitionState(self, startState, endState):
         if startState == endState:
             return
@@ -281,7 +286,11 @@ class Client(object):
         packet.addUnsignedInteger(htons(sourceClient.udp.remote_address[1]))
         self.transitionState(Client.State.ACCEPTING_MATCH, Client.State.MATCHED)
 
-        self.tcp.sendByteBuffer(packet)
+        if self.tcp is not None:
+            self.tcp.sendByteBuffer(packet)
+        else:
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug("Not advising NAT punchthrough details to offline client: %s" % self)
 
     def adviseMatchDetails(self, sourceClient, distance, reconnectingClient = False):
         packet = ByteBuffer()
@@ -305,7 +314,11 @@ class Client(object):
             logger.debug("Scheduled new accepting match expiry for client [%s] in [%s] seconds" % (self, Client.ACCEPTING_MATCH_EXPIRY))
         self.accepting_match_expiry_action = self.reactor.callLater(Client.ACCEPTING_MATCH_EXPIRY, self.doSkipTimedOut)
 
-        self.tcp.sendByteBuffer(packet)
+        if self.tcp is not None:
+            self.tcp.sendByteBuffer(packet)
+        else:
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug("Not advising match details to offline client: %s" % self)
 
     def cancelAcceptingMatchExpiry(self):
         try:
@@ -361,7 +374,9 @@ class Client(object):
 
         self.cancelAcceptingMatchExpiry()
         self.connection_status = Client.ConnectionStatus.NOT_CONNECTED
-        self.tcp.transport.loseConnection()
+
+        if self.tcp is not None:
+            self.tcp.transport.loseConnection()
 
     def getRejectBannedArguments(self, banMagnitude, expiryTime):
         return Client.RejectCodes.REJECT_BANNED, "You have run out of karma, please wait to regenerate\nMaximum wait time is: %.1f minutes" % (float(expiryTime) / 60.0), banMagnitude, expiryTime
@@ -530,6 +545,7 @@ class Client(object):
         if self.skipped_timed_out > Client.SKIPPED_TIMED_OUT_LIMIT:
             rejectPacket = self.buildRejectPacket(Client.RejectCodes.INACTIVE_TIMEOUT, "You were inactive for too long")
             self.tcp.sendByteBuffer(rejectPacket)
+
             self.closeConnection()
 
         self.doSkip()
@@ -615,7 +631,11 @@ class Client(object):
 
     def sendBanMessage(self, magnitude, expiryTime):
         packet = self.buildRejectPacket(*self.getRejectBannedArguments(magnitude, expiryTime))
-        self.tcp.sendByteBuffer(packet)
+        if self.tcp is not None:
+            self.tcp.sendByteBuffer(packet)
+        else:
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug("Not sending ban message to offline client: %s" % self)
         self.closeConnection()
 
     # This is somebody rating us.

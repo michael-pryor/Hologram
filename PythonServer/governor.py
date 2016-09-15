@@ -45,7 +45,7 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
         self.clean_actions_by_udp_hash = dict()
 
         self.reactor = reactor
-        self.house = House(matchingDatabase)
+        self.house = House(matchingDatabase, self.udp_connection_linker, self.buildClient)
 
         # Track kilobytes per second averaged over last 30 seconds.
         self.kilobyte_per_second_tracker = StatTracker(1,30)
@@ -207,12 +207,16 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
         finally:
             self._unlockClm()
 
+    def buildClient(self, tcpCon = None):
+        Client(reactor, tcpCon, self.clientDisconnected, self.udp_connection_linker, self.house, self.blocking_database,
+               self.match_decision_database, self.karma_database, self.payments_verifier, self.persisted_ids_verifier)
+
     def buildProtocol(self, addr):
         if logger.isEnabledFor(logging.DEBUG):
             logger.debug('TCP connection initiated with new client [%s]' % addr)
 
         tcpCon = ClientTcp(addr)
-        client = Client(reactor, tcpCon, self.clientDisconnected, self.udp_connection_linker, self.house, self.blocking_database, self.match_decision_database, self.karma_database, self.payments_verifier, self.persisted_ids_verifier)
+        client = self.buildClient(tcpCon)
 
         self._lockClm()
         try:
