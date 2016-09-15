@@ -173,6 +173,9 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
 
         self._lockClm()
         try:
+            if client.tcp is None:
+                return
+
             origClient = self.clients_by_tcp_address.get(client.tcp.remote_address)
             if origClient is None:
                 # Already disconnected.
@@ -208,7 +211,7 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
             self._unlockClm()
 
     def buildClient(self, tcpCon = None):
-        Client(reactor, tcpCon, self.clientDisconnected, self.udp_connection_linker, self.house, self.blocking_database,
+        return Client(reactor, tcpCon, self.clientDisconnected, self.udp_connection_linker, self.house, self.blocking_database,
                self.match_decision_database, self.karma_database, self.payments_verifier, self.persisted_ids_verifier)
 
     def buildProtocol(self, addr):

@@ -200,7 +200,10 @@ class Client(object):
         self.payment_verifier = paymentVerifier
         self.persisted_ids_verifier = persistedIdsVerifier
 
-        self.client_matcher = task.LoopingCall(self.house.aquireMatch, self)
+        if self.tcp is not None:
+            self.client_matcher = task.LoopingCall(self.house.aquireMatch, self)
+        else:
+            self.client_matcher = None
 
         def timeoutCheck():
             if self.last_received_data is not None:
@@ -213,8 +216,11 @@ class Client(object):
                     pass
                     # logger.debug("Client [%s] last pinged %.2f seconds ago" % (self, timeDiff))
 
-        self.timeout_check = task.LoopingCall(timeoutCheck)
-        self.timeout_check.start(2.0)
+        if self.tcp is not None:
+            self.timeout_check = task.LoopingCall(timeoutCheck)
+            self.timeout_check.start(2.0)
+        else:
+            self.timeout_check = None
 
         # Track time between queries to database.
         self.house_match_timer = None
@@ -319,6 +325,8 @@ class Client(object):
         else:
             if logger.isEnabledFor(logging.DEBUG):
                 logger.debug("Not advising match details to offline client: %s" % self)
+
+            self.udp_connection_linker.clients_by_udp_hash[self.udp_hash] = self
 
     def cancelAcceptingMatchExpiry(self):
         try:
@@ -743,7 +751,7 @@ class Client(object):
         if not client.state == Client.State.MATCHING:
             return False
 
-        if client.connection_status != Client.ConnectionStatus.CONNECTED:
+        if client.connection_status != Client.ConnectionStatus.CONNECTED and not client.should_notify_on_match_accept:
             return False
 
         isPriorMatch = self.match_skip_history.isPriorMatch(client)

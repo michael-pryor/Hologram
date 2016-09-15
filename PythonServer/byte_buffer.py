@@ -176,7 +176,7 @@ class ByteBuffer(object):
 
     def addString(self, theString):
         assert isinstance(theString, basestring)
-        self.addVariableLengthData(theString, len(theString))
+        self.addVariableLengthData(str(theString), len(theString))
 
     def getVariableLengthData(self, dataHandlerFunc, dataSize):
         if dataSize == 0:

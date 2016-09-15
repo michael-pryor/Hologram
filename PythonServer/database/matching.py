@@ -7,6 +7,8 @@ import uuid
 import random
 import pymongo.errors
 import random
+from byte_buffer import ByteBuffer
+import pickle
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +21,7 @@ class Matching(object):
         self.server_name = serverName
 
     def removeMatchById(self, uniqueKey):
-        self.match_collection.remove({'_id' : uniqueKey})
+        self.match_collection.remove({'_id' : self.buildId(uniqueKey)})
 
     def removeMatch(self, client):
         assert isinstance(client, Client)
@@ -68,7 +70,7 @@ class Matching(object):
                                        }
                                   }
                            },
-                      '_id' : {'$ne' : loginDetails.unique_id}
+                      '_id' : {'$ne' : self.buildId(loginDetails.unique_id)}
                     })
 
         try:
@@ -103,6 +105,29 @@ class Matching(object):
 
         return matches[randomIndex]
 
+    def synthesizeClient(self, dataRecord, buildClientFunc):
+        assert isinstance(dataRecord, dict)
+
+        shouldNotify = dataRecord.get('should_notify')
+        if not shouldNotify:
+            return
+
+        client = buildClientFunc()
+
+        profilePicture = ByteBuffer()
+
+        client.login_details = Client.LoginDetails(dataRecord['unique_id'], dataRecord['persisted_unique_id'],
+                                                   dataRecord['name'], dataRecord['short_name'], dataRecord['age'],
+                                                   dataRecord['gender'], dataRecord['gender_wanted'], dataRecord['location'][0],
+                                                   dataRecord['location'][1], dataRecord['card_text'], profilePicture, dataRecord['profile_picture_orientation'])
+
+        client.should_notify_on_match_accept = True
+        client.udp_hash = client.login_details.unique_id
+
+        return client
+
+
+
     # push a client into the waiting list, ready to be found by findMatch.
     def pushWaiting(self, client):
         assert isinstance(client, Client)
@@ -120,22 +145,40 @@ class Matching(object):
                                             ("age", pymongo.ASCENDING),
                                             ("location", pymongo.GEOSPHERE)])
 
-        recordToInsert = {"_id" : loginDetails.unique_id,
+        shouldNotify = client.should_notify_on_match_accept
+        uniqueId = self.buildId(loginDetails.unique_id)
+        recordToInsert = {"_id" : uniqueId,
                           "server" : self.server_name,
                           "age" : loginDetails.age,
                           "gender": loginDetails.gender,
                           "location": [loginDetails.longitude, loginDetails.latitude],
-                          "gender_wanted": loginDetails.interested_in}
+                          "gender_wanted": loginDetails.interested_in,
+                          "unique_id": loginDetails.unique_id,
+                          "should_notify": shouldNotify}
 
-        self.match_collection.insert_one(recordToInsert)
+        if shouldNotify:
+            assert isinstance(loginDetails.profile_picture, ByteBuffer)
+            recordToInsert.update({'name' : loginDetails.name,
+                                   'short_name' : loginDetails.short_name,
+                                   'card_text' : loginDetails.card_text,
+                                   'profile_picture_used_size' : loginDetails.profile_picture.used_size,
+                                   'profile_picture' : None,
+                                   'profile_picture_orientation' : loginDetails.profile_picture_orientation,
+                                   'persisted_unique_id' : loginDetails.persisted_unique_id})
+
+        self.match_collection.replace_one({"_id" : uniqueId}, recordToInsert, upsert=True)
+
+    def buildId(self, uniqueId):
+        return "%s_%s" % (self.server_name, uniqueId)
 
     def listItems(self):
         for item in self.match_collection.find():
             print item
 
 if __name__ == '__main__':
-    db = Matching("michael_governor", "localhost", 27017)
+    db = Matching("michael_governor", pymongo.MongoClient("localhost", 27017))
     db.match_collection.drop()
+    exit(0)
 
     amountToPush = 1000
     amountToTest = 1000
