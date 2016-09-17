@@ -27,5 +27,5 @@
 
 - (void)stopUpdating;
 
-- (void)enableInfiniteMode:(float)maxProgress;
+- (void)enableInfiniteMode;
 @end

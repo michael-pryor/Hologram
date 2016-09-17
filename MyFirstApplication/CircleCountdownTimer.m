@@ -38,13 +38,14 @@
         [_progressObject setProgress:0 animated:false];
     });
 
+    _infiniteBackwardsLeg = false;
     if (_timeoutTimer != nil) {
         [_timeoutTimer reset];
         [self startUpdating];
     }
 }
 
-- (void)enableInfiniteMode:(float)maxProgress {
+- (void)enableInfiniteMode {
     _infiniteModeEnabled = true;
 }
 

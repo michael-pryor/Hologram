@@ -3813,6 +3813,12 @@ i. The laws of the State of California, excluding its conflicts of law rules, go
                         <rect key="frame" x="0.0" y="0.0" width="560" height="375"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Tap to be notified when you match" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="5" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="rsq-eU-5jb">
+                                <rect key="frame" x="108" y="177" width="345" height="22"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="18"/>
+                                <color key="textColor" red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="hUW-Ru-tAQ" userLabel="Progress Circle" customClass="CircleProgressBar">
                                 <rect key="frame" x="93" y="0.0" width="375" height="375"/>
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
@@ -3850,18 +3856,30 @@ i. The laws of the State of California, excluding its conflicts of law rules, go
                         </subviews>
                         <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                         <constraints>
+                            <constraint firstItem="rsq-eU-5jb" firstAttribute="leading" secondItem="hUW-Ru-tAQ" secondAttribute="leading" constant="15" id="2xb-eQ-d8E"/>
+                            <constraint firstItem="rsq-eU-5jb" firstAttribute="centerY" secondItem="hUW-Ru-tAQ" secondAttribute="centerY" id="3bd-HN-Dll"/>
                             <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="hUW-Ru-tAQ" secondAttribute="trailing" id="8t3-Kc-8cs"/>
                             <constraint firstItem="hUW-Ru-tAQ" firstAttribute="centerY" secondItem="4Wr-ug-HZ6" secondAttribute="centerY" id="9vM-vY-ifY"/>
+                            <constraint firstItem="rsq-eU-5jb" firstAttribute="trailing" secondItem="hUW-Ru-tAQ" secondAttribute="trailing" constant="-15" id="KWe-fa-VdO"/>
                             <constraint firstItem="hUW-Ru-tAQ" firstAttribute="height" secondItem="4Wr-ug-HZ6" secondAttribute="height" id="drC-WA-FYY"/>
                             <constraint firstItem="hUW-Ru-tAQ" firstAttribute="centerX" secondItem="4Wr-ug-HZ6" secondAttribute="centerX" id="wLk-NX-w56"/>
                             <constraint firstItem="hUW-Ru-tAQ" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="4Wr-ug-HZ6" secondAttribute="leading" id="z3p-XO-cur"/>
                         </constraints>
+                        <connections>
+                            <outletCollection property="gestureRecognizers" destination="xcR-Zg-Cya" appends="YES" id="jNq-dG-nEp"/>
+                        </connections>
                     </view>
                     <connections>
                         <outlet property="_progressCircleView" destination="hUW-Ru-tAQ" id="vGJ-Sj-qVa"/>
+                        <outlet property="_tapToNotifyLabel" destination="rsq-eU-5jb" id="eCg-F5-Nvq"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="L50-cx-Qnc" userLabel="First Responder" sceneMemberID="firstResponder"/>
+                <tapGestureRecognizer id="xcR-Zg-Cya">
+                    <connections>
+                        <action selector="onViewTap:" destination="qQQ-Hv-Ih6" id="uG3-1g-XCX"/>
+                    </connections>
+                </tapGestureRecognizer>
             </objects>
             <point key="canvasLocation" x="3190" y="-699"/>
         </scene>
