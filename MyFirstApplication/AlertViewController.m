@@ -26,6 +26,7 @@
     __weak IBOutlet UIButton *_forwardButton;
     id <MediaOperator> _mediaOperator;
     bool _movingToFacebook;
+    bool _isViewVisible;
 
     NSString *_cachedAlertText;
     __weak IBOutlet UIActivityIndicatorView *_activityIndicator;
@@ -157,6 +158,7 @@
     _ratingTimeoutSeconds = 0;
     _movingToFacebook = false;
     _shouldShowAdverts = false;
+    _isViewVisible = false;
 
     // Start off initializing, no skip button.
     _isSkipButtonRequired = false;
@@ -217,7 +219,7 @@
     [super viewDidAppear:animated];
 
     NSLog(@"!!!!!!APPEAR!!!!!!");
-
+    _isViewVisible = true;
     _movingToFacebook = false;
     if ([self shouldVideoBeOn]) {
         [_mediaOperator startVideo];
@@ -237,6 +239,7 @@
     [super viewDidDisappear:animated];
 
     NSLog(@"!!!!!!DISAPPEAR!!!!!!");
+    _isViewVisible = false;
 
     // Pause the banner view, stop it loading new adverts.
     NSLog(@"Disconnect view controller hidden, hiding banner advert and removing delegate");
@@ -481,6 +484,10 @@
 }
 
 - (void)onStartedFadingIn:(UIView *)view duration:(float)duration meta:(id)meta {
+    if (!_isViewVisible) {
+        return;
+    }
+
     if ([self shouldVideoBeOnView:view]) {
         [_mediaOperator startVideo];
     }
@@ -547,6 +554,10 @@
 }
 
 - (void)onFinishedFadingIn:(UIView *)view duration:(float)duration meta:(id)meta {
+    if (!_isViewVisible) {
+        return;
+    }
+
     [_forwardButton setHidden:!_isSkipButtonRequired && ![self doesViewRequireSkipButton:view]];
 }
 

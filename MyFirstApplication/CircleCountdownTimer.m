@@ -78,8 +78,6 @@
                 return [NSString stringWithFormat:@"%d", secondsLeft];
             }];
         }
-
-        [self startUpdating];
     } else {
         [_timeoutTimer setSecondsFrequency:[timer secondsFrequency]];
     }

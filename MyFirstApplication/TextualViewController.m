@@ -64,6 +64,7 @@
 - (void)reset {
     [_progressCircleViewCountdown restart];
     _remoteNotificationsEnabled = false;
+    _remoteNotificationsPreparing = false;
     [self updateTextOfNotifyLabel];
     [_tapToNotifyLabel setAlpha:0];
     dispatch_async_main(^{
