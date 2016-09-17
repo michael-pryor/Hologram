@@ -83,4 +83,9 @@
     [[Notifications getNotificationsInstance] onRemoteRegisterSuccessWithDeviceToken:deviceToken];
 }
 
+- (void)application:(UIApplication *)application
+        didReceiveRemoteNotification:(NSDictionary *)userInfo {
+    NSLog(@"Received remote notification!");
+}
+
 @end

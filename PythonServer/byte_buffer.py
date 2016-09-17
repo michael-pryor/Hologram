@@ -176,7 +176,7 @@ class ByteBuffer(object):
 
     def addString(self, theString):
         assert isinstance(theString, basestring)
-        self.addVariableLengthData(str(theString), len(theString))
+        self.addVariableLengthData(theString, len(theString))
 
     def getVariableLengthData(self, dataHandlerFunc, dataSize):
         if dataSize == 0:
@@ -212,6 +212,15 @@ class ByteBuffer(object):
 
     def getString(self):
         return self.getStringWithLength(0)
+
+    def getHexStringWithLength(self, length):
+        def handlerFunc(theBuffer, dataSize):
+            return ''.join('{:02x}'.format(x) for x in theBuffer[:dataSize])
+
+        return self.getVariableLengthData(handlerFunc, length)
+
+    def getHexString(self):
+        return self.getHexStringWithLength(0)
 
     def getByteBufferWithLength(self, length):
         def handlerFunc(theBuffer, dataSize):

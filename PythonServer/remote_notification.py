@@ -1,0 +1,82 @@
+from utility import getEpoch
+
+__author__ = 'pryormic'
+import logging
+
+# I want to see exactly what we are sending.
+requests_log = logging.getLogger("requests.packages.urllib3")
+requests_log.setLevel(logging.DEBUG)
+requests_log.propagate = True
+import httplib
+httplib.HTTPConnection.debuglevel = 2
+
+
+from twisted.internet import threads
+import requests
+
+from hyper.contrib import HTTP20Adapter
+
+logger = logging.getLogger(__name__)
+
+class RemoteNotification(object):
+    def __init__(self, maxLiveCount):
+        super(RemoteNotification, self).__init__()
+        # Requests which are waiting but not actioned yet.
+        self.live_count = 0
+        self.max_live_count = maxLiveCount
+
+        self.httpSession = requests.Session()
+
+        # Support HTTP v2.0 (Requests doesn't by itself).
+        environment = "https://api.development.push.apple.com:443"
+        self.httpSession.mount(environment, HTTP20Adapter())
+
+        self.url_push = environment + "/3/device/%s"
+
+    def _doPushEvent(self, client):
+        theUrl = self.url_push % client.remote_notification_payload
+        return self.httpSession.post(theUrl, json={'aps' : {'alert' : "Hello"}}, headers={'apns-topic' : 'mike.Spawn'},
+                                     cert='/Users/pryormic/Desktop/MyFirstApplication/certificates/hologram_private.cer')
+
+    def onTransactionSuccess(self, client):
+        pass
+
+    def onTransactionFailure(self, client, statusCode, rejectReason):
+        logger.error("Remote notification could not be sent, status code: %d, reject reason: %s." % (statusCode, rejectReason))
+
+    def _onEventCompletion(self, result, client):
+        self.live_count-=1
+
+        if result.status_code == 200:
+            jsonResponse = result
+            verificationStatus = jsonResponse.get('status')
+            if verificationStatus is None:
+                self.onTransactionFailure(client, -2, "No status received")
+                return
+
+            if verificationStatus != 0:
+                self.onTransactionFailure(client, -2, verificationStatus)
+                return
+
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug("Successfully sent remote notification request: [%s] (live count = %d)" % (result.reason, self.live_count))
+            self.onTransactionSuccess(client)
+        else:
+            logger.error("Failed to send remote notification request status code [%d]: [%s] (live count = %d)" % (result.status_code, result.reason, self.live_count))
+            self.onTransactionFailure(client, result.status_code, result.text)
+
+
+    def pushEvent(self, client):
+        if self.live_count >= self.max_live_count:
+            logger.error("Failed to push remote notification event, too many in progress requests (%d of max %d)" % (self.live_count, self.max_live_count))
+            self.onTransactionFailure(client, -1)
+            return
+
+        self.live_count+=1
+        item = threads.deferToThread(lambda: self._doPushEvent(client))
+        item.addCallback(lambda code: self._onEventCompletion(code, client))
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug("Remote notification event pushed, live count is %d" % self.live_count)
+
+
+

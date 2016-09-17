@@ -13,6 +13,7 @@ import random
 from database.karma_leveled import KarmaLeveled
 from database.persisted_ids import PersistedIds
 from utility import htons, inet_addr
+from remote_notification import RemoteNotification
 
 __author__ = 'pryormic'
 
@@ -171,7 +172,7 @@ class Client(object):
                                                         random.randint(0, 180), random.randint(0, 90), None, None, None)
         return item
 
-    def __init__(self, reactor, tcp, onCloseFunc, udpConnectionLinker, house, blockingDatabase, matchDecisionDatabase, karmaDatabase, paymentVerifier, persistedIdsVerifier):
+    def __init__(self, reactor, tcp, onCloseFunc, udpConnectionLinker, house, blockingDatabase, matchDecisionDatabase, karmaDatabase, paymentVerifier, persistedIdsVerifier, remoteNotification):
         super(Client, self).__init__()
         if tcp is not None:
             assert isinstance(tcp, ClientTcp)
@@ -183,6 +184,8 @@ class Client(object):
 
         if karmaDatabase is not None:
             assert isinstance(karmaDatabase, KarmaLeveled)
+
+        assert isinstance(remoteNotification, RemoteNotification)
 
         self.login_details = None
         self.reactor = reactor
@@ -247,8 +250,9 @@ class Client(object):
         self.accepting_match_expiry_action = None
         self.approved_match = False
 
-        # Placeholder, should set this only when received packet from client signaling it.
-        self.should_notify_on_match_accept = True
+        self.remote_notification_payload = None
+        self.should_notify_on_match_accept = False
+        self.remote_notification = remoteNotification
 
     def transitionState(self, startState, endState):
         if startState == endState:
@@ -609,9 +613,12 @@ class Client(object):
             if not self.house.onAcceptConversation(self):
                 self.doSkip()
         elif opCode == Client.TcpOperationCodes.OP_REQUEST_NOTIFICATION:
-            data = packet.getByteBuffer()
+            self.remote_notification_payload = packet.getHexString()
+            self.should_notify_on_match_accept = True
             if logger.isEnabledFor(logging.DEBUG):
-                logger.debug("Received remote notification request from client [%s], data length: %d" % (self, data.used_size))
+                logger.debug("Received remote notification request from client [%s], payload: %s" % (self, self.remote_notification_payload))
+
+            self.trySendRemoteNotification()
         else:
             # Must be debug in case rogue client sends us garbage data
             if logger.isEnabledFor(logging.DEBUG):
@@ -839,6 +846,12 @@ class Client(object):
 
     def onFriendlyPacketUdp(self, packet):
         self.house.handleUdpPacket(self, packet)
+
+    def trySendRemoteNotification(self):
+        if not self.should_notify_on_match_accept:
+            return
+
+        self.remote_notification.pushEvent(self)
 
     def __str__(self):
         if self.tcp is not None:

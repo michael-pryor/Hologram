@@ -100,8 +100,7 @@ class House:
 
             if not clientB.approved_match:
                 # ***** Here we would do the notify.
-                if clientB.should_notify_on_match_accept and clientB.tcp is None:
-                    logger.error("!!!!!!!!!!!!!!!!! DONE THE NOTIFY !!!!!!!!!!!!!!!!!")
+                clientB.trySendRemoteNotification()
                 return True
 
             if logger.isEnabledFor(logging.DEBUG):

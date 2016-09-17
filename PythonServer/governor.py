@@ -20,18 +20,23 @@ from database.blocking import Blocking
 from database.karma_leveled import KarmaLeveled
 from database.persisted_ids import PersistedIds
 from payments import PaymentsEx
+from remote_notification import RemoteNotification
 
 __author__ = 'pryormic'
 
 
 logger = logging.getLogger(__name__)
 
+import sys
+reload(sys)
+sys.setdefaultencoding('utf8')
+
 # Represents server in memory state.
 # There will only be one instance of this object.
 #
 # ClientFactory encapsulates the TCP listening socket.
 class Governor(ClientFactory, protocol.DatagramProtocol):
-    def __init__(self, reactor, matchingDatabase, blockingDatabase, matchDecisionDatabase, karmaDatabase, persistedIdsDatabase, governorName):
+    def __init__(self, reactor, matchingDatabase, blockingDatabase, matchDecisionDatabase, karmaDatabase, persistedIdsDatabase, governorName, remoteNotification):
         # All connected clients.
         self.client_mappings_lock = RLock()
 
@@ -56,6 +61,7 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
         self.karma_database = karmaDatabase
         self.payments_verifier = PaymentsEx(100)
         self.persisted_ids_verifier = persistedIdsDatabase
+        self.remote_notification = remoteNotification
 
     # Higher = under more stress, handling more traffic, lower = handling less.
     def getLoad(self):
@@ -212,7 +218,7 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
 
     def buildClient(self, tcpCon = None):
         return Client(reactor, tcpCon, self.clientDisconnected, self.udp_connection_linker, self.house, self.blocking_database,
-               self.match_decision_database, self.karma_database, self.payments_verifier, self.persisted_ids_verifier)
+               self.match_decision_database, self.karma_database, self.payments_verifier, self.persisted_ids_verifier, self.remote_notification)
 
     def buildProtocol(self, addr):
         if logger.isEnabledFor(logging.DEBUG):
@@ -456,7 +462,8 @@ if __name__ == "__main__":
     matchDecisionDatabase = Blocking(mongoClient.db.match_decision, expiryTimeSeconds=60 * 60)
     karmaDatabase = KarmaLeveled(mongoClient)
     persistedIdsDatabase = PersistedIds(mongoClient)
-    server = Governor(reactor, matchingDatabase, blockingDatabase, matchDecisionDatabase, karmaDatabase, persistedIdsDatabase, governorName)
+    remoteNotification = RemoteNotification(1000)
+    server = Governor(reactor, matchingDatabase, blockingDatabase, matchDecisionDatabase, karmaDatabase, persistedIdsDatabase, governorName, remoteNotification)
 
     analytics =  None#Analytics(100, governorName)
 
