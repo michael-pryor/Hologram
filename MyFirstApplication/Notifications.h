@@ -5,7 +5,10 @@
 #import <Foundation/Foundation.h>
 
 @protocol NotificationRequest
-- (void)onNotificationRequested;
+- (void)onRemoteNotificationRegistrationSuccess:(NSData*)deviceToken;
+
+@optional
+- (void)onRemoteNotificationRegistrationFailure:(NSString*)description;
 @end
 
 @interface Notifications : NSObject
@@ -18,4 +21,10 @@
 - (UILocalNotification *)getLocalNotificationWithId:(NSString*)idString;
 
 - (void)cancelNotificationsWithId:(NSString*)idString;
+
+- (void)onRemoteRegisterFailureWithError:(NSError *)error;
+
+- (void)onRemoteRegisterSuccessWithDeviceToken:(NSData *)deviceToken;
+
+- (void)registerForRemoteNotificationsWithCallback:(id <NotificationRequest>)notificationRequest;
 @end

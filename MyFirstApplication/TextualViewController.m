@@ -16,7 +16,7 @@
     __weak IBOutlet UILabel *_tapToNotifyLabel;
     id <NotificationRequest> _notificationRequestDelegate;
 
-    bool _notificationRequestSent;
+    bool _remoteNotificationsEnabled, _remoteNotificationsPreparing;
 }
 
 - (void)viewDidLoad {
@@ -24,7 +24,8 @@
     [_progressCircleViewCountdown enableInfiniteMode];
     [_progressCircleViewCountdown loadTimer:[[Timer alloc] initWithFrequencySeconds:30 firingInitially:false]];
     [self updateTextOfNotifyLabel];
-    _notificationRequestSent = false;
+    _remoteNotificationsEnabled = false;
+    _remoteNotificationsPreparing = false;
 }
 
 - (void)onTimedOut {
@@ -36,13 +37,12 @@
 }
 
 - (void)requestNotification:(bool)manuallyRequested {
-    if (!manuallyRequested && ![[Notifications getNotificationsInstance] notificationsEnabled]) {
+    if ((!manuallyRequested && ![[Notifications getNotificationsInstance] notificationsEnabled]) || (_remoteNotificationsPreparing || _remoteNotificationsEnabled)) {
         return;
     }
+    _remoteNotificationsPreparing = true;
     [[Notifications getNotificationsInstance] enableNotifications];
-    [_notificationRequestDelegate onNotificationRequested];
-    _notificationRequestSent = true;
-    [self updateTextOfNotifyLabel];
+    [[Notifications getNotificationsInstance] registerForRemoteNotificationsWithCallback:self];
 }
 
 - (IBAction)onViewTap:(id)sender {
@@ -51,7 +51,7 @@
 
 - (void)updateTextOfNotifyLabel {
     dispatch_sync_main(^{
-        if (_notificationRequestSent) {
+        if (_remoteNotificationsEnabled) {
             [_tapToNotifyLabel setText:@"You will be notified when a match accepts you"];
             [_tapToNotifyLabel setTextColor:[UIColor blueColor]];
         } else {
@@ -63,7 +63,7 @@
 
 - (void)reset {
     [_progressCircleViewCountdown restart];
-    _notificationRequestSent = false;
+    _remoteNotificationsEnabled = false;
     [self updateTextOfNotifyLabel];
     [_tapToNotifyLabel setAlpha:0];
     dispatch_async_main(^{
@@ -74,4 +74,25 @@
 - (void)setNotificationRequestDelegate:(id <NotificationRequest>)notificationRequestDelegate {
     _notificationRequestDelegate = notificationRequestDelegate;
 }
+
+- (void)onRemoteNotificationRegistrationSuccess:(NSData *)deviceToken {
+    _remoteNotificationsPreparing = false;
+    _remoteNotificationsEnabled = true;
+    [self updateTextOfNotifyLabel];
+
+    [_notificationRequestDelegate onRemoteNotificationRegistrationSuccess:deviceToken];
+}
+
+- (void)onRemoteNotificationRegistrationFailure:(NSString *)description {
+    UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"Notifications Problem" message:[NSString stringWithFormat:@"Could not register for notifications, reason: %@", description] preferredStyle:UIAlertControllerStyleAlert];
+    UIAlertAction * okAction = [UIAlertAction
+            actionWithTitle:@"OK"
+                      style:UIAlertActionStyleDefault
+                    handler:^(UIAlertAction *action) {
+                        _remoteNotificationsPreparing = false;
+                    }];
+    [alertController addAction:okAction];
+    [self presentViewController:alertController animated:YES completion:nil];
+}
+
 @end

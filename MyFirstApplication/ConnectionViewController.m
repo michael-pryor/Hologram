@@ -1031,10 +1031,13 @@
     [self onBackToSocialRequest];
 }
 
-- (void)onNotificationRequested {
+- (void)onRemoteNotificationRegistrationSuccess:(NSData *)deviceToken {
     NSLog(@"User has requested that it receive notification when match accept occurs");
+    ByteBuffer * buffer = [[ByteBuffer alloc] init];
+    [buffer addUnsignedInteger8:REQUEST_NOTIFICATION];
+    [buffer addData:deviceToken];
+    [_connection sendTcpPacket:buffer];
 }
-
 
 
 @end

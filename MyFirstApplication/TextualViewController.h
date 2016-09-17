@@ -6,7 +6,9 @@
 #import "CircleCountdownTimer.h"
 #import "SingleViewCollection.h"
 
-@interface TextualViewController : UIViewController<TimeoutDelegate>
+@protocol NotificationRequest;
+
+@interface TextualViewController : UIViewController<TimeoutDelegate, NotificationRequest>
 - (void)stop;
 
 - (void)reset;

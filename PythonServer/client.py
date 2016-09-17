@@ -608,6 +608,10 @@ class Client(object):
             self.clearInactivityCounter()
             if not self.house.onAcceptConversation(self):
                 self.doSkip()
+        elif opCode == Client.TcpOperationCodes.OP_REQUEST_NOTIFICATION:
+            data = packet.getByteBuffer()
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug("Received remote notification request from client [%s], data length: %d" % (self, data.used_size))
         else:
             # Must be debug in case rogue client sends us garbage data
             if logger.isEnabledFor(logging.DEBUG):

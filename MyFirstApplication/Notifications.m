@@ -7,14 +7,16 @@
 #define kPushNotificationRequestAlreadySeen @"pushNotificationsAlreadySeen"
 #define kNotificationId @"notificationId"
 static Notifications *notificationsInstance = nil;
-@implementation Notifications {
 
+@implementation Notifications {
+    NSMutableSet *_remoteNotificationRequesters;
 }
 
 - (id)init {
     self = [super init];
     if (self) {
         _notificationsEnabled = [[NSUserDefaults standardUserDefaults] boolForKey:kPushNotificationRequestAlreadySeen];
+        _remoteNotificationRequesters = [[NSMutableSet alloc] init];
     }
     return self;
 }
@@ -32,20 +34,20 @@ static Notifications *notificationsInstance = nil;
     _notificationsEnabled = true;
 }
 
-- (UILocalNotification *)getLocalNotificationWithId:(NSString*)idString {
+- (UILocalNotification *)getLocalNotificationWithId:(NSString *)idString {
     UILocalNotification *notification = [[UILocalNotification alloc] init];
     notification.userInfo = @{kNotificationId : idString};
     return notification;
 }
 
-- (void)cancelNotificationsWithId:(NSString*)idString {
+- (void)cancelNotificationsWithId:(NSString *)idString {
     for (UILocalNotification *localNotification in [[UIApplication sharedApplication] scheduledLocalNotifications]) {
-        NSDictionary* dictionary = [localNotification userInfo];
+        NSDictionary *dictionary = [localNotification userInfo];
         if (dictionary == nil) {
             continue;
         }
 
-        NSString * notificationId = dictionary[kNotificationId];
+        NSString *notificationId = dictionary[kNotificationId];
         if (notificationId == nil) {
             continue;
         }
@@ -56,6 +58,10 @@ static Notifications *notificationsInstance = nil;
     }
 }
 
+- (void)registerForRemoteNotificationsWithCallback:(id <NotificationRequest>)notificationRequest {
+    [_remoteNotificationRequesters addObject:notificationRequest];
+    [[UIApplication sharedApplication] registerForRemoteNotifications];
+}
 
 + (Notifications *)getNotificationsInstance {
     @synchronized (self) {
@@ -64,6 +70,26 @@ static Notifications *notificationsInstance = nil;
         }
 
         return notificationsInstance;
+    }
+}
+
+- (void)onRemoteRegisterFailureWithError:(NSError *)error {
+    @synchronized (self) {
+        NSLog(@"Failed to register for remote notifications: %@", [error localizedDescription]);
+        for (id <NotificationRequest> request in _remoteNotificationRequesters) {
+            [request onRemoteNotificationRegistrationFailure:[error localizedDescription]];
+        }
+        [_remoteNotificationRequesters removeAllObjects];
+    }
+}
+
+- (void)onRemoteRegisterSuccessWithDeviceToken:(NSData *)deviceToken {
+    @synchronized (self) {
+        NSLog(@"Successfully registered for remote notifications");
+        for (id <NotificationRequest> request in _remoteNotificationRequesters) {
+            [request onRemoteNotificationRegistrationSuccess:deviceToken];
+        }
+        [_remoteNotificationRequesters removeAllObjects];
     }
 }
 @end
