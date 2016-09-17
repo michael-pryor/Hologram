@@ -10,4 +10,6 @@
 - (void)stop;
 
 - (void)reset;
+
+- (void)setNotificationRequestDelegate:(id <NotificationRequest>)notificationRequestDelegate;
 @end

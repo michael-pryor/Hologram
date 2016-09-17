@@ -65,6 +65,8 @@ class Client(object):
 
         OP_ADVISE_MATCH_INFORMATION = 15
 
+        OP_REQUEST_NOTIFICATION = 16
+
     class RejectCodes:
         SUCCESS = 0
         REJECT_HASH_TIMEOUT = 1

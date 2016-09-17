@@ -17,8 +17,12 @@
 #import "ConversationEndedViewController.h"
 #import "Payments.h"
 #import "MatchingViewController.h"
+#import "Notifications.h"
 
 @import AVFoundation;
 
-@interface ConnectionViewController : UIViewController <MatchingAnswerDelegate, CallingCardDataProvider, TransactionCompletedNotifier, PaymentProductsLoadedNotifier, ConnectionStatusDelegateProtocol, NewPacketDelegate, UITextFieldDelegate, UIImagePickerControllerDelegate, NewImageDelegate, GovernorSetupProtocol, GpsStateDataLoadNotification, SocialStateDataLoadNotification, NatPunchthroughNotifier, MediaDataLossNotifier, DnsResultNotifier, ConversationRatingConsumer>
+@interface ConnectionViewController : UIViewController <NotificationRequest, MatchingAnswerDelegate, CallingCardDataProvider,
+        TransactionCompletedNotifier, PaymentProductsLoadedNotifier, ConnectionStatusDelegateProtocol, NewPacketDelegate,
+        UITextFieldDelegate, UIImagePickerControllerDelegate, NewImageDelegate, GovernorSetupProtocol, GpsStateDataLoadNotification,
+        SocialStateDataLoadNotification, NatPunchthroughNotifier, MediaDataLossNotifier, DnsResultNotifier, ConversationRatingConsumer>
 @end

@@ -14,6 +14,7 @@
 #import "JoiningViewController.h"
 #import "MediaController.h"
 #import "TextualViewController.h"
+#import "Notifications.h"
 
 @implementation AlertViewController {
     // Base view, describing state of app and connection.
@@ -46,7 +47,7 @@
 
     // Displaying some text describing whats happening e.g. connecting, disconnected, skipped.
     __weak IBOutlet UIView *_textualView;
-    TextualViewController * _textualViewController;
+    TextualViewController *_textualViewController;
 
     // Matching i.e. viewing cards.
     __weak IBOutlet UIView *_matchingView;
@@ -84,7 +85,7 @@
     return [self isViewCurrent:_joiningConversationView];
 }
 
-- (bool)shouldAdvertBeVisible:(UIView*)view {
+- (bool)shouldAdvertBeVisible:(UIView *)view {
     return view == _localImageViewParent && _isBannerAdvertLoaded;
 }
 
@@ -298,7 +299,7 @@
     if (alertText == nil) {
         alertText = @"";
     }
-    NSDictionary* meta = @{@"text" : alertText, @"countdown" : @(_isCountdownToNotificationRequired)};
+    NSDictionary *meta = @{@"text" : alertText, @"countdown" : @(_isCountdownToNotificationRequired)};
 
     if (viewToShow == _localImageViewParent && !showQuickly) {
         [_viewCollection displayView:viewToShow ifNoChangeForMilliseconds:1000 meta:meta];
@@ -348,9 +349,11 @@
 
 }
 
-- (void)setConversationRatingConsumer:(id <ConversationRatingConsumer>)consumer matchingAnswerDelegate:(id <MatchingAnswerDelegate>)matchingAnswerDelegate mediaOperator:(id <MediaOperator>)videoOperator {
+- (void)setConversationRatingConsumer:(id <ConversationRatingConsumer>)consumer matchingAnswerDelegate:(id <MatchingAnswerDelegate>)matchingAnswerDelegate
+                        mediaOperator:(id <MediaOperator>)videoOperator notificationRequestDelegate:(id <NotificationRequest>)notificationRequestDelegate {
     _conversationRatingConsumer = consumer;
     [_conversationEndViewController setConversationRatingConsumer:self];
+    [_textualViewController setNotificationRequestDelegate:notificationRequestDelegate];
     _matchingAnswerDelegate = matchingAnswerDelegate;
     _mediaOperator = videoOperator;
 }
@@ -379,7 +382,7 @@
     [self hideViewsQuickly:quicklyHideViews];
 }
 
-- (void)setName:(NSString *)name profilePicture:(UIImage *)profilePicture callingCardText:(NSString *)callingCardText age:(uint)age distance:(uint)distance karma:(uint)karma maxKarma:(uint)maxKarma isReconnectingClient:(bool)isReconnectingClient{
+- (void)setName:(NSString *)name profilePicture:(UIImage *)profilePicture callingCardText:(NSString *)callingCardText age:(uint)age distance:(uint)distance karma:(uint)karma maxKarma:(uint)maxKarma isReconnectingClient:(bool)isReconnectingClient {
     // If user we are waiting for reconnects, we receive their information again, but if it is the same user, we just want to carry on waiting,
     // without showing the card again.
     //
@@ -496,7 +499,7 @@
     }
 
     NSString *alertText = meta[@"text"];
-    NSNumber * isCountdownNotificationRequired = meta[@"countdown"];
+    NSNumber *isCountdownNotificationRequired = meta[@"countdown"];
     if ([alertText length] > 0) {
         [_alertShortText setText:alertText];
     }
@@ -522,7 +525,7 @@
     }               duration:duration toAlpha:alpha options:UIViewAnimationOptionCurveEaseInOut | UIViewAnimationOptionTransitionNone | UIViewAnimationOptionAllowUserInteraction];
 }
 
-- (void)fadeOutView:(UIView *)view duration:(float)duration alpha:(float)alpha{
+- (void)fadeOutView:(UIView *)view duration:(float)duration alpha:(float)alpha {
     [ViewInteractions fadeOut:view completion:^(BOOL completion) {
         if (!completion) {
             // Do nothing, do not complete the animation, it's probably
@@ -539,7 +542,7 @@
     return view == _localImageViewParent || view == _joiningConversationView;
 }
 
-- (bool)doesViewRequireSkipButton:(UIView*)view {
+- (bool)doesViewRequireSkipButton:(UIView *)view {
     return view == _joiningConversationView;
 }
 

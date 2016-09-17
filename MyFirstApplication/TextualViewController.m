@@ -14,6 +14,7 @@
     __weak IBOutlet CircleProgressBar *_progressCircleView;
     CircleCountdownTimer *_progressCircleViewCountdown;
     __weak IBOutlet UILabel *_tapToNotifyLabel;
+    id <NotificationRequest> _notificationRequestDelegate;
 
     bool _notificationRequestSent;
 }
@@ -39,9 +40,11 @@
         return;
     }
     [[Notifications getNotificationsInstance] enableNotifications];
+    [_notificationRequestDelegate onNotificationRequested];
     _notificationRequestSent = true;
     [self updateTextOfNotifyLabel];
 }
+
 - (IBAction)onViewTap:(id)sender {
     [self requestNotification:true];
 }
@@ -68,4 +71,7 @@
     }, 2000);
 }
 
+- (void)setNotificationRequestDelegate:(id <NotificationRequest>)notificationRequestDelegate {
+    _notificationRequestDelegate = notificationRequestDelegate;
+}
 @end

@@ -826,7 +826,7 @@
                 }
             }
             // Set its content
-            [_disconnectViewController setConversationRatingConsumer:self matchingAnswerDelegate:self mediaOperator:_mediaController];
+            [_disconnectViewController setConversationRatingConsumer:self matchingAnswerDelegate:self mediaOperator:_mediaController notificationRequestDelegate:self];
             [_disconnectViewController setRatingTimeoutSeconds:_ratingTimeoutSeconds matchDecisionTimeoutSeconds:_matchDecisionTimeout];
             [_disconnectViewController setGenericInformationText:shortDescription skipButtonEnabled:enableSkipButton enableCountdownToNotification:enableCountdownToNotification];
 
@@ -1030,5 +1030,11 @@
     NSLog(@"Server kicked us off due to inactivity, moving back to social view controller");
     [self onBackToSocialRequest];
 }
+
+- (void)onNotificationRequested {
+    NSLog(@"User has requested that it receive notification when match accept occurs");
+}
+
+
 
 @end

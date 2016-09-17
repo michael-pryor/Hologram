@@ -9,6 +9,7 @@
 @class Timer;
 
 @protocol TimeoutDelegate
+@optional
 - (void)onTimedOut;
 @end
 

@@ -4,6 +4,9 @@
 
 #import <Foundation/Foundation.h>
 
+@protocol NotificationRequest
+- (void)onNotificationRequested;
+@end
 
 @interface Notifications : NSObject
 @property (readonly, atomic) bool notificationsEnabled;
