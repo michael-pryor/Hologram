@@ -309,7 +309,7 @@
 
     if (_disconnectViewController != nil) {
         [_disconnectViewController reset];
-        [_disconnectViewController setGenericInformationText:nil skipButtonEnabled:false];
+        [_disconnectViewController setGenericInformationText:nil skipButtonEnabled:false enableCountdownToNotification:false];
     }
 
     _isScreenInUse = true;
@@ -666,7 +666,7 @@
     NSLog(@"Sending skip request");
     [_connection sendTcpPacket:_skipPersonPacket];
     [self resetFlags];
-    [self setDisconnectStateWithShortDescription:@"Matching you with somebody to talk with\nYou skipped the other person" askForConversationRating:true];
+    [self setDisconnectStateWithShortDescription:@"Matching you with somebody to talk with\nYou skipped the other person" askForConversationRating:true enableCountdownToNotification:true];
     return;
 }
 
@@ -696,7 +696,7 @@
             break;
 
         case P_CONNECTED:
-            [self setDisconnectStateWithShortDescription:@"Matching you with somebody to talk with" askForConversationRating:false];
+            [self setDisconnectStateWithShortDescription:@"Matching you with somebody to talk with" askForConversationRating:false enableCountdownToNotification:true];
             if (_mediaController != nil) {
                 [_mediaController resetSendRate];
             }
@@ -713,7 +713,7 @@
             }
 
             // Only enable skip button if in a conversation, not if waiting to be matched.
-            [self setDisconnectStateWithShortDescription:textToUse askForConversationRating:false enableSkipButton:inConversation];
+            [self setDisconnectStateWithShortDescription:textToUse askForConversationRating:false enableSkipButton:inConversation enableCountdownToNotification:true];
             [[Analytics getInstance] pushTimer:_connectingNetworkTimer withCategory:@"setup" name:@"network_connecting" label:@"resumed_session"];
 
             // How long were we disconnected for?
@@ -770,15 +770,25 @@
 }
 
 - (void)setDisconnectStateWithShortDescription:(NSString *)shortDescription askForConversationRating:(bool)askForConversationRating {
-    [self setDisconnectStateWithShortDescription:shortDescription askForConversationRating:askForConversationRating enableSkipButton:false];
+    [self setDisconnectStateWithShortDescription:shortDescription askForConversationRating:askForConversationRating enableCountdownToNotification:false];
+}
+
+- (void)setDisconnectStateWithShortDescription:(NSString *)shortDescription askForConversationRating:(bool)askForConversationRating enableCountdownToNotification:(bool)enableCountdownToNotification{
+    [self setDisconnectStateWithShortDescription:shortDescription askForConversationRating:askForConversationRating enableSkipButton:false enableCountdownToNotification:enableCountdownToNotification];
 }
 
 - (void)setDisconnectStateWithShortDescription:(NSString *)shortDescription askForConversationRating:(bool)askForConversationRating enableSkipButton:(bool)enableSkipButton {
-    [self setDisconnectStateWithShortDescription:shortDescription askForConversationRating:askForConversationRating enableSkipButton:enableSkipButton dueToEndpointTempDisconnect:false];
+    [self setDisconnectStateWithShortDescription:shortDescription askForConversationRating:askForConversationRating enableSkipButton:enableSkipButton enableCountdownToNotification:false];
+}
+
+- (void)setDisconnectStateWithShortDescription:(NSString *)shortDescription askForConversationRating:(bool)askForConversationRating enableSkipButton:(bool)enableSkipButton enableCountdownToNotification:(bool)enableCountdownToNotification{
+    [self setDisconnectStateWithShortDescription:shortDescription askForConversationRating:askForConversationRating enableSkipButton:enableSkipButton dueToEndpointTempDisconnect:false enableCountdownToNotification:enableCountdownToNotification];
 }
 
 // Display view overlay showing how connection is being recovered.
-- (void)setDisconnectStateWithShortDescription:(NSString *)shortDescription askForConversationRating:(bool)askForConversationRating enableSkipButton:(bool)enableSkipButton dueToEndpointTempDisconnect:(bool)endpointTempDisconnect {
+- (void)setDisconnectStateWithShortDescription:(NSString *)shortDescription askForConversationRating:(bool)askForConversationRating
+                              enableSkipButton:(bool)enableSkipButton dueToEndpointTempDisconnect:(bool)endpointTempDisconnect
+                 enableCountdownToNotification:(bool)enableCountdownToNotification{
     // If we haven't accepted or rejected the client yet, then don't ask to rate the conversation,
     // since we can't have had one.
     if (!_shouldRateAfterSessionEnd) {
@@ -818,7 +828,7 @@
             // Set its content
             [_disconnectViewController setConversationRatingConsumer:self matchingAnswerDelegate:self mediaOperator:_mediaController];
             [_disconnectViewController setRatingTimeoutSeconds:_ratingTimeoutSeconds matchDecisionTimeoutSeconds:_matchDecisionTimeout];
-            [_disconnectViewController setGenericInformationText:shortDescription skipButtonEnabled:enableSkipButton];
+            [_disconnectViewController setGenericInformationText:shortDescription skipButtonEnabled:enableSkipButton enableCountdownToNotification:enableCountdownToNotification];
 
             // This conditional is a specific edge case, if we are waiting for the match to join, and that
             // match has temporarily disconnected, do not change the view, continue waiting, in case that match reconnects.
@@ -867,7 +877,7 @@
             _isSkippableDespiteNoMatch = true;
 
             NSLog(@"End point temporarily disconnected");
-            [self setDisconnectStateWithShortDescription:@"Reconnecting to existing session\nThe other person disconnected temporarily" askForConversationRating:false enableSkipButton:true dueToEndpointTempDisconnect:true];
+            [self setDisconnectStateWithShortDescription:@"Reconnecting to existing session\nThe other person disconnected temporarily" askForConversationRating:false enableSkipButton:true dueToEndpointTempDisconnect:true enableCountdownToNotification:false];
         } else if (operation == DISCONNECT_PERM) {
             // The 'house' session between you and the other client has ended, but still
             // the behaviour we have is that while MATCHING, the screen stays up and you don't get alerted
@@ -879,14 +889,14 @@
             _isSkippableDespiteNoMatch = true;
             _waitingForCompleteMatch = true;
 
-            [self setDisconnectStateWithShortDescription:@"Matching you with somebody to talk with\nThe other person left" askForConversationRating:true];
+            [self setDisconnectStateWithShortDescription:@"Matching you with somebody to talk with\nThe other person left" askForConversationRating:true enableCountdownToNotification:true];
         } else if (operation == DISCONNECT_SKIPPED) {
             NSLog(@"End point skipped us");
 
             _waitingForCompleteMatch = true;
             // Excluded prospective match, because we still want user to feel like they can reject too.
 
-            [self setDisconnectStateWithShortDescription:@"Matching you with somebody to talk with\nThe other person skipped you" askForConversationRating:true];
+            [self setDisconnectStateWithShortDescription:@"Matching you with somebody to talk with\nThe other person skipped you" askForConversationRating:true enableCountdownToNotification:true];
         } else {
             if (_mediaController != nil) {
                 [_mediaController onNewPacket:packet fromProtocol:protocol];

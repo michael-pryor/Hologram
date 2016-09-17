@@ -4,10 +4,11 @@
 
 #import <Foundation/Foundation.h>
 #import "CallingCardViewController.h"
+#import "CircleCountdownTimer.h"
 
 @class Timer;
 
-@protocol MatchingAnswerDelegate
+@protocol MatchingAnswerDelegate<TimeoutDelegate>
 - (void) onMatchAcceptAnswer;
 
 - (bool) onMatchRejectAnswer;
@@ -16,7 +17,6 @@
 
 - (void) onBackToSocialRequest;
 
-@optional
 - (void) onTimedOut;
 @end
 

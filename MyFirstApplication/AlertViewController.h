@@ -19,7 +19,7 @@
 @protocol MediaOperator;
 
 @interface AlertViewController : UIViewController <FBAdViewDelegate, NewImageDelegate, ConversationRatingConsumer, MatchingAnswerDelegate, CallingCardDataProvider, ViewChangeNotifier>
-- (void)setGenericInformationText:(NSString *)shortText skipButtonEnabled:(bool)enabled;
+- (void)setGenericInformationText:(NSString *)shortText skipButtonEnabled:(bool)enabled enableCountdownToNotification:(bool)enableCountdownToNotification;
 
 - (Boolean)hideIfVisibleAndReady;
 

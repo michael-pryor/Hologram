@@ -13,6 +13,7 @@
 #import "ViewTransitions.h"
 #import "JoiningViewController.h"
 #import "MediaController.h"
+#import "TextualViewController.h"
 
 @implementation AlertViewController {
     // Base view, describing state of app and connection.
@@ -26,6 +27,7 @@
     bool _movingToFacebook;
 
     NSString *_cachedAlertText;
+    __weak IBOutlet UIActivityIndicatorView *_activityIndicator;
 
     // Advert.
     __weak IBOutlet UIView *_advertBannerView; // The container which sizes it.
@@ -42,6 +44,9 @@
     Signal *_waitingForRating;
     Timer *_ratingStartedAt;
 
+    // Displaying some text describing whats happening e.g. connecting, disconnected, skipped.
+    __weak IBOutlet UIView *_textualView;
+    TextualViewController * _textualViewController;
 
     // Matching i.e. viewing cards.
     __weak IBOutlet UIView *_matchingView;
@@ -56,6 +61,7 @@
     SingleViewCollection *_viewCollection;
 
     bool _isSkipButtonRequired;
+    bool _isCountdownToNotificationRequired;
 }
 
 - (void)reset {
@@ -98,10 +104,11 @@
     [self hideViewsQuickly:true];
 }
 
-- (void)setGenericInformationText:(NSString *)shortText skipButtonEnabled:(bool)skipButtonEnabled {
+- (void)setGenericInformationText:(NSString *)shortText skipButtonEnabled:(bool)skipButtonEnabled enableCountdownToNotification:(bool)enableCountdownToNotification {
     dispatch_sync_main(^{
         _cachedAlertText = shortText;
         _isSkipButtonRequired = skipButtonEnabled;
+        _isCountdownToNotificationRequired = enableCountdownToNotification;
     });
 }
 
@@ -122,6 +129,8 @@
     } else if ([segueName isEqualToString:@"JoiningConversation"]) {
         _joiningConversationViewController = [segue destinationViewController];
         [_joiningConversationViewController setTimeoutDelegate:self];
+    } else if ([segueName isEqualToString:@"Textual"]) {
+        _textualViewController = [segue destinationViewController];
     }
 }
 
@@ -135,8 +144,8 @@
 
     _waitingForRating = [[Signal alloc] initWithFlag:false];
 
-    for (UIView *view in @[_conversationEndView, _matchingView, _joiningConversationView, _localImageViewParent, _alertShortTextHigher,
-            _forwardButton, _backButton]) {
+    for (UIView *view in @[_conversationEndView, _matchingView, _joiningConversationView, _textualView,
+            _localImageViewParent, _alertShortTextHigher, _forwardButton, _backButton]) {
         [view setAlpha:0];
     }
 
@@ -239,6 +248,7 @@
     }
 
     [_joiningConversationViewController stop];
+    [_textualViewController stop];
 }
 
 - (void)enableAdverts {
@@ -284,8 +294,14 @@
 }
 
 - (void)showView:(UIView *)viewToShow showQuickly:(bool)showQuickly {
+    NSString *alertText = _cachedAlertText;
+    if (alertText == nil) {
+        alertText = @"";
+    }
+    NSDictionary* meta = @{@"text" : alertText, @"countdown" : @(_isCountdownToNotificationRequired)};
+
     if (viewToShow == _localImageViewParent && !showQuickly) {
-        [_viewCollection displayView:viewToShow ifNoChangeForMilliseconds:1000 meta:_cachedAlertText];
+        [_viewCollection displayView:viewToShow ifNoChangeForMilliseconds:1000 meta:meta];
         return;
     }
 
@@ -296,14 +312,14 @@
 
             if (_shouldShowAdverts && _isBannerAdvertLoaded) {
                 dispatch_async_main(^{
-                    [_viewCollection displayView:viewToShow meta:_cachedAlertText];
+                    [_viewCollection displayView:viewToShow meta:meta];
                 }, 3000);
                 return;
             }
         }
     }
 
-    [_viewCollection displayView:viewToShow meta:_cachedAlertText];
+    [_viewCollection displayView:viewToShow meta:meta];
     _cachedAlertText = nil;
 }
 
@@ -439,6 +455,11 @@
     }
 
     [self fadeOutView:_alertShortText duration:duration alpha:0.4];
+
+    if (!_isCountdownToNotificationRequired) {
+        // Looks better just to clear it straight away.
+        [_textualView setAlpha:0];
+    }
 }
 
 - (void)onFinishedFadingOut:(UIView *)view duration:(float)duration alpha:(float)alpha {
@@ -474,13 +495,22 @@
         [self fadeInView:_backButton duration:duration alpha:ALPHA_BUTTON_IMAGE_READY];
     }
 
-    NSString *alertText = meta;
-    if (alertText != nil) {
+    NSString *alertText = meta[@"text"];
+    NSNumber * isCountdownNotificationRequired = meta[@"countdown"];
+    if ([alertText length] > 0) {
         [_alertShortText setText:alertText];
     }
 
     // Never have a situation where there would be no text to show...
     [self fadeInView:_alertShortText duration:duration alpha:1.0f];
+
+    if ([isCountdownNotificationRequired boolValue]) {
+        [_textualViewController reset];
+        [self fadeInView:_textualView duration:duration alpha:1.0f];
+        [_activityIndicator setHidden:true];
+    } else {
+        [_activityIndicator setHidden:false];
+    }
 }
 
 - (void)fadeInView:(UIView *)view duration:(float)duration alpha:(float)alpha {
