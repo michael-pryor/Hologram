@@ -20,14 +20,9 @@ class Matching(object):
         self.match_collection = self.mongo_client.db.matcher
         self.server_name = serverName
 
-    def removeMatchById(self, uniqueKey):
-        self.match_collection.remove({'_id' : self.buildId(uniqueKey)})
-
     def removeMatch(self, client):
         assert isinstance(client, Client)
-
-        uniqueKey = client.login_details.unique_id
-        self.removeMatchById(uniqueKey)
+        self.match_collection.remove({'_id': self.buildId(client.login_details)})
 
     # find a match which is fit enough for the specified client.
     def findMatch(self, client):
@@ -70,7 +65,7 @@ class Matching(object):
                                        }
                                   }
                            },
-                      '_id' : {'$ne' : self.buildId(loginDetails.unique_id)}
+                      '_id' : {'$ne' : self.buildId(loginDetails)}
                     })
 
         try:
@@ -146,7 +141,7 @@ class Matching(object):
                                             ("location", pymongo.GEOSPHERE)])
 
         shouldNotify = client.should_notify_on_match_accept
-        uniqueId = self.buildId(loginDetails.unique_id)
+        uniqueId = self.buildId(loginDetails)
         recordToInsert = {"_id" : uniqueId,
                           "server" : self.server_name,
                           "age" : loginDetails.age,
@@ -168,8 +163,9 @@ class Matching(object):
 
         self.match_collection.replace_one({"_id" : uniqueId}, recordToInsert, upsert=True)
 
-    def buildId(self, uniqueId):
-        return "%s_%s" % (self.server_name, uniqueId)
+    def buildId(self, loginDetails):
+        assert isinstance(loginDetails, Client.LoginDetails)
+        return "%s_%s" % (self.server_name, loginDetails.persisted_unique_id)
 
     def listItems(self):
         for item in self.match_collection.find():
