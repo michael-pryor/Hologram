@@ -196,6 +196,8 @@ class CommanderClientRouting(ClientFactory):
     def __init__(self, subServerCoordinator):
         assert isinstance(subServerCoordinator, CommanderGovernorController)
         self.subServerCoordinator = subServerCoordinator
+        self.timeout_action = None
+        self.tcp = None
 
     def buildProtocol(self, addr):
         logger.info('TCP connection initiated with new client [%s]' % addr)
@@ -204,30 +206,48 @@ class CommanderClientRouting(ClientFactory):
 
         return self.tcp
 
-    def handleTcpPacket(self, packet):
-        nameOfServer = packet.getString()
+    def terminate(self):
+        logger.warn("Terminating inactive client connection [%s]" % self.tcp)
+        if self.tcp is not None:
+            self.tcp.transport.loseConnection()
 
+    def startFactory(self):
+        self.timeout_action = reactor.callLater(CommanderClientRouting.TIMEOUT, self.terminate)
+
+    def stopFactory(self):
+        self.cancelTimeoutAction()
+
+    def cancelTimeoutAction(self):
         try:
-            self.timeout_action.cancel(self, delay)
+            if self.timeout_action is not None:
+                self.timeout_action.cancel(self, delay)
         except AlreadyCalled:
             pass
         except AlreadyCancelled:
             pass
 
-        if nameOfServer is None or len(nameOfServer):
-            subServer = self.subServerCoordinator.getNextSubServer()
-        else:
+    def handleTcpPacket(self, packet):
+        nameOfServer = packet.getString()
+
+        if nameOfServer is not None and len(nameOfServer) > 0:
             subServer = self.subServerCoordinator.getSubServerByName(nameOfServer)
+            if subServer is None:
+                logger.warn("Could not find sub server named: %s, defaulting to primary governor" % nameOfServer)
+            else:
+                if logger.isEnabledFor(logging.DEBUG):
+                    logger.debug("Directed client to requested server named %s" % nameOfServer)
+
+        subServer = self.subServerCoordinator.getNextSubServer()
+
 
         if subServer is None:
-            if nameOfServer is not None:
-                self.sendFailure("Could not find server named %s" % nameOfServer)
-            else:
-                self.sendFailure("No governors available")
+            self.sendFailure("No governors available")
         else:
             self.sendSuccess(subServer)
 
-    def sendSuccess(self, subserver):
+        self.tcp.transport.loseConnection()
+
+    def sendSuccess(self, subServer):
         result = ByteBuffer()
 
         if logger.isEnabledFor(logging.DEBUG):
@@ -239,11 +259,13 @@ class CommanderClientRouting(ClientFactory):
 
     def sendFailure(self, failureMessage):
         logger.warn("Failed to retrieve server, rejecting client, reason: %s" % failureMessage)
+        result = ByteBuffer()
         result.addUnsignedInteger8(CommanderClientRouting.RouterCodes.FAILURE)
         result.addString(failureMessage)
+        self.tcp.sendByteBuffer(result)
 
     def onConnectionMade(self):
-        self.timeout_action = self.reactor.callLater(CommanderClientRouting.TIMEOUT, self.tcp.transport.loseConnection)
+        pass
 
 
 
