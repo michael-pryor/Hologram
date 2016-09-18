@@ -307,7 +307,12 @@
     if (alertText == nil) {
         alertText = @"";
     }
-    NSDictionary *meta = @{@"text" : alertText, @"countdown" : @(_isCountdownToNotificationRequired)};
+
+    // "Waiting for match" is the text, and so does need a countdown, but if the view changes,
+    // the text stays the same and we'll e.g. see the match profile.
+    bool countdownEnabled = _isCountdownToNotificationRequired && viewToShow == _localImageViewParent;
+
+    NSDictionary *meta = @{@"text" : alertText, @"countdown" : @(countdownEnabled)};
 
     if (viewToShow == _localImageViewParent && !showQuickly) {
         [_viewCollection displayView:viewToShow ifNoChangeForMilliseconds:1000 meta:meta];
@@ -550,9 +555,11 @@ isReconnectingClient:(bool)isReconnectingClient isClientOnline:(bool)isClientOnl
 
     if ([isCountdownNotificationRequired boolValue]) {
         [_textualViewController reset];
+        [_textualViewController start];
         [self fadeInView:_textualView duration:duration alpha:1.0f];
         [_activityIndicator setHidden:true];
     } else {
+        [_textualViewController stop];
         [_activityIndicator setHidden:false];
     }
 }
@@ -589,6 +596,12 @@ isReconnectingClient:(bool)isReconnectingClient isClientOnline:(bool)isClientOnl
 
 - (void)onFinishedFadingIn:(UIView *)view duration:(float)duration meta:(id)meta {
     [_forwardButton setHidden:!_isSkipButtonRequired && ![self doesViewRequireSkipButton:view]];
+
+    if (view == _joiningConversationView) {
+        [_joiningConversationViewController start];
+    } else if (view == _matchingView) {
+        [_matchingViewController start];
+    }
 }
 
 

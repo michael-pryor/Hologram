@@ -774,10 +774,16 @@ class Client(object):
         if recurse and not client.shouldMatch(self, False):
             return False
 
-        if not client.state == Client.State.MATCHING:
+        if client.state != Client.State.MATCHING:
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug("Client [%s], match successful: [false], client not in matching state, instead is in [%d]" % (
+                    self, client.state))
             return False
 
-        if client.connection_status != Client.ConnectionStatus.CONNECTED and not client.should_notify_on_match_accept:
+        isConnected = client.connection_status == Client.ConnectionStatus.CONNECTED
+        if not isConnected and not client.should_notify_on_match_accept:
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug("Client [%s], match successful: [false], client not connected, connected status is [%s] and not enabled for notify, notify enable status is [%s]" % (self, isConnected, client.should_notify_on_match_accept))
             return False
 
         isPriorMatch = self.match_skip_history.isPriorMatch(client)
@@ -798,7 +804,7 @@ class Client(object):
                 result = False
 
         if logger.isEnabledFor(logging.DEBUG):
-            logger.debug("Client [%s], match successful: [%s], is prior match [%s]" % (self, result, isPriorMatch))
+            logger.debug("Client [%s], match successful: [%s], is prior match [%s], online [(True)]" % (self, result, isPriorMatch))
 
         return result
 

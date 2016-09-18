@@ -2034,12 +2034,13 @@ If enabled, Hologram will notify you when the hot spots are starting.</string>
                             <constraint firstItem="utn-8v-zRu" firstAttribute="leading" secondItem="qfn-EI-xYg" secondAttribute="leading" id="JGc-uY-R8U"/>
                             <constraint firstItem="utn-8v-zRu" firstAttribute="trailing" secondItem="qfn-EI-xYg" secondAttribute="trailing" id="LH1-fg-EDR"/>
                             <constraint firstItem="2so-VW-SGK" firstAttribute="bottom" secondItem="dBu-An-5ob" secondAttribute="top" id="RR3-az-jPD"/>
+                            <constraint firstItem="0Ez-ce-DDu" firstAttribute="leading" secondItem="qfn-EI-xYg" secondAttribute="leadingMargin" constant="-20" id="SDk-6Q-dZa"/>
                             <constraint firstItem="0Ez-ce-DDu" firstAttribute="top" secondItem="utn-8v-zRu" secondAttribute="bottom" constant="10" id="SJ1-qv-0aP"/>
                             <constraint firstItem="QMu-Z6-TRi" firstAttribute="top" secondItem="0Ez-ce-DDu" secondAttribute="bottom" id="Sbq-hr-Ngj"/>
                             <constraint firstItem="k1M-ys-v7o" firstAttribute="centerX" secondItem="qfn-EI-xYg" secondAttribute="centerX" id="VaR-Kn-3Kf"/>
                             <constraint firstItem="k1M-ys-v7o" firstAttribute="width" secondItem="qfn-EI-xYg" secondAttribute="width" id="WHn-SB-Ufu"/>
                             <constraint firstItem="2so-VW-SGK" firstAttribute="top" secondItem="zQz-dJ-HyO" secondAttribute="bottom" id="XsL-F7-wmw"/>
-                            <constraint firstItem="0Ez-ce-DDu" firstAttribute="width" secondItem="qfn-EI-xYg" secondAttribute="width" id="Yhe-sX-Rae"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="0Ez-ce-DDu" secondAttribute="trailing" constant="-20" id="Z8W-b3-mzV"/>
                             <constraint firstAttribute="trailing" secondItem="2so-VW-SGK" secondAttribute="trailing" id="avN-Fe-aXB"/>
                             <constraint firstItem="zKP-Td-56z" firstAttribute="centerY" secondItem="QMu-Z6-TRi" secondAttribute="centerY" id="ez6-RX-rju"/>
                             <constraint firstItem="utn-8v-zRu" firstAttribute="top" secondItem="zQz-dJ-HyO" secondAttribute="bottom" id="gdw-ug-yOz"/>

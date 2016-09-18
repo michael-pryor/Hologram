@@ -67,7 +67,7 @@
 }
 
 - (void)reset {
-    [_progressCircleViewCountdown restart];
+    [_progressCircleViewCountdown reset];
     _remoteNotificationsEnabled = false;
     _remoteNotificationsPreparing = false;
     [self updateTextOfNotifyLabel];
@@ -101,4 +101,7 @@
     [self presentViewController:alertController animated:YES completion:nil];
 }
 
+- (void)start {
+    [_progressCircleViewCountdown startUpdating];
+}
 @end

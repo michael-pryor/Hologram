@@ -16,7 +16,7 @@
 @interface CircleCountdownTimer : NSObject
 - (id)initWithCircleProgressBar:(CircleProgressBar *)circleProgressBar matchingAnswerDelegate:(id <TimeoutDelegate>)matchingAnswerDelegate;
 
-- (void)restart;
+- (void)reset;
 
 - (void)loadTimer:(Timer *)timer;
 

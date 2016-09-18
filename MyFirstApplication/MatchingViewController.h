@@ -29,4 +29,6 @@
 - (void)reset;
 
 - (Timer*)cloneTimer;
+
+- (void)start;
 @end

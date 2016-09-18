@@ -9,6 +9,8 @@ import pymongo.errors
 import random
 from byte_buffer import ByteBuffer
 import pickle
+from bson.binary import Binary
+import struct
 
 logger = logging.getLogger(__name__)
 
@@ -109,6 +111,11 @@ class Matching(object):
         client = buildClientFunc()
 
         profilePicture = ByteBuffer()
+        profilePictureString = dataRecord['profile_picture']
+        assert isinstance(profilePictureString, basestring)
+        profilePicture.buffer = bytearray(profilePictureString, encoding='latin1')
+        profilePicture.used_size = len(profilePicture.buffer)
+        profilePicture.memory_size = profilePicture.used_size
 
         client.login_details = Client.LoginDetails(str(dataRecord['unique_id']), str(dataRecord['persisted_unique_id']),
                                                    str(dataRecord['name']), str(dataRecord['short_name']), dataRecord['age'],
@@ -153,12 +160,15 @@ class Matching(object):
                           "should_notify": shouldNotify}
 
         if shouldNotify:
-            assert isinstance(loginDetails.profile_picture, ByteBuffer)
+            buf = loginDetails.profile_picture
+            assert isinstance(buf, ByteBuffer)
+            encodedProfilePicture = buf.buffer[:buf.used_size].decode('latin-1')
+
             recordToInsert.update({'name' : loginDetails.name,
                                    'short_name' : loginDetails.short_name,
                                    'card_text' : loginDetails.card_text,
                                    'profile_picture_used_size' : loginDetails.profile_picture.used_size,
-                                   'profile_picture' : None,
+                                   'profile_picture' : encodedProfilePicture,
                                    'profile_picture_orientation' : loginDetails.profile_picture_orientation,
                                    'persisted_unique_id' : loginDetails.persisted_unique_id,
                                    'remote_notification_payload' : client.remote_notification_payload})

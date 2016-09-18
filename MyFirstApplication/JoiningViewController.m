@@ -5,8 +5,6 @@
 #import "JoiningViewController.h"
 #import "Timer.h"
 #import "CircleProgressBar.h"
-#import "Signal.h"
-#import "Threading.h"
 #import "CircleCountdownTimer.h"
 #import "MatchingViewController.h"
 
@@ -14,14 +12,14 @@
 @implementation JoiningViewController {
     __weak IBOutlet CircleProgressBar *_progressBar;
     CircleCountdownTimer *_countdownTimer;
-    id<MatchingAnswerDelegate> _timeoutDelegate;
+    id <MatchingAnswerDelegate> _timeoutDelegate;
 }
-- (void)consumeRemainingTimer:(Timer*)timer {
+- (void)consumeRemainingTimer:(Timer *)timer {
     [_countdownTimer loadTimer:timer];
     [_countdownTimer startUpdating];
 }
 
-- (void) setTimeoutDelegate:(id<MatchingAnswerDelegate>)timeoutDelegate {
+- (void)setTimeoutDelegate:(id <MatchingAnswerDelegate>)timeoutDelegate {
     _timeoutDelegate = timeoutDelegate;
 }
 
@@ -30,7 +28,11 @@
 }
 
 - (void)reset {
-    [_countdownTimer restart];
+    [_countdownTimer reset];
+}
+
+- (void)start {
+    [_countdownTimer startUpdating];
 }
 
 - (void)updateColours:(bool)isClientOnline {

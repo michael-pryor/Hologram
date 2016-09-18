@@ -45,8 +45,7 @@
         [button setAlpha:ALPHA_BUTTON_IMAGE_READY];
     }
 
-    [_matchingCountdownTimer restart];
-    [_matchingCountdownTimer startUpdating];
+    [_matchingCountdownTimer reset];
 }
 
 - (void)setMatchingAnswerDelegate:(id <MatchingAnswerDelegate>)matchingAnswerDelegate {
@@ -113,5 +112,9 @@
 - (IBAction)onBlockButtonPressed:(id)sender {
     [self onDoneWithView:_blockButton];
     [_matchingAnswerDelegate onMatchBlocked];
+}
+
+- (void)start {
+    [_matchingCountdownTimer startUpdating];
 }
 @end

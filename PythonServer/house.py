@@ -234,7 +234,8 @@ class House:
 
                 # If the client is an offline client and wants to be notified, then
                 # we need to put it back into the waiting list.
-                if clientB.tcp is None and clientB.should_notify_on_match_accept:
+                if clientB.connection_status != Client.ConnectionStatus.CONNECTED and clientB.should_notify_on_match_accept:
+                    clientB.transitionState(None, Client.State.MATCHING)
                     self.matchingDatabase.pushWaiting(clientB)
 
                 if logger.isEnabledFor(logging.DEBUG):
@@ -247,6 +248,9 @@ class House:
 
     def enableRemoteNotification(self, client):
         assert isinstance(client, Client)
+        if client.state != Client.State.MATCHING:
+            return
+
         client.should_notify_on_match_accept = True
         self.matchingDatabase.pushWaiting(client)
 

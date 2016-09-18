@@ -33,7 +33,7 @@
     return self;
 }
 
-- (void)restart {
+- (void)reset {
     dispatch_sync_main(^{
         [_progressObject setProgress:0 animated:false];
     });
@@ -41,7 +41,6 @@
     _infiniteBackwardsLeg = false;
     if (_timeoutTimer != nil) {
         [_timeoutTimer reset];
-        [self startUpdating];
     }
 }
 
