@@ -111,6 +111,7 @@ class Client(object):
     class LoginDetails(object):
         def __init__(self, uniqueId, persistedUniqueId, name, shortName, age, gender, interestedIn, longitude, latitude, cardText, profilePicture, profilePictureOrientation):
             super(Client.LoginDetails, self).__init__()
+
             self.unique_id = uniqueId
             self.persisted_unique_id = persistedUniqueId
             self.name = name
@@ -253,6 +254,7 @@ class Client(object):
         self.remote_notification_payload = None
         self.should_notify_on_match_accept = False
         self.remote_notification = remoteNotification
+        self.has_been_notified = False
 
     def transitionState(self, startState, endState):
         if startState == endState:
@@ -536,22 +538,29 @@ class Client(object):
         self.onFriendlyPacketUdp(packet)
 
     def doSkip(self):
-        if logger.isEnabledFor(logging.DEBUG):
-            logger.debug("Client [%s] asked to skip person, honouring request" % self)
-        otherClient = self.house.releaseRoom(self, self.house.disconnected_skip)
+        self.house.house_lock.acquire()
+        try:
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug("Client [%s] asked to skip person, honouring request" % self)
 
-        self.cancelAcceptingMatchExpiry()
+            otherClient = self.house.getCurrentMatchOfClient(self)
+            if otherClient is not None:
+                self.match_skip_history.addMatch(otherClient)
 
-        # Record that we skipped this client, so that we don't rematch immediately.
-        if otherClient is not None:
-            assert isinstance(otherClient, Client)
-            self.match_skip_history.addMatch(otherClient)
-            self.setToWaitForRatingOfPreviousConversation(otherClient)
+            otherClient = self.house.releaseRoom(self, self.house.disconnected_skip)
+            self.cancelAcceptingMatchExpiry()
 
-        # The timeout on accepting a match will clear out the other client.
-        # We don't want their screen updating in response to our transition.
-        self.transitionState(Client.State.MATCHED, Client.State.MATCHING)
-        self.transitionState(Client.State.ACCEPTING_MATCH, Client.State.MATCHING)
+            # Record that we skipped this client, so that we don't rematch immediately.
+            if otherClient is not None:
+                assert isinstance(otherClient, Client)
+                self.setToWaitForRatingOfPreviousConversation(otherClient)
+
+            # The timeout on accepting a match will clear out the other client.
+            # We don't want their screen updating in response to our transition.
+            self.transitionState(Client.State.MATCHED, Client.State.MATCHING)
+            self.transitionState(Client.State.ACCEPTING_MATCH, Client.State.MATCHING)
+        finally:
+            self.house.house_lock.release()
 
 
     def doSkipTimedOut(self):
@@ -614,11 +623,11 @@ class Client(object):
                 self.doSkip()
         elif opCode == Client.TcpOperationCodes.OP_REQUEST_NOTIFICATION:
             self.remote_notification_payload = packet.getHexString()
-            self.should_notify_on_match_accept = True
+
             if logger.isEnabledFor(logging.DEBUG):
                 logger.debug("Received remote notification request from client [%s], payload: %s" % (self, self.remote_notification_payload))
 
-            self.trySendRemoteNotification()
+            self.house.enableRemoteNotification(self)
         else:
             # Must be debug in case rogue client sends us garbage data
             if logger.isEnabledFor(logging.DEBUG):
@@ -801,7 +810,7 @@ class Client(object):
 
         self.skipped_timed_out = client.skipped_timed_out
         self.approved_match = client.approved_match
-
+        self.has_been_notified = client.has_been_notified
 
         self.house.house_lock.acquire()
         try:
@@ -837,6 +846,24 @@ class Client(object):
 
             self.approved_match = False
             self.transitionState(Client.State.MATCHING, Client.State.ACCEPTING_MATCH)
+
+            # Offline clients must be added manually.
+            if self.tcp is None:
+                self.udp_connection_linker.clients_by_udp_hash[self.udp_hash] = self
+        finally:
+            self.house.house_lock.release()
+
+    def onRoomClosure(self, otherClient):
+        self.house.house_lock.acquire()
+        try:
+            if self.tcp is None:
+                if logger.isEnabledFor(logging.DEBUG):
+                    logger.debug("Removing offline client from clients_by_udp_hash: [%s]" % self)
+
+                try:
+                    del self.udp_connection_linker.clients_by_udp_hash[self.udp_hash]
+                except KeyError:
+                    logger.error("Closing room involving offline client, could not find in clients_by_udp_hash [%s], hash [%s]" % (self, self.udp_hash))
         finally:
             self.house.house_lock.release()
 
@@ -851,7 +878,14 @@ class Client(object):
         if not self.should_notify_on_match_accept:
             return
 
-        self.remote_notification.pushEvent(self)
+        try:
+            self.remote_notification.pushEvent(self)
+        finally:
+            # This is important, because otherwise this client will be added to the waiting list again
+            # after this match finishes.
+            self.should_notify_on_match_accept = False
+            self.has_been_notified = True
+
 
     def __str__(self):
         if self.tcp is not None:

@@ -28,13 +28,17 @@ class RemoteNotification(object):
         self.httpSession = requests.Session()
 
         # Support HTTP v2.0 (Requests doesn't by itself).
-        environment = "https://api.development.push.apple.com:443"
+        environment = "https://api.development.push.apple.com:443" # this is dev.
         self.httpSession.mount(environment, HTTP20Adapter())
 
         self.url_push = environment + "/3/device/%s"
 
     def _doPushEvent(self, client):
         theUrl = self.url_push % client.remote_notification_payload
+        if client.remote_notification_payload is None:
+            logger.error("No remote notification payload associated with client [%s], failed to notify" % client)
+            return
+
         return self.httpSession.post(theUrl, json={'aps' : {'alert' : "Hello"}}, headers={'apns-topic' : 'mike.Spawn'},
                                      cert='/Users/pryormic/Desktop/MyFirstApplication/certificates/hologram_private.cer')
 
@@ -42,22 +46,12 @@ class RemoteNotification(object):
         pass
 
     def onTransactionFailure(self, client, statusCode, rejectReason):
-        logger.error("Remote notification could not be sent, status code: %d, reject reason: %s." % (statusCode, rejectReason))
+        logger.error("Remote notification could not be sent to client [%s], status code: %d, reject reason: %s." % (client, statusCode, rejectReason))
 
     def _onEventCompletion(self, result, client):
         self.live_count-=1
 
         if result.status_code == 200:
-            jsonResponse = result
-            verificationStatus = jsonResponse.get('status')
-            if verificationStatus is None:
-                self.onTransactionFailure(client, -2, "No status received")
-                return
-
-            if verificationStatus != 0:
-                self.onTransactionFailure(client, -2, verificationStatus)
-                return
-
             if logger.isEnabledFor(logging.DEBUG):
                 logger.debug("Successfully sent remote notification request: [%s] (live count = %d)" % (result.reason, self.live_count))
             self.onTransactionSuccess(client)
@@ -69,7 +63,7 @@ class RemoteNotification(object):
     def pushEvent(self, client):
         if self.live_count >= self.max_live_count:
             logger.error("Failed to push remote notification event, too many in progress requests (%d of max %d)" % (self.live_count, self.max_live_count))
-            self.onTransactionFailure(client, -1)
+            self.onTransactionFailure(client, -1, "Too many requests in progress")
             return
 
         self.live_count+=1

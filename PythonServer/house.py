@@ -219,6 +219,8 @@ class House:
                 del self.room_participant[client]
                 del self.room_participant[clientB]
 
+                self.mutualAdvise(client, clientB, Client.onRoomClosure)
+
                 self.adviseAbortNatPunchthrough(clientB)
                 if client.isConnectedTcp():
                     self.adviseAbortNatPunchthrough(client)
@@ -230,6 +232,11 @@ class House:
 
                 clientB.setToWaitForRatingOfPreviousConversation(client)
 
+                # If the client is an offline client and wants to be notified, then
+                # we need to put it back into the waiting list.
+                if clientB.tcp is None and clientB.should_notify_on_match_accept:
+                    self.matchingDatabase.pushWaiting(clientB)
+
                 if logger.isEnabledFor(logging.DEBUG):
                     logger.debug("Permanent closure of session between client [%s] and [%s] due to client [%s] leaving the room" % (client, clientB, client))
 
@@ -237,6 +244,11 @@ class House:
                 return clientB
         finally:
             self.house_lock.release()
+
+    def enableRemoteNotification(self, client):
+        assert isinstance(client, Client)
+        client.should_notify_on_match_accept = True
+        self.matchingDatabase.pushWaiting(client)
 
     def attemptTakeRoom(self, client):
         def onFailure():
@@ -285,35 +297,44 @@ class House:
 
                     key = databaseResultMatch['unique_id']
                     clientMatch = self.waiting_clients_by_key.get(key)
+
+                    # If the match is offline.
                     if clientMatch is None:
                         # ***** Here if notify enabled on the record, we synthesize a client out of that record.
-                        synthClient = self.matchingDatabase.synthesizeClient(databaseResultMatch, self.build_offline_client_func)
-                        if synthClient is not None:
+
+                        shouldNotify = databaseResultMatch.get('should_notify')
+                        if shouldNotify:
+                            # We can tolerate an offline client, if we intend on notifying them.
+                            synthClient = self.matchingDatabase.synthesizeClient(databaseResultMatch, self.build_offline_client_func)
                             assert isinstance(synthClient, Client)
 
                             # Allow client to reconnect and takeover this session.
                             # If something there already, then maybe client recently connected and will soon
                             # update this record.
-                            if synthClient.udp_hash in self.udp_connection_linker.clients_by_udp_hash:
-                                onFailure()
-                                break
-
-                            clientMatch = synthClient
+                            #
+                            # Basically prevents a race condition.
+                            synthClientDup = self.udp_connection_linker.clients_by_udp_hash.get(synthClient.udp_hash)
+                            if synthClientDup is not None:
+                                clientMatch = synthClientDup
+                            else:
+                                clientMatch = synthClient
                             break
+                        else:
+                            # We don't tolerate an offline client here, because we're not going notify them.
+                            # So this must be because of a server restart, so clear that client out.
+                            self.matchingDatabase.removeMatchById(databaseResultMatch['_id'])
+                            logger.warn("Client in DB not found in waiting list, database inconsistency detected, removing key from database: " + key + ", and retrying")
+                            continue # Retry repeatedly.
+                    break
 
-
-                        self.matchingDatabase.removeMatchById(key)
-                        logger.warn("Client in DB not found in waiting list, database inconsistency detected, removing key from database: " + key + ", and retrying")
-                        continue # Retry repeatedly.
-
-                    break # exit the loop because we succeeded
-
-                # Avoid recently skipped clients, unless we've timed out.
+                # Avoid recently skipped clients, and blocked clients.
                 if clientMatch is not None and client.shouldMatch(clientMatch):
                     if not self.takeRoom(client, clientMatch):
+                        onFailure()
                         return None
                     return clientMatch
                 else:
+                    onFailure()
                     return None
 
         finally:

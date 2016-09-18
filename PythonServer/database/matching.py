@@ -24,6 +24,9 @@ class Matching(object):
         assert isinstance(client, Client)
         self.match_collection.remove({'_id': self.buildId(client.login_details)})
 
+    def removeMatchById(self, theId):
+        self.match_collection.remove({'_id': theId})
+
     # find a match which is fit enough for the specified client.
     def findMatch(self, client):
         assert isinstance(client, Client)
@@ -103,18 +106,16 @@ class Matching(object):
     def synthesizeClient(self, dataRecord, buildClientFunc):
         assert isinstance(dataRecord, dict)
 
-        shouldNotify = dataRecord.get('should_notify')
-        if not shouldNotify:
-            return
-
         client = buildClientFunc()
 
         profilePicture = ByteBuffer()
 
-        client.login_details = Client.LoginDetails(dataRecord['unique_id'], dataRecord['persisted_unique_id'],
-                                                   dataRecord['name'], dataRecord['short_name'], dataRecord['age'],
+        client.login_details = Client.LoginDetails(str(dataRecord['unique_id']), str(dataRecord['persisted_unique_id']),
+                                                   str(dataRecord['name']), str(dataRecord['short_name']), dataRecord['age'],
                                                    dataRecord['gender'], dataRecord['gender_wanted'], dataRecord['location'][0],
-                                                   dataRecord['location'][1], dataRecord['card_text'], profilePicture, dataRecord['profile_picture_orientation'])
+                                                   dataRecord['location'][1], str(dataRecord['card_text']), profilePicture, dataRecord['profile_picture_orientation'])
+
+        client.remote_notification_payload = str(dataRecord['remote_notification_payload'])
 
         client.should_notify_on_match_accept = True
         client.udp_hash = client.login_details.unique_id
@@ -159,13 +160,17 @@ class Matching(object):
                                    'profile_picture_used_size' : loginDetails.profile_picture.used_size,
                                    'profile_picture' : None,
                                    'profile_picture_orientation' : loginDetails.profile_picture_orientation,
-                                   'persisted_unique_id' : loginDetails.persisted_unique_id})
+                                   'persisted_unique_id' : loginDetails.persisted_unique_id,
+                                   'remote_notification_payload' : client.remote_notification_payload})
 
         self.match_collection.replace_one({"_id" : uniqueId}, recordToInsert, upsert=True)
 
     def buildId(self, loginDetails):
         assert isinstance(loginDetails, Client.LoginDetails)
-        return "%s_%s" % (self.server_name, loginDetails.persisted_unique_id)
+        return self.buildIdRaw(loginDetails.persisted_unique_id)
+
+    def buildIdRaw(self, uniqueId):
+        return "%s_%s" % (self.server_name, uniqueId)
 
     def listItems(self):
         for item in self.match_collection.find():
