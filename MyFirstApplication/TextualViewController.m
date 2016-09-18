@@ -22,7 +22,7 @@
 - (void)viewDidLoad {
     _progressCircleViewCountdown = [[CircleCountdownTimer alloc] initWithCircleProgressBar:_progressCircleView matchingAnswerDelegate:self];
     [_progressCircleViewCountdown enableInfiniteMode];
-    [_progressCircleViewCountdown loadTimer:[[Timer alloc] initWithFrequencySeconds:30 firingInitially:false]];
+    [_progressCircleViewCountdown loadTimer:[[Timer alloc] initWithFrequencySeconds:15 firingInitially:false]];
     [self updateTextOfNotifyLabel];
     _remoteNotificationsEnabled = false;
     _remoteNotificationsPreparing = false;
@@ -52,11 +52,16 @@
 - (void)updateTextOfNotifyLabel {
     dispatch_sync_main(^{
         if (_remoteNotificationsEnabled) {
-            [_tapToNotifyLabel setText:@"You will be notified when a match accepts you"];
-            [_tapToNotifyLabel setTextColor:[UIColor blueColor]];
+            [ViewInteractions fadeOut:_tapToNotifyLabel completion:^(BOOL completed){
+                [_tapToNotifyLabel setText:@"You will be notified when a match accepts you"];
+
+                [ViewInteractions fadeIn:_tapToNotifyLabel completion:^(BOOL completedTwo){
+                    [_progressCircleView setProgressBarProgressColor:[UIColor greenColor]];
+                } duration:0.4f];
+            } duration:0.4f];
         } else {
-            [_tapToNotifyLabel setText:@"Tap to be notified when a match accepts you"];
-            [_tapToNotifyLabel setTextColor:[UIColor colorWithRed:0.75f green:0.4f blue:0.4f alpha:1.0f]]; // this is salmon, our interactive tint.
+            [_tapToNotifyLabel setText:@"Tap to be notified"];
+            [_progressCircleView setProgressBarProgressColor:[UIColor orangeColor]];
         }
     });
 }
@@ -68,8 +73,8 @@
     [self updateTextOfNotifyLabel];
     [_tapToNotifyLabel setAlpha:0];
     dispatch_async_main(^{
-        [ViewInteractions fadeIn:_tapToNotifyLabel completion:nil duration:0.2];
-    }, 2000);
+        [ViewInteractions fadeIn:_tapToNotifyLabel completion:nil duration:1];
+    }, 500);
 }
 
 - (void)setNotificationRequestDelegate:(id <NotificationRequest>)notificationRequestDelegate {
