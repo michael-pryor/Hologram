@@ -50,7 +50,7 @@
         CallingCardViewController *callingCardViewController = [segue destinationViewController];
         callingCardViewController.view.backgroundColor = _callingCardContainerView.backgroundColor;
         SocialState *socialState = [SocialState getSocialInstance];
-        [callingCardViewController setName:[socialState humanShortName] profilePicture:[socialState profilePictureImage] callingCardText:[socialState callingCardText] age:[socialState age] distance:0 karma:5 maxKarma:5 isReconnectingClient:false];
+        [callingCardViewController setName:[socialState humanShortName] profilePicture:[socialState profilePictureImage] callingCardText:[socialState callingCardText] age:[socialState age] distance:0 karma:5 maxKarma:5 isReconnectingClient:false isClientOnline:true];
     }
 }
 

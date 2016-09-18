@@ -9,10 +9,12 @@
 #import <UIKit/UIKit.h>
 
 @protocol CallingCardDataProvider
-- (void)setName:(NSString *)name profilePicture:(UIImage *)profilePicture callingCardText:(NSString *)callingCardText age:(uint)age distance:(uint)distance karma:(uint)karma maxKarma:(uint)maxKarma isReconnectingClient:(bool)isReconnectingClient;
+- (void)     setName:(NSString *)name profilePicture:(UIImage *)profilePicture callingCardText:(NSString *)callingCardText
+                 age:(uint)age distance:(uint)distance karma:(uint)karma maxKarma:(uint)maxKarma
+isReconnectingClient:(bool)isReconnectingClient isClientOnline:(bool)isClientOnline;
 @end
 
-@protocol CallingCardDataProviderEx<CallingCardDataProvider>
+@protocol CallingCardDataProviderEx <CallingCardDataProvider>
 - (bool)isChangeInName:(NSString *)name profilePicture:(UIImage *)profilePicture callingCardText:(NSString *)callingCardText age:(uint)age;
 @end
 

@@ -63,6 +63,9 @@
 
     bool _isSkipButtonRequired;
     bool _isCountdownToNotificationRequired;
+
+    bool _isMatchOnline;
+    bool _wasMatchPreviouslyOffline;
 }
 
 - (void)reset {
@@ -142,6 +145,9 @@
     _actionIterationAdvertSchedule = false;
     _actionIterationAdvertSchedule = 0;
     _isBannerAdvertLoaded = false;
+
+    _isMatchOnline = false;
+    _wasMatchPreviouslyOffline = false;
 
     _waitingForRating = [[Signal alloc] initWithFlag:false];
 
@@ -375,8 +381,8 @@
 
 - (void)onMatchAcceptAnswer {
     [_matchingAnswerDelegate onMatchAcceptAnswer];
-    [self setViewRelevantInformationText:@"Waiting for your match to accept too"];
     [_joiningConversationViewController consumeRemainingTimer:[_matchingViewController cloneTimer]];
+    [self updateStateBasedOnMatchOnline];
     [self showView:_joiningConversationView showQuickly:false];
 }
 
@@ -384,7 +390,32 @@
     [self hideViewsQuickly:quicklyHideViews];
 }
 
-- (void)setName:(NSString *)name profilePicture:(UIImage *)profilePicture callingCardText:(NSString *)callingCardText age:(uint)age distance:(uint)distance karma:(uint)karma maxKarma:(uint)maxKarma isReconnectingClient:(bool)isReconnectingClient {
+- (void)updateStateBasedOnMatchOnline {
+    [_joiningConversationViewController updateColours:_isMatchOnline];
+
+    NSString *text;
+    if (!_isMatchOnline) {
+        text = @"Your match has been notified, waiting for them to come online";
+        [_joiningConversationViewController reset];
+    } else {
+        if (_wasMatchPreviouslyOffline) {
+            text = @"Your match has come online! Waiting for them to accept";
+        } else {
+            text = @"Waiting for your match to accept too";
+        }
+    }
+    [self setViewRelevantInformationText:text];
+}
+
+- (void)     setName:(NSString *)name profilePicture:(UIImage *)profilePicture callingCardText:(NSString *)callingCardText
+                 age:(uint)age distance:(uint)distance karma:(uint)karma maxKarma:(uint)maxKarma
+isReconnectingClient:(bool)isReconnectingClient isClientOnline:(bool)isClientOnline {
+
+    _isMatchOnline = isClientOnline;
+    if (!_isMatchOnline) {
+        _wasMatchPreviouslyOffline = true;
+    }
+
     // If user we are waiting for reconnects, we receive their information again, but if it is the same user, we just want to carry on waiting,
     // without showing the card again.
     //
@@ -392,10 +423,17 @@
     if (isReconnectingClient && [self isWaitingForMatchToJoin] && ![_matchingViewController isChangeInName:name profilePicture:profilePicture callingCardText:callingCardText age:age]) {
         NSLog(@"Was waiting for match to join but received duplicate profile while waiting for reconnect; not displaying profile");
         [_joiningConversationViewController reset];
+        [self updateStateBasedOnMatchOnline];
         return;
     }
 
-    [_matchingViewController setName:name profilePicture:profilePicture callingCardText:callingCardText age:age distance:distance karma:karma maxKarma:maxKarma isReconnectingClient:isReconnectingClient];
+    // A new client, so reset its state.
+    if (_isMatchOnline) {
+        _wasMatchPreviouslyOffline = false;
+    }
+
+    [_matchingViewController setName:name profilePicture:profilePicture callingCardText:callingCardText age:age distance:distance karma:karma maxKarma:maxKarma isReconnectingClient:isReconnectingClient isClientOnline:isClientOnline];
+    [self updateStateBasedOnMatchOnline];
     [self onMatchingStarted];
 }
 

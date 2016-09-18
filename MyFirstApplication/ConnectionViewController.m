@@ -550,7 +550,7 @@
  * Note: during reconnects we get NAT punchthrough information only, so that is why _waitingForProspectiveMatch is set to false
  * when receiving NAT information, and why it's okay that setName doesn't get called.
  */
-- (void)setName:(NSString *)name profilePicture:(UIImage *)profilePicture callingCardText:(NSString *)callingCardText age:(uint)age distance:(uint)distance karma:(uint)localKarmaRating maxKarma:(uint)maxKarma isReconnectingClient:(bool)isReconnectingClient {
+- (void)setName:(NSString *)name profilePicture:(UIImage *)profilePicture callingCardText:(NSString *)callingCardText age:(uint)age distance:(uint)distance karma:(uint)localKarmaRating maxKarma:(uint)maxKarma isReconnectingClient:(bool)isReconnectingClient isClientOnline:(bool)isClientOnline{
     NSLog(@"**** LOADED PROFILE DETAILS OF MATCH *****");
 
     // Just matched with somebody new, but they need to accept or reject us before video starts.
@@ -565,7 +565,7 @@
         NSLog(@"Received our karma of [%.3f]", localKarmaPercentage);
         [ViewStringFormatting updateKarmaUsingProgressView:_ownerKarma ratio:localKarmaPercentage];
 
-        [_disconnectViewController setName:name profilePicture:profilePicture callingCardText:callingCardText age:age distance:distance karma:localKarmaRating maxKarma:maxKarma isReconnectingClient:isReconnectingClient];
+        [_disconnectViewController setName:name profilePicture:profilePicture callingCardText:callingCardText age:age distance:distance karma:localKarmaRating maxKarma:maxKarma isReconnectingClient:isReconnectingClient isClientOnline:isClientOnline];
 
         NSLog(@"Connected with user named [%@] with age [%u]", name, age);
         [_backButton setHidden:false];

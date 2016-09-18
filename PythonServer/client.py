@@ -306,6 +306,12 @@ class Client(object):
             if logger.isEnabledFor(logging.DEBUG):
                 logger.debug("Not advising NAT punchthrough details to offline client: %s" % self)
 
+    def startExpectingMatchExpiry(self):
+        self.cancelAcceptingMatchExpiry()
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug("Scheduled new accepting match expiry for client [%s] in [%s] seconds" % (self, Client.ACCEPTING_MATCH_EXPIRY))
+        self.accepting_match_expiry_action = self.reactor.callLater(Client.ACCEPTING_MATCH_EXPIRY, self.doSkipTimedOut)
+
     def adviseMatchDetails(self, sourceClient, distance, reconnectingClient = False):
         packet = ByteBuffer()
         packet.addUnsignedInteger8(Client.TcpOperationCodes.OP_ADVISE_MATCH_INFORMATION)
@@ -320,13 +326,11 @@ class Client(object):
         packet.addByteBuffer(sourceClient.login_details.profile_picture)
         packet.addUnsignedInteger(sourceClient.login_details.profile_picture_orientation)
         packet.addUnsignedInteger8(1 if reconnectingClient else 0)
+        packet.addUnsignedInteger8(1 if sourceClient.connection_status == Client.ConnectionStatus.CONNECTED else 0) # Informs whether the match is online or offline.
 
         self.transitionState(Client.State.MATCHING, Client.State.ACCEPTING_MATCH)
+        self.startExpectingMatchExpiry()
 
-        self.cancelAcceptingMatchExpiry()
-        if logger.isEnabledFor(logging.DEBUG):
-            logger.debug("Scheduled new accepting match expiry for client [%s] in [%s] seconds" % (self, Client.ACCEPTING_MATCH_EXPIRY))
-        self.accepting_match_expiry_action = self.reactor.callLater(Client.ACCEPTING_MATCH_EXPIRY, self.doSkipTimedOut)
 
         if self.tcp is not None:
             self.tcp.sendByteBuffer(packet)
@@ -877,6 +881,10 @@ class Client(object):
     def trySendRemoteNotification(self):
         if not self.should_notify_on_match_accept:
             return
+
+        # Restart the expiry timer, because we want to give time for client to join,
+        # as its currently offline.
+        self.startExpectingMatchExpiry()
 
         try:
             self.remote_notification.pushEvent(self)

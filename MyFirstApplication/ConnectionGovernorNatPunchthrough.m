@@ -219,11 +219,12 @@
             NSData *profilePictureData = [packet getData];
             uint profilePictureOrientationInteger = [packet getUnsignedInteger];
             bool isReconnectingClient = [packet getUnsignedInteger8] == 1;
+            bool isClientOnline = [packet getUnsignedInteger8] == 1;
 
             UIImageOrientation profilePictureOrientation = [ImageParsing parseIntegerToOrientation:profilePictureOrientationInteger];
             UIImage *profilePicture = [ImageParsing convertDataToImage:profilePictureData orientation:profilePictureOrientation];
 
-            [_notifier setName:userName profilePicture:profilePicture callingCardText:cardText age:userAge distance:(uint) distanceFromUser karma:ourKarmaRating maxKarma:karmaMax isReconnectingClient:isReconnectingClient];
+            [_notifier setName:userName profilePicture:profilePicture callingCardText:cardText age:userAge distance:(uint) distanceFromUser karma:ourKarmaRating maxKarma:karmaMax isReconnectingClient:isReconnectingClient isClientOnline:isClientOnline];
             [_notifier handleKarmaMaximum:karmaMax ratingTimeoutSeconds:ratingTimeoutSeconds matchDecisionTimeout:matchDecisionTimeout];
         } else if (prefix == NAT_PUNCHTHROUGH_DISCONNECT) {
             NSLog(@"Request to stop using NAT punchthrough received");

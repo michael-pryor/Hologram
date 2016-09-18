@@ -371,7 +371,20 @@ class House:
                 # A client has reconnected, and wants to use the old room.
                 if clientOld is not client:
                     if logger.isEnabledFor(logging.DEBUG):
-                        logger.debug("Old room reused, due to client [%s]")
+                        logger.debug("Old room reused, due to new client [%s], resuing old [%s]" % (client, clientOld))
+
+                    # Key object is not replaced during an update of same key, so we need to do this, because
+                    # keyed object may change, even if hash stays the same.
+                    try:
+                        del self.room_participant[client]
+                    except KeyError:
+                        pass
+
+                    try:
+                        del self.room_participant[clientMatch]
+                    except KeyError:
+                        pass
+
                     self.room_participant[client] = clientMatch
                     self.room_participant[clientMatch] = client
 

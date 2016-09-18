@@ -33,6 +33,14 @@
     [_countdownTimer restart];
 }
 
+- (void)updateColours:(bool)isClientOnline {
+    if (isClientOnline) {
+        [_progressBar setProgressBarProgressColor:[UIColor greenColor]];
+    } else {
+        [_progressBar setProgressBarProgressColor:[UIColor orangeColor]];
+    }
+}
+
 - (void)stop {
     [_countdownTimer stopUpdating];
 }

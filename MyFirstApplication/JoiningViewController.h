@@ -16,4 +16,6 @@
 - (void)stop;
 
 - (void)reset;
+
+- (void)updateColours:(bool)isClientOnline;
 @end
