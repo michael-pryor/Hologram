@@ -502,6 +502,7 @@ isReconnectingClient:(bool)isReconnectingClient isClientOnline:(bool)isClientOnl
     if (!_isCountdownToNotificationRequired) {
         // Looks better just to clear it straight away.
         [_textualView setAlpha:0];
+        [_textualViewController stop];
     }
 }
 
