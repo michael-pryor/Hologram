@@ -433,6 +433,7 @@ class Client(object):
 
         fullName = packet.getString()
         shortName = packet.getString()
+        shortName = shortName[:50] # Restrict to 50 characters.
         age = packet.getUnsignedInteger()
         gender = packet.getUnsignedInteger()
         interestedIn = packet.getUnsignedInteger()
@@ -884,7 +885,9 @@ class Client(object):
     def onFriendlyPacketUdp(self, packet):
         self.house.handleUdpPacket(self, packet)
 
-    def trySendRemoteNotification(self):
+    def trySendRemoteNotification(self, matchedWith):
+        assert isinstance(matchedWith, Client)
+
         if not self.should_notify_on_match_accept:
             return
 
@@ -892,8 +895,15 @@ class Client(object):
         # as its currently offline.
         self.startExpectingMatchExpiry()
 
+        name = matchedWith.login_details.short_name[:20]
+        
+        payload = {
+            'alert' : (u'\U0001F525 Your card has been accepted by %s! You have %d seconds to join.' % (name, Client.ACCEPTING_MATCH_EXPIRY)),
+            'badge' : 1
+        }
+
         try:
-            self.remote_notification.pushEvent(self)
+            self.remote_notification.pushEvent(self, payload=payload)
         finally:
             # This is important, because otherwise this client will be added to the waiting list again
             # after this match finishes.

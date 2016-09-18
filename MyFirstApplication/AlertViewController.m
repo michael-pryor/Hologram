@@ -26,6 +26,7 @@
     __weak IBOutlet UIButton *_forwardButton;
     id <MediaOperator> _mediaOperator;
     bool _movingToFacebook;
+    bool _isVisible;
 
     NSString *_cachedAlertText;
     __weak IBOutlet UIActivityIndicatorView *_activityIndicator;
@@ -145,6 +146,7 @@
     _actionIterationAdvertSchedule = false;
     _actionIterationAdvertSchedule = 0;
     _isBannerAdvertLoaded = false;
+    _isVisible = false;
 
     _isMatchOnline = false;
     _wasMatchPreviouslyOffline = false;
@@ -224,6 +226,7 @@
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
+    _isVisible = true;
 
     NSLog(@"!!!!!!APPEAR!!!!!!");
     _movingToFacebook = false;
@@ -243,7 +246,7 @@
 
 - (void)viewDidDisappear:(BOOL)animated {
     [super viewDidDisappear:animated];
-
+    _isVisible = false;
     NSLog(@"!!!!!!DISAPPEAR!!!!!!");
 
     // Pause the banner view, stop it loading new adverts.
@@ -553,7 +556,7 @@ isReconnectingClient:(bool)isReconnectingClient isClientOnline:(bool)isClientOnl
     // Never have a situation where there would be no text to show...
     [self fadeInView:_alertShortText duration:duration alpha:1.0f];
 
-    if ([isCountdownNotificationRequired boolValue]) {
+    if ([isCountdownNotificationRequired boolValue] && _isVisible) {
         [_textualViewController reset];
         [_textualViewController start];
         [self fadeInView:_textualView duration:duration alpha:1.0f];

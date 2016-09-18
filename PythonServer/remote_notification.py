@@ -33,13 +33,13 @@ class RemoteNotification(object):
 
         self.url_push = environment + "/3/device/%s"
 
-    def _doPushEvent(self, client):
+    def _doPushEvent(self, client, payload):
         theUrl = self.url_push % client.remote_notification_payload
         if client.remote_notification_payload is None:
             logger.error("No remote notification payload associated with client [%s], failed to notify" % client)
             return
 
-        return self.httpSession.post(theUrl, json={'aps' : {'alert' : "Hello"}}, headers={'apns-topic' : 'mike.Spawn'},
+        return self.httpSession.post(theUrl, json={'aps' : payload}, headers={'apns-topic' : 'mike.Spawn'},
                                      cert='/Users/pryormic/Desktop/MyFirstApplication/certificates/hologram_private.cer')
 
     def onTransactionSuccess(self, client):
@@ -60,14 +60,14 @@ class RemoteNotification(object):
             self.onTransactionFailure(client, result.status_code, result.text)
 
 
-    def pushEvent(self, client):
+    def pushEvent(self, client, payload):
         if self.live_count >= self.max_live_count:
             logger.error("Failed to push remote notification event, too many in progress requests (%d of max %d)" % (self.live_count, self.max_live_count))
             self.onTransactionFailure(client, -1, "Too many requests in progress")
             return
 
         self.live_count+=1
-        item = threads.deferToThread(lambda: self._doPushEvent(client))
+        item = threads.deferToThread(lambda: self._doPushEvent(client, payload))
         item.addCallback(lambda code: self._onEventCompletion(code, client))
         if logger.isEnabledFor(logging.DEBUG):
             logger.debug("Remote notification event pushed, live count is %d" % self.live_count)

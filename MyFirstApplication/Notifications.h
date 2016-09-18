@@ -13,6 +13,7 @@
 
 @interface Notifications : NSObject
 @property (readonly, atomic) bool notificationsEnabled;
+@property (atomic) bool activePushEnabled;
 
 + (Notifications *)getNotificationsInstance;
 

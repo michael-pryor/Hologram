@@ -100,7 +100,7 @@ class House:
 
             if not clientB.approved_match:
                 # ***** Here we would do the notify.
-                clientB.trySendRemoteNotification()
+                clientB.trySendRemoteNotification(sourceClient)
                 return True
 
             if logger.isEnabledFor(logging.DEBUG):

@@ -379,6 +379,8 @@
 
 - (void)viewDidAppear:(BOOL)animated {
     [self enableScreenDim];
+    [_notifications setActivePushEnabled:true];
+
     if (_waitingForEulaCompletion) {
         _waitingForEulaCompletion = false;
         if ([_socialState hasAcceptedEula]) {
@@ -386,6 +388,10 @@
             [self _switchToChatViewHelper];
         }
     }
+}
+
+- (void)viewDidDisappear:(BOOL)animated {
+    [_notifications setActivePushEnabled:false];
 }
 
 - (IBAction)onDesiredGenderChanged:(id)sender {

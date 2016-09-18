@@ -10,6 +10,7 @@ static Notifications *notificationsInstance = nil;
 
 @implementation Notifications {
     NSMutableSet *_remoteNotificationRequesters;
+    bool _activePushEnabled;
 }
 
 - (id)init {
@@ -17,6 +18,7 @@ static Notifications *notificationsInstance = nil;
     if (self) {
         _notificationsEnabled = [[NSUserDefaults standardUserDefaults] boolForKey:kPushNotificationRequestAlreadySeen];
         _remoteNotificationRequesters = [[NSMutableSet alloc] init];
+        _activePushEnabled = false;
     }
     return self;
 }
