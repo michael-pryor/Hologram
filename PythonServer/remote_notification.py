@@ -19,11 +19,12 @@ from hyper.contrib import HTTP20Adapter
 logger = logging.getLogger(__name__)
 
 class RemoteNotification(object):
-    def __init__(self, maxLiveCount):
+    def __init__(self, maxLiveCount, serverName):
         super(RemoteNotification, self).__init__()
         # Requests which are waiting but not actioned yet.
         self.live_count = 0
         self.max_live_count = maxLiveCount
+        self.server_name = serverName
 
         self.httpSession = requests.Session()
 
@@ -39,7 +40,7 @@ class RemoteNotification(object):
             logger.error("No remote notification payload associated with client [%s], failed to notify" % client)
             return
 
-        return self.httpSession.post(theUrl, json={'aps' : payload}, headers={'apns-topic' : 'mike.Spawn'},
+        return self.httpSession.post(theUrl, json={'aps' : payload, 'server_name' : self.server_name}, headers={'apns-topic' : 'mike.Spawn'},
                                      cert='/Users/pryormic/Desktop/MyFirstApplication/certificates/hologram_private.cer')
 
     def onTransactionSuccess(self, client):

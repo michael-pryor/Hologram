@@ -10,7 +10,7 @@ static Notifications *notificationsInstance = nil;
 
 @implementation Notifications {
     NSMutableSet *_remoteNotificationRequesters;
-    bool _activePushEnabled;
+
 }
 
 - (id)init {

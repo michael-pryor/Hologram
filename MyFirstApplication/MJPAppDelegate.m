@@ -85,9 +85,13 @@
 
 - (void)application:(UIApplication *)application
         didReceiveRemoteNotification:(NSDictionary *)userInfo {
-    NSLog(@"Received remote notification!");
+    NSString *originated = userInfo[@"server_name"];
+    NSLog(@"Received remote notification, originating from: %@", originated);
 
-    if ([[Notifications getNotificationsInstance] activePushEnabled] && application.applicationState == UIApplicationStateActive) {
+    Notifications* notifications = [Notifications getNotificationsInstance];
+    [notifications setServerNameNotificationOriginatedFrom: originated];
+
+    if ([notifications activePushEnabled] && application.applicationState == UIApplicationStateActive) {
         // Nothing to do if applicationState is Inactive, the iOS already displayed an alert view.
         UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Hologram" message:[NSString stringWithFormat:@"%@",[userInfo[@"aps"] objectForKey:@"alert"]] delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil];
         [alertView show];

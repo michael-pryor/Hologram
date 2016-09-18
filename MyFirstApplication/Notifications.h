@@ -14,6 +14,7 @@
 @interface Notifications : NSObject
 @property (readonly, atomic) bool notificationsEnabled;
 @property (atomic) bool activePushEnabled;
+@property (atomic) NSString * serverNameNotificationOriginatedFrom;
 
 + (Notifications *)getNotificationsInstance;
 

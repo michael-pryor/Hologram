@@ -896,7 +896,7 @@ class Client(object):
         self.startExpectingMatchExpiry()
 
         name = matchedWith.login_details.short_name[:20]
-        
+
         payload = {
             'alert' : (u'\U0001F525 Your card has been accepted by %s! You have %d seconds to join.' % (name, Client.ACCEPTING_MATCH_EXPIRY)),
             'badge' : 1

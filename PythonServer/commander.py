@@ -36,6 +36,7 @@ class CommanderGovernor(object):
         self.forwardPacket = None
         self.governorHost = governorHost
         self.current_load = 0
+        self.serverName = None
         self.disconnect_timeout = reactor.callLater(CommanderGovernor.TIMEOUT, self.forceDisconnect)
 
     def forceDisconnect(self):
@@ -70,6 +71,7 @@ class CommanderGovernor(object):
                 self.tcp.transport.loseConnection()
                 return
 
+            self.serverName = packet.getString()
             self.forwardPortTcp = packet.getUnsignedInteger()
             self.forwardPortUdp = packet.getUnsignedInteger()
             self.forwardIpAddress = self.tcp.remote_address.host
@@ -110,6 +112,7 @@ class CommanderGovernorController(ClientFactory):
         self.sub_servers = list()
         self.sub_servers_lock = RLock()
         self.governor_host = governorHost
+        self.sub_servers_by_name = dict()
 
         self.best_sub_server = None
 
@@ -121,6 +124,9 @@ class CommanderGovernorController(ClientFactory):
             lowestSubServer = None
             for subServer in self.sub_servers:
                 assert isinstance(subServer, CommanderGovernor)
+                if subServer.serverName is not None and subServer.serverName not in self.sub_servers_by_name:
+                    self.sub_servers_by_name[subServer.serverName] = subServer
+
                 currentLoad = subServer.current_load
                 if currentLoad < lowest_load or lowestSubServer is None:
                     lowest_load = currentLoad
@@ -146,12 +152,21 @@ class CommanderGovernorController(ClientFactory):
         finally:
             self.sub_servers_lock.release()
 
+    def getSubServerByName(self, name):
+        self.sub_servers_lock.acquire()
+        try:
+            return self.sub_servers_by_name.get(name)
+        finally:
+            self.sub_servers_lock.release()
+
     def clientDisconnected(self, client):
         assert isinstance(client, CommanderGovernor)
         self.sub_servers_lock.acquire()
         try:
             logger.info("Governor disconnected, deleting [%s]" % client)
             self.sub_servers.remove(client)
+            if client.serverName is not None:
+                self.sub_servers_by_name.remove(client.serverName)
             if client is self.best_sub_server:
                 self.best_sub_server = None
                 logger.info("Cleared best sub server: [%s]" % client)
@@ -172,6 +187,8 @@ class CommanderGovernorController(ClientFactory):
         return tcp
 
 class CommanderClientRouting(ClientFactory):
+    TIMEOUT = 10
+
     class RouterCodes:
         SUCCESS = 1
         FAILURE = 2
@@ -187,21 +204,47 @@ class CommanderClientRouting(ClientFactory):
 
         return self.tcp
 
-    def onConnectionMade(self):
+    def handleTcpPacket(self, packet):
+        nameOfServer = packet.getString()
+
+        try:
+            self.timeout_action.cancel(self, delay)
+        except AlreadyCalled:
+            pass
+        except AlreadyCancelled:
+            pass
+
+        if nameOfServer is None or len(nameOfServer):
+            subServer = self.subServerCoordinator.getNextSubServer()
+        else:
+            subServer = self.subServerCoordinator.getSubServerByName(nameOfServer)
+
+        if subServer is None:
+            if nameOfServer is not None:
+                self.sendFailure("Could not find server named %s" % nameOfServer)
+            else:
+                self.sendFailure("No governors available")
+        else:
+            self.sendSuccess(subServer)
+
+    def sendSuccess(self, subserver):
         result = ByteBuffer()
 
-        subServer = self.subServerCoordinator.getNextSubServer()
-        if subServer is None:
-            logger.warn("Failed to retrieve governor, rejecting client")
-            result.addUnsignedInteger8(CommanderClientRouting.RouterCodes.FAILURE)
-            result.addString("No governors available")
-        else:
-            if logger.isEnabledFor(logging.DEBUG):
-                logger.debug("Directed client to governor: [%s]" % subServer)
-            result.addUnsignedInteger8(CommanderClientRouting.RouterCodes.SUCCESS)
-            result.addByteBuffer(subServer.forwardPacket, includePrefix=False)
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug("Directed client to governor: [%s]" % subServer)
+        result.addUnsignedInteger8(CommanderClientRouting.RouterCodes.SUCCESS)
+        result.addByteBuffer(subServer.forwardPacket, includePrefix=False)
 
         self.tcp.sendByteBuffer(result)
+
+    def sendFailure(self, failureMessage):
+        logger.warn("Failed to retrieve server, rejecting client, reason: %s" % failureMessage)
+        result.addUnsignedInteger8(CommanderClientRouting.RouterCodes.FAILURE)
+        result.addString(failureMessage)
+
+    def onConnectionMade(self):
+        self.timeout_action = self.reactor.callLater(CommanderClientRouting.TIMEOUT, self.tcp.transport.loseConnection)
+
 
 
 

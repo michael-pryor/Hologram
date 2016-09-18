@@ -371,6 +371,7 @@ class CommanderConnection(ReconnectingClientFactory):
         if len(passwordEnvVariable) == 0:
            raise RuntimeError('HOLOGRAM_PASSWORD env variable must be set')
         self.governorPacket.addString(passwordEnvVariable)
+        self.governorPacket.addString(governor.governor_name)
         self.governorPacket.addUnsignedInteger(ourGovernorTcpPort)
         self.governorPacket.addUnsignedInteger(ourGovernorUdpPort)
 
@@ -481,7 +482,7 @@ if __name__ == "__main__":
     matchDecisionDatabase = Blocking(mongoClient.db.match_decision, expiryTimeSeconds=60 * 60)
     karmaDatabase = KarmaLeveled(mongoClient)
     persistedIdsDatabase = PersistedIds(mongoClient)
-    remoteNotification = RemoteNotification(1000)
+    remoteNotification = RemoteNotification(1000, governorName)
     server = Governor(reactor, matchingDatabase, blockingDatabase, matchDecisionDatabase, karmaDatabase, persistedIdsDatabase, governorName, remoteNotification)
 
     analytics =  None#Analytics(100, governorName)
