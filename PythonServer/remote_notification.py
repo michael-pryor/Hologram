@@ -19,7 +19,7 @@ from hyper.contrib import HTTP20Adapter
 logger = logging.getLogger(__name__)
 
 class RemoteNotification(object):
-    def __init__(self, maxLiveCount, serverName):
+    def __init__(self, maxLiveCount, serverName, production = True):
         super(RemoteNotification, self).__init__()
         # Requests which are waiting but not actioned yet.
         self.live_count = 0
@@ -29,7 +29,10 @@ class RemoteNotification(object):
         self.httpSession = requests.Session()
 
         # Support HTTP v2.0 (Requests doesn't by itself).
-        environment = "https://api.development.push.apple.com:443" # this is dev.
+        if production:
+            environment = "https://api.push.apple.com:443"
+        else:
+            environment = "https://api.development.push.apple.com:443" # this is dev.
         self.httpSession.mount(environment, HTTP20Adapter())
 
         self.url_push = environment + "/3/device/%s"

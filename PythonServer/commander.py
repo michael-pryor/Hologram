@@ -236,8 +236,8 @@ class CommanderClientRouting(ClientFactory):
             else:
                 if logger.isEnabledFor(logging.DEBUG):
                     logger.debug("Directed client to requested server named %s" % nameOfServer)
-
-        subServer = self.subServerCoordinator.getNextSubServer()
+        else:
+            subServer = self.subServerCoordinator.getNextSubServer()
 
 
         if subServer is None:

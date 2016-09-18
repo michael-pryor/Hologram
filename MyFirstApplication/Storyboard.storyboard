@@ -1959,21 +1959,21 @@ If enabled, Hologram will notify you when the hot spots are starting.</string>
                                 </constraints>
                             </view>
                             <containerView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="QMu-Z6-TRi">
-                                <rect key="frame" x="0.0" y="100" width="600" height="500"/>
+                                <rect key="frame" x="0.0" y="110" width="600" height="490"/>
                                 <color key="backgroundColor" red="0.90196079019999997" green="0.90196079019999997" blue="0.90196079019999997" alpha="1" colorSpace="calibratedRGB"/>
                                 <connections>
                                     <segue destination="kqn-7n-6Sq" kind="embed" identifier="Rating" id="OTa-FO-5Df"/>
                                 </connections>
                             </containerView>
                             <containerView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="zKP-Td-56z" userLabel="Joining Conversation View">
-                                <rect key="frame" x="0.0" y="100" width="600" height="500"/>
+                                <rect key="frame" x="0.0" y="110" width="600" height="490"/>
                                 <color key="backgroundColor" red="0.90196079019999997" green="0.90196079019999997" blue="0.90196079019999997" alpha="1" colorSpace="calibratedRGB"/>
                                 <connections>
                                     <segue destination="J23-l5-Gi7" kind="embed" identifier="JoiningConversation" id="YZC-DK-2eP"/>
                                 </connections>
                             </containerView>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="center" horizontalHuggingPriority="1000" verticalHuggingPriority="1000" horizontalCompressionResistancePriority="1000" verticalCompressionResistancePriority="1000" text="Here is some sample text to talk about stuff" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="3" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="0Ez-ce-DDu" userLabel="Alert Short Text Higher">
-                                <rect key="frame" x="0.0" y="80" width="600" height="20"/>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="center" horizontalHuggingPriority="1000" verticalHuggingPriority="1000" horizontalCompressionResistancePriority="1000" verticalCompressionResistancePriority="1000" text="Here is some sample text to talk about stuff" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="4" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="0Ez-ce-DDu" userLabel="Alert Short Text Higher">
+                                <rect key="frame" x="20" y="90" width="560" height="20"/>
                                 <fontDescription key="fontDescription" name="PingFangSC-Semibold" family="PingFang SC" pointSize="14"/>
                                 <color key="textColor" red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                 <nil key="highlightedColor"/>
@@ -2034,13 +2034,13 @@ If enabled, Hologram will notify you when the hot spots are starting.</string>
                             <constraint firstItem="utn-8v-zRu" firstAttribute="leading" secondItem="qfn-EI-xYg" secondAttribute="leading" id="JGc-uY-R8U"/>
                             <constraint firstItem="utn-8v-zRu" firstAttribute="trailing" secondItem="qfn-EI-xYg" secondAttribute="trailing" id="LH1-fg-EDR"/>
                             <constraint firstItem="2so-VW-SGK" firstAttribute="bottom" secondItem="dBu-An-5ob" secondAttribute="top" id="RR3-az-jPD"/>
-                            <constraint firstItem="0Ez-ce-DDu" firstAttribute="leading" secondItem="qfn-EI-xYg" secondAttribute="leadingMargin" constant="-20" id="SDk-6Q-dZa"/>
-                            <constraint firstItem="0Ez-ce-DDu" firstAttribute="top" secondItem="utn-8v-zRu" secondAttribute="bottom" constant="10" id="SJ1-qv-0aP"/>
+                            <constraint firstItem="0Ez-ce-DDu" firstAttribute="leading" secondItem="qfn-EI-xYg" secondAttribute="leadingMargin" id="SDk-6Q-dZa"/>
+                            <constraint firstItem="0Ez-ce-DDu" firstAttribute="top" secondItem="utn-8v-zRu" secondAttribute="bottom" constant="20" id="SJ1-qv-0aP"/>
                             <constraint firstItem="QMu-Z6-TRi" firstAttribute="top" secondItem="0Ez-ce-DDu" secondAttribute="bottom" id="Sbq-hr-Ngj"/>
                             <constraint firstItem="k1M-ys-v7o" firstAttribute="centerX" secondItem="qfn-EI-xYg" secondAttribute="centerX" id="VaR-Kn-3Kf"/>
                             <constraint firstItem="k1M-ys-v7o" firstAttribute="width" secondItem="qfn-EI-xYg" secondAttribute="width" id="WHn-SB-Ufu"/>
                             <constraint firstItem="2so-VW-SGK" firstAttribute="top" secondItem="zQz-dJ-HyO" secondAttribute="bottom" id="XsL-F7-wmw"/>
-                            <constraint firstAttribute="trailingMargin" secondItem="0Ez-ce-DDu" secondAttribute="trailing" constant="-20" id="Z8W-b3-mzV"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="0Ez-ce-DDu" secondAttribute="trailing" id="Z8W-b3-mzV"/>
                             <constraint firstAttribute="trailing" secondItem="2so-VW-SGK" secondAttribute="trailing" id="avN-Fe-aXB"/>
                             <constraint firstItem="zKP-Td-56z" firstAttribute="centerY" secondItem="QMu-Z6-TRi" secondAttribute="centerY" id="ez6-RX-rju"/>
                             <constraint firstItem="utn-8v-zRu" firstAttribute="top" secondItem="zQz-dJ-HyO" secondAttribute="bottom" id="gdw-ug-yOz"/>
@@ -3761,11 +3761,11 @@ i. The laws of the State of California, excluding its conflicts of law rules, go
                         <viewControllerLayoutGuide type="bottom" id="2lg-bd-JWH"/>
                     </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="0Pd-DZ-Zfo">
-                        <rect key="frame" x="0.0" y="0.0" width="600" height="500"/>
+                        <rect key="frame" x="0.0" y="0.0" width="600" height="490"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="6T0-su-oFi" customClass="CircleProgressBar">
-                                <rect key="frame" x="30" y="10" width="540" height="480"/>
+                                <rect key="frame" x="30" y="10" width="540" height="470"/>
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                 <userDefinedRuntimeAttributes>
                                     <userDefinedRuntimeAttribute type="number" keyPath="progressBarWidth">

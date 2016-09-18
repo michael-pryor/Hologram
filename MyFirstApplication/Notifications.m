@@ -94,4 +94,13 @@ static Notifications *notificationsInstance = nil;
         [_remoteNotificationRequesters removeAllObjects];
     }
 }
+
+NSString *notificationOriginatedFromKey=@"notificationOriginatedFromKey";
+- (void)setServerNameNotificationOriginatedFrom:(NSString *)serverNameNotificationOriginatedFrom {
+    [[NSUserDefaults standardUserDefaults] setObject:serverNameNotificationOriginatedFrom forKey:notificationOriginatedFromKey];
+}
+- (NSString*)getServerNameNotificationOriginatedFrom {
+    return [[NSUserDefaults standardUserDefaults] stringForKey:notificationOriginatedFromKey];
+}
+
 @end

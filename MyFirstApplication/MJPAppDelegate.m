@@ -84,12 +84,15 @@
 }
 
 - (void)application:(UIApplication *)application
-        didReceiveRemoteNotification:(NSDictionary *)userInfo {
+        didReceiveRemoteNotification:(NSDictionary *)userInfo
+        fetchCompletionHandler:(void (^)(UIBackgroundFetchResult result))completionHandler {
     NSString *originated = userInfo[@"server_name"];
     NSLog(@"Received remote notification, originating from: %@", originated);
 
     Notifications* notifications = [Notifications getNotificationsInstance];
     [notifications setServerNameNotificationOriginatedFrom: originated];
+
+    completionHandler(UIBackgroundFetchResultNoData);
 
     if ([notifications activePushEnabled] && application.applicationState == UIApplicationStateActive) {
         // Nothing to do if applicationState is Inactive, the iOS already displayed an alert view.

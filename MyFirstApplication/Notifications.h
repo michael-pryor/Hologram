@@ -14,7 +14,6 @@
 @interface Notifications : NSObject
 @property (readonly, atomic) bool notificationsEnabled;
 @property (atomic) bool activePushEnabled;
-@property (atomic) NSString * serverNameNotificationOriginatedFrom;
 
 + (Notifications *)getNotificationsInstance;
 
@@ -29,4 +28,8 @@
 - (void)onRemoteRegisterSuccessWithDeviceToken:(NSData *)deviceToken;
 
 - (void)registerForRemoteNotificationsWithCallback:(id <NotificationRequest>)notificationRequest;
+
+- (NSString*)getServerNameNotificationOriginatedFrom;
+
+- (void)setServerNameNotificationOriginatedFrom:(NSString *)serverNameNotificationOriginatedFrom;
 @end

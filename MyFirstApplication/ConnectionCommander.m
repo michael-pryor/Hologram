@@ -122,11 +122,12 @@
         // Don't announce through protocol because governor still needs to connect.
         NSLog(@"Commander is connected");
         Notifications * notifications = [Notifications getNotificationsInstance];
-        NSString *serverName;
-        if([notifications serverNameNotificationOriginatedFrom] != nil) {
-            serverName = [notifications serverNameNotificationOriginatedFrom];
+        NSString *serverName = [notifications getServerNameNotificationOriginatedFrom];
+        if(serverName != nil) {
+            NSLog(@"Asking commander to connect us to server named: %@", serverName);
             [notifications setServerNameNotificationOriginatedFrom:nil];
         } else {
+            NSLog(@"Asking commander to connect us to any server");
             serverName = @"";
         }
 
