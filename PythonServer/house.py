@@ -427,7 +427,6 @@ class House:
         # Basically prevents a race condition.
         synthClientDup = self.udp_connection_linker.clients_by_udp_hash.get(synthClient.udp_hash)
         if synthClientDup is not None:
-            synthClientDup.karma_rating = synthClient.karma_rating
             return synthClientDup
         else:
             return synthClient

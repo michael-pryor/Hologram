@@ -166,7 +166,10 @@ class CommanderGovernorController(ClientFactory):
             logger.info("Governor disconnected, deleting [%s]" % client)
             self.sub_servers.remove(client)
             if client.serverName is not None:
-                self.sub_servers_by_name.remove(client.serverName)
+                try:
+                    del self.sub_servers_by_name[client.serverName]
+                except KeyError:
+                    pass
             if client is self.best_sub_server:
                 self.best_sub_server = None
                 logger.info("Cleared best sub server: [%s]" % client)
