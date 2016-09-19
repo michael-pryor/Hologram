@@ -11,16 +11,35 @@ from byte_buffer import ByteBuffer
 import pickle
 from bson.binary import Binary
 import struct
+from blocking import Blocking
 
 logger = logging.getLogger(__name__)
 
 class Matching(object):
     RANDOM_FACTOR = 20
 
-    def __init__(self, serverName, mongoClient):
+    def __init__(self, serverName, mongoClient, blockingDatabase, matchHistoryDatabase):
+        assert isinstance(blockingDatabase, Blocking)
+        assert isinstance(matchHistoryDatabase, Blocking)
+
         self.mongo_client = mongoClient
         self.match_collection = self.mongo_client.db.matcher
         self.server_name = serverName
+
+        self.blocking_database = blockingDatabase
+        self.match_history_database = matchHistoryDatabase
+
+    def pushBlock(self, blockerClient, blockedClient):
+        self.blocking_database.pushBlock(blockerClient, blockedClient)
+
+    def pushSkip(self, skipperClient, skippedClient):
+        self.match_history_database.pushBlock(skipperClient, skippedClient)
+
+    def didRecentlySkip(self, skipperClient, skippedClient):
+        return not self.match_history_database.canMatch(skipperClient, skippedClient)
+
+    def didBlock(self, blockerClient, blockedClient, checkBothSides=True):
+        return not self.blocking_database.canMatch(blockerClient, blockedClient, checkBothSides=checkBothSides)
 
     def removeMatch(self, client):
         assert isinstance(client, Client)
@@ -30,7 +49,7 @@ class Matching(object):
         self.match_collection.remove({'_id': theId})
 
     # find a match which is fit enough for the specified client.
-    def findMatch(self, client):
+    def findMatch(self, client, buildClientFromDatabaseResultFunc):
         assert isinstance(client, Client)
         loginDetails = client.login_details
 
@@ -103,7 +122,7 @@ class Matching(object):
         if len(matches) == 0:
             return None
 
-        return matches[randomIndex]
+        return buildClientFromDatabaseResultFunc(matches[randomIndex])
 
     def synthesizeClient(self, dataRecord, buildClientFunc):
         assert isinstance(dataRecord, dict)

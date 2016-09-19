@@ -36,7 +36,7 @@ sys.setdefaultencoding('utf8')
 #
 # ClientFactory encapsulates the TCP listening socket.
 class Governor(ClientFactory, protocol.DatagramProtocol):
-    def __init__(self, reactor, matchingDatabase, blockingDatabase, matchDecisionDatabase, karmaDatabase, persistedIdsDatabase, governorName, remoteNotification):
+    def __init__(self, reactor, matchingDatabase, karmaDatabase, persistedIdsDatabase, governorName, remoteNotification):
         # All connected clients.
         self.client_mappings_lock = RLock()
 
@@ -56,8 +56,6 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
         self.kilobyte_per_second_tracker = StatTracker(1,30)
 
         self.governor_name = governorName
-        self.blocking_database = blockingDatabase
-        self.match_decision_database = matchDecisionDatabase
         self.karma_database = karmaDatabase
         self.payments_verifier = PaymentsEx(100)
         self.persisted_ids_verifier = persistedIdsDatabase
@@ -236,8 +234,8 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
             self._unlockClm()
 
     def buildClient(self, tcpCon = None):
-        return Client(reactor, tcpCon, self.clientDisconnected, self.udp_connection_linker, self.house, self.blocking_database,
-               self.match_decision_database, self.karma_database, self.payments_verifier, self.persisted_ids_verifier, self.remote_notification)
+        return Client(reactor, tcpCon, self.clientDisconnected, self.udp_connection_linker, self.house,
+                      self.karma_database, self.payments_verifier, self.persisted_ids_verifier, self.remote_notification)
 
     def buildProtocol(self, addr):
         if logger.isEnabledFor(logging.DEBUG):
@@ -477,13 +475,13 @@ if __name__ == "__main__":
     commanderPort = int(args.commander_port)
 
     mongoClient = pymongo.MongoClient("localhost", 27017)
-    matchingDatabase = Matching(governorName, mongoClient)
     blockingDatabase = Blocking(mongoClient.db.blocked)
-    matchDecisionDatabase = Blocking(mongoClient.db.match_decision, expiryTimeSeconds=60 * 60)
+    matchHistoryDatabase = Blocking(mongoClient.db.match_decision, expiryTimeSeconds=60 * 60)
+    matchingDatabase = Matching(governorName, mongoClient, blockingDatabase, matchHistoryDatabase)
     karmaDatabase = KarmaLeveled(mongoClient)
     persistedIdsDatabase = PersistedIds(mongoClient)
     remoteNotification = RemoteNotification(1000, governorName)
-    server = Governor(reactor, matchingDatabase, blockingDatabase, matchDecisionDatabase, karmaDatabase, persistedIdsDatabase, governorName, remoteNotification)
+    server = Governor(reactor, matchingDatabase, karmaDatabase, persistedIdsDatabase, governorName, remoteNotification)
 
     analytics =  None#Analytics(100, governorName)
 

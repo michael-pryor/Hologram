@@ -135,35 +135,6 @@ class Client(object):
         def __str__(self):
             return "[Name: %s, age: %d, gender: %d, interested_in: %d]" % (self.short_name, self.age, self.gender, self.interested_in)
 
-    # Designed to prevent immediately rematching with person that the client skipped.
-    class HistoryTracking(object):
-        def __init__(self, matchDecisionDatabase, parentClient, enabled = True):
-            super(Client.HistoryTracking, self).__init__()
-
-            if matchDecisionDatabase is not None:
-                assert isinstance(matchDecisionDatabase, Blocking)
-
-            assert isinstance(parentClient, Client)
-
-            self.parent_client = parentClient
-            self.match_decision_database = matchDecisionDatabase
-            self.enabled = enabled
-
-        def addMatch(self, client):
-            if not self.enabled:
-                return
-
-            assert isinstance(client, Client)
-            self.match_decision_database.pushBlock(self.parent_client, client)
-
-        def isPriorMatch(self, client):
-            if not self.enabled:
-                return False
-
-            assert isinstance(client, Client)
-            return not self.match_decision_database.canMatch(self.parent_client, client)
-
-
     @classmethod
     def buildDummy(cls):
         item = cls(None, ClientTcp(namedtuple('Address', ['host', 'port'], verbose=False)), None, None, None, None, None, None, None, None)
@@ -173,15 +144,12 @@ class Client(object):
                                                         random.randint(0, 180), random.randint(0, 90), None, None, None)
         return item
 
-    def __init__(self, reactor, tcp, onCloseFunc, udpConnectionLinker, house, blockingDatabase, matchDecisionDatabase, karmaDatabase, paymentVerifier, persistedIdsVerifier, remoteNotification):
+    def __init__(self, reactor, tcp, onCloseFunc, udpConnectionLinker, house, karmaDatabase, paymentVerifier, persistedIdsVerifier, remoteNotification):
         super(Client, self).__init__()
         if tcp is not None:
             assert isinstance(tcp, ClientTcp)
         #assert isinstance(paymentVerifier, Payments)
         assert isinstance(persistedIdsVerifier, PersistedIds)
-
-        if blockingDatabase is not None:
-            assert isinstance(blockingDatabase, Blocking)
 
         if karmaDatabase is not None:
             assert isinstance(karmaDatabase, KarmaLeveled)
@@ -200,7 +168,6 @@ class Client(object):
         self.udp_connection_linker = udpConnectionLinker
         self.udp_hash = None
         self.house = house
-        self.blocking_database = blockingDatabase
 
         self.last_received_data = None
         self.payment_verifier = paymentVerifier
@@ -230,9 +197,6 @@ class Client(object):
 
         # Track time between queries to database.
         self.house_match_timer = None
-
-        # Track previous matches which we have skipped
-        self.match_skip_history = Client.HistoryTracking(matchDecisionDatabase, self, enabled = True)
 
         # Client we were speaking to in last conversation, may not still be connected.
         self.client_from_previous_conversation = None
@@ -530,8 +494,10 @@ class Client(object):
                 logger.debug("TCP packet received while waiting for UDP connection to be established, dropping packet")
         elif self.connection_status == Client.ConnectionStatus.CONNECTED:
             self.onFriendlyPacketTcp(packet)
+        elif self.connection_status == Client.ConnectionStatus.NOT_CONNECTED:
+            pass
         else:
-            logger.error("Client in unsupported connection state: %d" % self.parent.connection_status)
+            logger.error("Client in unsupported connection state: %d" % self.connection_status)
             self.closeConnection()
 
     def handleUdpPacket(self, packet):
@@ -550,7 +516,7 @@ class Client(object):
 
             otherClient = self.house.getCurrentMatchOfClient(self)
             if otherClient is not None:
-                self.match_skip_history.addMatch(otherClient)
+                self.house.pushSkip(self, otherClient)
 
             otherClient = self.house.releaseRoom(self, self.house.disconnected_skip)
             self.cancelAcceptingMatchExpiry()
@@ -601,8 +567,8 @@ class Client(object):
                         if logger.isEnabledFor(logging.DEBUG):
                             logger.debug("Retrieved match during ACCEPTING_MATCH stage, [%s] has blocked [%s]" % (self, self.client_from_previous_conversation))
                     else:
-                        if logger.isEnabledFor(logging.DEBUG):
-                            logger.debug("Failed to retrieve match during ACCEPTING_MATCH stage, client block request failed [%s]" % self)
+                        logger.error("Failed to retrieve match during ACCEPTING_MATCH stage, client block request failed [%s]" % self)
+
 
                 if self.client_from_previous_conversation is None:
                     if logger.isEnabledFor(logging.DEBUG):
@@ -713,7 +679,7 @@ class Client(object):
                 if logger.isEnabledFor(logging.DEBUG):
                     logger.debug("Block for client [%s] received from [%s]" % (self, self.client_from_previous_conversation))
                 deductKarma()
-                self.blocking_database.pushBlock(self.client_from_previous_conversation, self)
+                self.house.pushBlock(self.client_from_previous_conversation, self)
             elif rating == Client.ConversationRating.GOOD:
                 if logger.isEnabledFor(logging.DEBUG):
                     logger.debug("Good rating for client [%s] received" % self)
@@ -787,14 +753,14 @@ class Client(object):
                 logger.debug("Client [%s], match successful: [false], client not connected, connected status is [%s] and not enabled for notify, notify enable status is [%s]" % (self, isConnected, client.should_notify_on_match_accept))
             return False
 
-        isPriorMatch = self.match_skip_history.isPriorMatch(client)
+        isPriorMatch = self.house.didRecentlySkip(self, client)
         result = not isPriorMatch
         if result:
             # No need to check both sides in this call, since we already have logic in shouldMatch to
             # check both sides.
             #
             # This checks to see if users blocked each other.
-            if not self.blocking_database.canMatch(self, client, checkBothSides=False):
+            if self.house.didBlock(self, client, checkBothSides=False):
                 if logger.isEnabledFor(logging.DEBUG):
                     logger.debug("Client [%s] has blocked client [%s], not matching them" % (self, client))
                 result = False
@@ -813,7 +779,6 @@ class Client(object):
     # state information e.g. history of recent matches, we copy this over before disposing of the old object.
     def consumeMetaState(self, client):
         assert isinstance(client, Client)
-        self.match_skip_history = client.match_skip_history
         self.karma_rating = client.karma_rating
         self.has_shared_social_information = client.has_shared_social_information
         self.social_share_information_packet = client.social_share_information_packet
