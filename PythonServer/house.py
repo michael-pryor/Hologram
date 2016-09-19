@@ -402,13 +402,23 @@ class House:
             # We don't tolerate an offline client here, because we're not going notify them.
             # So this must be because of a server restart, so clear that client out.
             self.matchingDatabase.removeMatchById(databaseResultMatch['_id'])
-            logger.warn(
-                "Client in DB not found in waiting list, database inconsistency detected, removing key from database: " + key + ", and retrying")
+            logger.warn("Client in DB not found in waiting list, database inconsistency detected, removing key from database: " + key + ", and retrying")
             return None
 
         # We can tolerate an offline client, if we intend on notifying them.
         synthClient = self.matchingDatabase.synthesizeClient(databaseResultMatch, self.build_offline_client_func)
         assert isinstance(synthClient, Client)
+
+        banMagnitude, banTime = synthClient.karma_database.getBanMagnitudeAndExpirationTime(synthClient)
+        if banTime is not None:
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug("Offline client [%s] is banned, removing" % synthClient)
+            self._removeFromWaitingList(synthClient,True)
+            return None
+
+        synthClient.karma_rating = synthClient.karma_database.getKarma(synthClient)
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug("Offline client [%s] loaded karma of %d" % (synthClient, synthClient.karma_rating))
 
         # Allow client to reconnect and takeover this session.
         # If something there already, then maybe client recently connected and will soon
@@ -417,6 +427,7 @@ class House:
         # Basically prevents a race condition.
         synthClientDup = self.udp_connection_linker.clients_by_udp_hash.get(synthClient.udp_hash)
         if synthClientDup is not None:
+            synthClientDup.karma_rating = synthClient.karma_rating
             return synthClientDup
         else:
             return synthClient

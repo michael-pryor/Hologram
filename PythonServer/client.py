@@ -199,7 +199,6 @@ class Client(object):
         self.house_match_timer = None
 
         # Client we were speaking to in last conversation, may not still be connected.
-        self.client_currently_being_rated_from_previous_conversation = None
         self.client_most_recently_matched_with = None
         self.waiting_for_rating_task = None
 
@@ -273,6 +272,11 @@ class Client(object):
 
     def startExpectingMatchExpiry(self):
         self.cancelAcceptingMatchExpiry()
+        if self.tcp is None:
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug("Offline client [%s], not scheduling accepting match expiry" % self)
+                return
+
         if logger.isEnabledFor(logging.DEBUG):
             logger.debug("Scheduled new accepting match expiry for client [%s] in [%s] seconds" % (self, Client.ACCEPTING_MATCH_EXPIRY))
         self.accepting_match_expiry_action = self.reactor.callLater(Client.ACCEPTING_MATCH_EXPIRY, self.doSkipTimedOut)
@@ -554,33 +558,26 @@ class Client(object):
         elif opCode == Client.TcpOperationCodes.OP_SKIP_PERSON:
             self.doSkip()
         elif opCode == Client.TcpOperationCodes.OP_RATING:
+            if self.client_most_recently_matched_with is None:
+                if logger.isEnabledFor(logging.DEBUG):
+                    logger.debug("No previous conversation to rate")
+                return
+
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug("Retrieved match during ACCEPTING_MATCH stage, [%s] has blocked [%s]" % (self, self.client_most_recently_matched_with))
+
+            rating = packet.getUnsignedInteger8()
+            self.setRatingOfOtherClient(rating)
+
+            # Only needed in accepting match because need to close the room in the house.
+            # The other case where rating is received, is after a conversation has finished,
+            # and after the room has already been released.
             self.house.house_lock.acquire()
             try:
-                # When in accepting match mode, we may want to report/block a client, this block below facilitates this,
-                # by finding our match. We check (within the house lock) that we are in 'accepting match' mode still, to
-                # avoid race conditions.
-                forceSkip = False
-                if self.client_currently_being_rated_from_previous_conversation is None:
-                    self.client_currently_being_rated_from_previous_conversation = self.client_most_recently_matched_with
-                    if self.client_currently_being_rated_from_previous_conversation is not None:
-                        forceSkip = True
-                        if logger.isEnabledFor(logging.DEBUG):
-                            logger.debug("Retrieved match during ACCEPTING_MATCH stage, [%s] has blocked [%s]" % (self, self.client_currently_being_rated_from_previous_conversation))
-                    else:
-                        logger.error("Failed to retrieve match during ACCEPTING_MATCH stage, client block request failed [%s]" % self)
-
-                if self.client_currently_being_rated_from_previous_conversation is None:
-                    if logger.isEnabledFor(logging.DEBUG):
-                        logger.debug("No previous conversation to rate")
-                    return
-
-                rating = packet.getUnsignedInteger8()
-                self.setRatingOfOtherClient(rating)
+                if self.state == Client.State.ACCEPTING_MATCH:
+                    self.doSkip()
             finally:
                 self.house.house_lock.release()
-
-            if forceSkip:
-                self.doSkip()
 
         elif opCode == Client.TcpOperationCodes.OP_PERM_DISCONNECT:
             if logger.isEnabledFor(logging.DEBUG):
@@ -613,17 +610,17 @@ class Client(object):
             except (AlreadyCalled, AlreadyCancelled):
                 pass
             else:
-                self.client_currently_being_rated_from_previous_conversation.handleRating(rating)
-                if self.client_currently_being_rated_from_previous_conversation.waiting_for_rating_task is None:
+                self.client_most_recently_matched_with.handleRating(rating)
+                if self.client_most_recently_matched_with.waiting_for_rating_task is None:
                     if logger.isEnabledFor(logging.DEBUG):
-                        logger.debug("Both clients have received ratings, putting them back into house [%s, %s]" % (self, self.client_currently_being_rated_from_previous_conversation))
+                        logger.debug("Both clients have received ratings, putting them back into house [%s, %s]" % (self, self.client_most_recently_matched_with))
 
                     # At this point, both sides will have set their rating so let's put them back in the queue.
                     # Important to do both at the same time so that karma is updated prior to next conversation.
                     self.transitionState(Client.State.RATING_MATCH, Client.State.MATCHING)
-                    self.client_currently_being_rated_from_previous_conversation.transitionState(Client.State.RATING_MATCH, Client.State.MATCHING)
+                    self.client_most_recently_matched_with.transitionState(Client.State.RATING_MATCH, Client.State.MATCHING)
 
-                self.client_currently_being_rated_from_previous_conversation = None
+                self.client_most_recently_matched_with = None
 
             self.waiting_for_rating_task = None
         finally:
@@ -657,7 +654,6 @@ class Client(object):
                 if currentKarma[0] < 0:
                     deductSize += currentKarma[0]
                     currentKarma[0] = 0
-                    return
 
                 for n in range(0,deductSize):
                     isBanned = self.karma_database.deductKarma(self, currentKarma[0])
@@ -676,9 +672,9 @@ class Client(object):
 
             if rating == Client.ConversationRating.BLOCK:
                 if logger.isEnabledFor(logging.DEBUG):
-                    logger.debug("Block for client [%s] received from [%s]" % (self, self.client_currently_being_rated_from_previous_conversation))
+                    logger.debug("Block for client [%s] received from [%s]" % (self, self.client_most_recently_matched_with))
                 deductKarma()
-                self.house.pushBlock(self.client_currently_being_rated_from_previous_conversation, self)
+                self.house.pushBlock(self.client_most_recently_matched_with, self)
             elif rating == Client.ConversationRating.GOOD:
                 if logger.isEnabledFor(logging.DEBUG):
                     logger.debug("Good rating for client [%s] received" % self)
@@ -703,20 +699,12 @@ class Client(object):
     def setToWaitForRatingOfPreviousConversation(self, clientFromPreviousConversation):
         self.house.house_lock.acquire()
         try:
-            if self.client_currently_being_rated_from_previous_conversation is not None:
+            if self.approved_match:
+                self.transitionState(Client.State.ACCEPTING_MATCH, Client.State.MATCHING)
+
+            if not self.transitionState(Client.State.MATCHED, Client.State.RATING_MATCH):
                 return
 
-            self.house.house_lock.acquire()
-            try:
-                if self.approved_match:
-                    self.transitionState(Client.State.ACCEPTING_MATCH, Client.State.MATCHING)
-
-                if not self.transitionState(Client.State.MATCHED, Client.State.RATING_MATCH):
-                    return
-            finally:
-                self.house.house_lock.release()
-
-            self.client_currently_being_rated_from_previous_conversation = clientFromPreviousConversation
             self.waiting_for_rating_task = self.reactor.callLater(Client.WAITING_FOR_RATING_ABSOLUTE_TIMEOUT, self._onWaitingForRatingTimeout)
             if logger.isEnabledFor(logging.DEBUG):
                 logger.debug("Client [%s] is waiting for rating from previous conversation with client [%s]" % (self, clientFromPreviousConversation))
@@ -728,7 +716,7 @@ class Client(object):
             self.waiting_for_rating_task = None
 
         if logger.isEnabledFor(logging.DEBUG):
-            logger.debug("Client [%s] timed out waiting for rating from previous client [%s], defaulting value" % (self, self.client_currently_being_rated_from_previous_conversation))
+            logger.debug("Client [%s] timed out waiting for rating from previous client [%s], defaulting value" % (self, self.client_most_recently_matched_with))
 
         self.setRatingOfOtherClient(Client.ConversationRating.GOOD)
 
@@ -801,8 +789,7 @@ class Client(object):
             # side state reflects this.
             #
             # Mostly this will just transition our state from RATING to MATCHING.
-            if client.client_currently_being_rated_from_previous_conversation is not None:
-                self.client_currently_being_rated_from_previous_conversation = client.client_currently_being_rated_from_previous_conversation
+            if client.state == Client.State.RATING_MATCH:
                 self.waiting_for_rating_task = client.waiting_for_rating_task
                 self._onWaitingForRatingTimeout(forced=True)
         finally:
@@ -815,13 +802,14 @@ class Client(object):
             self.client_most_recently_matched_with = otherClient
             self.has_shared_social_information = False
             self.social_share_information_packet = None
-            self.client_currently_being_rated_from_previous_conversation = None
 
             self.approved_match = False
             self.transitionState(Client.State.MATCHING, Client.State.ACCEPTING_MATCH)
 
             # Offline clients must be added manually.
             if self.tcp is None:
+                if logger.isEnabledFor(logging.DEBUG):
+                    logger.debug("Manually adding offline client to UDP network store: [%s]" % self)
                 self.udp_connection_linker.clients_by_udp_hash[self.udp_hash] = self
         finally:
             self.house.house_lock.release()
