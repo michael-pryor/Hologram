@@ -63,8 +63,8 @@ class House:
             self.room_participant[clientA] = clientB
             self.room_participant[clientB] = clientA
 
-            clientA.onSuccessfulMatch()
-            clientB.onSuccessfulMatch()
+            clientA.onSuccessfulMatch(clientB)
+            clientB.onSuccessfulMatch(clientA)
         finally:
             self.house_lock.release()
 
@@ -158,7 +158,7 @@ class House:
             client.tcp.sendByteBuffer(self.abort_nat_punchthrough_packet)
         else:
             if logger.isEnabledFor(logging.DEBUG):
-                logger.debug("Not sending abort NAT punchthrough message to offline client: %s" % self)
+                logger.debug("Not sending abort NAT punchthrough message to offline client: [%s]" % client)
 
     # A client has disconnected (temporarily at this stage), so
     # tell the other client to stop sending data via NAT punchthrough.
