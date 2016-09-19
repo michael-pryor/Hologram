@@ -1790,17 +1790,17 @@ If enabled, Hologram will notify you when the hot spots are starting.</string>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="1000" verticalCompressionResistancePriority="1000" text="Label" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="R33-4T-Bn9">
                                 <rect key="frame" x="0.0" y="123" width="600" height="42"/>
                                 <fontDescription key="fontDescription" name="PingFangSC-Semibold" family="PingFang SC" pointSize="30"/>
-                                <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                                <color key="textColor" red="0.20000000300000001" green="0.20000000300000001" blue="0.20000000300000001" alpha="1" colorSpace="calibratedRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="1000" verticalCompressionResistancePriority="1000" text="You have run out of karma, please wait for it to regenerate" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="3" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="B4n-bL-s23">
-                                <rect key="frame" x="0.0" y="93" width="600" height="20"/>
+                                <rect key="frame" x="20" y="93" width="560" height="20"/>
                                 <fontDescription key="fontDescription" name="PingFangSC-Regular" family="PingFang SC" pointSize="14"/>
-                                <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                                <color key="textColor" red="0.20000000300000001" green="0.20000000300000001" blue="0.20000000300000001" alpha="1" colorSpace="calibratedRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <button opaque="NO" alpha="0.60000002384185791" contentMode="scaleToFill" horizontalHuggingPriority="1000" verticalHuggingPriority="1000" horizontalCompressionResistancePriority="1000" verticalCompressionResistancePriority="1000" contentHorizontalAlignment="center" contentVerticalAlignment="top" buttonType="roundedRect" lineBreakMode="clip" translatesAutoresizingMaskIntoConstraints="NO" id="RpG-8J-z4B">
-                                <rect key="frame" x="20" y="556" width="33" height="44"/>
+                                <rect key="frame" x="20" y="546" width="33" height="44"/>
                                 <accessibility key="accessibilityConfiguration">
                                     <accessibilityTraits key="traits" button="YES" image="YES"/>
                                 </accessibility>
@@ -1828,7 +1828,7 @@ If enabled, Hologram will notify you when the hot spots are starting.</string>
                                     <label opaque="NO" userInteractionEnabled="NO" alpha="0.65000000000000002" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Tap Here" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="tSA-13-icM">
                                         <rect key="frame" x="100" y="142" width="51" height="15"/>
                                         <fontDescription key="fontDescription" type="system" weight="ultraLight" pointSize="12"/>
-                                        <color key="textColor" red="1" green="0.40000000600000002" blue="0.40000000600000002" alpha="1" colorSpace="calibratedRGB"/>
+                                        <color key="textColor" red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                         <nil key="highlightedColor"/>
                                     </label>
                                 </subviews>
@@ -1843,16 +1843,25 @@ If enabled, Hologram will notify you when the hot spots are starting.</string>
                                 </constraints>
                                 <userDefinedRuntimeAttributes>
                                     <userDefinedRuntimeAttribute type="number" keyPath="progress">
-                                        <real key="value" value="0.0"/>
+                                        <real key="value" value="0.5"/>
                                     </userDefinedRuntimeAttribute>
                                     <userDefinedRuntimeAttribute type="number" keyPath="progressBarWidth">
-                                        <real key="value" value="0.0"/>
+                                        <real key="value" value="10"/>
                                     </userDefinedRuntimeAttribute>
                                     <userDefinedRuntimeAttribute type="color" keyPath="progressBarTrackColor">
-                                        <color key="value" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                        <color key="value" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                     </userDefinedRuntimeAttribute>
                                     <userDefinedRuntimeAttribute type="color" keyPath="progressBarProgressColor">
                                         <color key="value" red="1" green="0.40000000600000002" blue="0.40000000600000002" alpha="1" colorSpace="calibratedRGB"/>
+                                    </userDefinedRuntimeAttribute>
+                                    <userDefinedRuntimeAttribute type="number" keyPath="startAngle">
+                                        <real key="value" value="-90"/>
+                                    </userDefinedRuntimeAttribute>
+                                    <userDefinedRuntimeAttribute type="number" keyPath="hintViewSpacing">
+                                        <real key="value" value="1"/>
+                                    </userDefinedRuntimeAttribute>
+                                    <userDefinedRuntimeAttribute type="color" keyPath="hintViewBackgroundColor">
+                                        <color key="value" red="1" green="0.50196081400000003" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                     </userDefinedRuntimeAttribute>
                                 </userDefinedRuntimeAttributes>
                             </view>
@@ -1861,6 +1870,7 @@ If enabled, Hologram will notify you when the hot spots are starting.</string>
                         <constraints>
                             <constraint firstItem="R33-4T-Bn9" firstAttribute="centerX" secondItem="XqR-QA-b6a" secondAttribute="centerX" id="91z-PH-zhZ"/>
                             <constraint firstAttribute="leadingMargin" secondItem="RpG-8J-z4B" secondAttribute="leading" id="ABO-IN-8kt"/>
+                            <constraint firstItem="B4n-bL-s23" firstAttribute="leading" secondItem="7tU-wf-FhH" secondAttribute="leadingMargin" id="AXM-Bi-Gy2"/>
                             <constraint firstItem="2HX-Mr-Mhw" firstAttribute="top" relation="greaterThanOrEqual" secondItem="dKE-RT-GK5" secondAttribute="bottom" constant="10" id="DXZ-kz-Nq4"/>
                             <constraint firstItem="B4n-bL-s23" firstAttribute="top" relation="greaterThanOrEqual" secondItem="tio-fB-AaK" secondAttribute="bottom" constant="5" id="K0a-Kc-YoI"/>
                             <constraint firstItem="B4n-bL-s23" firstAttribute="centerX" secondItem="7tU-wf-FhH" secondAttribute="centerX" id="NST-0x-bi6"/>
@@ -1870,13 +1880,13 @@ If enabled, Hologram will notify you when the hot spots are starting.</string>
                             <constraint firstItem="XqR-QA-b6a" firstAttribute="centerX" secondItem="7tU-wf-FhH" secondAttribute="centerX" id="Tbo-5g-jTx"/>
                             <constraint firstItem="Z1W-kS-zst" firstAttribute="centerY" secondItem="XqR-QA-b6a" secondAttribute="centerY" id="Ujp-1X-YXq"/>
                             <constraint firstItem="dKE-RT-GK5" firstAttribute="centerX" secondItem="XqR-QA-b6a" secondAttribute="centerX" id="ZdT-vB-vYr"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="B4n-bL-s23" secondAttribute="trailing" id="cf4-YS-csR"/>
                             <constraint firstItem="B4n-bL-s23" firstAttribute="bottom" secondItem="R33-4T-Bn9" secondAttribute="top" constant="-10" id="dKQ-vb-eFZ"/>
                             <constraint firstItem="Z1W-kS-zst" firstAttribute="width" secondItem="7tU-wf-FhH" secondAttribute="width" id="idf-8p-iff"/>
-                            <constraint firstItem="B4n-bL-s23" firstAttribute="width" secondItem="7tU-wf-FhH" secondAttribute="width" id="s5U-b0-N8P"/>
                             <constraint firstItem="dKE-RT-GK5" firstAttribute="top" secondItem="XqR-QA-b6a" secondAttribute="bottom" constant="10" id="sS3-v7-VRF"/>
                             <constraint firstItem="XqR-QA-b6a" firstAttribute="centerY" secondItem="7tU-wf-FhH" secondAttribute="centerY" priority="500" id="to9-wr-Fwo"/>
                             <constraint firstItem="Z1W-kS-zst" firstAttribute="centerX" secondItem="XqR-QA-b6a" secondAttribute="centerX" id="wNd-Qe-vVk"/>
-                            <constraint firstItem="2HX-Mr-Mhw" firstAttribute="top" secondItem="RpG-8J-z4B" secondAttribute="bottom" id="xRr-bv-CD5"/>
+                            <constraint firstItem="2HX-Mr-Mhw" firstAttribute="top" secondItem="RpG-8J-z4B" secondAttribute="bottom" constant="10" id="xRr-bv-CD5"/>
                             <constraint firstItem="R33-4T-Bn9" firstAttribute="width" secondItem="7tU-wf-FhH" secondAttribute="width" id="zwo-11-ATP"/>
                         </constraints>
                         <connections>
