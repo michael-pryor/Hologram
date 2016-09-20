@@ -795,6 +795,9 @@ class Client(object):
         finally:
             self.house.house_lock.release()
 
+    def isSynthesizedOfflineClient(self):
+        return self.tcp is None
+
     # Must be protected by house lock.
     def onSuccessfulMatch(self, otherClient):
         self.house.house_lock.acquire()

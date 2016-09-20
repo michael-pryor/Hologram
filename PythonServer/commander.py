@@ -223,7 +223,7 @@ class CommanderClientRouting(ClientFactory):
     def cancelTimeoutAction(self):
         try:
             if self.timeout_action is not None:
-                self.timeout_action.cancel(self, delay)
+                self.timeout_action.cancel()
         except AlreadyCalled:
             pass
         except AlreadyCancelled:

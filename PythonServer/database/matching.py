@@ -16,7 +16,12 @@ from blocking import Blocking
 logger = logging.getLogger(__name__)
 
 class Matching(object):
-    RANDOM_FACTOR = 20
+    # We will search through 1000 people that match search criteria such as gender, both online and offline
+    # until we give up on finding an online match (since e.g. we've been blocked or skipped by everybody).
+    #
+    # Then we will we will use the first offline person we found earlier, or will continue searching, but take
+    # the first online or offline person we find.
+    PRIORITISE_ONLINE_UP_TO = 1000
 
     def __init__(self, serverName, mongoClient, blockingDatabase, matchHistoryDatabase):
         assert isinstance(blockingDatabase, Blocking)
@@ -49,9 +54,9 @@ class Matching(object):
         self.match_collection.remove({'_id': theId})
 
     # find a match which is fit enough for the specified client.
-    def findMatch(self, client, buildClientFromDatabaseResultFunc):
-        assert isinstance(client, Client)
-        loginDetails = client.login_details
+    def findMatch(self, sourceClient, buildClientFromDatabaseResultFunc):
+        assert isinstance(sourceClient, Client)
+        loginDetails = sourceClient.login_details
 
         # Note that age can be 0 here if user does not want to disclose via social. We should handle this case.
 
@@ -89,40 +94,42 @@ class Matching(object):
                                        }
                                   }
                            },
-                      '_id' : {'$ne' : self.buildId(loginDetails)}
+                      '_id': {'$ne': self.buildId(loginDetails)}
                     })
 
         try:
-            cursor = self.match_collection.find(query).limit(Matching.RANDOM_FACTOR)
+            cursor = self.match_collection.find(query)
         except Exception as e:
             raise ValueError(e)
 
-        # Of the results returned, randomly select one person to talk to.
-        # Seeded on current time epoch at time random was imported.
-        randomIndex = random.randint(0, Matching.RANDOM_FACTOR - 1) # randint is inclusive left and right.
+        bestOfflineClient = None
+        try:
+            while True:
+                for iteration in xrange(Matching.PRIORITISE_ONLINE_UP_TO):
+                    dbResult = cursor.next()
+                    client = buildClientFromDatabaseResultFunc(dbResult)
+                    if client is None:
+                        continue
 
-        matches = list()
-        for matchIndex in range(0, randomIndex+1): # range is inclusive left and exclusive right.
-            try:
-                matchClient = cursor.next()
-            except StopIteration:
-                # No matches
-                endRange = len(matches)-1
-                if endRange == -1:
-                    pass
-                elif endRange == 0:
-                    randomIndex = 0
-                else:
-                    # In this case we got less results back than our random index, so we need a smaller random number.
-                    randomIndex = random.randint(0, endRange) # randint is inclusive left and right.
+                    isOffline = client.isSynthesizedOfflineClient()
+                    if isOffline:
+                        if bestOfflineClient is None:
+                            bestOfflineClient = client
+                    else:
+                        return client
 
-                break
-            matches.append(matchClient)
+                # When we reach this point, we are prepared to tolerate an offline client.
+                if bestOfflineClient is not None:
+                    return bestOfflineClient
+        except StopIteration:
+            # When we reach this point, we have iterated over all clients in the DB,
+            # and didn't find anyone online, and hadn't reached our toleration limit, such
+            # that we wouldn't accept an offline client yet. Since we've reached the end,
+            # return the best offline client that we found.
+            if bestOfflineClient is not None:
+                return bestOfflineClient
 
-        if len(matches) == 0:
-            return None
-
-        return buildClientFromDatabaseResultFunc(matches[randomIndex])
+        return None
 
     def synthesizeClient(self, dataRecord, buildClientFunc):
         assert isinstance(dataRecord, dict)

@@ -244,11 +244,15 @@ class House:
 
     def enableRemoteNotification(self, client):
         assert isinstance(client, Client)
-        if client.state != Client.State.MATCHING:
-            return
+        self.house_lock.acquire()
+        try:
+            if client.state != Client.State.MATCHING:
+                return
 
-        client.should_notify_on_match_accept = True
-        self.matchingDatabase.pushWaiting(client)
+            client.should_notify_on_match_accept = True
+            self.matchingDatabase.pushWaiting(client)
+        finally:
+            self.house_lock.release()
 
     def attemptTakeRoom(self, client):
         def onFailure():
