@@ -388,9 +388,14 @@
             [self _switchToChatViewHelper];
         }
     }
+
+    if ([_socialState hasAcceptedEula] && [_notifications clearConnectImmediatelyDueToNotification]) {
+        [self _switchToChatView];
+    }
 }
 
 - (void)viewDidDisappear:(BOOL)animated {
+    [_notifications clearConnectImmediatelyDueToNotification]; // Incase we were already in this view.
     [_notifications setActivePushEnabled:false];
 }
 

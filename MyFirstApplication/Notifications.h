@@ -32,4 +32,6 @@
 - (NSString*)getServerNameNotificationOriginatedFrom;
 
 - (void)setServerNameNotificationOriginatedFrom:(NSString *)serverNameNotificationOriginatedFrom;
+
+- (bool)clearConnectImmediatelyDueToNotification;
 @end

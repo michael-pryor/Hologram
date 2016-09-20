@@ -6,11 +6,12 @@
 
 #define kPushNotificationRequestAlreadySeen @"pushNotificationsAlreadySeen"
 #define kNotificationId @"notificationId"
+NSString *kNotificationOriginatedFromKey =@"notificationOriginatedFromKey";
+NSString *kConnectImmediatelyDueToNotification =@"connectImmediatelyDueToNotification";
 static Notifications *notificationsInstance = nil;
 
 @implementation Notifications {
     NSMutableSet *_remoteNotificationRequesters;
-
 }
 
 - (id)init {
@@ -95,12 +96,23 @@ static Notifications *notificationsInstance = nil;
     }
 }
 
-NSString *notificationOriginatedFromKey=@"notificationOriginatedFromKey";
+
 - (void)setServerNameNotificationOriginatedFrom:(NSString *)serverNameNotificationOriginatedFrom {
-    [[NSUserDefaults standardUserDefaults] setObject:serverNameNotificationOriginatedFrom forKey:notificationOriginatedFromKey];
+    [[NSUserDefaults standardUserDefaults] setObject:serverNameNotificationOriginatedFrom forKey:kNotificationOriginatedFromKey];
+    [self signalConnectImmediatelyDueToNotification];
 }
 - (NSString*)getServerNameNotificationOriginatedFrom {
-    return [[NSUserDefaults standardUserDefaults] stringForKey:notificationOriginatedFromKey];
+    return [[NSUserDefaults standardUserDefaults] stringForKey:kNotificationOriginatedFromKey];
+}
+
+- (void)signalConnectImmediatelyDueToNotification {
+    // TODO: enable this feature and test. More complicated than previously thought.
+    //[[NSUserDefaults standardUserDefaults] setBool:true forKey:kConnectImmediatelyDueToNotification];
+}
+- (bool)clearConnectImmediatelyDueToNotification {
+    bool result = [[NSUserDefaults standardUserDefaults] boolForKey:kConnectImmediatelyDueToNotification];;
+    [[NSUserDefaults standardUserDefaults] setBool:false forKey:kConnectImmediatelyDueToNotification];
+    return result;
 }
 
 @end
