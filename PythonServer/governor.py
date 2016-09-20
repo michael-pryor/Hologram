@@ -466,7 +466,7 @@ if __name__ == "__main__":
     remoteNotification = RemoteNotification(1000, governorName, production=False)
     server = Governor(reactor, matchingDatabase, karmaDatabase, persistedIdsDatabase, governorName, remoteNotification)
 
-    analytics =  None#Analytics(100, governorName)
+    analytics = Analytics(100, governorName)
 
     commanderConnection = CommanderConnection(commanderHost, commanderPort, tcpPort, udpPort, server, analytics)
     logger.info("Connecting to commander via TCP with address: [%s:%d]" % (commanderHost, commanderPort))

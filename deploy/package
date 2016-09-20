@@ -12,7 +12,7 @@ cd "${SOURCE_PATH}"
 
 now=$(date +"%d_%m_%Y_%H_%M_%S")
 DEST_FULL_PATH="${DEST_PATH}/hologram_server_${now}.tgz"
-tar czvfh "${DEST_FULL_PATH}" PythonServer bin apps security/generate.sh
+tar czvfh "${DEST_FULL_PATH}" PythonServer bin apps security/generate.sh security/hologram_private.cer
 echo "Resulting package written to: ${DEST_FULL_PATH}"
 
 exit 0

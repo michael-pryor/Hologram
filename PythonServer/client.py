@@ -359,7 +359,8 @@ class Client(object):
     # Closes the TCP socket, triggering indirectly onDisconnect to be called.
     def closeConnection(self):
         if self.connection_status != Client.ConnectionStatus.NOT_CONNECTED:
-            logger.info("Client %s has disconnected", self.login_details)
+            if self.login_details is not None:
+                logger.info("Client %s has disconnected", self.login_details)
 
         self.cancelAcceptingMatchExpiry()
         self.connection_status = Client.ConnectionStatus.NOT_CONNECTED

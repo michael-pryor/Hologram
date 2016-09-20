@@ -4,11 +4,11 @@ __author__ = 'pryormic'
 import logging
 
 # I want to see exactly what we are sending.
-requests_log = logging.getLogger("requests.packages.urllib3")
-requests_log.setLevel(logging.DEBUG)
-requests_log.propagate = True
-import httplib
-httplib.HTTPConnection.debuglevel = 2
+#requests_log = logging.getLogger("requests.packages.urllib3")
+#requests_log.setLevel(logging.DEBUG)
+#requests_log.propagate = True
+#import httplib
+#httplib.HTTPConnection.debuglevel = 2
 
 
 from twisted.internet import threads
