@@ -90,31 +90,19 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
 
         self.cleanupClientUdpHash(client)
 
-    def getCorrectDelay(self, client):
-        # If the client has been notified, then wait a bit longer before we kill it, this
-        # gives time for it to reconnect after receiving the notification.
-        if self.notificationInvolved(client, completedOnly = False):
-            return Client.ACCEPTING_MATCH_EXPIRY + 5
-        else:
-            return UdpConnectionLinker.DELAY
-
-    def notificationInvolved(self, client, completedOnly=True):
-        return client.has_been_notified or (not completedOnly and client.should_notify_on_match_accept)
-
     def cleanupClientUdpHash(self, client):
         self._lockClm()
         try:
             if client.udp_hash not in self.clients_by_udp_hash:
                 return
 
-            delay = self.getCorrectDelay(client)
+            delay = UdpConnectionLinker.DELAY
 
             cleanAction = self.clean_actions_by_udp_hash.get(client.udp_hash)
             if cleanAction is None:
                 if logger.isEnabledFor(logging.DEBUG):
                     logger.debug("Scheduled new session expiry for client [%s] in [%s] seconds" % (client, delay))
 
-                client.was_notified_at_cleanup_start = self.notificationInvolved(client) # I don't like doing this, but I don't see another way!
                 cleanAction = self.reactor.callLater(delay, self._doClientHashCleanup, client)
 
                 self.clean_actions_by_udp_hash[client.udp_hash] = cleanAction
@@ -173,11 +161,6 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
                     if existing is not client:
                         if logger.isEnabledFor(logging.DEBUG):
                             logger.debug("Hash has been reused, not cleaning up UDP hash (old: [%s], new: [%s], hash [%s])" % (existing, client, udpHash))
-                    elif not client.was_notified_at_cleanup_start and self.notificationInvolved(client):
-                        if logger.isEnabledFor(logging.DEBUG):
-                            logger.debug("Client [%s] was notified recently, resetting cleanup timer" % (client))
-
-                        self.cleanupClientUdpHash(client)
                     else:
                         if logger.isEnabledFor(logging.DEBUG):
                             logger.debug("Cleaning up UDP hash [%s] of client [%s]" % (udpHash, client))
