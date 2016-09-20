@@ -34,7 +34,7 @@ class Matching(object):
         assert isinstance(matchHistoryDatabase, Blocking)
 
         self.mongo_client = mongoClient
-        self.match_collection = self.mongo_client.db.matcher
+        self.match_collection = self.mongo_client.db.matcher_v2
         self.server_name = serverName
 
         self.blocking_database = blockingDatabase
@@ -224,10 +224,7 @@ class Matching(object):
 
     def buildId(self, loginDetails):
         assert isinstance(loginDetails, Client.LoginDetails)
-        return self.buildIdRaw(loginDetails.persisted_unique_id)
-
-    def buildIdRaw(self, uniqueId):
-        return "%s_%s" % (self.server_name, uniqueId)
+        return loginDetails.persisted_unique_id
 
     def listItems(self):
         for item in self.match_collection.find():

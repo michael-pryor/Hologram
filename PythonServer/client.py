@@ -720,11 +720,11 @@ class Client(object):
         finally:
             self.house.house_lock.release()
 
-    def _onWaitingForRatingTimeout(self, forced=False):
+    def _onWaitingForRatingTimeout(self):
         if logger.isEnabledFor(logging.DEBUG):
             logger.debug("Client [%s] timed out waiting for rating from previous client [%s], defaulting value" % (self, self.client_most_recently_matched_with))
 
-        self.setRatingOfOtherClient(Client.ConversationRating.GOOD, forced=forced)
+        self.setRatingOfOtherClient(Client.ConversationRating.GOOD, forced=True)
 
     # Must be protected by house lock.
     def shouldMatch(self, client, recurse=True):
@@ -803,7 +803,7 @@ class Client(object):
             # Mostly this will just transition our state from RATING to MATCHING.
             if client.state == Client.State.RATING_MATCH:
                 self.waiting_for_rating_task = client.waiting_for_rating_task
-                self._onWaitingForRatingTimeout(forced=True)
+                self._onWaitingForRatingTimeout()
         finally:
             self.house.house_lock.release()
 
