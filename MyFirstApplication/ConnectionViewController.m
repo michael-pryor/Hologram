@@ -443,7 +443,7 @@
 - (void)connectToCommander:(NSString *)hostName {
     // Put in main thread so we have guarenteed ordering when looking at _isScreenInUse.
     dispatch_sync_main(^{
-        static const int CONNECT_PORT_TCP = 12241;
+        static const int CONNECT_PORT_TCP = 12242;
 
         if (!_isScreenInUse) {
             return;

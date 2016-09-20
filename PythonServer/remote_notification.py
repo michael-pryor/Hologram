@@ -44,7 +44,7 @@ class RemoteNotification(object):
             return
 
         return self.httpSession.post(theUrl, json={'aps' : payload, 'server_name' : self.server_name}, headers={'apns-topic' : 'mike.Spawn'},
-                                     cert='/Users/pryormic/Desktop/MyFirstApplication/certificates/hologram_private.cer')
+                                     cert='../security/hologram_private.cer')
 
     def onTransactionSuccess(self, client):
         pass
