@@ -252,6 +252,14 @@
         return;
     }
 
+    // Disconnect immediately if not in a conversation.
+    if (![self isReadyForChat]) {
+        NSLog(@"Backgrounded, immediately stopping all operations because not in conversation");
+        [_resumeAfterBecomeActive signalAll];
+        [self stop];
+        return;
+    }
+
     // After 10 seconds, disconnect. iOS may let app run in background for a long time, don't want to
     // match with somebody if this is the case.
     __block uint backgroundCounterOriginal = _backgroundCounter;
