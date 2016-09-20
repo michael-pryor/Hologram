@@ -563,11 +563,7 @@ class Client(object):
                     logger.debug("No previous conversation to rate")
                 return
 
-            if logger.isEnabledFor(logging.DEBUG):
-                logger.debug("Retrieved match during ACCEPTING_MATCH stage, [%s] has blocked [%s]" % (self, self.client_most_recently_matched_with))
-
             rating = packet.getUnsignedInteger8()
-            self.setRatingOfOtherClient(rating)
 
             # Only needed in accepting match because need to close the room in the house.
             # The other case where rating is received, is after a conversation has finished,
@@ -575,9 +571,15 @@ class Client(object):
             self.house.house_lock.acquire()
             try:
                 if self.state == Client.State.ACCEPTING_MATCH:
+                    if logger.isEnabledFor(logging.DEBUG):
+                        logger.debug("Retrieved match during ACCEPTING_MATCH stage, [%s] has blocked [%s]" % (self, self.client_most_recently_matched_with))
+                    self.client_most_recently_matched_with.handleRating(rating)
                     self.doSkip()
+                    return
             finally:
                 self.house.house_lock.release()
+
+            self.setRatingOfOtherClient(rating)
 
         elif opCode == Client.TcpOperationCodes.OP_PERM_DISCONNECT:
             if logger.isEnabledFor(logging.DEBUG):
@@ -601,14 +603,23 @@ class Client(object):
                 logger.debug("Unknown TCP packet received from client [%s]" % self)
             self.closeConnection()
 
-    def setRatingOfOtherClient(self, rating):
+    # If forced, we will transition state even if we are not waiting to receive a rating from the client.
+    def setRatingOfOtherClient(self, rating, forced=False):
         self.house.house_lock.acquire()
         try:
             try:
-                if self.waiting_for_rating_task is not None:
+                if self.waiting_for_rating_task is None:
+                    # It's tempting to do a state change from RATING_MATCH to MATCHING here,
+                    # but remember that we only want to add them back to house when BOTH sides
+                    # have set a rating.
+                    if not forced or self.client_most_recently_matched_with is None:
+                        return
+                else:
                     self.waiting_for_rating_task.cancel()
             except (AlreadyCalled, AlreadyCancelled):
-                pass
+                if forced:
+                    self.waiting_for_rating_task = None
+                    self.setRatingOfOtherClient(rating, forced=True)
             else:
                 self.client_most_recently_matched_with.handleRating(rating)
                 if self.client_most_recently_matched_with.waiting_for_rating_task is None:
@@ -619,8 +630,6 @@ class Client(object):
                     # Important to do both at the same time so that karma is updated prior to next conversation.
                     self.transitionState(Client.State.RATING_MATCH, Client.State.MATCHING)
                     self.client_most_recently_matched_with.transitionState(Client.State.RATING_MATCH, Client.State.MATCHING)
-
-                self.client_most_recently_matched_with = None
 
             self.waiting_for_rating_task = None
         finally:
@@ -711,14 +720,11 @@ class Client(object):
         finally:
             self.house.house_lock.release()
 
-    def _onWaitingForRatingTimeout(self, forced = False):
-        if not forced:
-            self.waiting_for_rating_task = None
-
+    def _onWaitingForRatingTimeout(self, forced=False):
         if logger.isEnabledFor(logging.DEBUG):
             logger.debug("Client [%s] timed out waiting for rating from previous client [%s], defaulting value" % (self, self.client_most_recently_matched_with))
 
-        self.setRatingOfOtherClient(Client.ConversationRating.GOOD)
+        self.setRatingOfOtherClient(Client.ConversationRating.GOOD, forced=forced)
 
     # Must be protected by house lock.
     def shouldMatch(self, client, recurse=True):
@@ -774,10 +780,16 @@ class Client(object):
         self.skipped_timed_out = client.skipped_timed_out
         self.approved_match = client.approved_match
         self.has_been_notified = client.has_been_notified
-        self.client_most_recently_matched_with = client.client_most_recently_matched_with
 
         self.house.house_lock.acquire()
         try:
+            # Point at each other; this is important to make sure rating works, because each side
+            # waits for the other side to have finished rating before transitioning out of rating state.
+            self.client_most_recently_matched_with = client.client_most_recently_matched_with
+            if self.client_most_recently_matched_with is not None:
+                if self.client_most_recently_matched_with.client_most_recently_matched_with == client:
+                    self.client_most_recently_matched_with.client_most_recently_matched_with = self
+
             # Upon reconnecting, need to go back to matching state. During the connecting stages to come,
             # If we are indeed still in ACCEPTING_MATCH, we will be rematched with house correctly and timeouts
             # will be setup, to ensure that we move out of MATCHING state.

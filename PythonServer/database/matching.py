@@ -12,6 +12,7 @@ import pickle
 from bson.binary import Binary
 import struct
 from blocking import Blocking
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +24,11 @@ class Matching(object):
     # the first online or offline person we find.
     PRIORITISE_ONLINE_UP_TO = 1000
 
+    # Expire matches after 1 week.
+    # Technically this impacts online clients too, but unlikely a client will be online for an entire week.
+    # This is aimed at getting rid of offline clients which are unfavourable i.e. noone accepts.
+    EXPIRATION_TIME_SECONDS = 7 * 24 * 60 * 60
+
     def __init__(self, serverName, mongoClient, blockingDatabase, matchHistoryDatabase):
         assert isinstance(blockingDatabase, Blocking)
         assert isinstance(matchHistoryDatabase, Blocking)
@@ -33,6 +39,8 @@ class Matching(object):
 
         self.blocking_database = blockingDatabase
         self.match_history_database = matchHistoryDatabase
+
+        logger.info("Expiring waiting matches after %d seconds" % Matching.EXPIRATION_TIME_SECONDS)
 
     def pushBlock(self, blockerClient, blockedClient):
         self.blocking_database.pushBlock(blockerClient, blockedClient)
@@ -163,6 +171,17 @@ class Matching(object):
 
         loginDetails = client.login_details
 
+        attempts = 0
+        while attempts < 2:
+            try:
+                attempts += 1
+                self.match_collection.create_index([("date", pymongo.ASCENDING)],
+                                                   expireAfterSeconds=Matching.EXPIRATION_TIME_SECONDS)
+                break
+            except pymongo.errors.OperationFailure as e:
+                logger.warn("Pymongo error: %s, dropping date index on matching collection" % e)
+                self.match_collection.drop_index([("date", pymongo.ASCENDING)])
+
         self.match_collection.create_index([("server", pymongo.ASCENDING),
                                             ("gender", pymongo.ASCENDING),
                                             ("gender_wanted", pymongo.ASCENDING),
@@ -174,6 +193,7 @@ class Matching(object):
                                             ("age", pymongo.ASCENDING),
                                             ("location", pymongo.GEOSPHERE)])
 
+        utcNow = datetime.utcnow()
         shouldNotify = client.should_notify_on_match_accept
         uniqueId = self.buildId(loginDetails)
         recordToInsert = {"_id" : uniqueId,
@@ -183,7 +203,8 @@ class Matching(object):
                           "location": [loginDetails.longitude, loginDetails.latitude],
                           "gender_wanted": loginDetails.interested_in,
                           "unique_id": loginDetails.unique_id,
-                          "should_notify": shouldNotify}
+                          "should_notify": shouldNotify,
+                          "date": utcNow}
 
         if shouldNotify:
             buf = loginDetails.profile_picture
