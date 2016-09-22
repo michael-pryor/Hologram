@@ -7,18 +7,19 @@
 #import "Signal.h"
 #import "Timer.h"
 #import "Threading.h"
-#import "MatchingViewController.h"
-
 
 @implementation CircleCountdownTimer {
     CircleProgressBar *_progressObject;
     Timer *_timeoutTimer;
     Signal *_updatingUi;
-    id <MatchingAnswerDelegate> _timeoutDelegate;
+    id <TimeoutDelegate> _timeoutDelegate;
     bool _stopped;
+
+    bool _infiniteModeEnabled;
+    bool _infiniteBackwardsLeg;
 }
 
-- (id)initWithCircleProgressBar:(CircleProgressBar *)circleProgressBar matchingAnswerDelegate:(id <MatchingAnswerDelegate>)matchingAnswerDelegate {
+- (id)initWithCircleProgressBar:(CircleProgressBar *)circleProgressBar matchingAnswerDelegate:(id <TimeoutDelegate>)matchingAnswerDelegate {
     self = [super init];
     if (self) {
         _progressObject = circleProgressBar;
@@ -26,19 +27,25 @@
         _updatingUi = [[Signal alloc] initWithFlag:false];
         _timeoutTimer = nil;
         _stopped = false;
+        _infiniteModeEnabled = false;
+        _infiniteBackwardsLeg = false;
     }
     return self;
 }
 
-- (void)restart {
+- (void)reset {
     dispatch_sync_main(^{
         [_progressObject setProgress:0 animated:false];
     });
 
+    _infiniteBackwardsLeg = false;
     if (_timeoutTimer != nil) {
         [_timeoutTimer reset];
-        [self startUpdating];
     }
+}
+
+- (void)enableInfiniteMode {
+    _infiniteModeEnabled = true;
 }
 
 - (void)stopUpdating {
@@ -49,7 +56,7 @@
     });
 }
 
-- (Timer*)cloneTimer {
+- (Timer *)cloneTimer {
     return [[Timer alloc] initFromTimer:_timeoutTimer];
 }
 
@@ -60,16 +67,16 @@
 - (void)loadTimer:(Timer *)timer onlyIfNew:(bool)mustBeNew {
     if (!mustBeNew || _timeoutTimer == nil) {
         dispatch_sync_main(^{
-            [_progressObject setProgress:[_timeoutTimer getRatioProgressThroughTick] animated:false];
+            float progress = [_timeoutTimer getRatioProgressThroughTick];
+            [_progressObject setProgress:progress animated:false];
         });
         _timeoutTimer = timer;
-        
-        [_progressObject setHintTextGenerationBlock:^NSString *(CGFloat progress) {
-            int secondsLeft = (int) [timer getSecondsUntilNextTick];
-            return [NSString stringWithFormat:@"%d", secondsLeft];
-        }];
-        
-        [self startUpdating];
+        if (![_progressObject hintHidden]) {
+            [_progressObject setHintTextGenerationBlock:^NSString *(CGFloat progress) {
+                int secondsLeft = (int) [timer getSecondsUntilNextTick];
+                return [NSString stringWithFormat:@"%d", secondsLeft];
+            }];
+        }
     } else {
         [_timeoutTimer setSecondsFrequency:[timer secondsFrequency]];
     }
@@ -94,13 +101,27 @@
         if (_timeoutTimer != nil) {
             ratioProgress = [_timeoutTimer getRatioProgressThroughTick];
         } else {
-            ratioProgress = 1.0;
+            ratioProgress = 1.0f;
         }
-        [_progressObject setProgress:ratioProgress animated:true];
-        if (ratioProgress >= 1.0) {
-            [_updatingUi clear];
+
+        float ratioProgressForUi = ratioProgress;
+        if (_infiniteModeEnabled && _infiniteBackwardsLeg) {
+            ratioProgressForUi = 1.0f - ratioProgress;
+        }
+
+        [_progressObject setProgress:ratioProgressForUi animated:true];
+        if (ratioProgress >= 1.0f) {
+            if (!_infiniteModeEnabled) {
+                [self stopUpdating];
+            } else {
+                _infiniteBackwardsLeg = !_infiniteBackwardsLeg;
+                [_timeoutTimer reset];
+            }
             [_timeoutDelegate onTimedOut];
-            return;
+
+            if (!_infiniteModeEnabled) {
+                return;
+            }
         }
 
         dispatch_async_main(^{

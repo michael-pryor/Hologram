@@ -20,18 +20,23 @@ from database.blocking import Blocking
 from database.karma_leveled import KarmaLeveled
 from database.persisted_ids import PersistedIds
 from payments import PaymentsEx
+from remote_notification import RemoteNotification
 
 __author__ = 'pryormic'
 
 
 logger = logging.getLogger(__name__)
 
+import sys
+reload(sys)
+sys.setdefaultencoding('utf8')
+
 # Represents server in memory state.
 # There will only be one instance of this object.
 #
 # ClientFactory encapsulates the TCP listening socket.
 class Governor(ClientFactory, protocol.DatagramProtocol):
-    def __init__(self, reactor, matchingDatabase, blockingDatabase, matchDecisionDatabase, karmaDatabase, persistedIdsDatabase, governorName):
+    def __init__(self, reactor, matchingDatabase, karmaDatabase, persistedIdsDatabase, governorName, remoteNotification):
         # All connected clients.
         self.client_mappings_lock = RLock()
 
@@ -45,17 +50,16 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
         self.clean_actions_by_udp_hash = dict()
 
         self.reactor = reactor
-        self.house = House(matchingDatabase)
+        self.house = House(matchingDatabase, self.udp_connection_linker, self.buildClient)
 
         # Track kilobytes per second averaged over last 30 seconds.
         self.kilobyte_per_second_tracker = StatTracker(1,30)
 
         self.governor_name = governorName
-        self.blocking_database = blockingDatabase
-        self.match_decision_database = matchDecisionDatabase
         self.karma_database = karmaDatabase
         self.payments_verifier = PaymentsEx(100)
         self.persisted_ids_verifier = persistedIdsDatabase
+        self.remote_notification = remoteNotification
 
     # Higher = under more stress, handling more traffic, lower = handling less.
     def getLoad(self):
@@ -72,7 +76,7 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
     def _unlockClm(self):
         self.client_mappings_lock.release()
 
-    def _cleanupUdp(self, client):
+    def _cleanupUdp(self, client, immediate=False):
         assert isinstance(client, Client)
 
         udpClient = client.udp
@@ -84,27 +88,34 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
             if logger.isEnabledFor(logging.DEBUG):
                 logger.debug("Attempt to cleanup UDP address [%s] failed, not yet connected via UDP" % udpClient)
 
-        self.cleanupClientUdpHash(client)
+        self.cleanupClientUdpHash(client, immediate)
 
-
-    def cleanupClientUdpHash(self, client):
+    def cleanupClientUdpHash(self, client, immediate=False):
         self._lockClm()
         try:
             if client.udp_hash not in self.clients_by_udp_hash:
                 return
 
+            delay = UdpConnectionLinker.DELAY
+
             cleanAction = self.clean_actions_by_udp_hash.get(client.udp_hash)
             if cleanAction is None:
                 if logger.isEnabledFor(logging.DEBUG):
-                    logger.debug("Scheduled new session expiry for client [%s] in [%s] seconds" % (client, UdpConnectionLinker.DELAY))
-                cleanAction = self.reactor.callLater(UdpConnectionLinker.DELAY, self._doClientHashCleanup, client)
+                    logger.debug("Scheduled new session expiry for client [%s] in [%s] seconds" % (client, delay))
 
-                self.clean_actions_by_udp_hash[client.udp_hash] = cleanAction
+                if not immediate:
+                    cleanAction = self.reactor.callLater(delay, self._doClientHashCleanup, client)
+                    self.clean_actions_by_udp_hash[client.udp_hash] = cleanAction
+                else:
+                    if logger.isEnabledFor(logging.DEBUG):
+                        logger.debug("Cleaning up client [%s] immediately" % (client))
+                    self.cancelCleanupClientUdpHash(client)
+                    self._doClientHashCleanup(client)
             else:
                 if logger.isEnabledFor(logging.DEBUG):
-                    logger.debug("Reset expiry of [%s] seconds remaining for client [%s] to [%.2f] seconds" % (getRemainingTimeOnAction(cleanAction), client, UdpConnectionLinker.DELAY))
+                    logger.debug("Reset expiry of [%s] seconds remaining for client [%s] to [%.2f] seconds" % (getRemainingTimeOnAction(cleanAction), client, delay))
                 try:
-                    cleanAction.reset(self, UdpConnectionLinker.DELAY)
+                    cleanAction.reset(self, delay)
                 except AlreadyCalled:
                     if logger.isEnabledFor(logging.DEBUG):
                         logger.debug("Failed to reset, timer already fired for client [%s]" % client)
@@ -145,7 +156,10 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
         try:
             udpHash = client.udp_hash
             if udpHash is not None:
-                del self.clean_actions_by_udp_hash[client.udp_hash]
+                try:
+                    del self.clean_actions_by_udp_hash[client.udp_hash]
+                except KeyError:
+                    pass
 
                 existing = self.clients_by_udp_hash.get(udpHash)
                 if existing is None:
@@ -158,6 +172,7 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
                     else:
                         if logger.isEnabledFor(logging.DEBUG):
                             logger.debug("Cleaning up UDP hash [%s] of client [%s]" % (udpHash, client))
+
                         del self.clients_by_udp_hash[udpHash]
 
                         # We need to make sure that client data is not left dangling without a UDP hash.
@@ -168,11 +183,14 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
         finally:
             self._unlockClm()
 
-    def clientDisconnected(self, client):
+    def clientDisconnected(self, client, immediate=False):
         client.closeConnection()
 
         self._lockClm()
         try:
+            if client.tcp is None:
+                return
+
             origClient = self.clients_by_tcp_address.get(client.tcp.remote_address)
             if origClient is None:
                 # Already disconnected.
@@ -197,22 +215,27 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
                     if origClient.udp != client.udp:
                         if logger.isEnabledFor(logging.DEBUG):
                             logger.debug("Client has reconnected via UDP on a different interface, cleaning up old UDP connection. Old [%s] vs new [%s]" % (origClient.udp, client.udp))
-                        self._cleanupUdp(origClient)
+
+                        self._cleanupUdp(origClient, immediate)
                     else:
                         if logger.isEnabledFor(logging.DEBUG):
                             logger.debug("Not cleaning up UDP address; as has been reused by reconnect [%s]" % client.udp)
                 else:
                     # No reconnect concerns, cleanup the client normally.
-                    self._cleanupUdp(origClient)
+                    self._cleanupUdp(origClient, immediate)
         finally:
             self._unlockClm()
+
+    def buildClient(self, tcpCon = None):
+        return Client(reactor, tcpCon, self.clientDisconnected, self.udp_connection_linker, self.house,
+                      self.karma_database, self.payments_verifier, self.persisted_ids_verifier, self.remote_notification)
 
     def buildProtocol(self, addr):
         if logger.isEnabledFor(logging.DEBUG):
             logger.debug('TCP connection initiated with new client [%s]' % addr)
 
         tcpCon = ClientTcp(addr)
-        client = Client(reactor, tcpCon, self.clientDisconnected, self.udp_connection_linker, self.house, self.blocking_database, self.match_decision_database, self.karma_database, self.payments_verifier, self.persisted_ids_verifier)
+        client = self.buildClient(tcpCon)
 
         self._lockClm()
         try:
@@ -339,6 +362,7 @@ class CommanderConnection(ReconnectingClientFactory):
         if len(passwordEnvVariable) == 0:
            raise RuntimeError('HOLOGRAM_PASSWORD env variable must be set')
         self.governorPacket.addString(passwordEnvVariable)
+        self.governorPacket.addString(governor.governor_name)
         self.governorPacket.addUnsignedInteger(ourGovernorTcpPort)
         self.governorPacket.addUnsignedInteger(ourGovernorUdpPort)
 
@@ -376,7 +400,8 @@ class CommanderConnection(ReconnectingClientFactory):
         self.schedulePing()
 
         # Tell Google analytics how much load we are handling
-        analytics.pushEvent(load, "governor_load", "bandwidth", self.governor.governor_name)
+        if analytics is not None:
+            analytics.pushEvent(load, "governor_load", "bandwidth", self.governor.governor_name)
 
     # Always have one, and only one, ping scheduled.
     def schedulePing(self):
@@ -443,12 +468,13 @@ if __name__ == "__main__":
     commanderPort = int(args.commander_port)
 
     mongoClient = pymongo.MongoClient("localhost", 27017)
-    matchingDatabase = Matching(governorName, mongoClient)
     blockingDatabase = Blocking(mongoClient.db.blocked)
-    matchDecisionDatabase = Blocking(mongoClient.db.match_decision, expiryTimeSeconds=60 * 60)
+    matchHistoryDatabase = Blocking(mongoClient.db.match_decision, expiryTimeSeconds=60 * 60)
+    matchingDatabase = Matching(governorName, mongoClient, blockingDatabase, matchHistoryDatabase)
     karmaDatabase = KarmaLeveled(mongoClient)
     persistedIdsDatabase = PersistedIds(mongoClient)
-    server = Governor(reactor, matchingDatabase, blockingDatabase, matchDecisionDatabase, karmaDatabase, persistedIdsDatabase, governorName)
+    remoteNotification = RemoteNotification(1000, governorName, production=True)
+    server = Governor(reactor, matchingDatabase, karmaDatabase, persistedIdsDatabase, governorName, remoteNotification)
 
     analytics = Analytics(100, governorName)
 

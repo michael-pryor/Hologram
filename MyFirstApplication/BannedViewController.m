@@ -56,9 +56,11 @@
     }
     if ([self canAcceptPayments]) {
         [_circleTimerProgress setHintTextColor:[UIColor greenColor]];
+        [_circleTimerProgress setProgressBarProgressColor:[UIColor greenColor]];
         [_tapToSkipLabel setHidden:false];
     } else {
-        [_circleTimerProgress setHintTextColor:[UIColor redColor]];
+        [_circleTimerProgress setHintTextColor:[UIColor blueColor]];
+        [_circleTimerProgress setProgressBarProgressColor:[UIColor blueColor]];
         [_tapToSkipLabel setHidden:true];
     }
 }

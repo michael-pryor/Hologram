@@ -19,7 +19,7 @@ class DataConstants:
     UBYTE_FORMAT = "B"
     UBYTE_SIZE = 1
 
-
+# Shuold be in UTC.
 def getEpoch():
     return calendar.timegm(time.gmtime())
 

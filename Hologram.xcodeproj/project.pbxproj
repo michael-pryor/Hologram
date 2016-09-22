@@ -122,6 +122,7 @@
 		D5D61CBB8D3C1862F8FD0365 /* HelpViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D6189F59FDCA8F6FCFC23A /* HelpViewController.m */; };
 		D5D61CBEDFE3FFE1F6EE3C44 /* BatchSizeGenerator.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61FA523774C1B712EA210 /* BatchSizeGenerator.m */; };
 		D5D61D398DD2CB59B9FE1684 /* SoundEncodingShared.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61453B416B66B682A844C /* SoundEncodingShared.m */; };
+		D5D61D5E3000B81247B55550 /* TextualViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61D051656C2881A320C0A /* TextualViewController.m */; };
 		D5D61DBCF37E714F96DF680C /* SequenceEncodingPipe.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61BBEC1CD98FCE065A176 /* SequenceEncodingPipe.m */; };
 		D5D61DE633140FF952A66F5A /* SequenceDecodingPipe.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61A4F18629E7753844010 /* SequenceDecodingPipe.m */; };
 		D5D61F832CD2B33F843D6A03 /* Notifications.m in Sources */ = {isa = PBXBuildFile; fileRef = D5D61163C142F899642611E8 /* Notifications.m */; };
@@ -349,6 +350,8 @@
 		D5D61BCFDFFC217775E41C2D /* BannedViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BannedViewController.m; sourceTree = "<group>"; };
 		D5D61C57CA825622E4A41B53 /* SequenceEncodingPipe.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SequenceEncodingPipe.h; sourceTree = "<group>"; };
 		D5D61CB954B6907CFECD0082 /* Payments.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Payments.m; sourceTree = "<group>"; };
+		D5D61D051656C2881A320C0A /* TextualViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TextualViewController.m; sourceTree = "<group>"; };
+		D5D61D0764A30C8490CF65D8 /* TextualViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TextualViewController.h; sourceTree = "<group>"; };
 		D5D61D0AB4A7A9EA5C3AC7B8 /* GenderParsing.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GenderParsing.m; sourceTree = "<group>"; };
 		D5D61D2EF4BDE75ED5C9F0D1 /* DobParsing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DobParsing.h; sourceTree = "<group>"; };
 		D5D61D42394687AAC5C21FB8 /* AudioUnitHelpers.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AudioUnitHelpers.m; sourceTree = "<group>"; };
@@ -507,6 +510,8 @@
 				517329001D2DACA200636E82 /* CallingCardViewController.m */,
 				D5D61B12A55C700FB96C83C3 /* JoiningViewController.m */,
 				D5D61D5E91EF650CAA8D2A26 /* JoiningViewController.h */,
+				D5D61D051656C2881A320C0A /* TextualViewController.m */,
+				D5D61D0764A30C8490CF65D8 /* TextualViewController.h */,
 			);
 			name = Alert;
 			sourceTree = "<group>";
@@ -1152,6 +1157,7 @@
 				D5D6165DA188B2DDC0E538C9 /* VideoLoopbackViewController.m in Sources */,
 				D5D61F832CD2B33F843D6A03 /* Notifications.m in Sources */,
 				D5D6165FE619E631E977A782 /* MemoryAwareObjectContainer.m in Sources */,
+				D5D61D5E3000B81247B55550 /* TextualViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

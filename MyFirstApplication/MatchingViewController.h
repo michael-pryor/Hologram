@@ -4,10 +4,11 @@
 
 #import <Foundation/Foundation.h>
 #import "CallingCardViewController.h"
+#import "CircleCountdownTimer.h"
 
 @class Timer;
 
-@protocol MatchingAnswerDelegate
+@protocol MatchingAnswerDelegate<TimeoutDelegate>
 - (void) onMatchAcceptAnswer;
 
 - (bool) onMatchRejectAnswer;
@@ -28,4 +29,6 @@
 - (void)reset;
 
 - (Timer*)cloneTimer;
+
+- (void)start;
 @end

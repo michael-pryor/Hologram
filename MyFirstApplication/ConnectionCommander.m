@@ -9,6 +9,7 @@
 #import "ConnectionCommander.h"
 #import "NetworkOperations.h"
 #import "NetworkUtility.h"
+#import "Notifications.h"
 
 @implementation ConnectionCommander {
     id <NewPacketDelegate> _recvDelegate;
@@ -120,6 +121,20 @@
     } else if (status == T_CONNECTED) {
         // Don't announce through protocol because governor still needs to connect.
         NSLog(@"Commander is connected");
+        Notifications * notifications = [Notifications getNotificationsInstance];
+        NSString *serverName = [notifications getServerNameNotificationOriginatedFrom];
+        if(serverName != nil) {
+            NSLog(@"Asking commander to connect us to server named: %@", serverName);
+            [notifications setServerNameNotificationOriginatedFrom:nil];
+        } else {
+            NSLog(@"Asking commander to connect us to any server");
+            serverName = @"";
+        }
+
+        ByteBuffer* buffer = [[ByteBuffer alloc] init];
+        [buffer addString:serverName];
+        
+        [_commanderOutput onNewPacket:buffer fromProtocol:TCP];
     } else {
         NSLog(@"Unknown commander connection status TCP");
     }

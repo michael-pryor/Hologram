@@ -122,7 +122,7 @@ class ByteBuffer(object):
     def getValueAtPosition(self, startPosition, valueDataSize):
         endPosition = startPosition + valueDataSize
         if endPosition > self.used_size:
-            return endPosition
+            return self.used_size, "0" * valueDataSize
 
         return endPosition, self.buffer[startPosition:endPosition]
 
@@ -212,6 +212,15 @@ class ByteBuffer(object):
 
     def getString(self):
         return self.getStringWithLength(0)
+
+    def getHexStringWithLength(self, length):
+        def handlerFunc(theBuffer, dataSize):
+            return ''.join('{:02x}'.format(x) for x in theBuffer[:dataSize])
+
+        return self.getVariableLengthData(handlerFunc, length)
+
+    def getHexString(self):
+        return self.getHexStringWithLength(0)
 
     def getByteBufferWithLength(self, length):
         def handlerFunc(theBuffer, dataSize):

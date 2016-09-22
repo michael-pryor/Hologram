@@ -36,6 +36,7 @@ class CommanderGovernor(object):
         self.forwardPacket = None
         self.governorHost = governorHost
         self.current_load = 0
+        self.serverName = None
         self.disconnect_timeout = reactor.callLater(CommanderGovernor.TIMEOUT, self.forceDisconnect)
 
     def forceDisconnect(self):
@@ -70,6 +71,7 @@ class CommanderGovernor(object):
                 self.tcp.transport.loseConnection()
                 return
 
+            self.serverName = packet.getString()
             self.forwardPortTcp = packet.getUnsignedInteger()
             self.forwardPortUdp = packet.getUnsignedInteger()
             self.forwardIpAddress = self.tcp.remote_address.host
@@ -110,6 +112,7 @@ class CommanderGovernorController(ClientFactory):
         self.sub_servers = list()
         self.sub_servers_lock = RLock()
         self.governor_host = governorHost
+        self.sub_servers_by_name = dict()
 
         self.best_sub_server = None
 
@@ -121,6 +124,9 @@ class CommanderGovernorController(ClientFactory):
             lowestSubServer = None
             for subServer in self.sub_servers:
                 assert isinstance(subServer, CommanderGovernor)
+                if subServer.serverName is not None and subServer.serverName not in self.sub_servers_by_name:
+                    self.sub_servers_by_name[subServer.serverName] = subServer
+
                 currentLoad = subServer.current_load
                 if currentLoad < lowest_load or lowestSubServer is None:
                     lowest_load = currentLoad
@@ -146,12 +152,24 @@ class CommanderGovernorController(ClientFactory):
         finally:
             self.sub_servers_lock.release()
 
+    def getSubServerByName(self, name):
+        self.sub_servers_lock.acquire()
+        try:
+            return self.sub_servers_by_name.get(name)
+        finally:
+            self.sub_servers_lock.release()
+
     def clientDisconnected(self, client):
         assert isinstance(client, CommanderGovernor)
         self.sub_servers_lock.acquire()
         try:
             logger.info("Governor disconnected, deleting [%s]" % client)
             self.sub_servers.remove(client)
+            if client.serverName is not None:
+                try:
+                    del self.sub_servers_by_name[client.serverName]
+                except KeyError:
+                    pass
             if client is self.best_sub_server:
                 self.best_sub_server = None
                 logger.info("Cleared best sub server: [%s]" % client)
@@ -172,6 +190,8 @@ class CommanderGovernorController(ClientFactory):
         return tcp
 
 class CommanderClientRouting(ClientFactory):
+    TIMEOUT = 10
+
     class RouterCodes:
         SUCCESS = 1
         FAILURE = 2
@@ -179,6 +199,8 @@ class CommanderClientRouting(ClientFactory):
     def __init__(self, subServerCoordinator):
         assert isinstance(subServerCoordinator, CommanderGovernorController)
         self.subServerCoordinator = subServerCoordinator
+        self.timeout_action = None
+        self.tcp = None
 
     def buildProtocol(self, addr):
         logger.info('TCP connection initiated with new client [%s]' % addr)
@@ -187,28 +209,74 @@ class CommanderClientRouting(ClientFactory):
 
         return self.tcp
 
-    def onConnectionMade(self):
+    def terminate(self):
+        logger.warn("Terminating inactive client connection [%s]" % self.tcp)
+        if self.tcp is not None:
+            self.tcp.transport.loseConnection()
+
+    def startFactory(self):
+        self.timeout_action = reactor.callLater(CommanderClientRouting.TIMEOUT, self.terminate)
+
+    def stopFactory(self):
+        self.cancelTimeoutAction()
+
+    def cancelTimeoutAction(self):
+        try:
+            if self.timeout_action is not None:
+                self.timeout_action.cancel()
+        except AlreadyCalled:
+            pass
+        except AlreadyCancelled:
+            pass
+
+    def handleTcpPacket(self, packet):
+        nameOfServer = packet.getString()
+
+        if nameOfServer is not None and len(nameOfServer) > 0:
+            subServer = self.subServerCoordinator.getSubServerByName(nameOfServer)
+            if subServer is None:
+                logger.warn("Could not find sub server named: %s, defaulting to primary governor" % nameOfServer)
+            else:
+                if logger.isEnabledFor(logging.DEBUG):
+                    logger.debug("Directed client to requested server named %s" % nameOfServer)
+        else:
+            subServer = self.subServerCoordinator.getNextSubServer()
+
+
+        if subServer is None:
+            self.sendFailure("No governors available")
+        else:
+            self.sendSuccess(subServer)
+
+        self.tcp.transport.loseConnection()
+
+    def sendSuccess(self, subServer):
         result = ByteBuffer()
 
-        subServer = self.subServerCoordinator.getNextSubServer()
-        if subServer is None:
-            logger.warn("Failed to retrieve governor, rejecting client")
-            result.addUnsignedInteger8(CommanderClientRouting.RouterCodes.FAILURE)
-            result.addString("No governors available")
-        else:
-            if logger.isEnabledFor(logging.DEBUG):
-                logger.debug("Directed client to governor: [%s]" % subServer)
-            result.addUnsignedInteger8(CommanderClientRouting.RouterCodes.SUCCESS)
-            result.addByteBuffer(subServer.forwardPacket, includePrefix=False)
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug("Directed client to governor: [%s]" % subServer)
+        result.addUnsignedInteger8(CommanderClientRouting.RouterCodes.SUCCESS)
+        result.addByteBuffer(subServer.forwardPacket, includePrefix=False)
 
         self.tcp.sendByteBuffer(result)
+
+    def sendFailure(self, failureMessage):
+        logger.warn("Failed to retrieve server, rejecting client, reason: %s" % failureMessage)
+        result = ByteBuffer()
+        result.addUnsignedInteger8(CommanderClientRouting.RouterCodes.FAILURE)
+        result.addString(failureMessage)
+        self.tcp.sendByteBuffer(result)
+
+    def onConnectionMade(self):
+        pass
+
 
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Commander Server', argument_default=argparse.SUPPRESS)
     parser.add_argument('--governor_logon_port', help='Port to bind to via TCP; governor servers register themselves on this port. Defaults to 12240', default="12240")
-    parser.add_argument('--client_logon_port', help='Port to bind to via UDP; clients connect to this port. Defaults to 12241.', default="12241")
+    parser.add_argument('--client_logon_port', help='Port to bind to via UDP; clients connect to this port. Defaults to 12242.', default="12242")
     parser.add_argument('--governor_host', help='Host to use with governors in the event that the host provided is local', default="")
     parser.add_argument('--log_level', help="ERROR, WARN, INFO or DEBUG", default="INFO")
     args = parser.parse_args()

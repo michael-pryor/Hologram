@@ -8,13 +8,23 @@ from utility import getRemainingTimeOnAction, getEpoch
 from geography import distanceBetweenPointsKm
 import math
 from database.karma_leveled import KarmaLeveled
+from handshaking import UdpConnectionLinker
+import pickle
 
 logger = logging.getLogger(__name__)
 
 # A house has lots of rooms in it, each room has two participants in it (the video call).
 class House:
-    def __init__(self, matchingDatabase):
+    def __init__(self, matchingDatabase, udpConnectionLinker, buildOfflineClientFunc):
         assert isinstance(matchingDatabase, Matching)
+        assert isinstance(udpConnectionLinker, UdpConnectionLinker)
+
+        # When clients are offline, and matched with somebody, we need to add
+        # them to the clients by UDP hash map, which is contained within this object.
+        self.udp_connection_linker = udpConnectionLinker
+
+        # Function which (with no parameters) can build a client for matching.
+        self.build_offline_client_func = buildOfflineClientFunc
 
         # Contains links e.g.
         # Participant A -> Participant B
@@ -45,9 +55,6 @@ class House:
         self.matchingDatabase = matchingDatabase
 
     def takeRoom(self, clientA, clientB):
-        if clientA is clientB:
-            return False
-
         self.house_lock.acquire()
         try:
             self._removeFromWaitingList(clientA)
@@ -56,8 +63,8 @@ class House:
             self.room_participant[clientA] = clientB
             self.room_participant[clientB] = clientA
 
-            clientA.onSuccessfulMatch()
-            clientB.onSuccessfulMatch()
+            clientA.onSuccessfulMatch(clientB)
+            clientB.onSuccessfulMatch(clientA)
         finally:
             self.house_lock.release()
 
@@ -65,7 +72,6 @@ class House:
 
         if logger.isEnabledFor(logging.DEBUG):
             logger.debug("New room set up between client [%s] and [%s]" % (clientA, clientB))
-        return True
 
     # Return false if we should skip this; the acceptance will never complete.
     def onAcceptConversation(self, sourceClient):
@@ -78,7 +84,7 @@ class House:
                 # State does not need correcting in this case.
                 return True
             if logger.isEnabledFor(logging.DEBUG):
-                logger.debug("Client [%s] has accepted the conversation")
+                logger.debug("Client [%s] has accepted the conversation" % sourceClient)
 
             clientB = self.room_participant.get(sourceClient)
             if clientB is None:
@@ -89,6 +95,8 @@ class House:
                 return False
 
             if not clientB.approved_match:
+                # ***** Here we would do the notify.
+                clientB.trySendRemoteNotification(sourceClient)
                 return True
 
             if logger.isEnabledFor(logging.DEBUG):
@@ -146,7 +154,11 @@ class House:
 
     def adviseAbortNatPunchthrough(self, client):
         assert isinstance(client, Client)
-        client.tcp.sendByteBuffer(self.abort_nat_punchthrough_packet)
+        if client.tcp is not None:
+            client.tcp.sendByteBuffer(self.abort_nat_punchthrough_packet)
+        else:
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug("Not sending abort NAT punchthrough message to offline client: [%s]" % client)
 
     # A client has disconnected (temporarily at this stage), so
     # tell the other client to stop sending data via NAT punchthrough.
@@ -156,7 +168,7 @@ class House:
         self.house_lock.acquire()
         try:
             # Don't want to match clients with disconnected clients, even if those clients are only temporarily disconnected.
-            self._removeFromWaitingList(client)
+            self._removeFromWaitingList(client, removeOfflineFromDatabase=False)
 
             clientB = self.room_participant.get(client)
             if clientB is not None:
@@ -167,19 +179,24 @@ class House:
 
         if realClient is not None and client is realClient:
             self.adviseAbortNatPunchthrough(clientB)
-            clientB.tcp.sendByteBuffer(self.disconnected_temporary)
+            if clientB.tcp is not None:
+                clientB.tcp.sendByteBuffer(self.disconnected_temporary)
 
             if logger.isEnabledFor(logging.DEBUG):
                 logger.debug("Session pause signaled to client [%s] because of client disconnect [%s]" % (clientB, client))
 
-    def _removeFromWaitingList(self, client):
+    def _removeFromWaitingList(self, client, removeOfflineFromDatabase=True):
         self.house_lock.acquire()
         try:
             if client in self.waiting_keys_by_client:
                 del self.waiting_keys_by_client[client]
                 del self.waiting_clients_by_key[client.login_details.unique_id]
 
-                self.matchingDatabase.removeMatch(client)
+                if not client.should_notify_on_match_accept or removeOfflineFromDatabase:
+                    self.matchingDatabase.removeMatch(client)
+            else:
+                if removeOfflineFromDatabase:
+                    self.matchingDatabase.removeMatch(client)
         finally:
             self.house_lock.release()
 
@@ -188,28 +205,54 @@ class House:
     def releaseRoom(self, client, notification = None):
         self.house_lock.acquire()
         try:
-            self._removeFromWaitingList(client)
+            self._removeFromWaitingList(client, removeOfflineFromDatabase=False)
+
+            # ***** Here if notify enabled upsert on the DB record, indicating that should be notified.
+            # Has to be a parameter indicating whether we shoudl do this. For example we shouldn't do on skip.
 
             clientB = self.room_participant.get(client)
-            if clientB is not None:
-                del self.room_participant[client]
-                del self.room_participant[clientB]
+            if clientB is None:
+                return
 
-                self.adviseAbortNatPunchthrough(clientB)
-                if client.isConnectedTcp():
-                    self.adviseAbortNatPunchthrough(client)
+            del self.room_participant[client]
+            del self.room_participant[clientB]
 
-                if notification is not None:
-                    assert isinstance(notification, ByteBuffer)
+            self.mutualAdvise(client, clientB, Client.onRoomClosure)
+
+            self.adviseAbortNatPunchthrough(clientB)
+            if client.isConnectedTcp():
+                self.adviseAbortNatPunchthrough(client)
+
+            if notification is not None:
+                assert isinstance(notification, ByteBuffer)
+                if clientB.tcp is not None:
                     clientB.tcp.sendByteBuffer(notification)
 
-                clientB.setToWaitForRatingOfPreviousConversation(client)
+            clientB.setToWaitForRatingOfPreviousConversation(client)
 
-                if logger.isEnabledFor(logging.DEBUG):
-                    logger.debug("Permanent closure of session between client [%s] and [%s] due to client [%s] leaving the room" % (client, clientB, client))
+            # If the client is an offline client and wants to be notified, then
+            # we need to put it back into the waiting list.
+            if clientB.connection_status != Client.ConnectionStatus.CONNECTED and clientB.should_notify_on_match_accept:
+                clientB.transitionState(None, Client.State.MATCHING)
+                self.matchingDatabase.pushWaiting(clientB)
 
-                # Return the other client.
-                return clientB
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug("Permanent closure of session between client [%s] and [%s] due to client [%s] leaving the room" % (client, clientB, client))
+
+            # Return the other client.
+            return clientB
+        finally:
+            self.house_lock.release()
+
+    def enableRemoteNotification(self, client):
+        assert isinstance(client, Client)
+        self.house_lock.acquire()
+        try:
+            if client.state != Client.State.MATCHING:
+                return
+
+            client.should_notify_on_match_accept = True
+            self.matchingDatabase.pushWaiting(client)
         finally:
             self.house_lock.release()
 
@@ -243,38 +286,20 @@ class House:
             if doQuery:
                 client.house_match_timer = getEpoch()
 
-                # This loop allows us to clean up the database quickly if there are alot of inconsistencies.
-                while True:
-                    try:
-                        databaseResultMatch = self.matchingDatabase.findMatch(client)
-                    except ValueError as e:
-                        if logger.isEnabledFor(logging.DEBUG):
-                            logger.debug("Bad database query attempt [%s], forcefully disconnecting client: [%s]" % (e, client))
-                        client.closeConnection()
-                        return
+                try:
+                    clientMatch = self.matchingDatabase.findMatch(client, lambda clientDatabaseResultMatch : self.buildAndVerifyClientFromDatabaseResult(client, clientDatabaseResultMatch))
+                except ValueError as e:
+                    if logger.isEnabledFor(logging.DEBUG):
+                        logger.debug("Bad database query attempt [%s], forcefully disconnecting client: [%s]" % (e, client))
+                    client.closeConnection()
+                    return
 
-                    # If we can't immediately find a match then add it to the waiting list.
-                    if databaseResultMatch is None:
-                        onFailure()
-                        return
+                # If we can't immediately find a match then add it to the waiting list.
+                if clientMatch is None:
+                    onFailure()
+                    return
 
-                    key = databaseResultMatch['_id']
-                    clientMatch = self.waiting_clients_by_key.get(key)
-                    if clientMatch is None:
-                        self.matchingDatabase.removeMatchById(key)
-                        logger.warn("Client in DB not found in waiting list, database inconsistency detected, removing key from database: " + key + ", and retrying")
-                        continue # Retry repeatedly.
-
-                    break # exit the loop because we succeeded
-
-                # Avoid recently skipped clients, unless we've timed out.
-                if clientMatch is not None and client.shouldMatch(clientMatch):
-                    if not self.takeRoom(client, clientMatch):
-                        return None
-                    return clientMatch
-                else:
-                    return None
-
+                self.takeRoom(client, clientMatch)
         finally:
             self.house_lock.release()
 
@@ -309,7 +334,20 @@ class House:
                 # A client has reconnected, and wants to use the old room.
                 if clientOld is not client:
                     if logger.isEnabledFor(logging.DEBUG):
-                        logger.debug("Old room reused, due to client [%s]")
+                        logger.debug("Old room reused, due to new client [%s], resuing old [%s]" % (client, clientOld))
+
+                    # Key object is not replaced during an update of same key, so we need to do this, because
+                    # keyed object may change, even if hash stays the same.
+                    try:
+                        del self.room_participant[client]
+                    except KeyError:
+                        pass
+
+                    try:
+                        del self.room_participant[clientMatch]
+                    except KeyError:
+                        pass
+
                     self.room_participant[client] = clientMatch
                     self.room_participant[clientMatch] = client
 
@@ -345,3 +383,71 @@ class House:
         elif packet is not None:
             # Send to client that we are matched with.
             clientMatch.udp.sendRawBuffer(packet)
+
+    def buildAndVerifyClientFromDatabaseResult(self, client, clientDatabaseResultMatch):
+        clientMatch = self.buildClientFromDatabaseResult(clientDatabaseResultMatch)
+
+        # Avoid recently skipped clients, and blocked clients.
+        if clientMatch is not None and client is not clientMatch and client.shouldMatch(clientMatch):
+            return clientMatch
+        else:
+            return None
+
+    def buildClientFromDatabaseResult(self, databaseResultMatch):
+        key = databaseResultMatch['unique_id']
+        clientMatch = self.waiting_clients_by_key.get(key)
+
+        if clientMatch is not None:
+            return clientMatch
+
+        # If the match is offline.
+        # ***** Here if notify enabled on the record, we synthesize a client out of that record.
+
+        shouldNotify = databaseResultMatch.get('should_notify')
+        if not shouldNotify:
+            # We don't tolerate an offline client here, because we're not going notify them.
+            # So this must be because of a server restart, so clear that client out.
+            self.matchingDatabase.removeMatchById(databaseResultMatch['_id'])
+            logger.warn("Client in DB not found in waiting list, database inconsistency detected, removing key from database: " + key + ", and retrying")
+            return None
+
+        # We can tolerate an offline client, if we intend on notifying them.
+        synthClient = self.matchingDatabase.synthesizeClient(databaseResultMatch, self.build_offline_client_func)
+        assert isinstance(synthClient, Client)
+
+        banMagnitude, banTime = synthClient.karma_database.getBanMagnitudeAndExpirationTime(synthClient)
+        if banTime is not None:
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug("Offline client [%s] is banned, removing" % synthClient)
+
+            logger.info("Offline client %s is banned" % synthClient.login_details)
+            self._removeFromWaitingList(synthClient,True)
+            return None
+
+        synthClient.karma_rating = synthClient.karma_database.getKarma(synthClient)
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug("Offline client [%s] loaded karma of %d" % (synthClient, synthClient.karma_rating))
+
+        # Allow client to reconnect and takeover this session.
+        # If something there already, then maybe client recently connected and will soon
+        # update this record.
+        #
+        # Basically prevents a race condition.
+        synthClientDup = self.udp_connection_linker.clients_by_udp_hash.get(synthClient.udp_hash)
+        if synthClientDup is not None:
+            return synthClientDup
+        else:
+            return synthClient
+
+
+    def pushBlock(self, blockerClient, blockedClient):
+        self.matchingDatabase.pushBlock(blockerClient, blockedClient)
+
+    def pushSkip(self, skipperClient, skippedClient):
+        self.matchingDatabase.pushSkip(skipperClient, skippedClient)
+
+    def didRecentlySkip(self, skipperClient, skippedClient):
+        return self.matchingDatabase.didRecentlySkip(skipperClient, skippedClient)
+
+    def didBlock(self, blockerClient, blockedClient, checkBothSides=True):
+        return self.matchingDatabase.didBlock(blockerClient, blockedClient, checkBothSides=checkBothSides)

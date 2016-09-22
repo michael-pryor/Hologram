@@ -20,7 +20,7 @@
     __weak IBOutlet UILabel *_distance;
     void(^_prepareContentsBlock)();
 }
-- (void)setName:(NSString *)name profilePicture:(UIImage *)profilePicture callingCardText:(NSString *)callingCardText age:(uint)age distance:(uint)distance karma:(uint)remoteKarmaRating maxKarma:(uint)maxKarma isReconnectingClient:(bool)isReconnectingClient {
+- (void)setName:(NSString *)name profilePicture:(UIImage *)profilePicture callingCardText:(NSString *)callingCardText age:(uint)age distance:(uint)distance karma:(uint)remoteKarmaRating maxKarma:(uint)maxKarma isReconnectingClient:(bool)isReconnectingClient isClientOnline:(bool)isClientOnline{
     void(^_theBlock)() = ^{
         [_profilePicture setImage:profilePicture];
         [_name setText:name];

@@ -13,6 +13,8 @@
 #import "ViewTransitions.h"
 #import "JoiningViewController.h"
 #import "MediaController.h"
+#import "TextualViewController.h"
+#import "Notifications.h"
 
 @implementation AlertViewController {
     // Base view, describing state of app and connection.
@@ -24,8 +26,10 @@
     __weak IBOutlet UIButton *_forwardButton;
     id <MediaOperator> _mediaOperator;
     bool _movingToFacebook;
+    bool _isVisible;
 
     NSString *_cachedAlertText;
+    __weak IBOutlet UIActivityIndicatorView *_activityIndicator;
 
     // Advert.
     __weak IBOutlet UIView *_advertBannerView; // The container which sizes it.
@@ -42,6 +46,9 @@
     Signal *_waitingForRating;
     Timer *_ratingStartedAt;
 
+    // Displaying some text describing whats happening e.g. connecting, disconnected, skipped.
+    __weak IBOutlet UIView *_textualView;
+    TextualViewController *_textualViewController;
 
     // Matching i.e. viewing cards.
     __weak IBOutlet UIView *_matchingView;
@@ -56,6 +63,10 @@
     SingleViewCollection *_viewCollection;
 
     bool _isSkipButtonRequired;
+    bool _isCountdownToNotificationRequired;
+
+    bool _isMatchOnline;
+    bool _wasMatchPreviouslyOffline;
 }
 
 - (void)reset {
@@ -78,7 +89,7 @@
     return [self isViewCurrent:_joiningConversationView];
 }
 
-- (bool)shouldAdvertBeVisible:(UIView*)view {
+- (bool)shouldAdvertBeVisible:(UIView *)view {
     return view == _localImageViewParent && _isBannerAdvertLoaded;
 }
 
@@ -98,10 +109,11 @@
     [self hideViewsQuickly:true];
 }
 
-- (void)setGenericInformationText:(NSString *)shortText skipButtonEnabled:(bool)skipButtonEnabled {
+- (void)setGenericInformationText:(NSString *)shortText skipButtonEnabled:(bool)skipButtonEnabled enableCountdownToNotification:(bool)enableCountdownToNotification {
     dispatch_sync_main(^{
         _cachedAlertText = shortText;
         _isSkipButtonRequired = skipButtonEnabled;
+        _isCountdownToNotificationRequired = enableCountdownToNotification;
     });
 }
 
@@ -122,6 +134,8 @@
     } else if ([segueName isEqualToString:@"JoiningConversation"]) {
         _joiningConversationViewController = [segue destinationViewController];
         [_joiningConversationViewController setTimeoutDelegate:self];
+    } else if ([segueName isEqualToString:@"Textual"]) {
+        _textualViewController = [segue destinationViewController];
     }
 }
 
@@ -132,13 +146,20 @@
     _actionIterationAdvertSchedule = false;
     _actionIterationAdvertSchedule = 0;
     _isBannerAdvertLoaded = false;
+    _isVisible = false;
+
+    _isMatchOnline = false;
+    _wasMatchPreviouslyOffline = false;
 
     _waitingForRating = [[Signal alloc] initWithFlag:false];
 
-    for (UIView *view in @[_conversationEndView, _matchingView, _joiningConversationView, _localImageViewParent, _alertShortTextHigher,
-            _forwardButton, _backButton]) {
+    for (UIView *view in @[_conversationEndView, _matchingView, _joiningConversationView, _textualView,
+            _localImageViewParent, _alertShortTextHigher, _forwardButton, _backButton]) {
         [view setAlpha:0];
     }
+
+    // Ensure no chance of placeholder text appearing.
+    [_alertShortText setText:@""];
 
     _viewCollection = [[SingleViewCollection alloc] initWithDuration:0.5f viewChangeNotifier:self];
     [_viewCollection registerNoFadeView:_localImageViewParent];
@@ -205,9 +226,9 @@
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
+    _isVisible = true;
 
     NSLog(@"!!!!!!APPEAR!!!!!!");
-
     _movingToFacebook = false;
     if ([self shouldVideoBeOn]) {
         [_mediaOperator startVideo];
@@ -225,7 +246,7 @@
 
 - (void)viewDidDisappear:(BOOL)animated {
     [super viewDidDisappear:animated];
-
+    _isVisible = false;
     NSLog(@"!!!!!!DISAPPEAR!!!!!!");
 
     // Pause the banner view, stop it loading new adverts.
@@ -239,6 +260,7 @@
     }
 
     [_joiningConversationViewController stop];
+    [_textualViewController stop];
 }
 
 - (void)enableAdverts {
@@ -284,8 +306,19 @@
 }
 
 - (void)showView:(UIView *)viewToShow showQuickly:(bool)showQuickly {
+    NSString *alertText = _cachedAlertText;
+    if (alertText == nil) {
+        alertText = @"";
+    }
+
+    // "Waiting for match" is the text, and so does need a countdown, but if the view changes,
+    // the text stays the same and we'll e.g. see the match profile.
+    bool countdownEnabled = _isCountdownToNotificationRequired && viewToShow == _localImageViewParent;
+
+    NSDictionary *meta = @{@"text" : alertText, @"countdown" : @(countdownEnabled)};
+
     if (viewToShow == _localImageViewParent && !showQuickly) {
-        [_viewCollection displayView:viewToShow ifNoChangeForMilliseconds:1000 meta:_cachedAlertText];
+        [_viewCollection displayView:viewToShow ifNoChangeForMilliseconds:1000 meta:meta];
         return;
     }
 
@@ -296,14 +329,14 @@
 
             if (_shouldShowAdverts && _isBannerAdvertLoaded) {
                 dispatch_async_main(^{
-                    [_viewCollection displayView:viewToShow meta:_cachedAlertText];
+                    [_viewCollection displayView:viewToShow meta:meta];
                 }, 3000);
                 return;
             }
         }
     }
 
-    [_viewCollection displayView:viewToShow meta:_cachedAlertText];
+    [_viewCollection displayView:viewToShow meta:meta];
     _cachedAlertText = nil;
 }
 
@@ -332,9 +365,11 @@
 
 }
 
-- (void)setConversationRatingConsumer:(id <ConversationRatingConsumer>)consumer matchingAnswerDelegate:(id <MatchingAnswerDelegate>)matchingAnswerDelegate mediaOperator:(id <MediaOperator>)videoOperator {
+- (void)setConversationRatingConsumer:(id <ConversationRatingConsumer>)consumer matchingAnswerDelegate:(id <MatchingAnswerDelegate>)matchingAnswerDelegate
+                        mediaOperator:(id <MediaOperator>)videoOperator notificationRequestDelegate:(id <NotificationRequest>)notificationRequestDelegate {
     _conversationRatingConsumer = consumer;
     [_conversationEndViewController setConversationRatingConsumer:self];
+    [_textualViewController setNotificationRequestDelegate:notificationRequestDelegate];
     _matchingAnswerDelegate = matchingAnswerDelegate;
     _mediaOperator = videoOperator;
 }
@@ -354,8 +389,8 @@
 
 - (void)onMatchAcceptAnswer {
     [_matchingAnswerDelegate onMatchAcceptAnswer];
-    [self setViewRelevantInformationText:@"Waiting for your match to accept too"];
     [_joiningConversationViewController consumeRemainingTimer:[_matchingViewController cloneTimer]];
+    [self updateStateBasedOnMatchOnline];
     [self showView:_joiningConversationView showQuickly:false];
 }
 
@@ -363,15 +398,50 @@
     [self hideViewsQuickly:quicklyHideViews];
 }
 
-- (void)setName:(NSString *)name profilePicture:(UIImage *)profilePicture callingCardText:(NSString *)callingCardText age:(uint)age distance:(uint)distance karma:(uint)karma maxKarma:(uint)maxKarma isReconnectingClient:(bool)isReconnectingClient{
+- (void)updateStateBasedOnMatchOnline {
+    [_joiningConversationViewController updateColours:_isMatchOnline];
+
+    NSString *text;
+    if (!_isMatchOnline) {
+        text = @"Your match has been notified, waiting for them to come online";
+        [_joiningConversationViewController reset];
+    } else {
+        if (_wasMatchPreviouslyOffline) {
+            text = @"Your match has come online! Waiting for them to accept";
+        } else {
+            text = @"Waiting for your match to accept too";
+        }
+    }
+    [self setViewRelevantInformationText:text];
+}
+
+- (void)     setName:(NSString *)name profilePicture:(UIImage *)profilePicture callingCardText:(NSString *)callingCardText
+                 age:(uint)age distance:(uint)distance karma:(uint)karma maxKarma:(uint)maxKarma
+isReconnectingClient:(bool)isReconnectingClient isClientOnline:(bool)isClientOnline {
+
+    _isMatchOnline = isClientOnline;
+    if (!_isMatchOnline) {
+        _wasMatchPreviouslyOffline = true;
+    }
+
     // If user we are waiting for reconnects, we receive their information again, but if it is the same user, we just want to carry on waiting,
     // without showing the card again.
+    //
+    // We do want to reset the timer though.
     if (isReconnectingClient && [self isWaitingForMatchToJoin] && ![_matchingViewController isChangeInName:name profilePicture:profilePicture callingCardText:callingCardText age:age]) {
         NSLog(@"Was waiting for match to join but received duplicate profile while waiting for reconnect; not displaying profile");
+        [_joiningConversationViewController reset];
+        [self updateStateBasedOnMatchOnline];
         return;
     }
 
-    [_matchingViewController setName:name profilePicture:profilePicture callingCardText:callingCardText age:age distance:distance karma:karma maxKarma:maxKarma isReconnectingClient:isReconnectingClient];
+    // A new client, so reset its state.
+    if (_isMatchOnline) {
+        _wasMatchPreviouslyOffline = false;
+    }
+
+    [_matchingViewController setName:name profilePicture:profilePicture callingCardText:callingCardText age:age distance:distance karma:karma maxKarma:maxKarma isReconnectingClient:isReconnectingClient isClientOnline:isClientOnline];
+    [self updateStateBasedOnMatchOnline];
     [self onMatchingStarted];
 }
 
@@ -436,6 +506,12 @@
     }
 
     [self fadeOutView:_alertShortText duration:duration alpha:0.4];
+
+    if (!_isCountdownToNotificationRequired) {
+        // Looks better just to clear it straight away.
+        [_textualView setAlpha:0];
+        [_textualViewController stop];
+    }
 }
 
 - (void)onFinishedFadingOut:(UIView *)view duration:(float)duration alpha:(float)alpha {
@@ -446,6 +522,10 @@
     // Rectify any temporary change we made.
     if (!_isSkipButtonRequired) {
         [_forwardButton setHidden:true];
+    }
+
+    if (view == _joiningConversationView) {
+        [_joiningConversationViewController stop];
     }
 }
 
@@ -467,13 +547,24 @@
         [self fadeInView:_backButton duration:duration alpha:ALPHA_BUTTON_IMAGE_READY];
     }
 
-    NSString *alertText = meta;
-    if (alertText != nil) {
+    NSString *alertText = meta[@"text"];
+    NSNumber *isCountdownNotificationRequired = meta[@"countdown"];
+    if ([alertText length] > 0) {
         [_alertShortText setText:alertText];
     }
 
     // Never have a situation where there would be no text to show...
     [self fadeInView:_alertShortText duration:duration alpha:1.0f];
+
+    if ([isCountdownNotificationRequired boolValue] && _isVisible) {
+        [_textualViewController reset];
+        [_textualViewController start];
+        [self fadeInView:_textualView duration:duration alpha:1.0f];
+        [_activityIndicator setHidden:true];
+    } else {
+        [_textualViewController stop];
+        [_activityIndicator setHidden:false];
+    }
 }
 
 - (void)fadeInView:(UIView *)view duration:(float)duration alpha:(float)alpha {
@@ -485,7 +576,7 @@
     }               duration:duration toAlpha:alpha options:UIViewAnimationOptionCurveEaseInOut | UIViewAnimationOptionTransitionNone | UIViewAnimationOptionAllowUserInteraction];
 }
 
-- (void)fadeOutView:(UIView *)view duration:(float)duration alpha:(float)alpha{
+- (void)fadeOutView:(UIView *)view duration:(float)duration alpha:(float)alpha {
     [ViewInteractions fadeOut:view completion:^(BOOL completion) {
         if (!completion) {
             // Do nothing, do not complete the animation, it's probably
@@ -502,12 +593,18 @@
     return view == _localImageViewParent || view == _joiningConversationView;
 }
 
-- (bool)doesViewRequireSkipButton:(UIView*)view {
+- (bool)doesViewRequireSkipButton:(UIView *)view {
     return view == _joiningConversationView;
 }
 
 - (void)onFinishedFadingIn:(UIView *)view duration:(float)duration meta:(id)meta {
     [_forwardButton setHidden:!_isSkipButtonRequired && ![self doesViewRequireSkipButton:view]];
+
+    if (view == _joiningConversationView) {
+        [_joiningConversationViewController start];
+    } else if (view == _matchingView) {
+        [_matchingViewController start];
+    }
 }
 
 

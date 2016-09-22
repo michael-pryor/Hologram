@@ -379,6 +379,8 @@
 
 - (void)viewDidAppear:(BOOL)animated {
     [self enableScreenDim];
+    [_notifications setActivePushEnabled:true];
+
     if (_waitingForEulaCompletion) {
         _waitingForEulaCompletion = false;
         if ([_socialState hasAcceptedEula]) {
@@ -386,6 +388,15 @@
             [self _switchToChatViewHelper];
         }
     }
+
+    if ([_socialState hasAcceptedEula] && [_notifications clearConnectImmediatelyDueToNotification]) {
+        [self _switchToChatView];
+    }
+}
+
+- (void)viewDidDisappear:(BOOL)animated {
+    [_notifications clearConnectImmediatelyDueToNotification]; // Incase we were already in this view.
+    [_notifications setActivePushEnabled:false];
 }
 
 - (IBAction)onDesiredGenderChanged:(id)sender {

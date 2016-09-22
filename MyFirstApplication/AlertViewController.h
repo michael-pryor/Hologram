@@ -17,9 +17,10 @@
 #import "SingleViewCollection.h"
 
 @protocol MediaOperator;
+@protocol NotificationRequest;
 
 @interface AlertViewController : UIViewController <FBAdViewDelegate, NewImageDelegate, ConversationRatingConsumer, MatchingAnswerDelegate, CallingCardDataProvider, ViewChangeNotifier>
-- (void)setGenericInformationText:(NSString *)shortText skipButtonEnabled:(bool)enabled;
+- (void)setGenericInformationText:(NSString *)shortText skipButtonEnabled:(bool)enabled enableCountdownToNotification:(bool)enableCountdownToNotification;
 
 - (Boolean)hideIfVisibleAndReady;
 
@@ -33,7 +34,8 @@
 
 - (bool)isWaitingForMatchToJoin;
 
-- (void)setConversationRatingConsumer:(id <ConversationRatingConsumer>)consumer matchingAnswerDelegate:(id <MatchingAnswerDelegate>)matchingAnswerDelegate mediaOperator:(id <MediaOperator>)videoOperator;
+- (void)setConversationRatingConsumer:(id <ConversationRatingConsumer>)consumer matchingAnswerDelegate:(id <MatchingAnswerDelegate>)matchingAnswerDelegate
+                        mediaOperator:(id <MediaOperator>)videoOperator  notificationRequestDelegate:(id <NotificationRequest>)notificationRequestDelegate;
 
 - (void)setRatingTimeoutSeconds:(uint)ratingTimeoutSeconds matchDecisionTimeoutSeconds:(uint)seconds;
 

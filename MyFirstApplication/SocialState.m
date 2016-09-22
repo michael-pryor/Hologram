@@ -32,6 +32,8 @@ NSString *isHotNotificationEnabledKey = @"isHotNotificationEnabled";
 
 NSString *isLoadingFacebookDataKey = @"isLoadingFacebookData";
 
+NSString *previousUdpHashKey = @"previousUdpHash";
+
 static SocialState *instance = nil;
 
 typedef void (^Block)(id);
@@ -148,8 +150,28 @@ typedef void (^Block)(id);
         } else {
             NSLog(@"No previous is loading facebook data boolean found in storage");
         }
+
+        if ([[NSUserDefaults standardUserDefaults] objectForKey:previousUdpHashKey] != nil) {
+            NSString *previousUdpHash = [[NSUserDefaults standardUserDefaults] stringForKey:previousUdpHashKey];
+            NSLog(@"Previous UDP hash loaded from storage: %@", previousUdpHash);
+            [self persistPreviousUdpHash:previousUdpHash saving:false];
+        } else {
+            NSLog(@"No previous UDP hash found in storage");
+        }
     }
     return self;
+}
+
+- (void)persistPreviousUdpHash:(NSString *)previousUdpHash saving:(bool)doSave {
+    _previousUdpHash = previousUdpHash;
+    if (doSave) {
+        NSLog(@"Persisting previous UDP hash: %@", _previousUdpHash);
+        [[NSUserDefaults standardUserDefaults] setObject:_previousUdpHash forKey:previousUdpHashKey];
+    }
+}
+
+- (void)persistPreviousUdpHash:(NSString *)previousUdpHash {
+    [self persistPreviousUdpHash:previousUdpHash saving:true];
 }
 
 - (void)persistIsLoadingFacebookData:(bool)isLoadingFacebookData saving:(bool)doSave {
@@ -165,7 +187,7 @@ typedef void (^Block)(id);
     [self persistIsLoadingFacebookData:isLoadingFacebookData saving:true];
 }
 
-- (void)persistHotNotificationDays:(NSArray*)hotNotificationDays saving:(bool)doSave {
+- (void)persistHotNotificationDays:(NSArray *)hotNotificationDays saving:(bool)doSave {
     _hotNotificationDays = hotNotificationDays;
 
     if (doSave) {
@@ -174,7 +196,7 @@ typedef void (^Block)(id);
     }
 }
 
-- (void)persistHotNotificationDays:(NSArray*)hotNotificationDays {
+- (void)persistHotNotificationDays:(NSArray *)hotNotificationDays {
     [self persistHotNotificationDays:hotNotificationDays saving:true];
 }
 

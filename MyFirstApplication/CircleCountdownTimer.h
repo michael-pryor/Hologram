@@ -8,11 +8,15 @@
 @protocol MatchingAnswerDelegate;
 @class Timer;
 
+@protocol TimeoutDelegate
+@optional
+- (void)onTimedOut;
+@end
 
 @interface CircleCountdownTimer : NSObject
-- (id)initWithCircleProgressBar:(CircleProgressBar *)circleProgressBar matchingAnswerDelegate:(id <MatchingAnswerDelegate>)matchingAnswerDelegate;
+- (id)initWithCircleProgressBar:(CircleProgressBar *)circleProgressBar matchingAnswerDelegate:(id <TimeoutDelegate>)matchingAnswerDelegate;
 
-- (void)restart;
+- (void)reset;
 
 - (void)loadTimer:(Timer *)timer;
 
@@ -23,4 +27,6 @@
 - (Timer*)cloneTimer;
 
 - (void)stopUpdating;
+
+- (void)enableInfiniteMode;
 @end

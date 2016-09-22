@@ -45,8 +45,7 @@
         [button setAlpha:ALPHA_BUTTON_IMAGE_READY];
     }
 
-    [_matchingCountdownTimer restart];
-    [_matchingCountdownTimer startUpdating];
+    [_matchingCountdownTimer reset];
 }
 
 - (void)setMatchingAnswerDelegate:(id <MatchingAnswerDelegate>)matchingAnswerDelegate {
@@ -60,12 +59,17 @@
     }
 }
 
-- (void)setName:(NSString *)name profilePicture:(UIImage *)profilePicture callingCardText:(NSString *)callingCardText age:(uint)age distance:(uint)distance karma:(uint)karma maxKarma:(uint)maxKarma isReconnectingClient:(bool)isReconnectingClient {
+- (void)setName:(NSString *)name profilePicture:(UIImage *)profilePicture callingCardText:(NSString *)callingCardText age:(uint)age distance:(uint)distance karma:(uint)karma maxKarma:(uint)maxKarma isReconnectingClient:(bool)isReconnectingClient isClientOnline:(bool)isClientOnline{
     dispatch_sync_main(^{
         float ratio = [ViewStringFormatting getKarmaRatioFromValue:karma maximum:maxKarma];
         [ViewStringFormatting updateKarmaUsingProgressView:_localKarmaProgressBar ratio:ratio];
 
-        [_callingCardViewController setName:name profilePicture:profilePicture callingCardText:callingCardText age:age distance:distance karma:karma maxKarma:maxKarma isReconnectingClient:isReconnectingClient];
+        if (isClientOnline) {
+            [_matchingCountdown setProgressBarProgressColor:[UIColor greenColor]];
+        } else {
+            [_matchingCountdown setProgressBarProgressColor:[UIColor orangeColor]];
+        }
+        [_callingCardViewController setName:name profilePicture:profilePicture callingCardText:callingCardText age:age distance:distance karma:karma maxKarma:maxKarma isReconnectingClient:isReconnectingClient isClientOnline:isClientOnline];
         [self reset];
     });
 }
@@ -108,5 +112,9 @@
 - (IBAction)onBlockButtonPressed:(id)sender {
     [self onDoneWithView:_blockButton];
     [_matchingAnswerDelegate onMatchBlocked];
+}
+
+- (void)start {
+    [_matchingCountdownTimer startUpdating];
 }
 @end

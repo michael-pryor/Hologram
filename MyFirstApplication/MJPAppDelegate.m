@@ -7,6 +7,7 @@
 //
 
 #import "MJPAppDelegate.h"
+#import "Notifications.h"
 #import <FBSDKLoginKit/FBSDKLoginKit.h>
 #import <FBSDKCoreKit/FBSDKCoreKit.h>
 #import <Google/Analytics.h>
@@ -70,6 +71,34 @@
                                                           openURL:url
                                                 sourceApplication:sourceApplication
                                                        annotation:annotation];
+}
+
+- (void)application:(UIApplication *)application
+        didFailToRegisterForRemoteNotificationsWithError:(NSError *)error {
+    [[Notifications getNotificationsInstance] onRemoteRegisterFailureWithError:error];
+}
+
+- (void)application:(UIApplication *)application
+        didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken {
+    [[Notifications getNotificationsInstance] onRemoteRegisterSuccessWithDeviceToken:deviceToken];
+}
+
+- (void)application:(UIApplication *)application
+        didReceiveRemoteNotification:(NSDictionary *)userInfo
+        fetchCompletionHandler:(void (^)(UIBackgroundFetchResult result))completionHandler {
+    NSString *originated = userInfo[@"server_name"];
+    NSLog(@"Received remote notification, originating from: %@", originated);
+
+    Notifications* notifications = [Notifications getNotificationsInstance];
+    [notifications setServerNameNotificationOriginatedFrom: originated];
+
+    completionHandler(UIBackgroundFetchResultNoData);
+
+    if ([notifications activePushEnabled] && application.applicationState == UIApplicationStateActive) {
+        // Nothing to do if applicationState is Inactive, the iOS already displayed an alert view.
+        UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Hologram" message:[NSString stringWithFormat:@"%@",[userInfo[@"aps"] objectForKey:@"alert"]] delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil];
+        [alertView show];
+    }
 }
 
 @end

@@ -12,6 +12,7 @@
 #define MINIMUM_AGE 18
 
 @class SocialState;
+
 @protocol SocialStateDataLoadNotification <NSObject>
 - (void)onSocialDataLoaded:(SocialState *)state;
 @end
@@ -29,10 +30,10 @@
 @property(readonly) uint genderEnum;
 @property(readonly) uint interestedIn;
 
-@property(readonly) UIImage* profilePictureImage;
+@property(readonly) UIImage *profilePictureImage;
 @property(readonly) UIImageOrientation profilePictureOrientation;
 @property(readonly) uint profilePictureOrientationInteger;
-@property(readonly) NSData* profilePictureData;
+@property(readonly) NSData *profilePictureData;
 
 // This relates to the Facebook login view, the index of the selected button.
 // Used to rebuild this during initialization.
@@ -42,9 +43,11 @@
 @property(readonly) bool hasAcceptedEula;
 
 @property(readonly) bool isHotNotificationEnabled;
-@property(readonly) NSArray * hotNotificationDays;
+@property(readonly) NSArray *hotNotificationDays;
 
 @property(readonly) bool isLoadingFacebookData;
+
+@property(readonly) NSString *previousUdpHash;
 
 - (bool)updateFromFacebookCore;
 
@@ -62,9 +65,9 @@
 
 - (void)persistOwnerGenderWithSegmentIndex:(int)segmentIndex;
 
-- (void)persistHumanFullName:(NSString*)humanFullName humanShortName:(NSString*)humanShortName;
+- (void)persistHumanFullName:(NSString *)humanFullName humanShortName:(NSString *)humanShortName;
 
-- (void)persistDateOfBirthObject:(NSDate*)dateOfBirth;
+- (void)persistDateOfBirthObject:(NSDate *)dateOfBirth;
 
 - (void)persistProfilePictureImage:(UIImage *)image;
 
@@ -74,8 +77,10 @@
 
 - (void)persistIsHotNotificationEnabled:(bool)isHotNotificationEnabled;
 
-- (void)persistHotNotificationDays:(NSArray*)hotNotificationDays;
+- (void)persistHotNotificationDays:(NSArray *)hotNotificationDays;
 
 - (void)persistIsLoadingFacebookData:(bool)isLoadingFacebookData;
+
+- (void)persistPreviousUdpHash:(NSString *)previousUdpHash;
 @end
 

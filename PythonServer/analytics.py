@@ -18,7 +18,7 @@ class Analytics(object):
     # Do the actual HTTP request to Google analytics.
     def _doPushEvent(self, value, category, name, label):
         if logger.isEnabledFor(logging.DEBUG):
-            loggerDebug("Pushing event with category [%s], name [%s], label [%s], value [%s]" % (category, name, label, value))
+            logger.debug("Pushing event with category [%s], name [%s], label [%s], value [%s]" % (category, name, label, value))
 
         postToMake = {
             'v': 1, # Protocol version (required)

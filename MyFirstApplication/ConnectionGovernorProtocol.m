@@ -13,6 +13,7 @@
 #import "NetworkOperations.h"
 #import "BannedViewController.h"
 #import "UniqueId.h"
+#import "SocialState.h"
 
 // Session hash has timed out, you need a fresh session.
 #define REJECT_HASH_TIMEOUT 1
@@ -31,7 +32,7 @@
 
 // Version to include in connection attempts.
 // Must be >= to server's expectation, otherwise we'l be rejected.
-#define VERSION 5
+#define VERSION 6
 
 // Client has been inactive (not accepting or rejecting conversations) for too long.
 #define INACTIVE_TIMOUT 6
@@ -81,7 +82,7 @@
         _alive = true;
         _reconnectEnabled = true;
 
-        _udpHash = nil;
+        _udpHash = [[SocialState getSocialInstance] previousUdpHash];
         _udpHashPacket = nil;
 
         _recvDelegate = recvDelegate;
@@ -302,6 +303,7 @@
 - (void)handleRejectCode:(uint)rejectCode description:(NSString *)rejectDescription packet:(ByteBuffer *)packet {
     // Hash timed out, the next one will succeed if we clear it (server will give us a new one).
     if (rejectCode == REJECT_HASH_TIMEOUT) {
+        [[SocialState getSocialInstance] persistPreviousUdpHash:nil];
         [self terminateWithConnectionStatus:P_NOT_CONNECTED_HASH_REJECTED withDescription:@"Session expired"];
         [self reconnectLimitedWithFailureDescription:rejectDescription];
     } else if (rejectCode == PERSISTED_ID_CLASH) {
@@ -376,6 +378,9 @@
                     _isNewSession = _udpHash == nil;
                     if (_isNewSession) {
                         _udpHash = [packet getString];
+                    }
+
+                    if (_udpHashPacket == nil) {
                         _udpHashPacket = [[ByteBuffer alloc] init];
                         [_udpHashPacket addUnsignedInteger8:UDP_HASH];
                         [_udpHashPacket addString:_udpHash];
@@ -389,6 +394,7 @@
             } else if (_connectionStatus == P_WAITING_FOR_UDP_HASH_ACK) {
                 if (logon == OP_ACCEPT_UDP) {
                     NSLog(@"UDP hash accepted, fully connected");
+                    [[SocialState getSocialInstance] persistPreviousUdpHash:_udpHash];
                     if (_isNewSession) {
                         [self updateConnectionStatus:P_CONNECTED withDescription:@"Connected!"];
                     } else {
