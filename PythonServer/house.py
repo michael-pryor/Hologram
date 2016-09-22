@@ -419,6 +419,8 @@ class House:
         if banTime is not None:
             if logger.isEnabledFor(logging.DEBUG):
                 logger.debug("Offline client [%s] is banned, removing" % synthClient)
+
+            logger.info("Offline client %s is banned" % synthClient.login_details)
             self._removeFromWaitingList(synthClient,True)
             return None
 

@@ -525,6 +525,9 @@ class Client(object):
             if otherClient is not None:
                 self.house.pushSkip(self, otherClient)
 
+            if otherClient is not None:
+                logger.info("Client %s has skipped %s" % (self.login_details, otherClient.login_details))
+
             otherClient = self.house.releaseRoom(self, self.house.disconnected_skip)
             self.cancelAcceptingMatchExpiry()
 
@@ -595,6 +598,7 @@ class Client(object):
             self.house.releaseRoom(self, self.house.disconnected_permanent)
             self.closeConnection()
         elif opCode == Client.TcpOperationCodes.OP_ACCEPTED_CONVERSATION:
+            logger.info("Client %s accepted the card" % self.login_details)
             self.clearInactivityCounter()
             if not self.house.onAcceptConversation(self):
                 self.doSkip()
@@ -603,7 +607,7 @@ class Client(object):
 
             if logger.isEnabledFor(logging.DEBUG):
                 logger.debug("Received remote notification request from client [%s], payload: %s" % (self, self.remote_notification_payload))
-
+            logger.info("Client %s requested that it be notified" % self.login_details)
             self.house.enableRemoteNotification(self)
         else:
             # Must be debug in case rogue client sends us garbage data
@@ -650,7 +654,9 @@ class Client(object):
         else:
             if logger.isEnabledFor(logging.DEBUG):
                 logger.debug("Not sending ban message to offline client: %s" % self)
+
         self.closeConnection()
+        logger.info("Client %s is banned, force terminated" % self.login_details)
 
     # This is somebody rating us.
     def handleRating(self, rating):
@@ -692,10 +698,16 @@ class Client(object):
                     logger.debug("Block for client [%s] received from [%s]" % (self, self.client_most_recently_matched_with))
                 deductKarma()
                 self.house.pushBlock(self.client_most_recently_matched_with, self)
+
+                if self.client_most_recently_matched_with is not None:
+                    logger.info("Client %s blocked by %s" % (self.login_details, self.client_most_recently_matched_with.login_details))
             elif rating == Client.ConversationRating.GOOD:
                 if logger.isEnabledFor(logging.DEBUG):
                     logger.debug("Good rating for client [%s] received" % self)
                 incrementKarma()
+
+                if self.client_most_recently_matched_with is not None:
+                    logger.info("Client %s received good rating from %s" % (self.login_details, self.client_most_recently_matched_with.login_details))
             elif rating == Client.ConversationRating.AUDIT:
                 if logger.isEnabledFor(logging.DEBUG):
                     logger.debug("Audited client [%s] for bans" % self)
@@ -869,6 +881,8 @@ class Client(object):
         self.startExpectingMatchExpiry()
 
         name = matchedWith.login_details.short_name[:20]
+
+        logger.info("Client %s has been remote notified" % self.login_details)
 
         payload = {
             'alert' : (u'\U0001F525 Your card has been accepted by %s! You have %d seconds to join.' % (name, Client.ACCEPTING_MATCH_EXPIRY)),
