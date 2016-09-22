@@ -473,7 +473,7 @@ if __name__ == "__main__":
     matchingDatabase = Matching(governorName, mongoClient, blockingDatabase, matchHistoryDatabase)
     karmaDatabase = KarmaLeveled(mongoClient)
     persistedIdsDatabase = PersistedIds(mongoClient)
-    remoteNotification = RemoteNotification(1000, governorName, production=False)
+    remoteNotification = RemoteNotification(1000, governorName, production=True)
     server = Governor(reactor, matchingDatabase, karmaDatabase, persistedIdsDatabase, governorName, remoteNotification)
 
     analytics = Analytics(100, governorName)

@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 # Representation of client from server's perspective.
 class Client(object):
-    MINIMUM_VERSION = 5
+    MINIMUM_VERSION = 6
 
     # Clients have absolute maximum of 20 seconds to give their rating before it defaults to an okay rating.
     # App is advised to send within 10 seconds.

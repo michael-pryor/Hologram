@@ -32,7 +32,7 @@
 
 // Version to include in connection attempts.
 // Must be >= to server's expectation, otherwise we'l be rejected.
-#define VERSION 5
+#define VERSION 6
 
 // Client has been inactive (not accepting or rejecting conversations) for too long.
 #define INACTIVE_TIMOUT 6
