@@ -156,6 +156,7 @@ class Client(object):
 
         assert isinstance(remoteNotification, RemoteNotification)
 
+        self.cleanup_immediate = False
         self.login_details = None
         self.reactor = reactor
         self.udp = None
@@ -336,7 +337,7 @@ class Client(object):
             # Client has disconnected so temporarily pause that room.
             self.house.pauseRoom(self)
 
-        self.on_close_func(self)
+        self.on_close_func(self, self.cleanup_immediate)
 
 
     def setUdp(self, clientUdp):
@@ -585,6 +586,12 @@ class Client(object):
         elif opCode == Client.TcpOperationCodes.OP_PERM_DISCONNECT:
             if logger.isEnabledFor(logging.DEBUG):
                 logger.debug("Client [%s] has permanently disconnected with immediate impact" % self)
+
+            # This closes the UDP session, without giving the client a chance to reconnect. It's important so that
+            # rooms dont get released later if an offline profile is loaded.
+            if self.should_notify_on_match_accept:
+                self.cleanup_immediate = True
+
             self.house.releaseRoom(self, self.house.disconnected_permanent)
             self.closeConnection()
         elif opCode == Client.TcpOperationCodes.OP_ACCEPTED_CONVERSATION:

@@ -211,34 +211,36 @@ class House:
             # Has to be a parameter indicating whether we shoudl do this. For example we shouldn't do on skip.
 
             clientB = self.room_participant.get(client)
-            if clientB is not None:
-                del self.room_participant[client]
-                del self.room_participant[clientB]
+            if clientB is None:
+                return
 
-                self.mutualAdvise(client, clientB, Client.onRoomClosure)
+            del self.room_participant[client]
+            del self.room_participant[clientB]
 
-                self.adviseAbortNatPunchthrough(clientB)
-                if client.isConnectedTcp():
-                    self.adviseAbortNatPunchthrough(client)
+            self.mutualAdvise(client, clientB, Client.onRoomClosure)
 
-                if notification is not None:
-                    assert isinstance(notification, ByteBuffer)
-                    if clientB.tcp is not None:
-                        clientB.tcp.sendByteBuffer(notification)
+            self.adviseAbortNatPunchthrough(clientB)
+            if client.isConnectedTcp():
+                self.adviseAbortNatPunchthrough(client)
 
-                clientB.setToWaitForRatingOfPreviousConversation(client)
+            if notification is not None:
+                assert isinstance(notification, ByteBuffer)
+                if clientB.tcp is not None:
+                    clientB.tcp.sendByteBuffer(notification)
 
-                # If the client is an offline client and wants to be notified, then
-                # we need to put it back into the waiting list.
-                if clientB.connection_status != Client.ConnectionStatus.CONNECTED and clientB.should_notify_on_match_accept:
-                    clientB.transitionState(None, Client.State.MATCHING)
-                    self.matchingDatabase.pushWaiting(clientB)
+            clientB.setToWaitForRatingOfPreviousConversation(client)
 
-                if logger.isEnabledFor(logging.DEBUG):
-                    logger.debug("Permanent closure of session between client [%s] and [%s] due to client [%s] leaving the room" % (client, clientB, client))
+            # If the client is an offline client and wants to be notified, then
+            # we need to put it back into the waiting list.
+            if clientB.connection_status != Client.ConnectionStatus.CONNECTED and clientB.should_notify_on_match_accept:
+                clientB.transitionState(None, Client.State.MATCHING)
+                self.matchingDatabase.pushWaiting(clientB)
 
-                # Return the other client.
-                return clientB
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug("Permanent closure of session between client [%s] and [%s] due to client [%s] leaving the room" % (client, clientB, client))
+
+            # Return the other client.
+            return clientB
         finally:
             self.house_lock.release()
 

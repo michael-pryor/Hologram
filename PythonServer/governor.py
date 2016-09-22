@@ -76,7 +76,7 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
     def _unlockClm(self):
         self.client_mappings_lock.release()
 
-    def _cleanupUdp(self, client):
+    def _cleanupUdp(self, client, immediate=False):
         assert isinstance(client, Client)
 
         udpClient = client.udp
@@ -88,9 +88,9 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
             if logger.isEnabledFor(logging.DEBUG):
                 logger.debug("Attempt to cleanup UDP address [%s] failed, not yet connected via UDP" % udpClient)
 
-        self.cleanupClientUdpHash(client)
+        self.cleanupClientUdpHash(client, immediate)
 
-    def cleanupClientUdpHash(self, client):
+    def cleanupClientUdpHash(self, client, immediate=False):
         self._lockClm()
         try:
             if client.udp_hash not in self.clients_by_udp_hash:
@@ -103,9 +103,14 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
                 if logger.isEnabledFor(logging.DEBUG):
                     logger.debug("Scheduled new session expiry for client [%s] in [%s] seconds" % (client, delay))
 
-                cleanAction = self.reactor.callLater(delay, self._doClientHashCleanup, client)
-
-                self.clean_actions_by_udp_hash[client.udp_hash] = cleanAction
+                if not immediate:
+                    cleanAction = self.reactor.callLater(delay, self._doClientHashCleanup, client)
+                    self.clean_actions_by_udp_hash[client.udp_hash] = cleanAction
+                else:
+                    if logger.isEnabledFor(logging.DEBUG):
+                        logger.debug("Cleaning up client [%s] immediately" % (client))
+                    self.cancelCleanupClientUdpHash(client)
+                    self._doClientHashCleanup(client)
             else:
                 if logger.isEnabledFor(logging.DEBUG):
                     logger.debug("Reset expiry of [%s] seconds remaining for client [%s] to [%.2f] seconds" % (getRemainingTimeOnAction(cleanAction), client, delay))
@@ -151,7 +156,10 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
         try:
             udpHash = client.udp_hash
             if udpHash is not None:
-                del self.clean_actions_by_udp_hash[client.udp_hash]
+                try:
+                    del self.clean_actions_by_udp_hash[client.udp_hash]
+                except KeyError:
+                    pass
 
                 existing = self.clients_by_udp_hash.get(udpHash)
                 if existing is None:
@@ -164,6 +172,7 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
                     else:
                         if logger.isEnabledFor(logging.DEBUG):
                             logger.debug("Cleaning up UDP hash [%s] of client [%s]" % (udpHash, client))
+
                         del self.clients_by_udp_hash[udpHash]
 
                         # We need to make sure that client data is not left dangling without a UDP hash.
@@ -174,7 +183,7 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
         finally:
             self._unlockClm()
 
-    def clientDisconnected(self, client):
+    def clientDisconnected(self, client, immediate=False):
         client.closeConnection()
 
         self._lockClm()
@@ -206,13 +215,14 @@ class Governor(ClientFactory, protocol.DatagramProtocol):
                     if origClient.udp != client.udp:
                         if logger.isEnabledFor(logging.DEBUG):
                             logger.debug("Client has reconnected via UDP on a different interface, cleaning up old UDP connection. Old [%s] vs new [%s]" % (origClient.udp, client.udp))
-                        self._cleanupUdp(origClient)
+
+                        self._cleanupUdp(origClient, immediate)
                     else:
                         if logger.isEnabledFor(logging.DEBUG):
                             logger.debug("Not cleaning up UDP address; as has been reused by reconnect [%s]" % client.udp)
                 else:
                     # No reconnect concerns, cleanup the client normally.
-                    self._cleanupUdp(origClient)
+                    self._cleanupUdp(origClient, immediate)
         finally:
             self._unlockClm()
 
