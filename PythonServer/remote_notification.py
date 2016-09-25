@@ -10,7 +10,7 @@ import logging
 #import httplib
 #httplib.HTTPConnection.debuglevel = 2
 
-
+import time
 from twisted.internet import threads
 import requests
 
@@ -19,7 +19,7 @@ from hyper.contrib import HTTP20Adapter
 logger = logging.getLogger(__name__)
 
 class RemoteNotification(object):
-    def __init__(self, maxLiveCount, serverName, production = True):
+    def __init__(self, maxLiveCount, serverName, production):
         super(RemoteNotification, self).__init__()
         # Requests which are waiting but not actioned yet.
         self.live_count = 0
@@ -35,6 +35,9 @@ class RemoteNotification(object):
             environment = "https://api.development.push.apple.com:443" # this is dev.
         self.httpSession.mount(environment, HTTP20Adapter())
 
+        self.httpSession.cert = '../security/hologram_private.cer'
+        self.httpSession.headers.update({'apns-topic' : 'mike.Spawn'})
+
         self.url_push = environment + "/3/device/%s"
 
     def _doPushEvent(self, client, payload):
@@ -43,8 +46,18 @@ class RemoteNotification(object):
             logger.error("No remote notification payload associated with client [%s], failed to notify" % client)
             return
 
-        return self.httpSession.post(theUrl, json={'aps' : payload, 'server_name' : self.server_name}, headers={'apns-topic' : 'mike.Spawn'},
-                                     cert='../security/hologram_private.cer')
+        # I noticed occasional failures here, retrying to see if that helps.
+        lastException = None
+        for n in xrange(0,5):
+            try:
+                return self.httpSession.post(theUrl, json={'aps' : payload, 'server_name' : self.server_name})
+            except Exception as e:
+                lastException = e
+                backoff = 0.1
+                logger.warn("Failed to post remote notificaiton, retrying in %.1f seconds: %s", backoff, e)
+                time.sleep(backoff)
+
+        raise lastException
 
     def onTransactionSuccess(self, client):
         pass
