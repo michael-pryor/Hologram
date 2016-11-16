@@ -3,11 +3,11 @@ logger = logging.getLogger(__name__)
 from database.karma import Karma
 
 class KarmaLeveled(object):
-    # 1 hour.
+    # 1 day.
     #
     # Each Karma deduction will take this amount of time to expire.
     # The first ban will last this long, thereafter bans exponentially increase.
-    KARMA_BASE_EXPIRY_TIME_SECONDS = 60 * 60
+    KARMA_BASE_EXPIRY_TIME_SECONDS = 60 * 60 * 24
 
     # We will start at x, and so assuming no expiration takes place:
     # Ban 1: banned for x seconds.
@@ -16,8 +16,11 @@ class KarmaLeveled(object):
     # Ban 4: x^4
     MAX_EXPONENTIAL_INCREASES = 4
 
-    # Karma ratings are from between 0 to 10.
-    KARMA_MAXIMUM = 10
+    # Karma ratings are from between 0 to 4.
+    #
+    # Decrement by 2 with every ban, increment by 1 every day.
+    # Adjust this as user base increases.
+    KARMA_MAXIMUM = 4
 
     def __init__(self, mongoClient):
         self.karma = Karma(mongoClient.db.karma, KarmaLeveled.KARMA_BASE_EXPIRY_TIME_SECONDS, shouldLinkTimes=False)
