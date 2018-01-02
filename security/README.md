@@ -3,6 +3,7 @@ This folder contains scripts which generate certificates and private keys using 
 
 There are two places where SSL is used.
 1. Communication between the commander and governor. The commander routes clients (app users) to the governor; the governor does all the heavy lifting. Commander and governor communicate with each other, discussing governor load so that the commander can route to the governor with the most available bandwidth.
+
 2. Communication with Apple APN servers to facilitate remote push notifications to the iOS application. These must be renewed yearly.
 
 # generate.sh
