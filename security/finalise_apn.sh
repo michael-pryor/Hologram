@@ -4,4 +4,4 @@ if [ ! -f hologram_apn_encoded.cer ]; then
 fi
 
 openssl x509 -in hologram_apn_encoded.cer -inform der -out hologram_apn.cer
-cat hologram_apn.cer hologram.key > hologram_private.cer
+cat hologram_apn.cer hologram_apn.key > hologram_private.cer
